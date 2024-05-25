@@ -1,0 +1,74 @@
+include: package:lint/strict.yaml
+
+analyzer:
+  plugins:
+    - custom_lint
+  errors:
+    invalid_annotation_target: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/generated_plugin_registrant.dart"
+
+linter:
+  rules:
+    - always_put_control_body_on_new_line
+    - always_put_required_named_parameters_first
+    - always_use_package_imports
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_catches_without_on_clauses
+    - avoid_equals_and_hash_code_on_mutable_classes
+    - avoid_positional_boolean_parameters
+    - avoid_redundant_argument_values
+    - avoid_returning_this
+    - avoid_single_cascade_in_expression_statements
+    - avoid_slow_async_io
+    - avoid_types_on_closure_parameters
+    - avoid_unnecessary_containers
+    - avoid_unused_constructor_parameters
+    - avoid_void_async
+    - await_only_futures
+    - camel_case_types
+    - cancel_subscriptions
+    - cascade_invocations
+    - close_sinks
+    - collection_methods_unrelated_type
+    - comment_references
+    - constant_identifier_names
+    - control_flow_in_finally
+    - directives_ordering
+    - empty_statements
+    - file_names
+    - hash_and_equals
+    - join_return_with_assignment
+    - leading_newlines_in_multiline_strings
+    - lines_longer_than_80_chars
+    - literal_only_boolean_expressions
+    - no_adjacent_strings_in_list
+    - no_logic_in_create_state
+    - non_constant_identifier_names
+    - omit_local_variable_types
+    - one_member_abstracts
+    - only_throw_errors
+    - overridden_fields
+    - parameter_assignments
+    - prefer_adjacent_string_concatenation
+    - prefer_collection_literals
+    - prefer_conditional_assignment
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_constructors_over_static_methods
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_function_declarations_over_variables
+    - sort_pub_dependencies
+    - test_types_in_equals
+    - throw_in_finally
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unnecessary_string_escapes
+    - unnecessary_string_interpolations
