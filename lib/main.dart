@@ -257,6 +257,11 @@ class EmulatorPainter extends CustomPainter {
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
 
+  final Paint borderPaint = Paint()
+    ..strokeWidth = 1
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke;
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, backgroundPaint);
@@ -278,10 +283,16 @@ class EmulatorPainter extends CustomPainter {
         matrix.storage,
       );
 
-    canvas.drawRect(
-      topLeft & Size(256 * scale.toDouble(), 224 * scale.toDouble()),
-      paint,
-    );
+    canvas
+      ..drawRect(
+        topLeft & Size(256 * scale.toDouble(), 224 * scale.toDouble()),
+        paint,
+      )
+      ..drawRect(
+        (topLeft - const Offset(1, 1)) &
+            Size(258 * scale.toDouble(), 226 * scale.toDouble()),
+        borderPaint,
+      );
   }
 
   @override
