@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:nes/cartridge.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,49 +15,160 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NES',
       theme: ThemeData(useMaterial3: true),
       debugShowCheckedModeBanner: false,
-      home: const EmulatorWidget(),
+      home: const Scaffold(
+        body: AppWidget(),
+      ),
+    );
+  }
+}
+
+class AppWidget extends HookWidget {
+  const AppWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cartridgeState = useState<Cartridge?>(null);
+
+    return PlatformMenuBar(
+      menus: [
+        PlatformMenu(
+          label: 'NES',
+          menus: [
+            PlatformMenuItem(
+              label: 'About',
+              onSelected: () {},
+            ),
+            if (PlatformProvidedMenuItem.hasMenu(
+              PlatformProvidedMenuItemType.quit,
+            ))
+              const PlatformProvidedMenuItem(
+                type: PlatformProvidedMenuItemType.quit,
+              ),
+          ],
+        ),
+        PlatformMenu(
+          label: 'File',
+          menus: [
+            PlatformMenuItem(
+              label: 'Open...',
+              shortcut: const CharacterActivator('o', meta: true),
+              onSelected: () async {
+                await _loadRom(cartridgeState);
+              },
+            ),
+          ],
+        ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(child: DisplayWidget()),
+          if (cartridgeState.value case final cartridge?)
+            CartridgeInfoWidget(
+              cartridge: cartridge,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _loadRom(ValueNotifier<Cartridge?> cartridgeState) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['nes'],
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    cartridgeState.value = null;
+
+    final path = result.files.single.path;
+
+    if (path == null) {
+      return;
+    }
+
+    cartridgeState.value = Cartridge.fromFile(path);
+  }
+}
+
+class CartridgeInfoWidget extends StatelessWidget {
+  const CartridgeInfoWidget({
+    required this.cartridge,
+    super.key,
+  });
+
+  final Cartridge cartridge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Filename: ${File(cartridge.file).uri.pathSegments.last}'),
+          Text('ROM format: ${cartridge.romFormat}'),
+          Text('PRG ROM size: ${cartridge.prgRomSize} bytes'),
+          Text('CHR ROM size: ${cartridge.chrRomSize} bytes'),
+          Text('Nametable layout: ${cartridge.nametableLayout}'),
+          Text(
+            'Alternative nametable layout: '
+            '${cartridge.alternativeNametableLayout}',
+          ),
+          Text('Has battery: ${cartridge.hasBattery}'),
+          Text('Has trainer: ${cartridge.hasTrainer}'),
+          Text('Console type: ${cartridge.consoleType}'),
+          Text('Mapper: ${cartridge.mapper}'),
+          if (cartridge.romFormat == RomFormat.nes20)
+            Text('Submapper: ${cartridge.subMapper}'),
+          Text('PRG RAM size: ${cartridge.prgRamSize} bytes'),
+          Text('TV system: ${cartridge.tvSystem}'),
+        ],
+      ),
     );
   }
 }
 
 // NES resolution: 256x224 (NTSC) or 256x240 (PAL)
 
-class EmulatorWidget extends StatelessWidget {
-  const EmulatorWidget({super.key});
+class DisplayWidget extends StatelessWidget {
+  const DisplayWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-        future: _loadImage(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+    return FutureBuilder(
+      future: _loadImage(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          final image = snapshot.data;
+        final image = snapshot.data;
 
-          if (image == null) {
-            return const Center(child: Text('Failed to load image'));
-          }
+        if (image == null) {
+          return const Center(child: Text('Failed to load image'));
+        }
 
-          return CustomPaint(
-            painter: EmulatorPainter(image: image),
-            child: const SizedBox.expand(),
-          );
-        },
-      ),
+        return CustomPaint(
+          painter: EmulatorPainter(image: image),
+          child: const SizedBox.expand(),
+        );
+      },
     );
   }
 
