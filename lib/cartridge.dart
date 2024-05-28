@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:nes/invalid_rom.dart';
+import 'package:nes/invalid_rom_header.dart';
+import 'package:nes/mapper.dart';
 
 enum NametableLayout { horizontal, vertical }
 
@@ -24,7 +25,6 @@ class Cartridge {
     required this.hasBattery,
     required this.hasTrainer,
     required this.mapper,
-    required this.subMapper,
     required this.consoleType,
     required this.romFormat,
     required this.prgRamSize,
@@ -51,7 +51,6 @@ class Cartridge {
       hasBattery: _parseHasBattery(rom),
       hasTrainer: _parseHasTrainer(rom),
       mapper: _parseMapper(rom),
-      subMapper: _parseSubMapper(rom),
       consoleType: _parseConsoleType(rom),
       romFormat: _parseRomFormat(rom),
       prgRamSize: _parsePrgRamSize(rom),
@@ -69,12 +68,14 @@ class Cartridge {
   final bool alternativeNametableLayout;
   final bool hasBattery;
   final bool hasTrainer;
-  final int mapper;
-  final int subMapper;
+  final Mapper mapper;
   final ConsoleType consoleType;
   final RomFormat romFormat;
   final int prgRamSize;
   final TvSystem tvSystem;
+
+  // TODO bud-26.05.24
+  final Uint8List sram = Uint8List(0x2000);
 
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
@@ -116,21 +117,22 @@ class Cartridge {
     return (rom[6] & 0x04) != 0;
   }
 
-  static int _parseMapper(Uint8List rom) {
+  static Mapper _parseMapper(Uint8List rom) {
     final flags6 = rom[6];
     final flags7 = rom[7];
     final flags8 = rom[8];
+    final subMapperId = (flags8 & 0xF0) >> 4;
+
+    int mapperId = 0;
 
     if (_parseRomFormat(rom) == RomFormat.nes20) {
-      return ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
+      mapperId =
+          ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
     } else {
-      return (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
+      mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
     }
-  }
 
-  static int _parseSubMapper(Uint8List rom) {
-    final flags8 = rom[8];
-    return (flags8 & 0xF0) >> 4;
+    return Mapper(mapperId, subMapperId);
   }
 
   static ConsoleType _parseConsoleType(Uint8List rom) {
@@ -152,5 +154,13 @@ class Cartridge {
 
   static TvSystem _parseTvSystem(Uint8List rom) {
     return TvSystem.values[rom[9] & 0x03];
+  }
+
+  int read(int address) {
+    return mapper.read(this, address);
+  }
+
+  void write(int address, int value) {
+    mapper.write(this, address, value);
   }
 }
