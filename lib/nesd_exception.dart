@@ -1,8 +1,8 @@
-class InvalidRom implements Exception {
+class NesdException implements Exception {
+  NesdException(this.message, {this.previous});
+
   final String message;
   final Exception? previous;
-
-  InvalidRom(this.message, {this.previous});
 
   @override
   String toString() => message;

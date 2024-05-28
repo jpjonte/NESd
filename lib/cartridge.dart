@@ -36,7 +36,7 @@ class Cartridge {
     final rom = file.readAsBytesSync();
 
     if (rom[0] != 0x4E || rom[1] != 0x45 || rom[2] != 0x53 || rom[3] != 0x1A) {
-      throw InvalidRom('ROM has an unknown format');
+      throw InvalidRomHeader(rom.sublist(0, 4));
     }
 
     return Cartridge._internal(
