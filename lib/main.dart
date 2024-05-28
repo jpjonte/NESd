@@ -41,6 +41,7 @@ class AppWidget extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final cartridgeState = useState<Cartridge?>(null);
+    final errorState = useState<String?>(null);
 
     return PlatformMenuBar(
       menus: [
@@ -66,26 +67,36 @@ class AppWidget extends HookWidget {
               label: 'Open...',
               shortcut: const CharacterActivator('o', meta: true),
               onSelected: () async {
-                await _loadRom(cartridgeState);
+                await _loadRom(cartridgeState, errorState);
               },
             ),
           ],
         ),
       ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           const Expanded(child: DisplayWidget()),
           if (cartridgeState.value case final cartridge?)
-            CartridgeInfoWidget(
-              cartridge: cartridge,
+            CartridgeInfoWidget(cartridge: cartridge),
+          if (errorState.value != null)
+            Text(
+              errorState.value!,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
         ],
       ),
     );
   }
 
-  Future<void> _loadRom(ValueNotifier<Cartridge?> cartridgeState) async {
+  Future<void> _loadRom(
+    ValueNotifier<Cartridge?> cartridgeState,
+    ValueNotifier<String?> error,
+  ) async {
+    error.value = null;
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['nes'],
@@ -103,7 +114,11 @@ class AppWidget extends HookWidget {
       return;
     }
 
-    cartridgeState.value = Cartridge.fromFile(path);
+    try {
+      cartridgeState.value = Cartridge.fromFile(path);
+    } on Exception catch (e) {
+      error.value = 'Failed to load ROM: $e';
+    }
   }
 }
 
