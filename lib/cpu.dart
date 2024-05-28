@@ -24,6 +24,9 @@ class CPU {
   int joy1 = 0;
   int joy2 = 0;
 
+  bool irq = false;
+  bool nmi = false;
+
   Uint8List ram = Uint8List(0x0800);
 
   int get C => P & 0x01;
@@ -149,6 +152,8 @@ class CPU {
   }
 
   int step() {
+    handleInterrupts();
+
     final opcode = read(PC);
     final op = ops[opcode];
 
@@ -161,5 +166,38 @@ class CPU {
     final additionalCycles = op.execute(this);
 
     return op.cycles + additionalCycles;
+  }
+
+  void handleInterrupts() {
+    // TODO bud-28.05.24 /NMI is an edge-sensitive interrupt
+    // TODO bud-28.05.24 make sure that NMI is only triggered
+    // TODO bud-28.05.24 when changing from false to true
+    if (nmi) {
+      handleNmi();
+    }
+
+    if (irq && I == 0) {
+      handleIrq();
+    }
+  }
+
+  void handleNmi() {
+    nmi = false;
+
+    pushStack16(PC);
+    pushStack(P);
+
+    I = 1;
+    PC = read16(0xfffa);
+  }
+
+  void handleIrq() {
+    irq = false;
+
+    pushStack16(PC);
+    pushStack(P);
+
+    I = 1;
+    PC = read16(0xfffe);
   }
 }
