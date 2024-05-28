@@ -19,7 +19,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NES',
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 12.0),
+        ),
+        useMaterial3: true,
+      ),
       debugShowCheckedModeBanner: false,
       home: const Scaffold(
         body: AppWidget(),
@@ -112,28 +117,54 @@ class CartridgeInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      width: 400,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TableRow('Filename', File(cartridge.file).uri.pathSegments.last),
+            TableRow('ROM format', cartridge.romFormat.toString()),
+            TableRow('PRG ROM size', '${cartridge.prgRomSize} bytes'),
+            TableRow('CHR ROM size', '${cartridge.chrRomSize} bytes'),
+            TableRow('Nametable layout', '${cartridge.nametableLayout}'),
+            TableRow(
+              'Alternative nametable layout',
+              '${cartridge.alternativeNametableLayout}',
+            ),
+            TableRow('Has battery', '${cartridge.hasBattery}'),
+            TableRow('Has trainer', '${cartridge.hasTrainer}'),
+            TableRow('Console type', '${cartridge.consoleType}'),
+            TableRow('Mapper', cartridge.mapper.name),
+            TableRow('PRG RAM size', '${cartridge.prgRamSize} bytes'),
+            TableRow('TV system', '${cartridge.tvSystem}'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TableRow extends StatelessWidget {
+  const TableRow(
+    this.label,
+    this.value, {
+    super.key,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Filename: ${File(cartridge.file).uri.pathSegments.last}'),
-          Text('ROM format: ${cartridge.romFormat}'),
-          Text('PRG ROM size: ${cartridge.prgRomSize} bytes'),
-          Text('CHR ROM size: ${cartridge.chrRomSize} bytes'),
-          Text('Nametable layout: ${cartridge.nametableLayout}'),
-          Text(
-            'Alternative nametable layout: '
-            '${cartridge.alternativeNametableLayout}',
-          ),
-          Text('Has battery: ${cartridge.hasBattery}'),
-          Text('Has trainer: ${cartridge.hasTrainer}'),
-          Text('Console type: ${cartridge.consoleType}'),
-          Text('Mapper: ${cartridge.mapper}'),
-          if (cartridge.romFormat == RomFormat.nes20)
-            Text('Submapper: ${cartridge.subMapper}'),
-          Text('PRG RAM size: ${cartridge.prgRamSize} bytes'),
-          Text('TV system: ${cartridge.tvSystem}'),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(value),
         ],
       ),
     );
