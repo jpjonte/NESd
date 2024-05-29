@@ -4,14 +4,14 @@ extension BitExtension on int {
   }
 
   int setBit(int n, int value) {
-    var value = this;
+    var object = this;
 
     if (value == 0) {
-      value &= ~(1 << n);
+      object &= ~(1 << n);
     } else {
-      value |= 1 << n;
+      object |= 1 << n;
     }
 
-    return value;
+    return object;
   }
 }

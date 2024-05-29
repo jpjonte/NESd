@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:nes/address_mode.dart';
 import 'package:nes/apu.dart';
+import 'package:nes/bit_extension.dart';
 import 'package:nes/cartridge.dart';
 import 'package:nes/hex_extension.dart';
 import 'package:nes/instruction.dart';
@@ -37,21 +38,21 @@ class CPU {
 
   Uint8List ram = Uint8List(0x0800);
 
-  int get C => P & 0x01;
-  int get Z => (P >> 1) & 0x01;
-  int get I => (P >> 2) & 0x01;
-  int get D => (P >> 3) & 0x01;
-  int get B => (P >> 4) & 0x01;
-  int get V => (P >> 6) & 0x01;
-  int get N => (P >> 7) & 0x01;
+  int get C => P.bit(0);
+  int get Z => P.bit(1);
+  int get I => P.bit(2);
+  int get D => P.bit(3);
+  int get B => P.bit(4);
+  int get V => P.bit(6);
+  int get N => P.bit(7);
 
-  set C(int value) => P = (P & 0xfe) | (value & 0x01);
-  set Z(int value) => P = (P & 0xfd) | ((value & 0x01) << 1);
-  set I(int value) => P = (P & 0xfb) | ((value & 0x01) << 2);
-  set D(int value) => P = (P & 0xf7) | ((value & 0x01) << 3);
-  set B(int value) => P = (P & 0xef) | ((value & 0x01) << 4);
-  set V(int value) => P = (P & 0xbf) | ((value & 0x01) << 6);
-  set N(int value) => P = (P & 0x7f) | ((value & 0x01) << 7);
+  set C(int value) => P = P.setBit(0, value);
+  set Z(int value) => P = P.setBit(1, value);
+  set I(int value) => P = P.setBit(2, value);
+  set D(int value) => P = P.setBit(3, value);
+  set B(int value) => P = P.setBit(4, value);
+  set V(int value) => P = P.setBit(6, value);
+  set N(int value) => P = P.setBit(7, value);
 
   int cycles = 0;
 
