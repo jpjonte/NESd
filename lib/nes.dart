@@ -22,6 +22,12 @@ class NES {
     // TODO bud-26.05.24 start emulation
   }
 
+  void reset() {
+    cpu.reset();
+    apu.reset();
+    ppu.reset();
+  }
+
   void step() {
     final cycles = cpu.step();
 

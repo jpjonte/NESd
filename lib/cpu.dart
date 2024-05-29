@@ -1,10 +1,14 @@
 // ignore_for_file: non_constant_identifier_names
 // ignore_for_file: parameter_assignments
 
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:nes/address_mode.dart';
 import 'package:nes/apu.dart';
 import 'package:nes/cartridge.dart';
+import 'package:nes/hex_extension.dart';
+import 'package:nes/instruction.dart';
 import 'package:nes/invalid_opcode.dart';
 import 'package:nes/operation.dart';
 import 'package:nes/ppu.dart';
@@ -56,6 +60,10 @@ class CPU {
   late final String debugLog;
 
   int read(int address) {
+    if (address == addressA) {
+      return A;
+    }
+
     if (address < 0x2000) {
       return ram[address % 0x0800];
     }
@@ -89,11 +97,24 @@ class CPU {
     return cartridge.read(address);
   }
 
-  int read16(int address) {
-    return read(address) | (read(address + 1) << 8);
+  int read16(int address, {bool wrap = false}) {
+    final low = read(address);
+
+    final highAddress =
+        wrap ? (address & 0xff00 | ((address + 1) & 0xff)) : address + 1;
+
+    final high = read(highAddress);
+
+    return low | (high << 8);
   }
 
   void write(int address, int value) {
+    if (address == addressA) {
+      A = value;
+
+      return;
+    }
+
     address &= 0xffff;
     value &= 0xff;
 

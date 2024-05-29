@@ -87,8 +87,10 @@ class Cartridge {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
     final prgRomSize = rom[4] * 0x4000;
     final chrRomSize = rom[5] * 0x2000;
-    return rom.sublist(16 + trainerSize + prgRomSize,
-        16 + trainerSize + prgRomSize + chrRomSize);
+    return rom.sublist(
+      16 + trainerSize + prgRomSize,
+      16 + trainerSize + prgRomSize + chrRomSize,
+    );
   }
 
   static int _parsePrgRomSize(Uint8List rom) {
@@ -123,7 +125,7 @@ class Cartridge {
     final flags8 = rom[8];
     final subMapperId = (flags8 & 0xF0) >> 4;
 
-    int mapperId = 0;
+    var mapperId = 0;
 
     if (_parseRomFormat(rom) == RomFormat.nes20) {
       mapperId =

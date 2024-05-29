@@ -34,16 +34,8 @@ class Mapper0 extends Mapper {
       return cartridge.chrRom[address];
     }
 
-    if (address >= 0xc000) {
-      if (cartridge.prgRom.length == 0x4000) {
-        return cartridge.prgRom[address - 0xc000];
-      }
-
-      return cartridge.prgRom[address - 0x8000];
-    }
-
     if (address >= 0x8000) {
-      return cartridge.prgRom[address - 0x8000];
+      return cartridge.prgRom[address % cartridge.prgRomSize];
     }
 
     if (address >= 0x6000) {

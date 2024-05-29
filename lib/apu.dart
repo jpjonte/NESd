@@ -1,6 +1,8 @@
 class APU {
   int status = 0;
 
+  void reset() {}
+
   int read(int address) {
     return 0;
   }
