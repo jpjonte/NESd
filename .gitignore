@@ -31,3 +31,4 @@ migrate_working_dir/
 .fvm/
 
 roms/
+logs/

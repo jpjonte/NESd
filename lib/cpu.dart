@@ -10,6 +10,10 @@ import 'package:nes/operation.dart';
 import 'package:nes/ppu.dart';
 
 class CPU {
+  CPU() {
+    debugLog = 'debug.log';
+  }
+
   late final PPU ppu;
   late final APU apu;
   late final Cartridge cartridge;
@@ -44,6 +48,12 @@ class CPU {
   set B(int value) => P = (P & 0xef) | ((value & 0x01) << 4);
   set V(int value) => P = (P & 0xbf) | ((value & 0x01) << 6);
   set N(int value) => P = (P & 0x7f) | ((value & 0x01) << 7);
+
+  int cycles = 0;
+
+  bool debug = false;
+
+  late final String debugLog;
 
   int read(int address) {
     if (address < 0x2000) {
@@ -149,23 +159,56 @@ class CPU {
     SP = 0xfd;
     PC = read(0xfffc) | (read(0xfffd) << 8);
     P = 0x24;
+    // TODO bud-28.05.24 check if this makes sense
+    cycles = 7;
   }
 
   int step() {
     handleInterrupts();
 
     final opcode = read(PC);
+
     final op = ops[opcode];
 
     if (op == null) {
       throw InvalidOpcode(PC, opcode);
     }
 
+    debugPc(opcode);
+
     PC++;
 
-    final additionalCycles = op.execute(this);
+    final count = op.addressMode.operandCount;
 
-    return op.cycles + additionalCycles;
+    final operands = List.generate(count, (index) => read(PC + index));
+
+    debugOpAssembly(op, operands);
+
+    final (address, pageCrossed) = op.addressMode.read(this);
+
+    debugOpDisassembled(op, operands, address);
+    debugRegisters();
+    debugCycles();
+
+    final start = PC;
+
+    op.instruction.execute(this, address);
+
+    var additionalCycles = 0;
+
+    if (op.instruction.type == InstructionType.branch && start != PC) {
+      additionalCycles = calculateBranchCycles(start, PC);
+    }
+
+    if (op.pageCrossAddsCycle && pageCrossed) {
+      additionalCycles++;
+    }
+
+    final executedCycles = op.cycles + additionalCycles;
+
+    cycles += executedCycles;
+
+    return executedCycles;
   }
 
   void handleInterrupts() {
@@ -173,31 +216,96 @@ class CPU {
     // TODO bud-28.05.24 make sure that NMI is only triggered
     // TODO bud-28.05.24 when changing from false to true
     if (nmi) {
-      handleNmi();
+      nmi = false;
+
+      handleIrq(0xfffa);
     }
 
     if (irq && I == 0) {
-      handleIrq();
+      irq = false;
+
+      handleIrq(0xfffe);
     }
   }
 
-  void handleNmi() {
-    nmi = false;
-
-    pushStack16(PC);
-    pushStack(P);
-
-    I = 1;
-    PC = read16(0xfffa);
-  }
-
-  void handleIrq() {
+  void handleIrq(int address) {
     irq = false;
 
     pushStack16(PC);
-    pushStack(P);
+    PHP.execute(this, 0);
 
     I = 1;
-    PC = read16(0xfffe);
+    PC = read16(address);
+  }
+
+  int calculateBranchCycles(int from, int to) {
+    return pageCrossed(from, to) ? 2 : 1;
+  }
+
+  void debugPc(int opcode) {
+    writeDebug('${PC.toHex(4)}  ${opcode.toHex()} ');
+  }
+
+  void debugOpAssembly(Operation op, List<int> operands) {
+    final formattedOperands = operands.map((o) => '${o.toHex()} ').join();
+    final assembly = formattedOperands + ('   ' * (2 - operands.length));
+
+    writeDebug('$assembly ');
+  }
+
+  void debugOpDisassembled(
+    Operation op,
+    List<int> operands,
+    int address,
+  ) {
+    final value = read(address);
+
+    final addressDebug = op.addressMode.debug(this, operands, address);
+
+    var operandDebug = '';
+
+    if (operands.isNotEmpty &&
+        op.addressMode != immediate &&
+        ![
+          InstructionType.jump,
+          InstructionType.branch,
+        ].contains(op.instruction.type)) {
+      operandDebug = ' = ${value.toHex()}';
+    }
+
+    final disassembly = addressDebug + operandDebug;
+
+    final mark = op.unofficial ? '*' : ' ';
+
+    writeDebug(
+      '$mark${op.instruction.name} '
+      '${disassembly.padRight(28)}',
+    );
+  }
+
+  void debugRegisters() {
+    writeDebug('A:${A.toHex()} '
+        'X:${X.toHex()} '
+        'Y:${Y.toHex()} '
+        'P:${P.toHex()} '
+        'SP:${SP.toHex()} ');
+  }
+
+  void debugCycles() {
+    writeDebug(
+      'PPU:${(ppu.cycles ~/ 341).toString().padLeft(3)}, '
+      '${(ppu.cycles % 341).toString().padLeft(3)}'
+      ' CYC:$cycles\n',
+    );
+  }
+
+  void writeDebug(String message) {
+    if (!debug) {
+      return;
+    }
+
+    stdout.write(message);
+
+    File('logs/$debugLog').writeAsStringSync(message, mode: FileMode.append);
   }
 }
