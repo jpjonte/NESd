@@ -1,20 +1,16 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:nes/exception/invalid_opcode.dart';
 import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/extension/hex_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cpu/address_mode.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 
 class CPU {
-  CPU(this.bus) {
-    debugLog = 'debug.log';
-  }
+  CPU(this.bus);
 
   final Bus bus;
 
@@ -50,10 +46,6 @@ class CPU {
   set N(int value) => P = P.setBit(7, value);
 
   int cycles = 0;
-
-  bool debug = false;
-
-  late final String debugLog;
 
   int read(int address) => bus.cpuRead(address);
 
@@ -98,21 +90,11 @@ class CPU {
       throw InvalidOpcode(PC, opcode);
     }
 
-    debugPc(opcode);
-
     PC++;
 
-    final count = op.addressMode.operandCount;
+    final (address, pageCrossed) = op.addressMode.read(this, PC);
 
-    final operands = List.generate(count, (index) => read(PC + index));
-
-    debugOpAssembly(op, operands);
-
-    final (address, pageCrossed) = op.addressMode.read(this);
-
-    debugOpDisassembled(op, operands, address);
-    debugRegisters();
-    debugCycles();
+    PC += op.addressMode.operandCount;
 
     final start = PC;
 
@@ -164,72 +146,5 @@ class CPU {
 
   int calculateBranchCycles(int from, int to) {
     return pageCrossed(from, to) ? 2 : 1;
-  }
-
-  void debugPc(int opcode) {
-    writeDebug('${PC.toHex(4)}  ${opcode.toHex()} ');
-  }
-
-  void debugOpAssembly(Operation op, List<int> operands) {
-    final formattedOperands = operands.map((o) => '${o.toHex()} ').join();
-    final assembly = formattedOperands + ('   ' * (2 - operands.length));
-
-    writeDebug('$assembly ');
-  }
-
-  void debugOpDisassembled(
-    Operation op,
-    List<int> operands,
-    int address,
-  ) {
-    final value = read(address);
-
-    final addressDebug = op.addressMode.debug(this, operands, address);
-
-    var operandDebug = '';
-
-    if (operands.isNotEmpty &&
-        op.addressMode != immediate &&
-        ![
-          InstructionType.jump,
-          InstructionType.branch,
-        ].contains(op.instruction.type)) {
-      operandDebug = ' = ${value.toHex()}';
-    }
-
-    final disassembly = addressDebug + operandDebug;
-
-    final mark = op.unofficial ? '*' : ' ';
-
-    writeDebug(
-      '$mark${op.instruction.name} '
-      '${disassembly.padRight(28)}',
-    );
-  }
-
-  void debugRegisters() {
-    writeDebug('A:${A.toHex()} '
-        'X:${X.toHex()} '
-        'Y:${Y.toHex()} '
-        'P:${P.toHex()} '
-        'SP:${SP.toHex()} ');
-  }
-
-  void debugCycles() {
-    writeDebug(
-      'PPU:${(bus.ppu.cycle ~/ 341).toString().padLeft(3)}, '
-      '${(bus.ppu.cycle % 341).toString().padLeft(3)}'
-      ' CYC:$cycles\n',
-    );
-  }
-
-  void writeDebug(String message) {
-    if (!debug) {
-      return;
-    }
-
-    stdout.write(message);
-
-    File('logs/$debugLog').writeAsStringSync(message, mode: FileMode.append);
   }
 }

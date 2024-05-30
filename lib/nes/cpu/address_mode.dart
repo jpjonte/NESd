@@ -2,130 +2,121 @@ import 'package:nes/extension/hex_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cpu/cpu.dart';
 
-typedef AddressReader = (int, bool) Function(CPU);
+typedef AddressReader = (int, bool) Function(CPU, int);
+typedef AddressModeDebugger = String Function(CPU, int, List<int>, int);
 
 class AddressMode {
   AddressMode(this.read, this.operandCount, this.debug);
 
   final AddressReader read;
   final int operandCount;
-  final String Function(CPU, List<int>, int) debug;
+  final AddressModeDebugger debug;
 }
 
 bool pageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
 
 final implicit = AddressMode(
-  (cpu) => (addressNone, false),
+  (cpu, pc) => (addressNone, false),
   0,
-  (cpu, operands, address) => '',
+  (cpu, pc, operands, address) => '',
 );
 final accumulator = AddressMode(
-  (cpu) => (addressA, false),
+  (cpu, pc) => (addressA, false),
   0,
-  (cpu, operands, address) => 'A',
+  (cpu, pc, operands, address) => 'A',
 );
 final immediate = AddressMode(
-  (cpu) => (cpu.PC++, false),
+  (cpu, pc) => (pc, false),
   1,
-  (cpu, operands, address) => '#\$${operands[0].toHex()}',
+  (cpu, pc, operands, address) => '#\$${operands[0].toHex()}',
 );
 final zeroPage = AddressMode(
-  (cpu) => (cpu.read(cpu.PC++) & 0xff, false),
+  (cpu, pc) => (cpu.read(pc) & 0xff, false),
   1,
-  (cpu, operands, address) => '\$${operands[0].toHex()}',
+  (cpu, pc, operands, address) => '\$${operands[0].toHex()}',
 );
 final zeroPageX = AddressMode(
-  (cpu) => ((cpu.read(cpu.PC++) + cpu.X) & 0xff, false),
+  (cpu, pc) => ((cpu.read(pc) + cpu.X) & 0xff, false),
   1,
-  (cpu, operands, address) => '\$${operands[0].toHex()},X @ ${address.toHex()}',
+  (cpu, pc, operands, address) =>
+      '\$${operands[0].toHex()},X @ ${address.toHex()}',
 );
 final zeroPageY = AddressMode(
-  (cpu) => ((cpu.read(cpu.PC++) + cpu.Y) & 0xff, false),
+  (cpu, pc) => ((cpu.read(pc) + cpu.Y) & 0xff, false),
   1,
-  (cpu, operands, address) => '\$${operands[0].toHex()},Y @ ${address.toHex()}',
+  (cpu, pc, operands, address) =>
+      '\$${operands[0].toHex()},Y @ ${address.toHex()}',
 );
 final relative = AddressMode(
-  (cpu) {
-    final offset = cpu.read(cpu.PC++);
+  (cpu, pc) {
+    final offset = cpu.read(pc);
     final offsetSigned = offset >= 0x80 ? offset - 0x100 : offset;
 
-    return (cpu.PC + offsetSigned, false);
+    return (pc + 1 + offsetSigned, false);
   },
   1,
-  (cpu, operands, address) => '\$${address.toHex(4)}',
+  (cpu, pc, operands, address) => '\$${address.toHex(4)}',
 );
 final absolute = AddressMode(
-  (cpu) {
-    final address = cpu.read16(cpu.PC);
-
-    cpu.PC += 2;
-
-    return (address, false);
-  },
+  (cpu, pc) => (cpu.read16(pc), false),
   2,
-  (cpu, operands, address) => '\$${address.toHex(4)}',
+  (cpu, pc, operands, address) => '\$${address.toHex(4)}',
 );
 final absoluteX = AddressMode(
-  (cpu) {
-    final address = cpu.read16(cpu.PC);
+  (cpu, pc) {
+    final address = cpu.read16(pc);
     final targetAddress = address + cpu.X;
 
-    cpu.PC += 2;
-
     return (targetAddress, pageCrossed(address, targetAddress));
   },
   2,
-  (cpu, operands, address) =>
-      '\$${cpu.read16(cpu.PC - 2).toHex(4)},X @ ${address.toHex(4)}',
+  (cpu, pc, operands, address) =>
+      '\$${cpu.read16(pc).toHex(4)},X @ ${address.toHex(4)}',
 );
 final absoluteY = AddressMode(
-  (cpu) {
-    final address = cpu.read16(cpu.PC);
+  (cpu, pc) {
+    final address = cpu.read16(pc);
     final targetAddress = (address + cpu.Y) & 0xffff;
-
-    cpu.PC += 2;
 
     return (targetAddress, pageCrossed(address, targetAddress));
   },
   2,
-  (cpu, operands, address) =>
-      '\$${cpu.read16(cpu.PC - 2).toHex(4)},Y' ' @ ${address.toHex(4)}',
+  (cpu, pc, operands, address) =>
+      '\$${cpu.read16(pc).toHex(4)},Y' ' @ ${address.toHex(4)}',
 );
 final indirect = AddressMode(
-  (cpu) {
-    final address = cpu.read16(cpu.PC);
+  (cpu, pc) {
+    final address = cpu.read16(pc);
     final targetAddress = cpu.read16(address, wrap: true);
-
-    cpu.PC += 2;
 
     return (targetAddress, false);
   },
   2,
-  (cpu, operands, address) =>
+  (cpu, pc, operands, address) =>
       '(\$${operands[1].toHex()}${operands[0].toHex()}) = ${address.toHex(4)}',
 );
 final indexedIndirect = AddressMode(
-  (cpu) {
-    final address = (cpu.read(cpu.PC++) + cpu.X) & 0xff;
+  (cpu, pc) {
+    final address = (cpu.read(pc) + cpu.X) & 0xff;
     final targetAddress = cpu.read16(address, wrap: true);
 
     return (targetAddress, false);
   },
   1,
-  (cpu, operands, address) => '(\$${operands[0].toHex()},X)'
-      ' @ ${((cpu.read(cpu.PC - 1) + cpu.X) & 0xff).toHex()}'
+  (cpu, pc, operands, address) => '(\$${operands[0].toHex()},X)'
+      ' @ ${((cpu.read(pc) + cpu.X) & 0xff).toHex()}'
       ' = ${address.toHex(4)}',
 );
 final indirectIndexed = AddressMode(
-  (cpu) {
-    final zeroPageAddress = cpu.read(cpu.PC++);
+  (cpu, pc) {
+    final zeroPageAddress = cpu.read(pc);
     final address = cpu.read16(zeroPageAddress, wrap: true);
     final targetAddress = (address + cpu.Y) & 0xffff;
 
     return (targetAddress, pageCrossed(address, targetAddress));
   },
   1,
-  (cpu, operands, address) => '(\$${operands[0].toHex()}),Y'
-      ' = ${cpu.read16(cpu.read(cpu.PC - 1), wrap: true).toHex(4)}'
+  (cpu, pc, operands, address) => '(\$${operands[0].toHex()}),Y'
+      ' = ${cpu.read16(cpu.read(pc), wrap: true).toHex(4)}'
       ' @ ${address.toHex(4)}',
 );
