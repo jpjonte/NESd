@@ -1,27 +1,22 @@
 // ignore_for_file: non_constant_identifier_names
-// ignore_for_file: parameter_assignments
 
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:nes/address_mode.dart';
-import 'package:nes/apu.dart';
 import 'package:nes/bit_extension.dart';
-import 'package:nes/cartridge.dart';
+import 'package:nes/bus.dart';
 import 'package:nes/hex_extension.dart';
 import 'package:nes/instruction.dart';
 import 'package:nes/invalid_opcode.dart';
 import 'package:nes/operation.dart';
-import 'package:nes/ppu.dart';
 
 class CPU {
-  CPU() {
+  CPU(this.bus) {
     debugLog = 'debug.log';
   }
 
-  late final PPU ppu;
-  late final APU apu;
-  late final Cartridge cartridge;
+  final Bus bus;
 
   int PC = 0x0000;
   int SP = 0x00;
@@ -60,106 +55,14 @@ class CPU {
 
   late final String debugLog;
 
-  int read(int address) {
-    if (address == addressA) {
-      return A;
-    }
+  int read(int address) => bus.cpuRead(address);
 
-    if (address < 0x2000) {
-      return ram[address % 0x0800];
-    }
+  int read16(int address, {bool wrap = false}) => bus.cpuRead16(
+        address,
+        wrap: wrap,
+      );
 
-    if (address < 0x4000) {
-      return ppu.read(0x2000 + address % 8);
-    }
-
-    if (address < 0x4015) {
-      return 0;
-    }
-
-    if (address == 0x4015) {
-      return apu.status;
-    }
-
-    if (address == 0x4016) {
-      // TODO bud-27.05.24 controller 1
-      return 0;
-    }
-
-    if (address == 0x4017) {
-      // TODO bud-27.05.24 controller 2
-      return 0;
-    }
-
-    if (address < 0x4020) {
-      return 0;
-    }
-
-    return cartridge.read(address);
-  }
-
-  int read16(int address, {bool wrap = false}) {
-    final low = read(address);
-
-    final highAddress =
-        wrap ? (address & 0xff00 | ((address + 1) & 0xff)) : address + 1;
-
-    final high = read(highAddress);
-
-    return low | (high << 8);
-  }
-
-  void write(int address, int value) {
-    if (address == addressA) {
-      A = value;
-
-      return;
-    }
-
-    address &= 0xffff;
-    value &= 0xff;
-
-    if (address < 0x2000) {
-      ram[address % 0x800] = value;
-
-      return;
-    }
-
-    if (address < 0x4000) {
-      ppu.write(address, value);
-
-      return;
-    }
-
-    if (address < 0x4015) {
-      return;
-    }
-
-    if (address == 0x4015) {
-      apu.write(address, value);
-
-      return;
-    }
-
-    if (address == 0x4016) {
-      // TODO bud-27.05.24
-
-      return;
-    }
-
-    if (address == 0x4017) {
-      // TODO bud-27.05.24
-      return;
-    }
-
-    if (address < 0x4020) {
-      return;
-    }
-
-    cartridge.write(address, value);
-
-    return;
-  }
+  void write(int address, int value) => bus.cpuWrite(address, value);
 
   void pushStack(int value) => write(0x100 + SP--, value & 0xff);
 
@@ -181,8 +84,7 @@ class CPU {
     SP = 0xfd;
     PC = read(0xfffc) | (read(0xfffd) << 8);
     P = 0x24;
-    // TODO bud-28.05.24 check if this makes sense
-    cycles = 7;
+    cycles = 0;
   }
 
   int step() {
@@ -315,8 +217,8 @@ class CPU {
 
   void debugCycles() {
     writeDebug(
-      'PPU:${(ppu.cycles ~/ 341).toString().padLeft(3)}, '
-      '${(ppu.cycles % 341).toString().padLeft(3)}'
+      'PPU:${(bus.ppu.cycle ~/ 341).toString().padLeft(3)}, '
+      '${(bus.ppu.cycle % 341).toString().padLeft(3)}'
       ' CYC:$cycles\n',
     );
   }

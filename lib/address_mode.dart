@@ -1,3 +1,4 @@
+import 'package:nes/bus.dart';
 import 'package:nes/cpu.dart';
 import 'package:nes/hex_extension.dart';
 
@@ -12,9 +13,6 @@ class AddressMode {
 }
 
 bool pageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
-
-const addressNone = -1;
-const addressA = -2;
 
 final implicit = AddressMode(
   (cpu) => (addressNone, false),

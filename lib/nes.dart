@@ -1,25 +1,28 @@
 import 'package:nes/apu.dart';
+import 'package:nes/bus.dart';
 import 'package:nes/cartridge.dart';
 import 'package:nes/cpu.dart';
 import 'package:nes/ppu.dart';
 
 class NES {
   NES() {
-    cpu
+    bus
+      ..cpu = cpu
       ..ppu = ppu
       ..apu = apu;
   }
 
   Cartridge? cartridge;
 
-  final CPU cpu = CPU();
-  final PPU ppu = PPU();
-  final APU apu = APU();
+  final Bus bus = Bus();
+  late final CPU cpu = CPU(bus);
+  late final PPU ppu = PPU(bus);
+  late final APU apu = APU(bus);
 
   void loadCartridge(Cartridge cartridge) {
-    this.cartridge = cartridge;
-    cpu.cartridge = cartridge;
-    // TODO bud-26.05.24 start emulation
+    bus.cartridge = cartridge;
+
+    reset();
   }
 
   void reset() {

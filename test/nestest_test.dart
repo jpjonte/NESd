@@ -12,7 +12,9 @@ void main() {
       ..loadCartridge(cartridge)
       ..reset()
       ..cpu.PC = 0xc000
-      ..cpu.debug = true;
+      ..cpu.cycles = 7
+      ..cpu.debug = true
+      ..ppu.cycle = 21;
 
     while (true) {
       final exit = nes.cpu.PC == 0xc66e;

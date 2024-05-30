@@ -198,8 +198,13 @@ final ops = {
   0xb0: Operation(BCS, relative, 2, pageCrossAddsCycle: true),
   0xb1: Operation(LDA, indirectIndexed, 5, pageCrossAddsCycle: true),
   // 0xb2
-  0xb3: Operation(LAX, indirectIndexed, 5,
-      pageCrossAddsCycle: true, unofficial: true),
+  0xb3: Operation(
+    LAX,
+    indirectIndexed,
+    5,
+    pageCrossAddsCycle: true,
+    unofficial: true,
+  ),
   0xb4: Operation(LDY, zeroPageX, 4),
   0xb5: Operation(LDA, zeroPageX, 4),
   0xb6: Operation(LDX, zeroPageY, 4),
