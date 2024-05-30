@@ -1,7 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:nes/bit_extension.dart';
-import 'package:nes/cpu.dart';
+import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/cpu/cpu.dart';
 
 enum InstructionType {
   jump,

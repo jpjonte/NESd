@@ -1,5 +1,5 @@
-import 'package:nes/cartridge.dart';
-import 'package:nes/unsupported_mapper.dart';
+import 'package:nes/exception/unsupported_mapper.dart';
+import 'package:nes/nes/cartridge/cartridge.dart';
 
 abstract class Mapper {
   factory Mapper(int mapper, int subMapper) {

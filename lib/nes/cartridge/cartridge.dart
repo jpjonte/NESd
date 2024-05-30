@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:nes/invalid_rom_header.dart';
-import 'package:nes/mapper.dart';
+import 'package:nes/exception/invalid_rom_header.dart';
+import 'package:nes/nes/cartridge/mapper.dart';
 
 enum NametableLayout { horizontal, vertical }
 

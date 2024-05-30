@@ -1,4 +1,4 @@
-import 'package:nes/nesd_exception.dart';
+import 'package:nes/exception/nesd_exception.dart';
 
 class InvalidOpcode extends NesdException {
   InvalidOpcode(int address, int opcode)

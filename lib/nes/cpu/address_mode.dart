@@ -1,6 +1,6 @@
-import 'package:nes/bus.dart';
-import 'package:nes/cpu.dart';
-import 'package:nes/hex_extension.dart';
+import 'package:nes/extension/hex_extension.dart';
+import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cpu/cpu.dart';
 
 typedef AddressReader = (int, bool) Function(CPU);
 

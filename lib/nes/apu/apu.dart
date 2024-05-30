@@ -1,4 +1,4 @@
-import 'package:nes/bus.dart';
+import 'package:nes/nes/bus.dart';
 
 class APU {
   APU(this.bus);

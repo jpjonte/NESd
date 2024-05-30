@@ -1,9 +1,9 @@
 // ignore_for_file: parameter_assignments
 
-import 'package:nes/apu.dart';
-import 'package:nes/cartridge.dart';
-import 'package:nes/cpu.dart';
-import 'package:nes/ppu.dart';
+import 'package:nes/nes/apu/apu.dart';
+import 'package:nes/nes/cartridge/cartridge.dart';
+import 'package:nes/nes/cpu/cpu.dart';
+import 'package:nes/nes/ppu/ppu.dart';
 
 const addressNone = -1;
 const addressA = -2;

@@ -1,4 +1,4 @@
-import 'package:nes/nesd_exception.dart';
+import 'package:nes/exception/nesd_exception.dart';
 
 class UnsupportedMapper extends NesdException {
   UnsupportedMapper(int mapperId, int subMapperId)

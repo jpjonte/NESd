@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:nes/nesd_exception.dart';
+import 'package:nes/exception/nesd_exception.dart';
 
 class InvalidRomHeader extends NesdException {
   InvalidRomHeader(Uint8List header)

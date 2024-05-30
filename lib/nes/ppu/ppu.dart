@@ -2,7 +2,8 @@
 
 import 'dart:typed_data';
 
-import 'package:nes/bus.dart';
+import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/ppu/frame_buffer.dart';
 
 class PPU {
   PPU(this.bus);
@@ -22,6 +23,8 @@ class PPU {
   final Uint8List ram = Uint8List(0x0800);
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List palette = Uint8List(0x0020);
+
+  final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
 
   int cycle = 0;
   int scanline = 0;

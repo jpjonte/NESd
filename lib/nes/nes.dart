@@ -1,8 +1,8 @@
-import 'package:nes/apu.dart';
-import 'package:nes/bus.dart';
-import 'package:nes/cartridge.dart';
-import 'package:nes/cpu.dart';
-import 'package:nes/ppu.dart';
+import 'package:nes/nes/apu/apu.dart';
+import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cartridge/cartridge.dart';
+import 'package:nes/nes/cpu/cpu.dart';
+import 'package:nes/nes/ppu/ppu.dart';
 
 class NES {
   NES() {

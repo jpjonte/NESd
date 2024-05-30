@@ -3,13 +3,13 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:nes/address_mode.dart';
-import 'package:nes/bit_extension.dart';
-import 'package:nes/bus.dart';
-import 'package:nes/hex_extension.dart';
-import 'package:nes/instruction.dart';
-import 'package:nes/invalid_opcode.dart';
-import 'package:nes/operation.dart';
+import 'package:nes/exception/invalid_opcode.dart';
+import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/extension/hex_extension.dart';
+import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cpu/address_mode.dart';
+import 'package:nes/nes/cpu/instruction.dart';
+import 'package:nes/nes/cpu/operation.dart';
 
 class CPU {
   CPU(this.bus) {
