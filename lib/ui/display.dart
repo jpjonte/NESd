@@ -43,8 +43,8 @@ class DisplayWidget extends ConsumerWidget {
 
     final descriptor = ui.ImageDescriptor.raw(
       buffer,
-      width: 256,
-      height: 224,
+      width: frameBuffer.width,
+      height: frameBuffer.height,
       pixelFormat: ui.PixelFormat.rgba8888,
     );
 
