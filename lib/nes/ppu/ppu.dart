@@ -100,8 +100,9 @@ class PPU {
   // first or second write toggle
   int w = 0;
 
-  int get v_coarseX => v & 0x1F;
-  int get v_coarseY => (v >> 5) & 0x1F;
+  int get v_coarseScroll => v & 0x3ff; // tile X and Y
+  int get v_coarseX => v & 0x1F; // tile X
+  int get v_coarseY => (v >> 5) & 0x1F; // tile Y
   int get v_nametable => (v >> 10) & 0x3;
   int get v_nametableX => (v >> 10) & 0x1;
   int get v_nametableY => (v >> 11) & 0x1;
@@ -508,27 +509,29 @@ class PPU {
   }
 
   void _fetchNametable() {
-    final address = 0x2000 | (v_coarseY << 5) | v_coarseX;
+    final address = 0x2000 | v_coarseScroll;
 
     nametableLatch = read(address);
   }
 
   void _fetchAttributeTable() {
-    final address =
-        0x23C0 | ((v_coarseY & 0x1C) << 1) | ((v_coarseX & 0x1C) >> 2);
+    final address = 0x23c0 |
+        (v_nametable << 10) |
+        ((v_coarseY & 0x1C) << 1) | // we select the attribute table
+        ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
 
     final value = read(address);
 
-    // TODO bud-31.05.24 check
-    final quadrant = (v_coarseY & 0x2) | ((v_coarseX & 0x2) >> 1);
+    // attribute table byte layout: DDCCBBAA
+    // quadrants A, B, C, D = Top Left, Top Right, Bottom Left, Bottom Right
+    // each quadrant covers 2x2 tiles
+    // => we select the quadrant using bit 2 of the tile x and y coordinates
 
-    attributeTableLatch = switch (quadrant) {
-      0 => value & 0x03, // top left
-      1 => (value >> 2) & 0x03, // top right
-      2 => (value >> 4) & 0x03, // bottom left
-      3 => (value >> 6) & 0x03, // bottom right
-      _ => 0,
-    };
+    // result is 0, 2, 4, or 6
+    // this is the location of the low bit of the quadrant in the fetched byte
+    final quadrantShift = ((v_coarseY & 0x2) << 1) | (v_coarseX & 0x2);
+
+    attributeTableLatch = (value >> quadrantShift) & 0x03;
   }
 
   void _fetchPatternTableLow() {
