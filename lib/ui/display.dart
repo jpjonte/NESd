@@ -78,7 +78,9 @@ class EmulatorPainter extends CustomPainter {
 
     final scale = max(1, min(size.width ~/ 256, size.height ~/ 224));
 
-    final width = image.width;
+    const widthScale = 8 / 7;
+
+    final width = (image.width * widthScale).round();
     final height = image.height;
 
     final topLeft = center - Offset(width / 2, height / 2) * scale.toDouble();
@@ -87,7 +89,7 @@ class EmulatorPainter extends CustomPainter {
     canvas
       ..drawImageRect(
         image,
-        Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
         topLeft & Size(width * scale.toDouble(), height * scale.toDouble()),
         framePaint,
       )
