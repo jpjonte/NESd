@@ -9,6 +9,11 @@ import 'package:nes/nes/cpu/address_mode.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 
+enum DmaType {
+  oam,
+  dmc,
+}
+
 class CPU {
   CPU(this.bus);
 
@@ -45,6 +50,12 @@ class CPU {
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 
+  DmaType? dma;
+  int dmaPage = 0;
+  int dmaOffset = 0;
+  int dmaValue = 0;
+  bool dmaStarted = false;
+
   int cycles = 0;
 
   int read(int address) => bus.cpuRead(address);
@@ -80,7 +91,11 @@ class CPU {
   }
 
   int step() {
-    handleInterrupts();
+    _handleInterrupts();
+
+    if (_handleDMA()) {
+      return 1;
+    }
 
     final opcode = read(PC);
 
@@ -117,7 +132,7 @@ class CPU {
     return executedCycles;
   }
 
-  void handleInterrupts() {
+  void _handleInterrupts() {
     // TODO bud-28.05.24 /NMI is an edge-sensitive interrupt
     // TODO bud-28.05.24 make sure that NMI is only triggered
     // TODO bud-28.05.24 when changing from false to true
@@ -132,6 +147,48 @@ class CPU {
 
       handleIrq(0xfffe);
     }
+  }
+
+  bool _handleDMA() {
+    if (dma == null) {
+      return false;
+    }
+
+    switch (dma) {
+      case DmaType.oam:
+        _handleOAMDMA();
+      case DmaType.dmc:
+        _handleDMCDMA();
+      default:
+        return false;
+    }
+
+    cycles += 1;
+
+    return true;
+  }
+
+  void _handleOAMDMA() {
+    // TODO bud-01.06.24 refactor this to be more accurate
+    // https://www.nesdev.org/wiki/DMA
+    if (cycles.isEven) {
+      // read
+      dmaValue = read(dmaPage << 8 | dmaOffset);
+      dmaStarted = true;
+    } else if (dmaStarted) {
+      // write
+      bus.ppu.writeOAM(dmaOffset++, dmaValue);
+
+      if (dmaOffset == 256) {
+        dma = null;
+        dmaOffset = 0;
+        dmaStarted = false;
+      }
+    }
+  }
+
+  void _handleDMCDMA() {
+    // TODO bud-01.06.24 implement DMC DMA
   }
 
   void handleIrq(int address) {

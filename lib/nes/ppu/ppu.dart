@@ -82,13 +82,9 @@ class PPU {
   int PPUMASK = 0x00;
   int PPUSTATUS = 0x00;
   int OAMADDR = 0x00;
-  // TODO bud-30.05.24 increase OAMADDR after write
   int OAMDATA = 0x00;
   int PPUSCROLL = 0x00;
-  int PPUADDR = 0x00;
   int PPUDATA = 0x00;
-  // TODO bud-30.05.24 write triggers DMA transfer
-  int OAMDMA = 0x00;
 
   // during rendering: scroll position, outside rendering: VRAM address
   int v = 0;
@@ -224,16 +220,18 @@ class PPU {
       case 0x2003:
         OAMADDR = value;
       case 0x2004:
-        OAMDATA = value;
+        _writeOAMDATA(value);
       case 0x2005:
         _writePPUSCROLL(value);
       case 0x2006:
         _writePPUADDR(value);
       case 0x2007:
         _writePPUDATA(value);
-      case 0x4014:
-        OAMDMA = value;
     }
+  }
+
+  void writeOAM(int offset, int value) {
+    oam[(OAMADDR + offset) & 0xFF] = value;
   }
 
   bool get lineVisible => scanline < 240;
@@ -396,6 +394,16 @@ class PPU {
     t = (t & 0xF3FF) | ((value & 0x03) << 10);
   }
 
+  void _writeOAMDATA(int value) {
+    if (rendering) {
+      return;
+    }
+
+    oam[OAMADDR] = value;
+
+    OAMADDR++;
+  }
+
   void _writePPUSCROLL(int value) {
     PPUSCROLL = value;
 
@@ -413,8 +421,6 @@ class PPU {
   }
 
   void _writePPUADDR(int value) {
-    PPUADDR = value;
-
     if (w == 0) {
       // t: .CDEFGH ........ <- d: ..CDEFGH
       // t: Z...... ........ <- 0 (bit Z is cleared)
@@ -429,8 +435,6 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    PPUDATA = value;
-
     write(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
@@ -605,7 +609,7 @@ class PPU {
     // even cycles: write to secondary OAM, unless full:
     //  then read from secondary OAM instead
 
-    // start at n = 0
+    // start at n = OAMADDR (almost always 0)
     // read sprite n's Y-coordinate
     // unless 8 sprites have been found, write Y to secondary OAM
     // if Y is in range, copy rest of sprite data into secondary OAM

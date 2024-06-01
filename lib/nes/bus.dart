@@ -93,6 +93,13 @@ class Bus {
       return;
     }
 
+    if (address == 0x4014) {
+      cpu
+        ..dma = DmaType.oam
+        ..dmaPage = value
+        ..dmaOffset = 0;
+    }
+
     if (address < 0x4015) {
       return;
     }
