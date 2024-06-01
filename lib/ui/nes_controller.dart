@@ -31,9 +31,17 @@ class NesController extends _$NesController {
 
   Future<void> run() async {
     final isolate = await BidirectionalStreamIsolate.spawn(state.run);
-    isolate.stream.listen((frameBuffer) {
-      _streamController.add(frameBuffer);
-    });
+    isolate.stream.listen(
+      (frameBuffer) {
+        _streamController.add(frameBuffer);
+      },
+      onError: (error) {
+        _isolate = null;
+      },
+      onDone: () {
+        _isolate = null;
+      },
+    );
     _isolate = isolate;
   }
 
