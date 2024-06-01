@@ -194,7 +194,6 @@ final ADC = Instruction('ADC', (cpu, address) {
   cpu
     ..C = result > 0xff ? 1 : 0
     ..Z = result & 0xff == 0 ? 1 : 0
-    // TODO bud-27.05.24 check this
     ..V = (~(cpu.A ^ value) & (cpu.A ^ result) & 0x80) != 0 ? 1 : 0
     ..N = result.bit(7)
     ..A = result & 0xff;
@@ -402,10 +401,8 @@ final SBC = Instruction('SBC', (cpu, address) {
   final result = cpu.A - value - (1 - cpu.C);
 
   cpu
-    // TODO bud-28.05.24 check this
     ..C = result >= 0 ? 1 : 0
     ..Z = result & 0xff == 0 ? 1 : 0
-    // TODO bud-27.05.24 check this
     ..V = ((cpu.A ^ result) & (cpu.A ^ value) & 0x80) != 0 ? 1 : 0
     ..N = result.bit(7)
     ..A = result & 0xff;
