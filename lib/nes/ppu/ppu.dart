@@ -39,63 +39,35 @@ const systemPalette = {
   0x1d: 0x000000,
   0x1e: 0x000000,
   0x1f: 0x000000,
-// 	palette[32] = Color(236, 238, 236);
   0x20: 0xffffff,
-// 	palette[33] = Color(76, 154, 236);
   0x21: 0x53aeff,
-// 	palette[34] = Color(120, 124, 236);
   0x22: 0x9085ff,
-// 	palette[35] = Color(176, 98, 236);
   0x23: 0xd365ff,
-// 	palette[36] = Color(228, 84, 236);
   0x24: 0xff57ff,
-// 	palette[37] = Color(236, 88, 180);
   0x25: 0xff5dcf,
-// 	palette[38] = Color(236, 106, 100);
   0x26: 0xff7757,
-// 	palette[39] = Color(212, 136, 32);
   0x27: 0xfa9e00,
-// 	palette[40] = Color(160, 170, 0);
   0x28: 0xbdc700,
-// 	palette[41] = Color(116, 196, 0);
   0x29: 0x7ae700,
-// 	palette[42] = Color(76, 208, 32);
   0x2a: 0x43f611,
-// 	palette[43] = Color(56, 204, 108);
   0x2b: 0x26ef7e,
-// 	palette[44] = Color(56, 180, 204);
   0x2c: 0x2cd5f6,
-// 	palette[45] = Color(60, 60, 60);
   0x2d: 0x4e4e4e,
   0x2e: 0x000000,
   0x2f: 0x000000,
-// 	palette[48] = Color(236, 238, 236);
   0x30: 0xffffff,
-// 	palette[49] = Color(168, 204, 236);
   0x31: 0xb6e1ff,
-// 	palette[50] = Color(188, 188, 236);
   0x32: 0xced1ff,
-// 	palette[51] = Color(212, 178, 236);
   0x33: 0xe9c3ff,
-// 	palette[52] = Color(236, 174, 236);
   0x34: 0xffbcff,
-// 	palette[53] = Color(236, 174, 212);
   0x35: 0xffbdf4,
-// 	palette[54] = Color(236, 180, 176);
   0x36: 0xffc6c3,
-// 	palette[55] = Color(228, 196, 144);
   0x37: 0xffd59a,
-// 	palette[56] = Color(204, 210, 120);
   0x38: 0xe9e681,
-// 	palette[57] = Color(180, 222, 120);
   0x39: 0xcef481,
-// 	palette[58] = Color(168, 226, 144);
   0x3a: 0xb6fb9a,
-// 	palette[59] = Color(152, 226, 180);
   0x3b: 0xa9fac3,
-// 	palette[60] = Color(160, 214, 228);
   0x3c: 0xa9f0f4,
-// 	palette[61] = Color(160, 162, 160);
   0x3d: 0xb8b8b8,
   0x3e: 0x000000,
   0x3f: 0x000000,
