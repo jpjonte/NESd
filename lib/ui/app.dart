@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/cartridge_info.dart';
 import 'package:nes/ui/display.dart';
 import 'package:nes/ui/nes_controller.dart';
 
@@ -14,6 +15,7 @@ class AppWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final errorState = useState<String?>(null);
 
+    final nes = ref.watch(nesControllerProvider);
     final controller = ref.read(nesControllerProvider.notifier);
 
     return PlatformMenuBar(
@@ -49,6 +51,8 @@ class AppWidget extends HookConsumerWidget {
       child: Row(
         children: [
           const Expanded(child: DisplayWidget()),
+          if (nes.bus.cartridge case final cartridge?)
+            CartridgeInfoWidget(cartridge: cartridge),
           if (errorState.value != null)
             Text(
               errorState.value!,
