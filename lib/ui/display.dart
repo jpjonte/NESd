@@ -76,12 +76,15 @@ class EmulatorPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
 
-    final scale = max(1, min(size.width ~/ 256, size.height ~/ 224));
-
     const widthScale = 8 / 7;
 
     final width = (image.width * widthScale).round();
     final height = image.height;
+
+    final scale = max(
+      1,
+      min(size.width ~/ width, size.height ~/ height),
+    );
 
     final topLeft = center - Offset(width / 2, height / 2) * scale.toDouble();
 
