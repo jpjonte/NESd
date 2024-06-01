@@ -140,13 +140,19 @@ class PPU {
   set PPUCTRL_X(int value) => PPUCTRL = PPUCTRL.setBit(0, value);
   set PPUCTRL_Y(int value) => PPUCTRL = PPUCTRL.setBit(1, value);
 
+  // TODO bud-01.06.24 implement
   int get PPUMASK_Gr => PPUMASK.bit(0); // greyscale
+  // TODO bud-01.06.24 implement
   int get PPUMASK_m => PPUMASK.bit(1); // show background in leftmost 8 pixels
+  // TODO bud-01.06.24 implement
   int get PPUMASK_M => PPUMASK.bit(2); // show sprites in leftmost 8 pixels
   int get PPUMASK_b => PPUMASK.bit(3); // show background
   int get PPUMASK_s => PPUMASK.bit(4); // show sprites
+  // TODO bud-01.06.24 implement
   int get PPUMASK_R => PPUMASK.bit(5); // emphasize red
+  // TODO bud-01.06.24 implement
   int get PPUMASK_G => PPUMASK.bit(6); // emphasize green
+  // TODO bud-01.06.24 implement
   int get PPUMASK_B => PPUMASK.bit(7); // emphasize blue
 
   set PPUMASK_Gr(int value) => PPUMASK = PPUMASK.setBit(0, value);
@@ -158,7 +164,9 @@ class PPU {
   set PPUMASK_G(int value) => PPUMASK = PPUMASK.setBit(6, value);
   set PPUMASK_B(int value) => PPUMASK = PPUMASK.setBit(7, value);
 
+  // TODO bud-01.06.24 implement
   int get PPUSTATUS_O => PPUSTATUS.bit(5); // sprite overflow
+  // TODO bud-01.06.24 implement
   int get PPUSTATUS_S => PPUSTATUS.bit(6); // sprite 0 hit
   int get PPUSTATUS_V => PPUSTATUS.bit(7); // vblank active
 
@@ -191,6 +199,17 @@ class PPU {
   int attributeTableLowShift = 0;
 
   int attribute = 0;
+
+  int oamN = 0x00;
+  int oamBuffer = 0;
+  int spriteCount = 0;
+  int secondarySpriteCount = 0;
+
+  Uint8List spritePatternLow = Uint8List(8);
+  Uint8List spritePatternHigh = Uint8List(8);
+
+  Uint8List spriteAttribute = Uint8List(8);
+  Uint8List spriteX = Uint8List(8);
 
   void reset() {
     cycle = 0;
@@ -340,10 +359,6 @@ class PPU {
       }
     }
 
-    // vblank lines (242-260)
-    // idle
-
-    // pre-render scanline (261)
     if (linePreRender) {
       if (cycle == 1) {
         // clear overflow, sprite 0 hit, and vblank status
@@ -353,7 +368,6 @@ class PPU {
       }
     }
 
-    // sprite evaluation
     _evaluateSprites();
 
     _updateCounters();
@@ -473,12 +487,50 @@ class PPU {
   }
 
   void _renderPixel() {
-    final color = _getBackgroundPixelColor();
+    final color = _getPixelColor();
 
     final x = cycle - 1;
     final y = scanline;
 
-    frameBuffer.setPixel(x, y, color);
+    final paletteColor = read(0x3F00 | color);
+
+    final systemColor = systemPalette[paletteColor] ?? 0;
+
+    frameBuffer.setPixel(x, y, systemColor);
+  }
+
+  int _getPixelColor() {
+    final backgroundColor = _getBackgroundPixelColor();
+
+    final spriteColor = _getSpritePixelColor();
+    final spritePriority = spriteColor.bit(4);
+    final spriteColorValue = spriteColor & 0xf;
+
+    if (PPUMASK_b == 0 && PPUMASK_s == 0) {
+      return 0;
+    }
+
+    if (PPUMASK_s == 0) {
+      return backgroundColor;
+    }
+
+    if (PPUMASK_b == 0) {
+      return spriteColorValue.setBit(4, 1);
+    }
+
+    if (backgroundColor & 0x3 == 0) {
+      return spriteColorValue.setBit(4, 1);
+    }
+
+    if (spriteColorValue & 0x3 == 0) {
+      return backgroundColor;
+    }
+
+    if (spritePriority == 1) {
+      return backgroundColor;
+    }
+
+    return spriteColorValue.setBit(4, 1);
   }
 
   int _getBackgroundPixelColor() {
@@ -496,9 +548,41 @@ class PPU {
 
     final paletteIndex = (paletteIndexHigh << 1) | paletteIndexLow;
 
-    final systemPaletteIndex = read(0x3F00 | (paletteIndex << 2) | pattern);
+    return (paletteIndex << 2) | pattern;
+  }
 
-    return systemPalette[systemPaletteIndex] ?? 0;
+  int _getSpritePixelColor() {
+    final currentX = cycle - 1;
+
+    for (var sprite = 0; sprite < spriteCount; sprite++) {
+      // TODO bud-01.06.24 implement a proper algorithm
+      final x = spriteX[sprite];
+      final xOffset = currentX - x;
+
+      if (xOffset < 0 || xOffset > 7) {
+        continue;
+      }
+
+      final attribute = spriteAttribute[sprite];
+      final palette = attribute & 0x3;
+      final priority = attribute.bit(5);
+      final flipH = attribute.bit(6);
+
+      final fineX = flipH == 1 ? xOffset : 7 - xOffset;
+
+      final patternLow = spritePatternLow[sprite];
+      final patternHigh = spritePatternHigh[sprite];
+      final pattern =
+          ((patternHigh.bit(fineX) << 1) | patternLow.bit(fineX)) & 0x3;
+
+      if (pattern == 0) {
+        continue;
+      }
+
+      return priority << 4 | palette << 2 | pattern;
+    }
+
+    return 0;
   }
 
   void _shiftBackground() {
@@ -595,51 +679,81 @@ class PPU {
     // visible scanlines (0-239)
     if (lineVisible) {
       if (cycle >= 1 && cycle <= 64) {
-        secondaryOam.fillRange(0, secondaryOam.length, 0xFF);
+        secondaryOam[(cycle - 1) >> 1] = 0xff;
       }
 
-      if (cycle >= 1 && cycle <= 64) {
-        // fetch sprite data
-        // sprite evaluation
+      if (cycle >= 65 && cycle <= 256) {
+        if (cycle == 65) {
+          oamN = OAMADDR;
+          secondarySpriteCount = 0;
+          oamBuffer = 0;
+        }
+
+        if (cycle.isOdd) {
+          // read from OAM
+          oamBuffer = oam[oamN & 0xff];
+        } else {
+          // TODO bud-01.06.24 implement a proper algorithm
+          // write to secondary OAM, unless full
+          if (secondarySpriteCount < 8 && oamN <= 252) {
+            final y = oamBuffer;
+
+            if (scanline >= y && scanline < y + 8) {
+              secondaryOam[secondarySpriteCount * 4] = y;
+              secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamN + 1];
+              secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamN + 2];
+              secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamN + 3];
+
+              if (scanline == 42) {
+                print('selected');
+              }
+
+              secondarySpriteCount++;
+            }
+
+            oamN += 4;
+
+            // TODO bud-01.06.24 implement sprite overflow flag
+            // start at m = 0
+            // fetch byte m for sprite n
+            // if value is in Y range, set sprite overflow flag
+            //  then read next 3 bytes of oam, increment m each time
+            //  if m = 3, increment n
+            // if value is not in range, increment n and m
+            // if n overflows to 0, break
+            // otherwise repeat
+          }
+        }
+      }
+
+      if (cycle >= 257 && cycle <= 320) {
+        if (cycle == 257) {
+          spriteCount = secondarySpriteCount;
+        }
+
+        final subcycle = cycle - 257;
+        final sprite = subcycle ~/ 8;
+        final offset = subcycle % 8;
+
+        switch (offset) {
+          case 2:
+            spriteAttribute[sprite] = secondaryOam[sprite * 4 + 2];
+          case 3:
+            spriteX[sprite] = secondaryOam[sprite * 4 + 3];
+          case 4:
+            final y = secondaryOam[sprite * 4];
+            final tile = secondaryOam[sprite * 4 + 1];
+            final attribute = spriteAttribute[sprite];
+            final flipV = attribute.bit(7);
+            final yOffset = scanline - y;
+            final fineY = flipV == 0 ? yOffset : 7 - yOffset;
+
+            spritePatternLow[sprite] =
+                read(PPUCTRL_S << 12 | tile << 4 | fineY);
+            spritePatternHigh[sprite] =
+                read(PPUCTRL_S << 12 | tile << 4 | fineY + 8);
+        }
       }
     }
-
-    // cycles 65-256
-    // odd cycles: read from OAM
-    // even cycles: write to secondary OAM, unless full:
-    //  then read from secondary OAM instead
-
-    // start at n = OAMADDR (almost always 0)
-    // read sprite n's Y-coordinate
-    // unless 8 sprites have been found, write Y to secondary OAM
-    // if Y is in range, copy rest of sprite data into secondary OAM
-    // increment n
-    // if n >= 64 / overflow to 0, break
-    // if less than 8 sprites found, repeat
-    // if exactly 8 sprites found, disable writes to secondary OAM
-
-    // start at m = 0
-    // fetch byte m for sprite n
-    // if value is in Y range, set sprite overflow flag
-    //  then read next 3 bytes of oam, increment m each time
-    //  if m = 3, increment n
-    // if value is not in range, increment n and m
-    // if n overflows to 0, break
-    // otherwise repeat
-
-    // until hblank:
-    // try to copy first OAM byte for sprite n into secondary OAM (fails)
-    // increment n
-
-    // cycles 257-320
-    // from nesdev wiki:
-    // Sprite fetches (8 sprites total, 8 cycles per sprite)
-    // 1-4: Read T, tile number, attributes, and X
-    //  of the selected sprite from secondary OAM
-    // 5-8: Read X of the selected sprite from secondary OAM 4 times
-    //  (while the PPU fetches the sprite tile data)
-
-    // cycles 321-340
-    // read first byte in secondary OAM
   }
 }
