@@ -74,6 +74,9 @@ class NES {
 
       step();
 
+      // TODO bud-01.06.24 sleep according to cycles executed
+      sleep(const Duration(microseconds: 10));
+
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         yield ppu.frameBuffer;
       }
