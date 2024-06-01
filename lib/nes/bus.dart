@@ -1,5 +1,6 @@
 // ignore_for_file: parameter_assignments
 
+import 'package:nes/exception/cartridge_not_loaded.dart';
 import 'package:nes/nes/apu/apu.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cpu/cpu.dart';
@@ -12,7 +13,8 @@ class Bus {
   late final CPU cpu;
   late final PPU ppu;
   late final APU apu;
-  late final Cartridge cartridge;
+
+  Cartridge? cartridge;
 
   int cpuRead(int address) {
     if (address == addressA) {
@@ -20,12 +22,11 @@ class Bus {
     }
 
     if (address < 0x2000) {
-      return cpu.ram[address % 0x0800];
+      return cpu.ram[address & 0x07ff];
     }
 
     if (address < 0x4000) {
-      // TODO bud-29.05.24 implement PPU register accesses
-      return ppu.read(0x2000 + address % 8);
+      return ppu.readRegister(0x2000 | (address & 0x07));
     }
 
     if (address < 0x4015) {
@@ -48,6 +49,12 @@ class Bus {
 
     if (address < 0x4020) {
       return 0;
+    }
+
+    final cartridge = this.cartridge;
+
+    if (cartridge == null) {
+      throw CartridgeNotLoaded();
     }
 
     return cartridge.read(address);
@@ -81,8 +88,7 @@ class Bus {
     }
 
     if (address < 0x4000) {
-      // TODO bud-29.05.24 implement PPU register accesses
-      ppu.write(address, value);
+      ppu.writeRegister(address, value);
 
       return;
     }
@@ -112,25 +118,53 @@ class Bus {
       return;
     }
 
+    final cartridge = this.cartridge;
+
+    if (cartridge == null) {
+      throw CartridgeNotLoaded();
+    }
+
     cartridge.write(address, value);
   }
 
   int ppuRead(int address) {
-    address = address % 0x4000;
+    address = address & 0x3fff;
 
-    if (address >= 0x3f00) {
-      return ppu.palette[(address - 0x3f00) % 0x20];
+    if (address < 0x2000) {
+      final cartridge = this.cartridge;
+
+      if (cartridge == null) {
+        throw CartridgeNotLoaded();
+      }
+
+      return cartridge.read(address);
     }
 
-    if (address >= 0x2000) {
-      // TODO bud-29.05.24 nametables
+    if (address < 0x3f00) {
+      // TODO bud-31.05.24 nametable mirroring
+      return ppu.ram[address & 0x07ff];
     }
 
-    // TODO bud-29.05.24 pattern table
-    return 0;
+    return ppu.palette[address & 0x1f];
   }
 
-  void ppuWrite(int address, int value) {}
+  void ppuWrite(int address, int value) {
+    // TODO bud-01.06.24 check mirrors
+    if (address >= 0x2000 && address < 0x3f00) {
+      ppu.ram[address & 0x7ff] = value;
+
+      return;
+    }
+
+    if (address < 0x3f20) {
+      final index = (address & 0x1c) >> 2;
+      final entry = address & 0x03;
+
+      ppu.palette[(index << 2 | entry) & 0x1f] = value;
+
+      return;
+    }
+  }
 
   int apuRead(int address) {
     return 0;
