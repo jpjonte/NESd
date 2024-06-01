@@ -531,8 +531,8 @@ class PPU {
     attributeTableHighShift <<= 1;
     attributeTableLowShift <<= 1;
 
-    attributeTableHighShift |= attribute & 0x1;
-    attributeTableLowShift |= (attribute & 0x2) >> 1;
+    attributeTableHighShift |= (attribute & 0x2) >> 1;
+    attributeTableLowShift |= attribute & 0x1;
   }
 
   void _fetchNametable() {
