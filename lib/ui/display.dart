@@ -2,15 +2,19 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
+import 'package:nes/ui/nes_controller.dart';
 
-class DisplayWidget extends StatelessWidget {
+class DisplayWidget extends ConsumerWidget {
   const DisplayWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _loadImage(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(nesControllerProvider.notifier);
+
+    return StreamBuilder(
+      stream: controller.stream.asyncMap(_convert),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -34,45 +38,7 @@ class DisplayWidget extends StatelessWidget {
     );
   }
 
-  Future<ui.Image> _loadImage() async {
-    final frameBuffer = FrameBuffer(width: 256, height: 224)
-      ..setPixel(0, 0, 0xFFFFFFFF)
-      ..setPixel(1, 0, 0xFFFFFFFF)
-      ..setPixel(2, 0, 0xFFFFFFFF)
-      ..setPixel(1, 1, 0xFFFFFFFF)
-      ..setPixel(1, 2, 0xFFFFFFFF)
-      ..setPixel(1, 3, 0xFFFFFFFF)
-      ..setPixel(1, 4, 0xFFFFFFFF)
-      ..setPixel(4, 0, 0xFFFFFFFF)
-      ..setPixel(5, 0, 0xFFFFFFFF)
-      ..setPixel(6, 0, 0xFFFFFFFF)
-      ..setPixel(4, 1, 0xFFFFFFFF)
-      ..setPixel(4, 2, 0xFFFFFFFF)
-      ..setPixel(5, 2, 0xFFFFFFFF)
-      ..setPixel(6, 2, 0xFFFFFFFF)
-      ..setPixel(4, 3, 0xFFFFFFFF)
-      ..setPixel(4, 4, 0xFFFFFFFF)
-      ..setPixel(5, 4, 0xFFFFFFFF)
-      ..setPixel(6, 4, 0xFFFFFFFF)
-      ..setPixel(8, 0, 0xFFFFFFFF)
-      ..setPixel(9, 0, 0xFFFFFFFF)
-      ..setPixel(10, 0, 0xFFFFFFFF)
-      ..setPixel(8, 1, 0xFFFFFFFF)
-      ..setPixel(8, 2, 0xFFFFFFFF)
-      ..setPixel(9, 2, 0xFFFFFFFF)
-      ..setPixel(10, 2, 0xFFFFFFFF)
-      ..setPixel(10, 3, 0xFFFFFFFF)
-      ..setPixel(8, 4, 0xFFFFFFFF)
-      ..setPixel(9, 4, 0xFFFFFFFF)
-      ..setPixel(10, 4, 0xFFFFFFFF)
-      ..setPixel(12, 0, 0xFFFFFFFF)
-      ..setPixel(13, 0, 0xFFFFFFFF)
-      ..setPixel(14, 0, 0xFFFFFFFF)
-      ..setPixel(13, 1, 0xFFFFFFFF)
-      ..setPixel(13, 2, 0xFFFFFFFF)
-      ..setPixel(13, 3, 0xFFFFFFFF)
-      ..setPixel(13, 4, 0xFFFFFFFF);
-
+  Future<ui.Image> _convert(FrameBuffer frameBuffer) async {
     final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
 
     final descriptor = ui.ImageDescriptor.raw(
@@ -102,6 +68,8 @@ class EmulatorPainter extends CustomPainter {
     ..color = Colors.white
     ..style = PaintingStyle.stroke;
 
+  final Paint framePaint = Paint();
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, backgroundPaint);
@@ -115,33 +83,25 @@ class EmulatorPainter extends CustomPainter {
 
     final topLeft = center - Offset(width / 2, height / 2) * scale.toDouble();
 
-    final matrix = Matrix4.identity().scaled(scale.toDouble())
-      ..setTranslationRaw(topLeft.dx, topLeft.dy, 0);
-
-    final paint = Paint()
-      ..shader = ImageShader(
-        image,
-        TileMode.decal,
-        TileMode.decal,
-        matrix.storage,
-      );
-
     const offset = Offset(1, 1);
     canvas
-      ..drawRect(
+      ..drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, width.toDouble(), height.toDouble()),
         topLeft & Size(width * scale.toDouble(), height * scale.toDouble()),
-        paint,
+        framePaint,
       )
       ..drawRect(
         (topLeft - offset) &
             Size(
-              (width + 2) * scale.toDouble(),
-              (height + 2) * scale.toDouble(),
+              (width + 1) * scale.toDouble(),
+              (height + 1) * scale.toDouble(),
             ),
         borderPaint,
       );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant EmulatorPainter oldDelegate) =>
+      image != oldDelegate.image;
 }
