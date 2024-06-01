@@ -8,7 +8,17 @@ import 'package:nes/nes/cpu/address_mode.dart';
 import 'package:nes/nes/cpu/cpu.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
+import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
+
+enum NesCommand {
+  reset,
+  pause,
+  resume,
+  stop,
+  step,
+  runUntilFrame,
+}
 
 class NES {
   NES({this.debug = false}) {
@@ -26,6 +36,9 @@ class NES {
 
   Cartridge? cartridge;
 
+  bool on = false;
+  bool running = false;
+
   final Bus bus = Bus();
   late final CPU cpu = CPU(bus);
   late final PPU ppu = PPU(bus);
@@ -38,9 +51,68 @@ class NES {
   }
 
   void reset() {
+    running = false;
+    on = false;
+
     cpu.reset();
     apu.reset();
     ppu.reset();
+  }
+
+  Stream<FrameBuffer> run(Stream<NesCommand> commandStream) async* {
+    commandStream.listen(_executeCommand);
+
+    on = true;
+    running = true;
+
+    while (on) {
+      if (!running) {
+        return;
+      }
+
+      final vblankBefore = ppu.PPUSTATUS_V;
+
+      step();
+
+      if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
+        yield ppu.frameBuffer;
+      }
+    }
+  }
+
+  void pause() {
+    running = false;
+  }
+
+  void resume() {
+    running = true;
+  }
+
+  void stop() {
+    on = false;
+  }
+
+  void _executeCommand(NesCommand command) {
+    switch (command) {
+      case NesCommand.reset:
+        reset();
+      case NesCommand.pause:
+        pause();
+      case NesCommand.resume:
+        resume();
+      case NesCommand.stop:
+        stop();
+      case NesCommand.step:
+        if (!running) {
+          step();
+        }
+      case NesCommand.runUntilFrame:
+        if (!running) {
+          while (ppu.PPUSTATUS_V == 0) {
+            step();
+          }
+        }
+    }
   }
 
   void step() {
@@ -137,8 +209,8 @@ class NES {
 
   void _debugCycles() {
     _writeDebug(
-      'PPU:${(bus.ppu.cycle ~/ 341).toString().padLeft(3)}, '
-      '${(bus.ppu.cycle % 341).toString().padLeft(3)}'
+      'PPU:${bus.ppu.scanline.toString().padLeft(3)}, '
+      '${bus.ppu.cycle.toString().padLeft(3)}'
       ' CYC:${cpu.cycles}\n',
     );
   }
