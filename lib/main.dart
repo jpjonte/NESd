@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/ui/app.dart';
 
 void main() {
-  runApp(const NesdApp());
+  runApp(const ProviderScope(child: NesdApp()));
 }
 
 class NesdApp extends StatelessWidget {

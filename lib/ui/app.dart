@@ -1,19 +1,20 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
-import 'package:nes/ui/cartridge_info.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/display.dart';
+import 'package:nes/ui/nes_controller.dart';
 
-class AppWidget extends HookWidget {
+class AppWidget extends HookConsumerWidget {
   const AppWidget({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final cartridgeState = useState<Cartridge?>(null);
+  Widget build(BuildContext context, WidgetRef ref) {
     final errorState = useState<String?>(null);
+
+    final controller = ref.read(nesControllerProvider.notifier);
 
     return PlatformMenuBar(
       menus: [
@@ -39,7 +40,7 @@ class AppWidget extends HookWidget {
               label: 'Open...',
               shortcut: const CharacterActivator('o', meta: true),
               onSelected: () async {
-                await _loadRom(cartridgeState, errorState);
+                await _loadRom(controller, errorState);
               },
             ),
           ],
@@ -48,8 +49,6 @@ class AppWidget extends HookWidget {
       child: Row(
         children: [
           const Expanded(child: DisplayWidget()),
-          if (cartridgeState.value case final cartridge?)
-            CartridgeInfoWidget(cartridge: cartridge),
           if (errorState.value != null)
             Text(
               errorState.value!,
@@ -64,9 +63,11 @@ class AppWidget extends HookWidget {
   }
 
   Future<void> _loadRom(
-    ValueNotifier<Cartridge?> cartridgeState,
+    NesController controller,
     ValueNotifier<String?> error,
   ) async {
+    controller.pause();
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['nes'],
@@ -77,7 +78,6 @@ class AppWidget extends HookWidget {
     }
 
     error.value = null;
-    cartridgeState.value = null;
 
     final path = result.files.single.path;
 
@@ -86,7 +86,9 @@ class AppWidget extends HookWidget {
     }
 
     try {
-      cartridgeState.value = Cartridge.fromFile(path);
+      controller
+        ..loadCartridge(path)
+        ..run();
     } on Exception catch (e) {
       error.value = 'Failed to load ROM: $e';
     }

@@ -8,10 +8,17 @@ environment:
   sdk: '>=3.4.1 <4.0.0'
 
 dependencies:
+  build_runner: ^2.4.10
   file_picker: ^8.0.3
   flutter:
     sdk: flutter
   flutter_hooks: ^0.20.5
+  flutter_riverpod: ^2.5.1
+  hooks_riverpod: ^2.5.1
+  riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  riverpod_generator: ^2.4.0
+  stream_isolate: ^0.2.0
 
 dev_dependencies:
   flutter_test:
