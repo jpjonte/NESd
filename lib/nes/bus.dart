@@ -157,10 +157,7 @@ class Bus {
     }
 
     if (address < 0x3f20) {
-      final index = (address & 0x1c) >> 2;
-      final entry = address & 0x03;
-
-      ppu.palette[(index << 2 | entry) & 0x1f] = value;
+      ppu.palette[address & 0x1f] = value;
 
       return;
     }
