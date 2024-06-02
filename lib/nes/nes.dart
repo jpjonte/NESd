@@ -66,6 +66,8 @@ class NES {
   bool paused = false;
   bool stopAfterNextFrame = false;
 
+  late DateTime frameStart;
+
   final Bus bus = Bus();
   late final CPU cpu = CPU(bus);
   late final PPU ppu = PPU(bus);
@@ -89,9 +91,11 @@ class NES {
     on = true;
     running = true;
 
+    frameStart = DateTime.now();
+
     while (on) {
       if (!running) {
-        await wait(const Duration(milliseconds: 10));
+        await _wait(const Duration(milliseconds: 10));
 
         continue;
       }
@@ -108,13 +112,24 @@ class NES {
           stopAfterNextFrame = false;
         }
 
+        final elapsedTime = DateTime.now().difference(frameStart);
+
         // TODO sleep according to cycles executed
-        await wait(const Duration(milliseconds: 5));
+        await _wait(_calculateSleepTime(elapsedTime));
+
+        frameStart = DateTime.now();
       }
     }
   }
 
-  Future<void> wait(Duration duration) => Future.delayed(duration);
+  Duration _calculateSleepTime(Duration elapsedTime) {
+    const msAt60fps = 1000 / 60;
+    final time = msAt60fps - elapsedTime.inMilliseconds;
+
+    return Duration(milliseconds: time.ceil());
+  }
+
+  Future<void> _wait(Duration duration) => Future.delayed(duration);
 
   void _executeCommand(NesCommand command) {
     switch (command) {
