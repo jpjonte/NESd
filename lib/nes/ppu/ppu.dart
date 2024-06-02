@@ -255,6 +255,7 @@ class PPU {
 
   bool get lineVisible => scanline < 240;
   bool get linePreRender => scanline == 261;
+  bool get lineVblank => scanline == 241;
   bool get lineFetch => lineVisible || linePreRender;
 
   bool get cycleVisible => cycle >= 1 && cycle <= 256;
@@ -267,19 +268,6 @@ class PPU {
   bool get fetching => lineFetch && cycleFetch;
 
   void step() {
-    // rendering
-
-    if (linePreRender || lineVisible) {
-      if (cycle >= 257 && cycle <= 320) {
-        OAMADDR = 0x0000;
-      }
-    }
-
-    // visible scanlines (0-239)
-
-    // cycle 0 (idle)
-
-    // cycles 1-256
     if (renderingEnabled) {
       if (rendering) {
         _renderPixel();
@@ -295,62 +283,36 @@ class PPU {
           case 3:
             _fetchAttributeTable();
           case 5:
-            _fetchPatternTableHigh();
-          case 7:
             _fetchPatternTableLow();
+          case 7:
+            _fetchPatternTableHigh();
         }
-      }
-    }
 
-    if (cycle <= 256 || cycle >= 328) {
-      if (renderingEnabled && fetching) {
         if (cycle % 8 == 0) {
           _incrementX();
         }
-      }
-    }
 
-    if (cycle == 256) {
-      if (renderingEnabled) {
-        _incrementY();
+        if (cycle == 256) {
+          _incrementY();
+        }
       }
-    }
 
-    if (cycle == 257) {
-      if (renderingEnabled) {
+      if (lineFetch && cycle == 257) {
         _copyHorizontalBits();
       }
-    }
 
-    if (linePreRender && cycle >= 280 && cycle <= 304) {
-      if (renderingEnabled) {
+      if (linePreRender && cycle >= 280 && cycle <= 304) {
         _copyVerticalBits();
       }
     }
 
-    // cycles 257-320
-    // for sprite 1..8
-    // fetch pattern table tile low
-    // fetch pattern table tile high
+    if (lineVisible || linePreRender) {
+      if (cycle >= 257 && cycle <= 320) {
+        OAMADDR = 0x0000;
+      }
+    }
 
-    // cycles 321-336
-    // fetch tiles 1..2 for next scanline
-    // fetch nametable byte
-    // fetch attribute table byte
-    // fetch pattern table tile low
-    // fetch pattern table tile high
-
-    // cycles 337-340
-    // fetch nametable byte
-    // fetch nametable byte
-
-    // post-render scanline (240)
-    // ppu idle
-
-    // vblank start (scanline 241)
-    // cycle 1
-    // set vblank flag
-    if (scanline == 241 && cycle == 1) {
+    if (lineVblank && cycle == 1) {
       PPUSTATUS_V = 1;
 
       // trigger nmi if PPUCTRL.V is set
@@ -359,13 +321,10 @@ class PPU {
       }
     }
 
-    if (linePreRender) {
-      if (cycle == 1) {
-        // clear overflow, sprite 0 hit, and vblank status
-        PPUSTATUS_O = 0;
-        PPUSTATUS_S = 0;
-        PPUSTATUS_V = 0;
-      }
+    if (linePreRender && cycle == 1) {
+      PPUSTATUS_O = 0;
+      PPUSTATUS_S = 0;
+      PPUSTATUS_V = 0;
     }
 
     _evaluateSprites();
@@ -552,6 +511,10 @@ class PPU {
   }
 
   int _getSpritePixelColor() {
+    if (PPUMASK_s == 0) {
+      return 0;
+    }
+
     final currentX = cycle - 1;
 
     for (var sprite = 0; sprite < spriteCount; sprite++) {
@@ -592,8 +555,8 @@ class PPU {
     attributeTableHighShift <<= 1;
     attributeTableLowShift <<= 1;
 
-    attributeTableHighShift |= (attribute & 0x2) >> 1;
-    attributeTableLowShift |= attribute & 0x1;
+    attributeTableHighShift |= attribute.bit(1);
+    attributeTableLowShift |= attribute.bit(0);
   }
 
   void _fetchNametable() {
@@ -663,13 +626,11 @@ class PPU {
   }
 
   void _copyHorizontalBits() {
-    // v: ....A.. ...BCDEF <- t: ....A.. ...BCDEF
     v_coarseX = t_coarseX;
     v_nametableX = t_nametableX;
   }
 
   void _copyVerticalBits() {
-    // v: GHIA.BC DEF..... <- t: GHIA.BC DEF.....
     v_coarseY = t_coarseY;
     v_fineY = t_fineY;
     v_nametableY = t_nametableY;
