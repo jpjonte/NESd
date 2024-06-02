@@ -90,6 +90,7 @@ class NES {
 
     on = true;
     running = true;
+    paused = false;
 
     frameStart = DateTime.now();
 
