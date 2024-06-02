@@ -47,6 +47,16 @@ class AppWidget extends HookConsumerWidget {
             ),
           ],
         ),
+        PlatformMenu(
+          label: 'Game',
+          menus: [
+            PlatformMenuItem(
+              label: 'Pause',
+              shortcut: const CharacterActivator('p', meta: true),
+              onSelected: controller.togglePause,
+            ),
+          ],
+        ),
       ],
       child: Row(
         children: [
