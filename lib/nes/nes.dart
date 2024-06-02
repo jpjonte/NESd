@@ -11,13 +11,34 @@ import 'package:nes/nes/cpu/operation.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
 
-enum NesCommand {
-  reset,
-  pause,
-  resume,
-  stop,
-  step,
-  runUntilFrame,
+sealed class NesCommand {}
+
+class NesResetCommand extends NesCommand {}
+
+class NesPauseCommand extends NesCommand {}
+
+class NesTogglePauseCommand extends NesCommand {}
+
+class NesResumeCommand extends NesCommand {}
+
+class NesStopCommand extends NesCommand {}
+
+class NesStepCommand extends NesCommand {}
+
+class NesRunUntilFrameCommand extends NesCommand {}
+
+class NesButtonDownCommand extends NesCommand {
+  NesButtonDownCommand(this.controller, this.button);
+
+  final int controller;
+  final NesButton button;
+}
+
+class NesButtonUpCommand extends NesCommand {
+  NesButtonUpCommand(this.controller, this.button);
+
+  final int controller;
+  final NesButton button;
 }
 
 class NES {
@@ -83,38 +104,33 @@ class NES {
     }
   }
 
-  void pause() {
-    running = false;
-  }
-
-  void resume() {
-    running = true;
-  }
-
-  void stop() {
-    on = false;
-  }
 
   void _executeCommand(NesCommand command) {
     switch (command) {
-      case NesCommand.reset:
+      case final NesResetCommand _:
         reset();
-      case NesCommand.pause:
-        pause();
-      case NesCommand.resume:
-        resume();
-      case NesCommand.stop:
-        stop();
-      case NesCommand.step:
+      case final NesPauseCommand _:
+        running = false;
+      case NesResumeCommand _:
+        running = true;
+      case NesStopCommand _:
+        on = false;
+      case NesStepCommand _:
         if (!running) {
           step();
         }
-      case NesCommand.runUntilFrame:
+      case NesRunUntilFrameCommand _:
         if (!running) {
           while (ppu.PPUSTATUS_V == 0) {
             step();
           }
         }
+      case final NesButtonDownCommand command:
+        bus.buttonDown(command.controller, command.button);
+      case final NesButtonUpCommand command:
+        bus.buttonUp(command.controller, command.button);
+      case NesTogglePauseCommand():
+        running = !running;
     }
   }
 

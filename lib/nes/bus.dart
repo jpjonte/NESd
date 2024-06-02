@@ -9,12 +9,30 @@ import 'package:nes/nes/ppu/ppu.dart';
 const addressNone = -1;
 const addressA = -2;
 
+enum NesButton {
+  a,
+  b,
+  select,
+  start,
+  up,
+  down,
+  left,
+  right,
+}
+
 class Bus {
   late final CPU cpu;
   late final PPU ppu;
   late final APU apu;
 
   Cartridge? cartridge;
+
+  bool inputStrobe = false;
+
+  int controller1Status = 0;
+  int controller1Shift = 0;
+  int controller2Status = 0;
+  int controller2Shift = 0;
 
   int cpuRead(int address) {
     if (address == addressA) {
@@ -37,14 +55,30 @@ class Bus {
       return apu.status;
     }
 
+    // TODO https://www.nesdev.org/wiki/Controller_reading#DPCM_conflict
+    // TODO https://www.nesdev.org/wiki/Controller_reading#Unconnected_data_lines_and_open_bus
     if (address == 0x4016) {
-      // TODO bud-27.05.24 controller 1
-      return 0;
+      final value = controller1Shift < 8
+          ? (controller1Status >> controller1Shift) & 1
+          : 1;
+
+      if (!inputStrobe) {
+        controller1Shift++;
+      }
+
+      return value;
     }
 
     if (address == 0x4017) {
-      // TODO bud-27.05.24 controller 2
-      return 0;
+      final value = controller2Shift < 8
+          ? (controller2Status >> controller2Shift) & 1
+          : 1;
+
+      if (!inputStrobe) {
+        controller2Shift++;
+      }
+
+      return value;
     }
 
     if (address < 0x4020) {
@@ -111,13 +145,10 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      // TODO bud-27.05.24
+      inputStrobe = (value & 1) == 1;
+      controller1Shift = 0;
+      controller2Shift = 0;
 
-      return;
-    }
-
-    if (address == 0x4017) {
-      // TODO bud-27.05.24
       return;
     }
 
@@ -156,7 +187,6 @@ class Bus {
   }
 
   void ppuWrite(int address, int value) {
-    // TODO bud-01.06.24 check mirrors
     if (address >= 0x2000 && address < 0x3f00) {
       ppu.ram[address & 0x7ff] = value;
 
@@ -175,4 +205,20 @@ class Bus {
   }
 
   void apuWrite(int address, int value) {}
+
+  void buttonDown(int controller, NesButton button) {
+    if (controller == 0) {
+      controller1Status |= 1 << button.index;
+    } else {
+      controller2Status |= 1 << button.index;
+    }
+  }
+
+  void buttonUp(int controller, NesButton button) {
+    if (controller == 0) {
+      controller1Status &= ~(1 << button.index);
+    } else {
+      controller2Status &= ~(1 << button.index);
+    }
+  }
 }

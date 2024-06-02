@@ -26,9 +26,6 @@ class CPU {
   int Y = 0x00;
   int P = 0x00;
 
-  int joy1 = 0;
-  int joy2 = 0;
-
   bool irq = false;
   bool nmi = false;
 

@@ -704,10 +704,6 @@ class PPU {
               secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamN + 2];
               secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamN + 3];
 
-              if (scanline == 42) {
-                print('selected');
-              }
-
               secondarySpriteCount++;
             }
 

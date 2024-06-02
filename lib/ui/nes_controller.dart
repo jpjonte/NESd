@@ -9,10 +9,25 @@ import 'package:stream_isolate/stream_isolate.dart';
 
 part 'nes_controller.g.dart';
 
+final logicalKeyToNesButton = {
+  LogicalKeyboardKey.arrowUp: NesButton.up,
+  LogicalKeyboardKey.arrowDown: NesButton.down,
+  LogicalKeyboardKey.arrowLeft: NesButton.left,
+  LogicalKeyboardKey.arrowRight: NesButton.right,
+  LogicalKeyboardKey.enter: NesButton.start,
+  LogicalKeyboardKey.shift: NesButton.select,
+  LogicalKeyboardKey.keyZ: NesButton.a,
+  LogicalKeyboardKey.keyX: NesButton.b,
+};
+
 @riverpod
 class NesController extends _$NesController {
   @override
-  NES build() => NES();
+  NES build() {
+    HardwareKeyboard.instance.addHandler(_handleKey);
+
+    return NES();
+  }
 
   final StreamController<FrameBuffer> _streamController =
       StreamController.broadcast();
@@ -46,10 +61,33 @@ class NesController extends _$NesController {
   }
 
   void pause() {
-    _isolate?.send(NesCommand.pause);
+    sendCommand(NesPauseCommand());
   }
 
   void resume() {
-    _isolate?.send(NesCommand.resume);
+    sendCommand(NesResumeCommand());
+  }
+
+  void togglePause() {
+    sendCommand(NesTogglePauseCommand());
+  }
+
+  void sendCommand(NesCommand command) => _isolate?.send(command);
+
+  bool _handleKey(KeyEvent event) {
+    final button = logicalKeyToNesButton[event.logicalKey];
+
+    if (button == null) {
+      return false;
+    }
+
+    switch (event) {
+      case final KeyDownEvent _:
+        sendCommand(NesButtonDownCommand(0, button));
+      case final KeyUpEvent _:
+        sendCommand(NesButtonUpCommand(0, button));
+    }
+
+    return true;
   }
 }
