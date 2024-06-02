@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
@@ -22,12 +25,24 @@ final logicalKeyToNesButton = {
 
 @riverpod
 class NesController extends _$NesController {
+  NesController() {
+    _lifecycleListener = AppLifecycleListener(
+      onPause: pause,
+      onInactive: pause,
+      onShow: resume,
+      onResume: resume,
+    );
+  }
+
   @override
   NES build() {
     HardwareKeyboard.instance.addHandler(_handleKey);
 
     return NES();
   }
+
+  // ignore: unused_field
+  late final AppLifecycleListener _lifecycleListener;
 
   final StreamController<FrameBuffer> _streamController =
       StreamController.broadcast();

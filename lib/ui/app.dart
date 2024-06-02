@@ -88,6 +88,8 @@ class AppWidget extends HookConsumerWidget {
     );
 
     if (result == null) {
+      controller.resume();
+
       return;
     }
 
@@ -96,6 +98,8 @@ class AppWidget extends HookConsumerWidget {
     final path = result.files.single.path;
 
     if (path == null) {
+      controller.resume();
+
       return;
     }
 
@@ -105,6 +109,8 @@ class AppWidget extends HookConsumerWidget {
         ..run();
     } on Exception catch (e) {
       error.value = 'Failed to load ROM: $e';
+
+      controller.resume();
     }
   }
 }
