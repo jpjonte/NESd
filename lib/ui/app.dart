@@ -55,6 +55,11 @@ class AppWidget extends HookConsumerWidget {
               shortcut: const CharacterActivator('p', meta: true),
               onSelected: controller.togglePause,
             ),
+            PlatformMenuItem(
+              label: 'Reset',
+              shortcut: const CharacterActivator('r', meta: true),
+              onSelected: controller.reset,
+            ),
           ],
         ),
       ],

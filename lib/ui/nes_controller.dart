@@ -87,6 +87,10 @@ class NesController extends _$NesController {
     sendCommand(NesTogglePauseCommand());
   }
 
+  void reset() {
+    sendCommand(NesResetCommand());
+  }
+
   void sendCommand(NesCommand command) => _isolate?.send(command);
 
   bool _handleKey(KeyEvent event) {

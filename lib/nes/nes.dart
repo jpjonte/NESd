@@ -72,9 +72,6 @@ class NES {
   }
 
   void reset() {
-    running = false;
-    on = false;
-
     cpu.reset();
     apu.reset();
     ppu.reset();
