@@ -88,22 +88,25 @@ class NES {
 
     while (on) {
       if (!running) {
-        return;
+        await wait(const Duration(milliseconds: 10));
+
+        continue;
       }
 
       final vblankBefore = ppu.PPUSTATUS_V;
 
       step();
 
-      // TODO bud-01.06.24 sleep according to cycles executed
-      sleep(const Duration(microseconds: 10));
-
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         yield ppu.frameBuffer;
+
+        // TODO sleep according to cycles executed
+        await wait(const Duration(milliseconds: 5));
       }
     }
   }
 
+  Future<void> wait(Duration duration) => Future.delayed(duration);
 
   void _executeCommand(NesCommand command) {
     switch (command) {
