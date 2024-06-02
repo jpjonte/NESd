@@ -60,6 +60,11 @@ class AppWidget extends HookConsumerWidget {
               shortcut: const CharacterActivator('r', meta: true),
               onSelected: controller.reset,
             ),
+            PlatformMenuItem(
+              label: 'Next Frame',
+              shortcut: const CharacterActivator(']', meta: true),
+              onSelected: controller.runUntilFrame,
+            ),
           ],
         ),
       ],
@@ -85,7 +90,7 @@ class AppWidget extends HookConsumerWidget {
     NesController controller,
     ValueNotifier<String?> error,
   ) async {
-    controller.pause();
+    controller.suspend();
 
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,

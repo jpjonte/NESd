@@ -17,7 +17,11 @@ class NesResetCommand extends NesCommand {}
 
 class NesPauseCommand extends NesCommand {}
 
+class NesUnpauseCommand extends NesCommand {}
+
 class NesTogglePauseCommand extends NesCommand {}
+
+class NesSuspendCommand extends NesCommand {}
 
 class NesResumeCommand extends NesCommand {}
 
@@ -59,6 +63,8 @@ class NES {
 
   bool on = false;
   bool running = false;
+  bool paused = false;
+  bool stopAfterNextFrame = false;
 
   final Bus bus = Bus();
   late final CPU cpu = CPU(bus);
@@ -97,6 +103,11 @@ class NES {
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         yield ppu.frameBuffer;
 
+        if (stopAfterNextFrame) {
+          running = false;
+          stopAfterNextFrame = false;
+        }
+
         // TODO sleep according to cycles executed
         await wait(const Duration(milliseconds: 5));
       }
@@ -110,9 +121,20 @@ class NES {
       case final NesResetCommand _:
         reset();
       case final NesPauseCommand _:
+        paused = true;
+        running = false;
+      case NesTogglePauseCommand():
+        paused = !paused;
+        running = !running;
+      case NesUnpauseCommand():
+        paused = false;
+        running = true;
+      case NesSuspendCommand _:
         running = false;
       case NesResumeCommand _:
-        running = true;
+        if (!paused) {
+          running = true;
+        }
       case NesStopCommand _:
         on = false;
       case NesStepCommand _:
@@ -120,17 +142,12 @@ class NES {
           step();
         }
       case NesRunUntilFrameCommand _:
-        if (!running) {
-          while (ppu.PPUSTATUS_V == 0) {
-            step();
-          }
-        }
+        running = true;
+        stopAfterNextFrame = true;
       case final NesButtonDownCommand command:
         bus.buttonDown(command.controller, command.button);
       case final NesButtonUpCommand command:
         bus.buttonUp(command.controller, command.button);
-      case NesTogglePauseCommand():
-        running = !running;
     }
   }
 

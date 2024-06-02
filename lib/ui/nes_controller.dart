@@ -27,8 +27,8 @@ final logicalKeyToNesButton = {
 class NesController extends _$NesController {
   NesController() {
     _lifecycleListener = AppLifecycleListener(
-      onPause: pause,
-      onInactive: pause,
+      onPause: suspend,
+      onInactive: suspend,
       onShow: resume,
       onResume: resume,
     );
@@ -75,21 +75,15 @@ class NesController extends _$NesController {
     _isolate = isolate;
   }
 
-  void pause() {
-    sendCommand(NesPauseCommand());
-  }
+  void suspend() => sendCommand(NesSuspendCommand());
 
-  void resume() {
-    sendCommand(NesResumeCommand());
-  }
+  void togglePause() => sendCommand(NesTogglePauseCommand());
 
-  void togglePause() {
-    sendCommand(NesTogglePauseCommand());
-  }
+  void resume() => sendCommand(NesResumeCommand());
 
-  void reset() {
-    sendCommand(NesResetCommand());
-  }
+  void reset() => sendCommand(NesResetCommand());
+
+  void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
 
   void sendCommand(NesCommand command) => _isolate?.send(command);
 
