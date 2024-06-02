@@ -2,9 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:nes/exception/invalid_rom_header.dart';
+import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/mapper.dart';
 
-enum NametableLayout { horizontal, vertical }
+enum NametableLayout { horizontal, vertical, four, single }
 
 enum RomFormat { iNes, nes20 }
 
@@ -74,7 +75,6 @@ class Cartridge {
   final int prgRamSize;
   final TvSystem tvSystem;
 
-  // TODO bud-26.05.24
   final Uint8List sram = Uint8List(0x2000);
 
   static Uint8List _parsePrgRom(Uint8List rom) {
@@ -158,11 +158,11 @@ class Cartridge {
     return TvSystem.values[rom[9] & 0x03];
   }
 
-  int read(int address) {
-    return mapper.read(this, address);
+  int read(Bus bus, int address) {
+    return mapper.read(bus, this, address);
   }
 
-  void write(int address, int value) {
-    mapper.write(this, address, value);
+  void write(Bus bus, int address, int value) {
+    mapper.write(bus, this, address, value);
   }
 }

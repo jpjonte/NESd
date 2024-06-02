@@ -231,20 +231,22 @@ class PPU {
   }
 
   void writeRegister(int address, int value) {
-    switch (address) {
-      case 0x2000:
+    final wrapped = address & 0x7;
+
+    switch (wrapped) {
+      case 0:
         _writePPUCTRL(value);
-      case 0x2001:
+      case 1:
         PPUMASK = value;
-      case 0x2003:
+      case 3:
         OAMADDR = value;
-      case 0x2004:
+      case 4:
         _writeOAMDATA(value);
-      case 0x2005:
+      case 5:
         _writePPUSCROLL(value);
-      case 0x2006:
+      case 6:
         _writePPUADDR(value);
-      case 0x2007:
+      case 7:
         _writePPUDATA(value);
     }
   }
@@ -563,7 +565,7 @@ class PPU {
   }
 
   void _fetchNametable() {
-    final address = 0x2000 | v_coarseScroll;
+    final address = 0x2000 | v_nametable << 10 | v_coarseScroll;
 
     nametableLatch = read(address);
   }
@@ -603,7 +605,7 @@ class PPU {
   void _incrementX() {
     if (v_coarseX == 31) {
       v_coarseX = 0;
-      v_nametableX = v_nametableX == 1 ? 0 : 1;
+      v_nametableX = 1 - v_nametableX;
     } else {
       v_coarseX++;
     }
@@ -620,7 +622,7 @@ class PPU {
 
     if (v_coarseY == 29) {
       v_coarseY = 0;
-      v_nametable = v_nametable == 0 ? 1 : 0;
+      v_nametableY = 1 - v_nametableY;
     } else if (v_coarseY == 31) {
       v_coarseY = 0;
     } else {

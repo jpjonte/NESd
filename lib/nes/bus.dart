@@ -91,7 +91,7 @@ class Bus {
       throw CartridgeNotLoaded();
     }
 
-    return cartridge.read(address);
+    return cartridge.read(this, address);
   }
 
   int cpuRead16(int address, {bool wrap = false}) {
@@ -162,33 +162,22 @@ class Bus {
       throw CartridgeNotLoaded();
     }
 
-    cartridge.write(address, value);
+    cartridge.write(this, address, value);
   }
 
   int ppuRead(int address) {
     address = address & 0x3fff;
 
-    if (address < 0x2000) {
-      final cartridge = this.cartridge;
-
-      if (cartridge == null) {
-        throw CartridgeNotLoaded();
-      }
-
-      return cartridge.read(address);
-    }
-
     if (address < 0x3f00) {
-      // TODO bud-31.05.24 nametable mirroring
-      return ppu.ram[address & 0x07ff];
+      return cartridge!.read(this, address);
     }
 
     return ppu.palette[address & 0x1f];
   }
 
   void ppuWrite(int address, int value) {
-    if (address >= 0x2000 && address < 0x3f00) {
-      ppu.ram[address & 0x7ff] = value;
+    if (address < 0x3f00) {
+      cartridge!.write(this, address, value);
 
       return;
     }
