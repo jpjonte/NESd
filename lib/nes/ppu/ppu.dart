@@ -271,6 +271,9 @@ class PPU {
     if (renderingEnabled) {
       if (rendering) {
         _renderPixel();
+      }
+
+      if (rendering || fetching) {
         _shiftBackground();
       }
 
