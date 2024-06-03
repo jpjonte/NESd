@@ -18,7 +18,7 @@ final logicalKeyToNesButton = {
   LogicalKeyboardKey.arrowLeft: NesButton.left,
   LogicalKeyboardKey.arrowRight: NesButton.right,
   LogicalKeyboardKey.enter: NesButton.start,
-  LogicalKeyboardKey.shift: NesButton.select,
+  LogicalKeyboardKey.shiftRight: NesButton.select,
   LogicalKeyboardKey.keyZ: NesButton.a,
   LogicalKeyboardKey.keyX: NesButton.b,
 };
