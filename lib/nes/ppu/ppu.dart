@@ -162,7 +162,6 @@ class PPU {
   set PPUMASK_G(int value) => PPUMASK = PPUMASK.setBit(6, value);
   set PPUMASK_B(int value) => PPUMASK = PPUMASK.setBit(7, value);
 
-  // TODO bud-01.06.24 implement
   int get PPUSTATUS_O => PPUSTATUS.bit(5); // sprite overflow
   int get PPUSTATUS_S => PPUSTATUS.bit(6); // sprite 0 hit
   int get PPUSTATUS_V => PPUSTATUS.bit(7); // vblank active
@@ -682,33 +681,35 @@ class PPU {
       } else {
         // TODO bud-01.06.24 implement a proper algorithm
         // write to secondary OAM, unless full
-        if (secondarySpriteCount < 8 && oamN <= 252) {
+        if (oamN <= 252) {
           final y = oamBuffer;
 
-          if (scanline >= y && scanline < y + 8) {
-            if (oamN == 0) {
-              sprite0OnNextLine = true;
+          if (secondarySpriteCount < 8) {
+            if (scanline >= y && scanline < y + 8) {
+              if (oamN == 0) {
+                sprite0OnNextLine = true;
+              }
+
+              secondaryOam[secondarySpriteCount * 4] = y;
+              secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamN + 1];
+              secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamN + 2];
+              secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamN + 3];
+
+              secondarySpriteCount++;
             }
 
-            secondaryOam[secondarySpriteCount * 4] = y;
-            secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamN + 1];
-            secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamN + 2];
-            secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamN + 3];
+            oamN += 4;
+          } else {
+            if (scanline >= y && scanline < y + 8) {
+              PPUSTATUS_O = 1;
 
-            secondarySpriteCount++;
+              oamN += 4;
+            } else {
+              // if this looks like a bug, that's because it is -
+              // it's present on real hardware as well
+              oamN += 5;
+            }
           }
-
-          oamN += 4;
-
-          // TODO bud-01.06.24 implement sprite overflow flag
-          // start at m = 0
-          // fetch byte m for sprite n
-          // if value is in Y range, set sprite overflow flag
-          //  then read next 3 bytes of oam, increment m each time
-          //  if m = 3, increment n
-          // if value is not in range, increment n and m
-          // if n overflows to 0, break
-          // otherwise repeat
         }
       }
     }
