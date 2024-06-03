@@ -115,7 +115,6 @@ class NES {
 
         final elapsedTime = DateTime.now().difference(frameStart);
 
-        // TODO sleep according to cycles executed
         await _wait(_calculateSleepTime(elapsedTime));
 
         frameStart = DateTime.now();
