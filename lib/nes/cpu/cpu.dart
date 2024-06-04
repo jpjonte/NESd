@@ -130,9 +130,6 @@ class CPU {
   }
 
   void _handleInterrupts() {
-    // TODO bud-28.05.24 /NMI is an edge-sensitive interrupt
-    // TODO bud-28.05.24 make sure that NMI is only triggered
-    // TODO bud-28.05.24 when changing from false to true
     if (nmi) {
       nmi = false;
 
@@ -166,8 +163,6 @@ class CPU {
   }
 
   void _handleOAMDMA() {
-    // TODO bud-01.06.24 refactor this to be more accurate
-    // https://www.nesdev.org/wiki/DMA
     if (cycles.isEven) {
       // read
       dmaValue = read(dmaPage << 8 | dmaOffset);
@@ -184,9 +179,7 @@ class CPU {
     }
   }
 
-  void _handleDMCDMA() {
-    // TODO bud-01.06.24 implement DMC DMA
-  }
+  void _handleDMCDMA() {}
 
   void handleIrq(int address) {
     irq = false;

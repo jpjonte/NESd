@@ -122,7 +122,6 @@ class PPU {
   int get PPUCTRL_I => PPUCTRL.bit(2); // VRAM address increment
   int get PPUCTRL_S => PPUCTRL.bit(3); // sprite pattern table address (8x8)
   int get PPUCTRL_B => PPUCTRL.bit(4); // background pattern table address
-  // TODO implement
   int get PPUCTRL_H => PPUCTRL.bit(5); // sprite size
   int get PPUCTRL_P => PPUCTRL.bit(6); // PPU master/slave select
   int get PPUCTRL_V => PPUCTRL.bit(7); // enable vblank NMI
@@ -141,17 +140,13 @@ class PPU {
   set PPUCTRL_X(int value) => PPUCTRL = PPUCTRL.setBit(0, value);
   set PPUCTRL_Y(int value) => PPUCTRL = PPUCTRL.setBit(1, value);
 
-  // TODO bud-01.06.24 implement
   int get PPUMASK_Gr => PPUMASK.bit(0); // greyscale
   int get PPUMASK_m => PPUMASK.bit(1); // show background in leftmost 8 pixels
   int get PPUMASK_M => PPUMASK.bit(2); // show sprites in leftmost 8 pixels
   int get PPUMASK_b => PPUMASK.bit(3); // show background
   int get PPUMASK_s => PPUMASK.bit(4); // show sprites
-  // TODO bud-01.06.24 implement
   int get PPUMASK_R => PPUMASK.bit(5); // emphasize red
-  // TODO bud-01.06.24 implement
   int get PPUMASK_G => PPUMASK.bit(6); // emphasize green
-  // TODO bud-01.06.24 implement
   int get PPUMASK_B => PPUMASK.bit(7); // emphasize blue
 
   set PPUMASK_Gr(int value) => PPUMASK = PPUMASK.setBit(0, value);
@@ -527,7 +522,6 @@ class PPU {
     }
 
     for (var sprite = 0; sprite < spriteCount; sprite++) {
-      // TODO implement an accurate algorithm
       final xOffset = currentX - spriteX[sprite];
 
       if (xOffset < 0 || xOffset > 7) {
@@ -672,7 +666,6 @@ class PPU {
         // read from OAM
         oamBuffer = oam[oamN & 0xff];
       } else {
-        // TODO implement an accurate algorithm
         // write to secondary OAM, unless full
         if (oamN <= 252) {
           final y = oamBuffer;

@@ -55,8 +55,6 @@ class Bus {
       return apu.status;
     }
 
-    // TODO https://www.nesdev.org/wiki/Controller_reading#DPCM_conflict
-    // TODO https://www.nesdev.org/wiki/Controller_reading#Unconnected_data_lines_and_open_bus
     if (address == 0x4016) {
       final value = controller1Shift < 8
           ? (controller1Status >> controller1Shift) & 1
