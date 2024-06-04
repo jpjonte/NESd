@@ -135,20 +135,24 @@ class NES {
         reset();
         running = true;
         paused = false;
+        frameStart = DateTime.now();
       case final NesPauseCommand _:
         paused = true;
         running = false;
       case NesTogglePauseCommand():
         paused = !paused;
         running = !running;
+        frameStart = DateTime.now();
       case NesUnpauseCommand():
         paused = false;
         running = true;
+        frameStart = DateTime.now();
       case NesSuspendCommand _:
         running = false;
       case NesResumeCommand _:
         if (!paused) {
           running = true;
+          frameStart = DateTime.now();
         }
       case NesStopCommand _:
         on = false;
