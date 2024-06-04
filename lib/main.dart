@@ -14,6 +14,11 @@ class NesdApp extends StatelessWidget {
     return MaterialApp(
       title: 'NESd',
       theme: ThemeData(
+        colorScheme: const ColorScheme.dark(
+          surface: Colors.black,
+          // deprecated but still used?!
+          background: Colors.black,
+        ),
         textTheme: const TextTheme(
           bodyMedium: TextStyle(fontSize: 12.0),
         ),
