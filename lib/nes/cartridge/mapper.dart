@@ -4,13 +4,11 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 
 abstract class Mapper {
-  factory Mapper(int mapper, int subMapper) {
-    switch (mapper) {
-      case 0:
-        return Mapper0();
-      default:
-        throw UnsupportedMapper(mapper, subMapper);
-    }
+  factory Mapper(int mapper) {
+    return switch (mapper) {
+      0 => Mapper0(),
+      _ => throw UnsupportedMapper(mapper),
+    };
   }
 
   Mapper._();

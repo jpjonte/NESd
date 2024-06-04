@@ -123,9 +123,8 @@ class Cartridge {
     final flags6 = rom[6];
     final flags7 = rom[7];
     final flags8 = rom[8];
-    final subMapperId = (flags8 & 0xF0) >> 4;
 
-    var mapperId = 0;
+    late int mapperId;
 
     if (_parseRomFormat(rom) == RomFormat.nes20) {
       mapperId =
@@ -134,7 +133,7 @@ class Cartridge {
       mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
     }
 
-    return Mapper(mapperId, subMapperId);
+    return Mapper(mapperId);
   }
 
   static ConsoleType _parseConsoleType(Uint8List rom) {
