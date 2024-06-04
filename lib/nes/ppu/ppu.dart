@@ -507,13 +507,13 @@ class PPU {
       return 0;
     }
 
-    final patternHigh = (patternTableHighShift & 0x8000) >> (15 - x);
-    final patternLow = (patternTableLowShift & 0x8000) >> (15 - x);
+    final patternHigh = (patternTableHighShift >> (15 - x)) & 0x1;
+    final patternLow = (patternTableLowShift >> (15 - x)) & 0x1;
 
     final pattern = (patternHigh << 1) | patternLow;
 
-    final paletteIndexHigh = (attributeTableHighShift & 0x80) >> (7 - x);
-    final paletteIndexLow = (attributeTableLowShift & 0x80) >> (7 - x);
+    final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
+    final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
 
     final paletteIndex = (paletteIndexHigh << 1) | paletteIndexLow;
 
