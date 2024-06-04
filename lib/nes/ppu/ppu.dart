@@ -440,8 +440,6 @@ class PPU {
         frames++;
       }
     }
-
-    // TODO skip a cycle on odd frames
   }
 
   void _loadShiftRegisters() {
@@ -469,7 +467,7 @@ class PPU {
 
     final spriteColor = _getSpritePixelColor(backgroundColor);
     final spritePriority = spriteColor.bit(4);
-    final spriteColorValue = spriteColor & 0xf;
+    final spriteColorValue = (spriteColor & 0xf).setBit(4, 1);
 
     if (PPUMASK_b == 0 && PPUMASK_s == 0) {
       return 0;
@@ -480,11 +478,11 @@ class PPU {
     }
 
     if (PPUMASK_b == 0) {
-      return spriteColorValue.setBit(4, 1);
+      return spriteColorValue;
     }
 
     if (backgroundColor & 0x3 == 0) {
-      return spriteColorValue.setBit(4, 1);
+      return spriteColorValue;
     }
 
     if (spriteColorValue & 0x3 == 0) {
@@ -495,7 +493,7 @@ class PPU {
       return backgroundColor;
     }
 
-    return spriteColorValue.setBit(4, 1);
+    return spriteColorValue;
   }
 
   int _getBackgroundPixelColor() {
@@ -510,14 +508,13 @@ class PPU {
     final patternHigh = (patternTableHighShift >> (15 - x)) & 0x1;
     final patternLow = (patternTableLowShift >> (15 - x)) & 0x1;
 
-    final pattern = (patternHigh << 1) | patternLow;
-
     final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
     final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
 
-    final paletteIndex = (paletteIndexHigh << 1) | paletteIndexLow;
-
-    return (paletteIndex << 2) | pattern;
+    return paletteIndexHigh << 3 |
+        paletteIndexLow << 2 |
+        patternHigh << 1 |
+        patternLow;
   }
 
   int _getSpritePixelColor(int backgroundColor) {
