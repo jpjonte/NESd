@@ -122,6 +122,7 @@ class PPU {
   int get PPUCTRL_I => PPUCTRL.bit(2); // VRAM address increment
   int get PPUCTRL_S => PPUCTRL.bit(3); // sprite pattern table address (8x8)
   int get PPUCTRL_B => PPUCTRL.bit(4); // background pattern table address
+  // TODO implement
   int get PPUCTRL_H => PPUCTRL.bit(5); // sprite size
   int get PPUCTRL_P => PPUCTRL.bit(6); // PPU master/slave select
   int get PPUCTRL_V => PPUCTRL.bit(7); // enable vblank NMI
@@ -254,6 +255,8 @@ class PPU {
     oam[(OAMADDR + offset) & 0xFF] = value;
   }
 
+  int get currentX => cycle - 1;
+
   bool get lineVisible => scanline < 240;
   bool get linePreRender => scanline == 261;
   bool get lineVblank => scanline == 241;
@@ -368,7 +371,7 @@ class PPU {
   void _writePPUCTRL(int value) {
     PPUCTRL = value;
 
-    t = (t & 0xF3FF) | ((value & 0x03) << 10);
+    t = (t & 0xF3FF) | (PPUCTRL_N << 10);
   }
 
   void _writeOAMDATA(int value) {
@@ -454,14 +457,11 @@ class PPU {
   void _renderPixel() {
     final color = _getPixelColor();
 
-    final x = cycle - 1;
-    final y = scanline;
-
     final paletteColor = read(0x3F00 | color);
 
     final systemColor = systemPalette[paletteColor] ?? 0;
 
-    frameBuffer.setPixel(x, y, systemColor);
+    frameBuffer.setPixel(currentX, scanline, systemColor);
   }
 
   int _getPixelColor() {
@@ -503,8 +503,6 @@ class PPU {
       return 0;
     }
 
-    final currentX = cycle - 1;
-
     if (PPUMASK_m == 0 && currentX < 8) {
       return 0;
     }
@@ -527,14 +525,12 @@ class PPU {
       return 0;
     }
 
-    final currentX = cycle - 1;
-
     if (PPUMASK_M == 0 && currentX < 8) {
       return 0;
     }
 
     for (var sprite = 0; sprite < spriteCount; sprite++) {
-      // TODO bud-01.06.24 implement a proper algorithm
+      // TODO implement an accurate algorithm
       final xOffset = currentX - spriteX[sprite];
 
       if (xOffset < 0 || xOffset > 7) {
@@ -665,7 +661,7 @@ class PPU {
       return;
     }
     if (cycle >= 1 && cycle <= 64) {
-      secondaryOam[(cycle - 1) >> 1] = 0xff;
+      secondaryOam[currentX >> 1] = 0xff;
     }
 
     if (cycle >= 65 && cycle <= 256) {
@@ -679,7 +675,7 @@ class PPU {
         // read from OAM
         oamBuffer = oam[oamN & 0xff];
       } else {
-        // TODO bud-01.06.24 implement a proper algorithm
+        // TODO implement an accurate algorithm
         // write to secondary OAM, unless full
         if (oamN <= 252) {
           final y = oamBuffer;
