@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/cartridge_info.dart';
 import 'package:nes/ui/display.dart';
 import 'package:nes/ui/nes_controller.dart';
+import 'package:nes/ui/tile_debug.dart';
 
 class AppWidget extends HookConsumerWidget {
   const AppWidget({
@@ -75,6 +76,7 @@ class AppWidget extends HookConsumerWidget {
             width: 512,
             child: ListView(
               children: [
+                const TileDebugWidget(),
                 if (cartridge != null)
                   CartridgeInfoWidget(cartridge: cartridge),
               ],

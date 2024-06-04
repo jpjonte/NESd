@@ -6,6 +6,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/nes_controller.dart';
 
+Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
+  final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
+
+  final descriptor = ui.ImageDescriptor.raw(
+    buffer,
+    width: frameBuffer.width,
+    height: frameBuffer.height,
+    pixelFormat: ui.PixelFormat.rgba8888,
+  );
+
+  final codec = await descriptor.instantiateCodec();
+
+  final frame = await codec.getNextFrame();
+
+  return frame.image;
+}
+
 class DisplayWidget extends ConsumerWidget {
   const DisplayWidget({super.key});
 
@@ -14,7 +31,7 @@ class DisplayWidget extends ConsumerWidget {
     final controller = ref.watch(nesControllerProvider.notifier);
 
     return StreamBuilder(
-      stream: controller.stream.asyncMap(_convert),
+      stream: controller.stream.asyncMap(convertFrameBufferToImage),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -36,23 +53,6 @@ class DisplayWidget extends ConsumerWidget {
         );
       },
     );
-  }
-
-  Future<ui.Image> _convert(FrameBuffer frameBuffer) async {
-    final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
-
-    final descriptor = ui.ImageDescriptor.raw(
-      buffer,
-      width: frameBuffer.width,
-      height: frameBuffer.height,
-      pixelFormat: ui.PixelFormat.rgba8888,
-    );
-
-    final codec = await descriptor.instantiateCodec();
-
-    final frame = await codec.getNextFrame();
-
-    return frame.image;
   }
 }
 
