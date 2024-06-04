@@ -15,8 +15,8 @@ class AppWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final errorState = useState<String?>(null);
 
-    final nes = ref.watch(nesControllerProvider);
     final controller = ref.read(nesControllerProvider.notifier);
+    final cartridge = ref.watch(cartridgeStateProvider);
 
     return PlatformMenuBar(
       menus: [
@@ -71,8 +71,15 @@ class AppWidget extends HookConsumerWidget {
       child: Row(
         children: [
           const Expanded(child: DisplayWidget()),
-          if (nes.bus.cartridge case final cartridge?)
-            CartridgeInfoWidget(cartridge: cartridge),
+          SizedBox(
+            width: 512,
+            child: ListView(
+              children: [
+                if (cartridge != null)
+                  CartridgeInfoWidget(cartridge: cartridge),
+              ],
+            ),
+          ),
           if (errorState.value != null)
             Text(
               errorState.value!,

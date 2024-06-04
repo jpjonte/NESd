@@ -22,6 +22,20 @@ final logicalKeyToNesButton = {
 };
 
 @riverpod
+class CartridgeState extends _$CartridgeState {
+  @override
+  Cartridge? build() {
+    return state = null;
+  }
+
+  Cartridge? get cartridge => state;
+
+  set cartridge(Cartridge? cartridge) {
+    state = cartridge;
+  }
+}
+
+@riverpod
 class NesController extends _$NesController {
   NesController() {
     _lifecycleListener = AppLifecycleListener(
@@ -36,8 +50,12 @@ class NesController extends _$NesController {
   NES build() {
     HardwareKeyboard.instance.addHandler(_handleKey);
 
+    _cartridgeState = ref.read(cartridgeStateProvider.notifier);
+
     return NES();
   }
+
+  late final CartridgeState _cartridgeState;
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
@@ -51,6 +69,8 @@ class NesController extends _$NesController {
     sendCommand(NesStopCommand());
 
     final cartridge = Cartridge.fromFile(path);
+
+    _cartridgeState.cartridge = cartridge;
 
     state.loadCartridge(cartridge);
   }
