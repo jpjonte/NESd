@@ -18,7 +18,6 @@ dependencies:
   riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
   riverpod_generator: ^2.4.0
-  stream_isolate: ^0.2.0
 
 dev_dependencies:
   flutter_test:

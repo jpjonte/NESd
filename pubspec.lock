@@ -565,14 +565,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  stream_isolate:
-    dependency: "direct main"
-    description:
-      name: stream_isolate
-      sha256: "30efdab9cb66b32444378211f0ee0bd20761ee2e56af4cc0c353a3f92da1d3c3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0"
   stream_transform:
     dependency: transitive
     description:

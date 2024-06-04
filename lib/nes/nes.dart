@@ -85,9 +85,7 @@ class NES {
     ppu.reset();
   }
 
-  Stream<FrameBuffer> run(Stream<NesCommand> commandStream) async* {
-    commandStream.listen(_executeCommand);
-
+  Stream<FrameBuffer> run() async* {
     on = true;
     running = true;
     paused = false;
@@ -131,10 +129,12 @@ class NES {
 
   Future<void> _wait(Duration duration) => Future.delayed(duration);
 
-  void _executeCommand(NesCommand command) {
+  void executeCommand(NesCommand command) {
     switch (command) {
       case final NesResetCommand _:
         reset();
+        running = true;
+        paused = false;
       case final NesPauseCommand _:
         paused = true;
         running = false;

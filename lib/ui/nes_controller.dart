@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +7,6 @@ import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:stream_isolate/stream_isolate.dart';
 
 part 'nes_controller.g.dart';
 
@@ -47,12 +45,10 @@ class NesController extends _$NesController {
   final StreamController<FrameBuffer> _streamController =
       StreamController.broadcast();
 
-  BidirectionalStreamIsolate<NesCommand, FrameBuffer, void>? _isolate;
-
   Stream<FrameBuffer> get stream => _streamController.stream;
 
   void loadCartridge(String path) {
-    _isolate?.kill(priority: Isolate.immediate);
+    sendCommand(NesStopCommand());
 
     final cartridge = Cartridge.fromFile(path);
 
@@ -60,19 +56,7 @@ class NesController extends _$NesController {
   }
 
   Future<void> run() async {
-    final isolate = await BidirectionalStreamIsolate.spawn(state.run);
-    isolate.stream.listen(
-      (frameBuffer) {
-        _streamController.add(frameBuffer);
-      },
-      onError: (error) {
-        _isolate = null;
-      },
-      onDone: () {
-        _isolate = null;
-      },
-    );
-    _isolate = isolate;
+    state.run().listen((frameBuffer) => _streamController.add(frameBuffer));
   }
 
   void suspend() => sendCommand(NesSuspendCommand());
@@ -85,7 +69,7 @@ class NesController extends _$NesController {
 
   void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
 
-  void sendCommand(NesCommand command) => _isolate?.send(command);
+  void sendCommand(NesCommand command) => state.executeCommand(command);
 
   bool _handleKey(KeyEvent event) {
     final button = logicalKeyToNesButton[event.logicalKey];
