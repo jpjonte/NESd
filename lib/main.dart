@@ -15,6 +15,7 @@ class NesdApp extends StatelessWidget {
       title: 'NESd',
       theme: ThemeData(
         colorScheme: const ColorScheme.dark(
+          primary: Colors.red,
           surface: Colors.black,
           // deprecated but still used?!
           background: Colors.black,
