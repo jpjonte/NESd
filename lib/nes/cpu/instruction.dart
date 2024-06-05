@@ -25,8 +25,8 @@ class Instruction {
 
 final BRK = Instruction('BRK', (cpu, address) {
   cpu
-    ..pushStack16(cpu.PC)
-    ..pushStack(cpu.P.setBit(4, 1))
+    ..pushStack16((cpu.PC + 2) & 0xffff)
+    ..pushStack(cpu.P.setBit(4, 1).setBit(5, 1))
     ..I = 1
     ..PC = cpu.read16(0xfffe);
 });
