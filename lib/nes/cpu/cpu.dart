@@ -87,11 +87,11 @@ class CPU {
     cycles = 0;
   }
 
-  int step() {
+  void step() {
     _handleInterrupts();
 
     if (_handleDMA()) {
-      return 1;
+      return;
     }
 
     final opcode = read(PC);
@@ -122,11 +122,7 @@ class CPU {
       additionalCycles++;
     }
 
-    final executedCycles = op.cycles + additionalCycles;
-
-    cycles += executedCycles;
-
-    return executedCycles;
+    cycles += op.cycles + additionalCycles;
   }
 
   void _handleInterrupts() {

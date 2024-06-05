@@ -73,6 +73,8 @@ class NES {
   late final PPU ppu = PPU(bus);
   late final APU apu = APU(bus);
 
+  int cycles = 0;
+
   void loadCartridge(Cartridge cartridge) {
     bus.cartridge = cartridge;
 
@@ -80,6 +82,8 @@ class NES {
   }
 
   void reset() {
+    cycles = 0;
+
     cpu.reset();
     apu.reset();
     ppu.reset();
@@ -173,9 +177,13 @@ class NES {
   void step() {
     _debug();
 
-    final cycles = cpu.step();
+    cycles++;
 
-    for (var i = 0; i < cycles * 3; i++) {
+    while (cpu.cycles < cycles / 12) {
+      cpu.step();
+    }
+
+    while (ppu.cycles < cycles / 4) {
       ppu.step();
     }
   }

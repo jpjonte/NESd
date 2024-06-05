@@ -173,6 +173,7 @@ class PPU {
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
 
+  int cycles = 0;
   int cycle = 0;
   int scanline = 0;
   int frames = 0;
@@ -207,6 +208,7 @@ class PPU {
   Uint8List spriteX = Uint8List(8);
 
   void reset() {
+    cycles = 0;
     cycle = 0;
     scanline = 0;
     frames = 0;
@@ -416,6 +418,7 @@ class PPU {
   }
 
   void _updateCounters() {
+    cycles++;
     cycle++;
 
     if (scanline == 261 && cycle == 340 && frames.isOdd) {
