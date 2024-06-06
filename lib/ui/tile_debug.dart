@@ -70,6 +70,8 @@ class TileDebugWidget extends HookConsumerWidget {
 
     final buffer = FrameBuffer(width: width, height: height);
 
+    final patternTableIndex = nes.ppu.PPUCTRL_B;
+
     for (var n = 0; n < 4; n++) {
       final nx = n % 2;
       final ny = n ~/ 2;
@@ -80,16 +82,14 @@ class TileDebugWidget extends HookConsumerWidget {
               nes.bus.ppuRead(0x2000 | n << 10 | ty << 5 | tx);
           final attributeByte = nes.bus
               .ppuRead(0x23c0 | n << 10 | (ty & 0x1c) << 1 | (tx & 0x1c) >> 2);
-          final patternTableIndex = nes.ppu.PPUCTRL_B;
+          final quadrantShift = (ty & 0x02) << 1 | tx & 0x02;
+          final attribute = (attributeByte >> quadrantShift) & 0x03;
 
           for (var py = 0; py < 8; py++) {
             final patternTableLowByte = nes.bus
                 .ppuRead(patternTableIndex << 12 | nametableByte << 4 | py);
             final patternTableHighByte = nes.bus
                 .ppuRead(patternTableIndex << 12 | nametableByte << 4 | py + 8);
-            final quadrantShift = (ty & 0x02) << 1 | tx & 0x02;
-
-            final attribute = (attributeByte >> quadrantShift) & 0x03;
 
             for (var px = 0; px < 8; px++) {
               final patternHigh = (patternTableHighByte >> (7 - px)) & 0x1;
@@ -102,7 +102,7 @@ class TileDebugWidget extends HookConsumerWidget {
               final systemPaletteIndex = nes.bus
                   .ppuRead(0x3f00 | (pattern == 0 ? 1 : 0) << 4 | paletteIndex);
 
-              final color = systemPalette[systemPaletteIndex] ?? 0;
+              final color = systemPalette[systemPaletteIndex];
 
               buffer.setPixel(
                 nx * nametableWidth + tx * 8 + px,
