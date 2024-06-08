@@ -31,7 +31,7 @@ class DisplayWidget extends ConsumerWidget {
     final controller = ref.watch(nesControllerProvider.notifier);
 
     return StreamBuilder(
-      stream: controller.stream.asyncMap(convertFrameBufferToImage),
+      stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));

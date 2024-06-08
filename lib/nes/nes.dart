@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:nes/extension/hex_extension.dart';
 import 'package:nes/nes/apu/apu.dart';
@@ -10,6 +11,20 @@ import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
+
+sealed class NesEvent {}
+
+class FrameNesEvent extends NesEvent {
+  FrameNesEvent({
+    required this.frameBuffer,
+    required this.samples,
+    required this.frameTime,
+  });
+
+  final FrameBuffer frameBuffer;
+  final Float32List samples;
+  final Duration frameTime;
+}
 
 sealed class NesCommand {}
 
@@ -83,13 +98,14 @@ class NES {
 
   void reset() {
     cycles = 0;
+    frameStart = DateTime.now();
 
     cpu.reset();
     apu.reset();
     ppu.reset();
   }
 
-  Stream<FrameBuffer> run() async* {
+  Stream<NesEvent> run() async* {
     on = true;
     running = true;
     paused = false;
@@ -108,16 +124,26 @@ class NES {
       step();
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        yield ppu.frameBuffer;
+        final frameTime = DateTime.now().difference(frameStart);
+
+        yield FrameNesEvent(
+          frameBuffer: ppu.frameBuffer,
+          samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
+          frameTime: frameTime,
+        );
+
+        apu.sampleIndex = 0;
 
         if (stopAfterNextFrame) {
           running = false;
           stopAfterNextFrame = false;
+          paused = true;
         }
 
-        final elapsedTime = DateTime.now().difference(frameStart);
+        final elapsedTime = frameTime;
+        final sleepTime = _calculateSleepTime(elapsedTime);
 
-        await _wait(_calculateSleepTime(elapsedTime));
+        await _wait(sleepTime);
 
         frameStart = DateTime.now();
       }
@@ -125,10 +151,10 @@ class NES {
   }
 
   Duration _calculateSleepTime(Duration elapsedTime) {
-    const msAt60fps = 1000 / 60;
-    final time = msAt60fps - elapsedTime.inMilliseconds;
+    const targetFrameTime = 1000 / 61;
+    final time = targetFrameTime - elapsedTime.inMilliseconds;
 
-    return Duration(milliseconds: time.ceil());
+    return Duration(milliseconds: time.floor());
   }
 
   Future<void> _wait(Duration duration) => Future.delayed(duration);
@@ -185,6 +211,10 @@ class NES {
 
     while (ppu.cycles < cycles / 4) {
       ppu.step();
+    }
+
+    while (apu.cycles < cycles / 12) {
+      apu.step();
     }
   }
 

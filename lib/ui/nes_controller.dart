@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
@@ -51,19 +53,44 @@ class NesController extends _$NesController {
     HardwareKeyboard.instance.addHandler(_handleKey);
 
     _cartridgeState = ref.read(cartridgeStateProvider.notifier);
+    _audioStream = getAudioStream();
+
+    _audioStream
+      ..init(bufferMilliSec: 100)
+      ..resume();
+
+    audioSampleStream.listen(_processSamples);
 
     return NES();
   }
 
-  late final CartridgeState _cartridgeState;
+  double _volume = 1.0;
+
+  double get volume => _volume;
+
+  final _audioBuffer = Float32List(44100);
+
+  int _audioBufferIndex = 0;
+
+  set volume(double value) {
+    _volume = value.clamp(0.0, 1.0);
+  }
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
+  late final CartridgeState _cartridgeState;
+  late final AudioStream _audioStream;
 
-  final StreamController<FrameBuffer> _streamController =
+  final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
 
-  Stream<FrameBuffer> get stream => _streamController.stream;
+  Stream<FrameBuffer> get frameBufferStream => _streamController.stream
+      .where((event) => event is FrameNesEvent)
+      .map((event) => (event as FrameNesEvent).frameBuffer);
+
+  Stream<Float32List> get audioSampleStream => _streamController.stream
+      .where((event) => event is FrameNesEvent)
+      .map((event) => (event as FrameNesEvent).samples);
 
   void loadCartridge(String path) {
     sendCommand(NesStopCommand());
@@ -76,7 +103,7 @@ class NesController extends _$NesController {
   }
 
   Future<void> run() async {
-    state.run().listen((frameBuffer) => _streamController.add(frameBuffer));
+    state.run().listen((event) => _streamController.add(event));
   }
 
   void suspend() => sendCommand(NesSuspendCommand());
@@ -106,5 +133,38 @@ class NesController extends _$NesController {
     }
 
     return true;
+  }
+
+  void _processSamples(Float32List samples) {
+    _flushSamples();
+
+    for (final sample in samples) {
+      if (_audioBufferIndex >= _audioBuffer.length) {
+        break;
+      }
+
+      _audioBuffer[_audioBufferIndex++] = sample * _volume;
+    }
+
+    _flushSamples();
+  }
+
+  void _flushSamples() {
+    final pushSize = (20 / 1000 * 44100).floor(); // push 20 ms at a time
+
+    if (_audioBufferIndex < pushSize) {
+      return;
+    }
+
+    final samples = _audioBuffer.sublist(0, pushSize);
+
+    if (_audioStream.push(samples) == -1) {
+      return;
+    }
+
+    final newSize = _audioBufferIndex - pushSize;
+
+    _audioBuffer.setRange(0, newSize, _audioBuffer, pushSize);
+    _audioBufferIndex = newSize;
   }
 }

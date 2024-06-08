@@ -22,7 +22,7 @@ final cartridgeStateProvider =
 );
 
 typedef _$CartridgeState = AutoDisposeNotifier<Cartridge?>;
-String _$nesControllerHash() => r'bf199a82b0e10ce87f50def2dc1c6da66a887944';
+String _$nesControllerHash() => r'13a533764589a5ea85176e64d8cd51a4420b2309';
 
 /// See also [NesController].
 @ProviderFor(NesController)

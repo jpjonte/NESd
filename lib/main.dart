@@ -17,7 +17,7 @@ class NesdApp extends StatelessWidget {
         colorScheme: const ColorScheme.dark(
           primary: Colors.red,
           surface: Colors.black,
-          // deprecated but still used?!
+          // ignore: deprecated_member_use
           background: Colors.black,
         ),
         textTheme: const TextTheme(

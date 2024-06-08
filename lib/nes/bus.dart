@@ -47,12 +47,8 @@ class Bus {
       return ppu.readRegister(0x2000 | (address & 0x07));
     }
 
-    if (address < 0x4015) {
-      return 0;
-    }
-
     if (address == 0x4015) {
-      return apu.status;
+      return apu.readRegister(address);
     }
 
     if (address == 0x4016) {
@@ -125,29 +121,27 @@ class Bus {
       return;
     }
 
+    if (address < 0x4009 ||
+        (address >= 0x400A && address <= 0x400C) ||
+        (address >= 0x400E && address <= 0x4013) ||
+        address == 0x4015 ||
+        address == 0x4017) {
+      apu.writeRegister(address, value);
+
+      return;
+    }
+
     if (address == 0x4014) {
       cpu
-        ..dma = DmaType.oam
-        ..dmaPage = value
-        ..dmaOffset = 0;
-    }
-
-    if (address < 0x4015) {
-      return;
-    }
-
-    if (address == 0x4015) {
-      apu.write(address, value);
-
-      return;
+        ..oamDma = true
+        ..oamDmaPage = value
+        ..oamDmaOffset = 0;
     }
 
     if (address == 0x4016) {
       inputStrobe = (value & 1) == 1;
       controller1Shift = 0;
       controller2Shift = 0;
-
-      return;
     }
 
     if (address < 0x4020) {
@@ -186,12 +180,6 @@ class Bus {
       return;
     }
   }
-
-  int apuRead(int address) {
-    return 0;
-  }
-
-  void apuWrite(int address, int value) {}
 
   void buttonDown(int controller, NesButton button) {
     if (controller == 0) {

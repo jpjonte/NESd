@@ -68,6 +68,21 @@ class AppWidget extends HookConsumerWidget {
             ),
           ],
         ),
+        PlatformMenu(
+          label: 'Audio',
+          menus: [
+            PlatformMenuItem(
+              label: 'Volume Up',
+              shortcut: const CharacterActivator('+', meta: true),
+              onSelected: () => controller.volume += 0.1,
+            ),
+            PlatformMenuItem(
+              label: 'Volume Down',
+              shortcut: const CharacterActivator('-', meta: true),
+              onSelected: () => controller.volume -= 0.1,
+            ),
+          ],
+        ),
       ],
       child: Row(
         children: [

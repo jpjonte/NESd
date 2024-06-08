@@ -19,7 +19,7 @@ class TileDebugWidget extends HookConsumerWidget {
     final nes = ref.read(nesControllerProvider);
     final controller = ref.read(nesControllerProvider.notifier);
 
-    final stream = useStream(controller.stream);
+    final stream = useStream(controller.frameBufferStream);
 
     if (stream.hasError) {
       return Center(
