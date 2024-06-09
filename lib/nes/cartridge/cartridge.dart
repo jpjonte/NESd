@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:nes/exception/invalid_rom_header.dart';
 import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/mapper.dart';
+import 'package:nes/nes/cartridge/mapper/mapper.dart';
 
 enum NametableLayout { horizontal, vertical, four, single }
 
@@ -140,7 +140,7 @@ class Cartridge {
       mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
     }
 
-    return Mapper(mapperId);
+    return Mapper.fromId(mapperId);
   }
 
   static ConsoleType _parseConsoleType(Uint8List rom) {
