@@ -673,8 +673,10 @@ class PPU {
         if (oamN <= 252) {
           final y = oamBuffer;
 
+          final spriteSize = PPUCTRL_H == 0 ? 8 : 16;
+
           if (secondarySpriteCount < 8) {
-            if (scanline >= y && scanline < y + 8) {
+            if (scanline >= y && scanline < y + spriteSize) {
               if (oamN == 0) {
                 sprite0OnNextLine = true;
               }
@@ -689,7 +691,7 @@ class PPU {
 
             oamN += 4;
           } else {
-            if (scanline >= y && scanline < y + 8) {
+            if (scanline >= y && scanline < y + spriteSize) {
               PPUSTATUS_O = 1;
 
               oamN += 4;
@@ -718,16 +720,31 @@ class PPU {
         case 3:
           spriteX[sprite] = secondaryOam[sprite * 4 + 3];
         case 4:
-          final y = secondaryOam[sprite * 4];
-          final tile = secondaryOam[sprite * 4 + 1];
-          final attribute = spriteAttribute[sprite];
-          final flipV = attribute.bit(7);
-          final yOffset = scanline - y;
-          final fineY = flipV == 0 ? yOffset : 7 - yOffset;
+          final bigSprites = PPUCTRL_H == 1;
 
-          spritePatternLow[sprite] = read(PPUCTRL_S << 12 | tile << 4 | fineY);
-          spritePatternHigh[sprite] =
-              read(PPUCTRL_S << 12 | tile << 4 | fineY + 8);
+          final tileIndex = secondaryOam[sprite * 4 + 1];
+          final attribute = spriteAttribute[sprite];
+          final flipV = attribute.bit(7) == 1;
+
+          final y = secondaryOam[sprite * 4];
+          final yOffset = scanline - y;
+          final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
+
+          final isBigSpriteSecondTile = yOffset < 8;
+          final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
+          final tile =
+              bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
+
+          final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
+          final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
+
+          final lowAddress =
+              patternTable << 12 | tile << 4 | fineY + addressOffset;
+          final highAddress =
+              patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
+
+          spritePatternLow[sprite] = read(lowAddress);
+          spritePatternHigh[sprite] = read(highAddress);
       }
     }
 
