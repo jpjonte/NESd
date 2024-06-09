@@ -9,11 +9,6 @@ import 'package:nes/nes/cpu/address_mode.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 
-enum DmaType {
-  oam,
-  dmc,
-}
-
 class CPU {
   CPU(this.bus);
 

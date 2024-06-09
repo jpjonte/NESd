@@ -150,7 +150,7 @@ class NesController extends _$NesController {
   }
 
   void _flushSamples() {
-    final pushSize = (20 / 1000 * 44100).floor(); // push 20 ms at a time
+    final pushSize = (50 / 1000 * 44100).floor(); // push 50 ms at a time
 
     if (_audioBufferIndex < pushSize) {
       return;

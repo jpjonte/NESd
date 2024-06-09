@@ -18,7 +18,7 @@ class Cartridge {
     required this.file,
     required this.rom,
     required this.prgRom,
-    required this.chrRom,
+    required this.chr,
     required this.prgRomSize,
     required this.chrRomSize,
     required this.nametableLayout,
@@ -30,7 +30,9 @@ class Cartridge {
     required this.romFormat,
     required this.prgRamSize,
     required this.tvSystem,
-  });
+  }) {
+    mapper.cartridge = this;
+  }
 
   factory Cartridge.fromFile(String path) {
     final file = File(path);
@@ -44,7 +46,7 @@ class Cartridge {
       file: path,
       rom: rom,
       prgRom: _parsePrgRom(rom),
-      chrRom: _parseChrRom(rom),
+      chr: _parseChr(rom),
       prgRomSize: _parsePrgRomSize(rom),
       chrRomSize: _parseChrRomSize(rom),
       nametableLayout: _parseNametableLayout(rom),
@@ -62,7 +64,7 @@ class Cartridge {
   final String file;
   final Uint8List rom;
   final Uint8List prgRom;
-  final Uint8List chrRom;
+  final Uint8List chr;
   final int prgRomSize;
   final int chrRomSize;
   final NametableLayout nametableLayout;
@@ -83,10 +85,15 @@ class Cartridge {
     return rom.sublist(16 + trainerSize, 16 + trainerSize + prgRomSize);
   }
 
-  static Uint8List _parseChrRom(Uint8List rom) {
+  static Uint8List _parseChr(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
     final prgRomSize = rom[4] * 0x4000;
     final chrRomSize = rom[5] * 0x2000;
+
+    if (chrRomSize == 0) {
+      return Uint8List(0x2000);
+    }
+
     return rom.sublist(
       16 + trainerSize + prgRomSize,
       16 + trainerSize + prgRomSize + chrRomSize,
@@ -157,11 +164,15 @@ class Cartridge {
     return TvSystem.values[rom[9] & 0x03];
   }
 
+  void reset() {
+    mapper.reset();
+  }
+
   int read(Bus bus, int address) {
-    return mapper.read(bus, this, address);
+    return mapper.read(bus, address);
   }
 
   void write(Bus bus, int address, int value) {
-    mapper.write(bus, this, address, value);
+    mapper.write(bus, address, value);
   }
 }

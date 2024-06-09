@@ -32,7 +32,10 @@ class CartridgeInfoWidget extends StatelessWidget {
             TableRow('Has battery', '${cartridge.hasBattery}'),
             TableRow('Has trainer', '${cartridge.hasTrainer}'),
             TableRow('Console type', '${cartridge.consoleType}'),
-            TableRow('Mapper', cartridge.mapper.name),
+            TableRow(
+              'Mapper',
+              '${cartridge.mapper.name} (${cartridge.mapper.id})',
+            ),
             TableRow('PRG RAM size', '${cartridge.prgRamSize} bytes'),
             TableRow('TV system', '${cartridge.tvSystem}'),
           ],

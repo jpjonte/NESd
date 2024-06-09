@@ -74,8 +74,6 @@ class NES {
 
   final bool debug;
 
-  Cartridge? cartridge;
-
   bool on = false;
   bool running = false;
   bool paused = false;
@@ -99,6 +97,8 @@ class NES {
   void reset() {
     cycles = 0;
     frameStart = DateTime.now();
+
+    bus.cartridge?.reset();
 
     cpu.reset();
     apu.reset();
