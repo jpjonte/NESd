@@ -138,9 +138,8 @@ class AppWidget extends HookConsumerWidget {
     }
 
     try {
-      controller
-        ..loadCartridge(path)
-        ..run();
+      await controller.loadCartridge(path);
+      controller.run();
     } on Exception catch (e) {
       error.value = 'Failed to load ROM: $e';
 

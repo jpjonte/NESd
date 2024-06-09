@@ -92,10 +92,13 @@ class NesController extends _$NesController {
       .where((event) => event is FrameNesEvent)
       .map((event) => (event as FrameNesEvent).samples);
 
-  void loadCartridge(String path) {
+  Future<void> loadCartridge(String path) async {
     sendCommand(NesStopCommand());
 
     final cartridge = Cartridge.fromFile(path);
+
+    // give the loop a chance to end
+    await Future.delayed(const Duration(milliseconds: 500));
 
     _cartridgeState.cartridge = cartridge;
 

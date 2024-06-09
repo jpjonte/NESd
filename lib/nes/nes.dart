@@ -11,6 +11,7 @@ import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
+import 'package:nes/util/wait.dart';
 
 sealed class NesEvent {}
 
@@ -106,6 +107,8 @@ class NES {
   }
 
   Stream<NesEvent> run() async* {
+    reset();
+
     on = true;
     running = true;
     paused = false;
@@ -114,7 +117,7 @@ class NES {
 
     while (on) {
       if (!running) {
-        await _wait(const Duration(milliseconds: 10));
+        await wait(const Duration(milliseconds: 10));
 
         continue;
       }
@@ -143,7 +146,7 @@ class NES {
         final elapsedTime = frameTime;
         final sleepTime = _calculateSleepTime(elapsedTime);
 
-        await _wait(sleepTime);
+        await wait(sleepTime);
 
         frameStart = DateTime.now();
       }
@@ -156,8 +159,6 @@ class NES {
 
     return Duration(milliseconds: time.floor());
   }
-
-  Future<void> _wait(Duration duration) => Future.delayed(duration);
 
   void executeCommand(NesCommand command) {
     switch (command) {
