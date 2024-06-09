@@ -47,11 +47,16 @@ class CPU {
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 
-  DmaType? dma;
-  int dmaPage = 0;
-  int dmaOffset = 0;
-  int dmaValue = 0;
-  bool dmaStarted = false;
+  bool oamDma = false;
+  bool oamDmaStarted = false;
+  int oamDmaOffset = 0;
+  int oamDmaValue = 0;
+
+  bool dmcDma = false;
+  bool dmcDmaRead = false;
+  bool dmcDmaDummy = false;
+  int dmcDmaValue = 0;
+  int oamDmaPage = 0;
 
   int cycles = 0;
 
@@ -87,11 +92,11 @@ class CPU {
     cycles = 0;
   }
 
-  int step() {
+  void step() {
     _handleInterrupts();
 
     if (_handleDMA()) {
-      return 1;
+      return;
     }
 
     final opcode = read(PC);
@@ -122,11 +127,7 @@ class CPU {
       additionalCycles++;
     }
 
-    final executedCycles = op.cycles + additionalCycles;
-
-    cycles += executedCycles;
-
-    return executedCycles;
+    cycles += op.cycles + additionalCycles;
   }
 
   void _handleInterrupts() {
@@ -144,17 +145,14 @@ class CPU {
   }
 
   bool _handleDMA() {
-    if (dma == null) {
+    if (!oamDma && !dmcDma) {
       return false;
     }
 
-    switch (dma) {
-      case DmaType.oam:
-        _handleOAMDMA();
-      case DmaType.dmc:
-        _handleDMCDMA();
-      default:
-        return false;
+    if (dmcDma) {
+      _handleDMCDMA();
+    } else if (oamDma) {
+      _handleOAMDMA();
     }
 
     cycles += 1;
@@ -165,21 +163,34 @@ class CPU {
   void _handleOAMDMA() {
     if (cycles.isEven) {
       // read
-      dmaValue = read(dmaPage << 8 | dmaOffset);
-      dmaStarted = true;
-    } else if (dmaStarted) {
+      oamDmaValue = read(oamDmaPage << 8 | oamDmaOffset);
+      oamDmaStarted = true;
+    } else if (oamDmaStarted) {
       // write
-      bus.ppu.writeOAM(dmaOffset++, dmaValue);
+      bus.ppu.writeOAM(oamDmaOffset++, oamDmaValue);
 
-      if (dmaOffset == 256) {
-        dma = null;
-        dmaOffset = 0;
-        dmaStarted = false;
+      if (oamDmaOffset == 256) {
+        oamDma = false;
+        oamDmaOffset = 0;
+        oamDmaStarted = false;
       }
     }
   }
 
-  void _handleDMCDMA() {}
+  void _handleDMCDMA() {
+    if (!dmcDmaDummy) {
+      dmcDmaDummy = true;
+    }
+
+    if (cycles.isEven) {
+      dmcDmaValue = read(bus.apu.dmc.address);
+      dmcDmaRead = true;
+    } else if (dmcDmaRead) {
+      bus.apu.dmc.writeDma(dmcDmaValue);
+      dmcDmaRead = false;
+      dmcDmaDummy = false;
+    }
+  }
 
   void handleIrq(int address) {
     irq = false;

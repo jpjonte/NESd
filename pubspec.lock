@@ -340,10 +340,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: c1b2e9b5ea78c45e1a0788d29606ba27dc5f71f019f32ca5140f61ef071838cf
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -424,6 +424,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  mp_audio_stream:
+    dependency: "direct main"
+    description:
+      name: mp_audio_stream
+      sha256: e0f69c3ca314e3eabac91b0fc19b4d95a0c6fd84559593fc6c7e045d1c62d357
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.5"
   package_config:
     dependency: transitive
     description:
