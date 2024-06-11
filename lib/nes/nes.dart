@@ -80,7 +80,7 @@ class NES {
   bool paused = false;
   bool stopAfterNextFrame = false;
 
-  late DateTime frameStart;
+  late DateTime _frameStart;
 
   final Bus bus = Bus();
   late final CPU cpu = CPU(bus);
@@ -88,6 +88,8 @@ class NES {
   late final APU apu = APU(bus);
 
   int cycles = 0;
+
+  var _sleepBudget = Duration.zero;
 
   void loadCartridge(Cartridge cartridge) {
     bus.cartridge = cartridge;
@@ -97,7 +99,9 @@ class NES {
 
   void reset() {
     cycles = 0;
-    frameStart = DateTime.now();
+
+    _frameStart = DateTime.now();
+    _sleepBudget = Duration.zero;
 
     bus.cartridge?.reset();
 
@@ -113,7 +117,7 @@ class NES {
     running = true;
     paused = false;
 
-    frameStart = DateTime.now();
+    _frameStart = DateTime.now();
 
     while (on) {
       if (!running) {
@@ -127,13 +131,17 @@ class NES {
       step();
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        final frameTime = DateTime.now().difference(frameStart);
+        final frameTime = DateTime.now().difference(_frameStart);
 
         yield FrameNesEvent(
           frameBuffer: ppu.frameBuffer,
           samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
           frameTime: frameTime,
         );
+
+        final sleepTime = _calculateSleepTime(frameTime, apu.sampleIndex);
+
+        _sleepBudget += sleepTime;
 
         apu.sampleIndex = 0;
 
@@ -143,21 +151,18 @@ class NES {
           paused = true;
         }
 
-        final elapsedTime = frameTime;
-        final sleepTime = _calculateSleepTime(elapsedTime);
+        _frameStart = DateTime.now();
 
-        await wait(sleepTime);
-
-        frameStart = DateTime.now();
+        await wait(_sleepBudget);
       }
     }
   }
 
-  Duration _calculateSleepTime(Duration elapsedTime) {
-    const targetFrameTime = 1000 / 61;
-    final time = targetFrameTime - elapsedTime.inMilliseconds;
+  Duration _calculateSleepTime(Duration elapsedTime, int samples) {
+    final targetAudioTime = 1000000 * samples / apuSampleRate;
+    final time = targetAudioTime - elapsedTime.inMicroseconds;
 
-    return Duration(milliseconds: time.floor());
+    return Duration(microseconds: time.floor());
   }
 
   void executeCommand(NesCommand command) {
@@ -166,24 +171,24 @@ class NES {
         reset();
         running = true;
         paused = false;
-        frameStart = DateTime.now();
+        _frameStart = DateTime.now();
       case final NesPauseCommand _:
         paused = true;
         running = false;
       case NesTogglePauseCommand():
         paused = !paused;
         running = !running;
-        frameStart = DateTime.now();
+        _frameStart = DateTime.now();
       case NesUnpauseCommand():
         paused = false;
         running = true;
-        frameStart = DateTime.now();
+        _frameStart = DateTime.now();
       case NesSuspendCommand _:
         running = false;
       case NesResumeCommand _:
         if (!paused) {
           running = true;
-          frameStart = DateTime.now();
+          _frameStart = DateTime.now();
         }
       case NesStopCommand _:
         on = false;

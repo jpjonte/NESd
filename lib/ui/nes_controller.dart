@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:mp_audio_stream/mp_audio_stream.dart';
+import 'package:nes/audio/audio_output.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
@@ -53,33 +53,21 @@ class NesController extends _$NesController {
     HardwareKeyboard.instance.addHandler(_handleKey);
 
     _cartridgeState = ref.read(cartridgeStateProvider.notifier);
-    _audioStream = getAudioStream();
 
-    _audioStream
-      ..init(bufferMilliSec: 100)
-      ..resume();
-
-    audioSampleStream.listen(_processSamples);
+    audioSampleStream.listen(_audioOutput.processSamples);
 
     return NES();
   }
 
-  double _volume = 1.0;
+  final _audioOutput = AudioOutput();
 
-  double get volume => _volume;
+  double get volume => _audioOutput.volume;
 
-  final _audioBuffer = Float32List(44100);
-
-  int _audioBufferIndex = 0;
-
-  set volume(double value) {
-    _volume = value.clamp(0.0, 1.0);
-  }
+  set volume(double value) => _audioOutput.volume = value;
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
   late final CartridgeState _cartridgeState;
-  late final AudioStream _audioStream;
 
   final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
@@ -136,38 +124,5 @@ class NesController extends _$NesController {
     }
 
     return true;
-  }
-
-  void _processSamples(Float32List samples) {
-    _flushSamples();
-
-    for (final sample in samples) {
-      if (_audioBufferIndex >= _audioBuffer.length) {
-        break;
-      }
-
-      _audioBuffer[_audioBufferIndex++] = sample * _volume;
-    }
-
-    _flushSamples();
-  }
-
-  void _flushSamples() {
-    final pushSize = (50 / 1000 * 44100).floor(); // push 50 ms at a time
-
-    if (_audioBufferIndex < pushSize) {
-      return;
-    }
-
-    final samples = _audioBuffer.sublist(0, pushSize);
-
-    if (_audioStream.push(samples) == -1) {
-      return;
-    }
-
-    final newSize = _audioBufferIndex - pushSize;
-
-    _audioBuffer.setRange(0, newSize, _audioBuffer, pushSize);
-    _audioBufferIndex = newSize;
   }
 }

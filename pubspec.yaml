@@ -15,12 +15,16 @@ dependencies:
   flutter_hooks: ^0.20.5
   flutter_riverpod: ^2.5.1
   hooks_riverpod: ^2.5.1
-  mp_audio_stream: ^0.1.5
+  mp_audio_stream:
+    git:
+      url: ssh://git@ssh.git.jpj.dev:8022/bud/mp-audio-stream.git
+      ref: feature/buffer-size
   riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
   riverpod_generator: ^2.4.0
 
 dev_dependencies:
+  dart_code_metrics: ^5.7.6
   flutter_test:
     sdk: flutter
 

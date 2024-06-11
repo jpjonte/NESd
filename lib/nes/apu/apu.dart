@@ -11,6 +11,8 @@ import 'package:nes/nes/apu/frame_counter.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/bus.dart';
 
+const apuSampleRate = 48000;
+
 class APU {
   APU(this.bus);
 
@@ -156,9 +158,10 @@ class APU {
 
   void _handleSampling() {
     // if this cycle crossed the sample rate boundary, output a new sample
-    const sampleRate = 1789773.0 / 44100.0; // cpu frequency / audio sample rate
-    final before = (cycles - 1) ~/ sampleRate;
-    final after = cycles ~/ sampleRate;
+    const cyclesPerSample =
+        1779783 / apuSampleRate; // cpu frequency / audio sample rate
+    final before = (cycles - 1) ~/ cyclesPerSample;
+    final after = cycles ~/ cyclesPerSample;
 
     if (before != after) {
       sampleBuffer[sampleIndex++] = _output();
