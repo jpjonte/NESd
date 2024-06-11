@@ -164,7 +164,7 @@ class Bus {
       return cartridge!.read(this, address);
     }
 
-    return ppu.palette[address & 0x1f];
+    return ppu.palette[_paletteAddress(address)];
   }
 
   void ppuWrite(int address, int value) {
@@ -175,7 +175,7 @@ class Bus {
     }
 
     if (address < 0x3f20) {
-      ppu.palette[address & 0x1f] = value;
+      ppu.palette[_paletteAddress(address)] = value;
 
       return;
     }
@@ -195,5 +195,27 @@ class Bus {
     } else {
       controller2Status &= ~(1 << button.index);
     }
+  }
+
+  int _paletteAddress(int address) {
+    address &= 0x1f;
+
+    if (address == 0x10) {
+      address = 0x00;
+    }
+
+    if (address == 0x14) {
+      address = 0x04;
+    }
+
+    if (address == 0x18) {
+      address = 0x08;
+    }
+
+    if (address == 0x1c) {
+      address = 0x0c;
+    }
+
+    return address;
   }
 }
