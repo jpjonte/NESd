@@ -212,6 +212,43 @@ class PPU {
     cycle = 0;
     scanline = 0;
     frames = 0;
+
+    PPUCTRL = 0x00;
+    PPUMASK = 0x00;
+    PPUSTATUS = 0x00;
+    OAMADDR = 0x00;
+    OAMDATA = 0x00;
+    PPUSCROLL = 0x00;
+    PPUDATA = 0x00;
+
+    v = 0;
+    t = 0;
+    x = 0;
+    w = 0;
+
+    nametableLatch = 0;
+    patternTableHighLatch = 0;
+    patternTableLowLatch = 0;
+    patternTableHighShift = 0;
+    patternTableLowShift = 0;
+    attributeTableLatch = 0;
+    attributeTableHighShift = 0;
+    attributeTableLowShift = 0;
+    attribute = 0;
+
+    oamN = 0x00;
+    oamBuffer = 0;
+
+    spriteCount = 0;
+    secondarySpriteCount = 0;
+
+    sprite0OnNextLine = false;
+    sprite0OnCurrentLine = false;
+
+    ram.fillRange(0, ram.length, 0);
+    oam.fillRange(0, oam.length, 0);
+    secondaryOam.fillRange(0, secondaryOam.length, 0);
+    palette.fillRange(0, palette.length, 0);
   }
 
   int read(int address) => bus.ppuRead(address);

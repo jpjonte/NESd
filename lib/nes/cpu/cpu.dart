@@ -81,10 +81,30 @@ class CPU {
   }
 
   void reset() {
+    cycles = 0;
+
     SP = 0xfd;
     PC = read(0xfffc) | (read(0xfffd) << 8);
     P = 0x24;
-    cycles = 0;
+    A = 0x00;
+    X = 0x00;
+    Y = 0x00;
+
+    irq = false;
+    nmi = false;
+
+    oamDma = false;
+    oamDmaStarted = false;
+    oamDmaOffset = 0;
+    oamDmaValue = 0;
+    oamDmaPage = 0;
+
+    dmcDma = false;
+    dmcDmaRead = false;
+    dmcDmaDummy = false;
+    dmcDmaValue = 0;
+
+    ram.fillRange(0, ram.length, 0);
   }
 
   void step() {
