@@ -43,7 +43,7 @@ class NesController extends _$NesController {
     _lifecycleListener = AppLifecycleListener(
       onPause: suspend,
       onInactive: suspend,
-      onShow: resume,
+      onShow: suspend,
       onResume: resume,
     );
   }
