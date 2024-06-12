@@ -203,7 +203,6 @@ class TileDebugPainter extends CustomPainter {
           Offset(scrollX, scrollY - 60 * 8) & visibleArea,
           _scrollFillPaint,
         );
-      ;
     }
   }
 

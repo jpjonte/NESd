@@ -6,18 +6,14 @@ import 'package:nes/audio/audio_buffer.dart';
 
 class AudioOutput {
   AudioOutput() {
-    _audioStream
-      ..init(
-        bufferMilliSec: 40,
-        waitingBufferMilliSec: 20,
-        sampleRate: 48000,
-      )
-      ..resume();
+    _init();
   }
 
   late final _audioStream = getAudioStream();
 
-  final _audioBuffer = AudioBuffer(9600);
+  final _audioBuffer = AudioBuffer(2400); // 50 ms
+
+  var _buffering = false;
 
   double _volume = 1.0;
 
@@ -25,6 +21,16 @@ class AudioOutput {
 
   set volume(double value) {
     _volume = value.clamp(0.0, 1.0);
+  }
+
+  void reset() {
+    _audioStream.uninit();
+
+    _audioBuffer.clear();
+
+    _buffering = false;
+
+    _init();
   }
 
   void processSamples(Float32List samples) {
@@ -35,24 +41,48 @@ class AudioOutput {
 
     if (writeSize < volumeApplied.length) {
       print(
-        'audio prebuffer full, wrote $writeSize/${volumeApplied.length}',
+        'audio prebuffer full (${_audioBuffer.size}),'
+        ' wrote $writeSize/${volumeApplied.length}',
       );
     }
 
     _flushSamples();
   }
 
-  void _flushSamples() {
-    final currentSize = _audioStream.getBufferFillSize();
-    final bufferSize = _audioStream.getBufferSize();
-    final remainingBufferSize = bufferSize - currentSize;
-    final bufferedSize = _audioBuffer.current;
+  void _init() {
+    _audioStream
+      ..init(
+        bufferMilliSec: 50,
+        waitingBufferMilliSec: 20,
+        sampleRate: 48000,
+      )
+      ..resume();
+  }
 
-    if (currentSize + bufferedSize < bufferSize / 3) {
-      print(
-        'waiting for buffer to fill: buffered $bufferedSize,'
-        ' audio buffer $currentSize / $bufferSize',
-      );
+  void _flushSamples() {
+    final bufferedSize = _audioStream.getBufferFillSize();
+    final bufferSize = _audioStream.getBufferSize();
+    final remainingBufferSize = bufferSize - bufferedSize;
+    final preBufferedSize = _audioBuffer.current;
+    final preBufferSize = _audioBuffer.size;
+
+    if (_buffering) {
+      if (preBufferedSize < preBufferSize * 0.5) {
+        print(
+          'waiting for prebuffer to fill:'
+          ' buffered $preBufferedSize / $preBufferSize',
+        );
+
+        return;
+      }
+
+      print('audio prebuffer filled, resuming');
+
+      _buffering = false;
+    } else if (bufferedSize == 0) {
+      print('audio output buffer empty, buffering');
+
+      _buffering = true;
 
       return;
     }
@@ -65,10 +95,10 @@ class AudioOutput {
       return;
     }
 
-    final flushSize = min(remainingBufferSize, bufferedSize);
+    final flushSize = min(remainingBufferSize, preBufferedSize);
 
     if (flushSize == 0) {
-      print('r $remainingBufferSize b $bufferedSize -> not flushing samples');
+      print('b $preBufferedSize -> not flushing samples');
 
       return;
     }

@@ -131,19 +131,11 @@ class NES {
       step();
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        final frameTime = DateTime.now().difference(_frameStart);
-
         yield FrameNesEvent(
           frameBuffer: ppu.frameBuffer,
           samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
-          frameTime: frameTime,
+          frameTime: DateTime.now().difference(_frameStart),
         );
-
-        final sleepTime = _calculateSleepTime(frameTime, apu.sampleIndex);
-
-        _sleepBudget += sleepTime;
-
-        apu.sampleIndex = 0;
 
         if (stopAfterNextFrame) {
           running = false;
@@ -151,7 +143,15 @@ class NES {
           paused = true;
         }
 
+        final frameTime = DateTime.now().difference(_frameStart);
+
         _frameStart = DateTime.now();
+
+        final sleepTime = _calculateSleepTime(frameTime, apu.sampleIndex);
+
+        apu.sampleIndex = 0;
+
+        _sleepBudget += sleepTime;
 
         await wait(_sleepBudget);
       }

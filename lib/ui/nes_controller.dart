@@ -103,7 +103,10 @@ class NesController extends _$NesController {
 
   void resume() => sendCommand(NesResumeCommand());
 
-  void reset() => sendCommand(NesResetCommand());
+  void reset() {
+    sendCommand(NesResetCommand());
+    _audioOutput.reset();
+  }
 
   void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
 

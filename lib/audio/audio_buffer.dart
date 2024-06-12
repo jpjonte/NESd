@@ -11,7 +11,7 @@ class AudioBuffer {
 
   int get size => _buffer.length;
   int get current => (_end - _start) % size;
-  int get remaining => size - current;
+  int get remaining => size - current - 1; // subtract 1 so that _end != _start
 
   void clear() {
     _start = 0;
