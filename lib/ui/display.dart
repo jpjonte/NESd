@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/nes_controller.dart';
 
@@ -29,6 +30,7 @@ class DisplayWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(nesControllerProvider.notifier);
+    final nes = ref.watch(nesControllerProvider);
 
     return StreamBuilder(
       stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
@@ -48,7 +50,7 @@ class DisplayWidget extends ConsumerWidget {
         }
 
         return CustomPaint(
-          painter: EmulatorPainter(image: image),
+          painter: EmulatorPainter(image: image, nes: nes),
           child: const SizedBox.expand(),
         );
       },
@@ -57,22 +59,27 @@ class DisplayWidget extends ConsumerWidget {
 }
 
 class EmulatorPainter extends CustomPainter {
-  EmulatorPainter({required this.image});
+  EmulatorPainter({required this.image, required this.nes});
 
   final ui.Image image;
+  final NES nes;
 
-  final Paint backgroundPaint = Paint()..color = Colors.black;
+  final _backgroundPaint = Paint()..color = Colors.black;
 
-  final Paint borderPaint = Paint()
+  final _pauseOverlayPaint = Paint()..color = Colors.black.withOpacity(0.5);
+
+  final _pauseIconPaint = Paint()..color = Colors.white;
+
+  final _borderPaint = Paint()
     ..strokeWidth = 1
     ..color = Colors.white
     ..style = PaintingStyle.stroke;
 
-  final Paint framePaint = Paint();
+  final _framePaint = Paint();
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, backgroundPaint);
+    canvas.drawRect(Offset.zero & size, _backgroundPaint);
 
     final center = Offset(size.width / 2, size.height / 2);
 
@@ -94,7 +101,7 @@ class EmulatorPainter extends CustomPainter {
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
         topLeft & Size(width * scale.toDouble(), height * scale.toDouble()),
-        framePaint,
+        _framePaint,
       )
       ..drawRect(
         (topLeft - offset) &
@@ -102,8 +109,21 @@ class EmulatorPainter extends CustomPainter {
               (width + 1) * scale.toDouble(),
               (height + 1) * scale.toDouble(),
             ),
-        borderPaint,
+        _borderPaint,
       );
+
+    if (!nes.running) {
+      canvas
+        ..drawRect(Offset.zero & size, _pauseOverlayPaint)
+        ..drawRect(
+          center.translate(-16, -16) & const Size(16, 48),
+          _pauseIconPaint,
+        )
+        ..drawRect(
+          center.translate(16, -16) & const Size(16, 48),
+          _pauseIconPaint,
+        );
+    }
   }
 
   @override
