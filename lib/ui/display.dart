@@ -35,6 +35,10 @@ class DisplayWidget extends ConsumerWidget {
     return StreamBuilder(
       stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
       builder: (context, snapshot) {
+        if (!nes.on) {
+          return const SizedBox();
+        }
+
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }

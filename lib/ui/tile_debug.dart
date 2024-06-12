@@ -21,6 +21,10 @@ class TileDebugWidget extends HookConsumerWidget {
 
     final stream = useStream(controller.frameBufferStream);
 
+    if (!nes.on) {
+      return const SizedBox();
+    }
+
     if (stream.hasError) {
       return Center(
         child: Text(
