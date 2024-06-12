@@ -5,8 +5,6 @@ import 'package:nes/nes/apu/channel/dmc_channel.dart';
 import 'package:nes/nes/apu/channel/noise_channel.dart';
 import 'package:nes/nes/apu/channel/pulse_channel.dart';
 import 'package:nes/nes/apu/channel/triangle_channel.dart';
-import 'package:nes/nes/apu/filter/filter.dart';
-import 'package:nes/nes/apu/filter/filter_chain.dart';
 import 'package:nes/nes/apu/frame_counter.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/bus.dart';
@@ -23,6 +21,12 @@ class APU {
   int sampleIndex = 0;
   final sampleBuffer = Float32List(100000);
 
+  int _pulse1Samples = 0;
+  int _pulse2Samples = 0;
+  int _triangleSamples = 0;
+  int _dmcSamples = 0;
+  int _sampleStart = 0;
+
   late final frameCounter = FrameCounter(this);
 
   final pulse1 = PulseChannel(onesComplement: true);
@@ -33,12 +37,6 @@ class APU {
   final noise = NoiseChannel();
 
   final dmc = DMCChannel();
-
-  final _filterChain = FilterChain([
-    Filter.highPass(44100, 90),
-    Filter.highPass(44100, 440),
-    Filter.lowPass(44100, 14000),
-  ]);
 
   int readRegister(int address) {
     if (address == 0x4015) {
@@ -107,6 +105,8 @@ class APU {
 
     sampleIndex = 0;
 
+    _sampleStart = 0;
+
     frameCounter.reset();
 
     pulse1.reset();
@@ -157,9 +157,11 @@ class APU {
   }
 
   void _handleSampling() {
+    _gatherSamples();
+
     // if this cycle crossed the sample rate boundary, output a new sample
     const cyclesPerSample =
-        1779783 / apuSampleRate; // cpu frequency / audio sample rate
+        1789773 / apuSampleRate; // cpu frequency / audio sample rate
     final before = (cycles - 1) ~/ cyclesPerSample;
     final after = cycles ~/ cyclesPerSample;
 
@@ -168,15 +170,33 @@ class APU {
     }
   }
 
+  void _gatherSamples() {
+    _pulse1Samples += pulse1.output;
+    _pulse2Samples += pulse2.output;
+    _triangleSamples += triangle.output;
+    _dmcSamples += dmc.output;
+  }
+
   double _output() {
-    final pulseOut = pulseTable[pulse1.output + pulse2.output];
-    final tndOut =
-        tndTable[3 * triangle.output + 2 * noise.output + dmc.output];
+    final diff = cycles - _sampleStart;
 
-    final output = pulseOut + tndOut;
+    final pulse1Sample = (_pulse1Samples / diff).floor();
+    final pulse2Sample = (_pulse2Samples / diff).floor();
+    final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
 
-    final filtered = _filterChain.apply(output);
+    final triangleSample = (_triangleSamples / diff).floor();
+    final dmcSample = (_dmcSamples / diff).floor();
 
-    return filtered;
+    final tndOut = tndTable[3 * triangleSample + 2 * noise.output + dmcSample];
+
+    final mixed = pulseOut + tndOut;
+
+    _sampleStart = cycles;
+    _pulse1Samples = 0;
+    _pulse2Samples = 0;
+    _triangleSamples = 0;
+    _dmcSamples = 0;
+
+    return mixed;
   }
 }
