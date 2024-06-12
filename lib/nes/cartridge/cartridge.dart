@@ -91,7 +91,7 @@ class Cartridge {
     final chrRomSize = rom[5] * 0x2000;
 
     if (chrRomSize == 0) {
-      return Uint8List(0x2000);
+      return Uint8List(0x10000);
     }
 
     return rom.sublist(

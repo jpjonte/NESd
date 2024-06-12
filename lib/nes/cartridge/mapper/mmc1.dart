@@ -92,7 +92,7 @@ class MMC1 extends Mapper {
     }
 
     if (address <= 0xffff) {
-      _writeRegister(value, address);
+      _writeRegister(address, value);
     }
   }
 
@@ -113,7 +113,7 @@ class MMC1 extends Mapper {
     cartridge.sram[address & 0x1fff] = value;
   }
 
-  void _writeRegister(int value, int address) {
+  void _writeRegister(int address, int value) {
     // TODO ignore consecutive cycle writes
     if (value.bit(7) == 1) {
       shift = 0x10;
@@ -124,7 +124,7 @@ class MMC1 extends Mapper {
 
     if (shift.bit(0) == 1) {
       final register = (address >> 13) & 0x3;
-      final registerValue = ((shift >> 1) & 0xf).setBit(4, value.bit(0));
+      final registerValue = value.bit(0) << 4 | ((shift >> 1) & 0xf);
 
       shift = 0x10;
 
@@ -148,12 +148,12 @@ class MMC1 extends Mapper {
 
   int _chrAddress(int address) {
     return switch (controlChrMode) {
-          0 => switch (address.bit(12)) {
+          0 => ((chrBank0 & 0x1e) << 12) | (address & 0x1fff),
+          1 => switch (address.bit(12)) {
               0 => (chrBank0 << 12) | (address & 0xfff),
               1 => (chrBank1 << 12) | (address & 0xfff),
               _ => 0,
             },
-          1 => ((chrBank0 & 0x1e) << 12) | (address & 0x1fff),
           _ => 0,
         } %
         cartridge.chr.length;
