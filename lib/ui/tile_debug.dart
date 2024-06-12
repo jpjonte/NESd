@@ -106,8 +106,9 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final paletteIndex = attribute << 2 | pattern;
 
-              final systemPaletteIndex = nes.bus
-                  .ppuRead(0x3f00 | (pattern == 0 ? 1 : 0) << 4 | paletteIndex);
+              final index = pattern > 0 ? paletteIndex : 0x10;
+
+              final systemPaletteIndex = nes.bus.ppuRead(0x3f00 | index);
 
               final color = systemPalette[systemPaletteIndex];
 
