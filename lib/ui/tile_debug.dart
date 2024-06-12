@@ -53,9 +53,16 @@ class TileDebugWidget extends HookConsumerWidget {
         }
 
         return SizedBox(
-          width: 2 * 32 * 8,
-          height: 2 * 30 * 8,
-          child: CustomPaint(painter: ImagePainter(image: snapshot.data!)),
+          width: image.width.toDouble(),
+          height: image.height.toDouble(),
+          child: ClipRect(
+            child: CustomPaint(
+              painter: TileDebugPainter(
+                image: image,
+                nes: nes,
+              ),
+            ),
+          ),
         );
       },
     );
@@ -119,10 +126,11 @@ class TileDebugWidget extends HookConsumerWidget {
   }
 }
 
-class ImagePainter extends CustomPainter {
-  ImagePainter({required this.image});
+class TileDebugPainter extends CustomPainter {
+  TileDebugPainter({required this.image, required this.nes});
 
   final ui.Image image;
+  final NES nes;
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
 
@@ -131,21 +139,70 @@ class ImagePainter extends CustomPainter {
     ..color = Colors.white
     ..style = PaintingStyle.stroke;
 
-  final Paint framePaint = Paint();
+  final _imagePaint = Paint();
+  final _scrollStrokePaint = Paint()
+    ..color = const Color(0xffff00ff)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
+  final _scrollFillPaint = Paint()
+    ..color = const Color(0x33ff00ff)
+    ..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final scrollX =
+        (nes.ppu.PPUCTRL_X << 8 | nes.ppu.t_coarseX << 3 | nes.ppu.x)
+            .toDouble();
+    final scrollY =
+        (nes.ppu.PPUCTRL_Y << 8 | nes.ppu.t_coarseY << 3 | nes.ppu.t_fineY)
+            .toDouble();
+
+    const visibleArea = Size(32 * 8, 30 * 8);
+
     canvas
       ..drawRect(Offset.zero & size, backgroundPaint)
       ..drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
         Offset.zero & Size(image.width.toDouble(), image.height.toDouble()),
-        framePaint,
+        _imagePaint,
+      )
+      ..drawRect(
+        Offset(scrollX, scrollY) & visibleArea,
+        _scrollStrokePaint,
+      )
+      ..drawRect(
+        Offset(scrollX, scrollY) & visibleArea,
+        _scrollFillPaint,
       );
+
+    if (scrollX > 32 * 8) {
+      canvas
+        ..drawRect(
+          Offset(scrollX - 64 * 8, scrollY) & visibleArea,
+          _scrollStrokePaint,
+        )
+        ..drawRect(
+          Offset(scrollX - 64 * 8, scrollY) & visibleArea,
+          _scrollFillPaint,
+        );
+    }
+
+    if (scrollY > 30 * 8) {
+      canvas
+        ..drawRect(
+          Offset(scrollX, scrollY - 60 * 8) & visibleArea,
+          _scrollStrokePaint,
+        )
+        ..drawRect(
+          Offset(scrollX, scrollY - 60 * 8) & visibleArea,
+          _scrollFillPaint,
+        );
+      ;
+    }
   }
 
   @override
-  bool shouldRepaint(covariant ImagePainter oldDelegate) =>
+  bool shouldRepaint(covariant TileDebugPainter oldDelegate) =>
       image != oldDelegate.image;
 }
