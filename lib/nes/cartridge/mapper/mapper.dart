@@ -4,6 +4,7 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/mmc1.dart';
 import 'package:nes/nes/cartridge/mapper/nrom.dart';
+import 'package:nes/nes/cartridge/mapper/unrom.dart';
 
 abstract class Mapper {
   Mapper(this.id);
@@ -12,6 +13,7 @@ abstract class Mapper {
     return switch (mapper) {
       0 => NROM(),
       1 => MMC1(),
+      2 => UNROM(),
       _ => throw UnsupportedMapper(mapper),
     };
   }
