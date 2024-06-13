@@ -2,6 +2,7 @@ import 'package:nes/exception/unsupported_mapper.dart';
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
+import 'package:nes/nes/cartridge/mapper/cnrom.dart';
 import 'package:nes/nes/cartridge/mapper/mmc1.dart';
 import 'package:nes/nes/cartridge/mapper/nrom.dart';
 import 'package:nes/nes/cartridge/mapper/unrom.dart';
@@ -14,6 +15,7 @@ abstract class Mapper {
       0 => NROM(),
       1 => MMC1(),
       2 => UNROM(),
+      3 => CNROM(),
       _ => throw UnsupportedMapper(mapper),
     };
   }
