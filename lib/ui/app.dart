@@ -88,23 +88,24 @@ class AppWidget extends HookConsumerWidget {
         children: [
           const Expanded(child: DisplayWidget()),
           SizedBox(
-            width: 512,
+            width: 528,
             child: ListView(
+              padding: const EdgeInsets.all(8),
               children: [
+                if (errorState.value != null)
+                  Text(
+                    errorState.value!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 const TileDebugWidget(),
                 if (cartridge != null)
                   CartridgeInfoWidget(cartridge: cartridge),
               ],
             ),
           ),
-          if (errorState.value != null)
-            Text(
-              errorState.value!,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
         ],
       ),
     );
