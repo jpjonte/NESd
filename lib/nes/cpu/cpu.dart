@@ -195,6 +195,8 @@ class CPU {
   void _handleDMCDMA() {
     if (!dmcDmaDummy) {
       dmcDmaDummy = true;
+
+      return;
     }
 
     if (cycles.isEven) {
@@ -204,6 +206,7 @@ class CPU {
       bus.apu.dmc.writeDma(dmcDmaValue);
       dmcDmaRead = false;
       dmcDmaDummy = false;
+      dmcDma = false;
     }
   }
 

@@ -1,6 +1,24 @@
 import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/bus.dart';
+
+const dmcTable = [
+  428,
+  380,
+  340,
+  320,
+  286,
+  254,
+  226,
+  214,
+  190,
+  160,
+  142,
+  128,
+  106,
+  84,
+  72,
+  54,
+];
 
 class DMCChannel {
   bool enabled = false;
@@ -13,7 +31,7 @@ class DMCChannel {
   int buffer = 0;
   int rate = 0;
 
-  int bitsRemaining = 0;
+  int bitsRemaining = 8;
   int shiftRegister = 0;
 
   int timer = 0;
@@ -41,7 +59,7 @@ class DMCChannel {
     level = 0;
     timer = 0;
     buffer = 0;
-    bitsRemaining = 0;
+    bitsRemaining = 8;
     shiftRegister = 0;
     sampleAddress = 0;
     sampleLength = 0;
@@ -56,15 +74,17 @@ class DMCChannel {
       timer = rate;
 
       if (!silence) {
-        final diff = shiftRegister.bit(1) == 1 ? 2 : -2;
+        final diff = shiftRegister.bit(0) == 1 ? 2 : -2;
 
-        level = (level + diff).clamp(0, 127);
+        level = (level + diff).clamp(0, 0x7f);
+        shiftRegister >>= 1;
       }
 
-      shiftRegister >>= 1;
       bitsRemaining--;
 
       if (bitsRemaining == 0) {
+        bitsRemaining = 8;
+
         if (!sampleLoaded) {
           silence = true;
         } else {
@@ -78,7 +98,7 @@ class DMCChannel {
     }
   }
 
-  void start() {
+  void _start() {
     address = sampleAddress;
     length = sampleLength;
   }
@@ -95,11 +115,11 @@ class DMCChannel {
 
     if (enabled) {
       if (length == 0) {
-        length = sampleLength;
-        address = sampleAddress;
+        _start();
+        _startDma();
       }
     } else {
-      sampleLength = 0;
+      length = 0;
     }
   }
 
@@ -139,7 +159,7 @@ class DMCChannel {
 
     if (length == 0) {
       if (loop) {
-        start();
+        _start();
       } else if (irqEnabled) {
         interrupt = true;
       }

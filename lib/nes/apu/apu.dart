@@ -117,14 +117,26 @@ class APU {
   }
 
   void step() {
-    // triangle is stepped every CPU cycle
+    // triangle and DMC are stepped every CPU cycle
     triangle.step();
+    dmc.step();
 
     if (cycles.isEven) {
       // other channels are stepped every other CPU cycle
-      _stepChannels();
+      pulse1.step();
+      pulse2.step();
+      noise.step();
 
       frameCounter.step();
+    }
+
+    if (dmc.startDma) {
+      dmc.startDma = false;
+      bus.cpu.dmcDma = true;
+    }
+
+    if (dmc.interrupt) {
+      bus.cpu.irq = true;
     }
 
     _handleSampling();
@@ -138,22 +150,6 @@ class APU {
     triangle.status = value;
     noise.status = value;
     dmc.writeStatus(bus, value);
-  }
-
-  void _stepChannels() {
-    pulse1.step();
-    pulse2.step();
-    noise.step();
-    dmc.step();
-
-    if (dmc.startDma) {
-      dmc.startDma = false;
-      bus.cpu.dmcDma = true;
-    }
-
-    if (dmc.interrupt) {
-      bus.cpu.irq = true;
-    }
   }
 
   void _handleSampling() {

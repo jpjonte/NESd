@@ -87,25 +87,6 @@ const noiseTable = [
   4068,
 ];
 
-const dmcTable = [
-  428,
-  380,
-  340,
-  320,
-  286,
-  254,
-  226,
-  214,
-  190,
-  160,
-  142,
-  128,
-  106,
-  84,
-  72,
-  54,
-];
-
 // Duty 	Sequence lookup table 	Output waveform
 const dutyCycleSequences = [
   // 0 0 0 0 0 0 0 1
