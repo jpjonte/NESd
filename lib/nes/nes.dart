@@ -92,6 +92,7 @@ class NES {
   var _sleepBudget = Duration.zero;
 
   void loadCartridge(Cartridge cartridge) {
+    cartridge.mapper.bus = bus;
     bus.cartridge = cartridge;
 
     reset();
@@ -169,9 +170,7 @@ class NES {
     switch (command) {
       case final NesResetCommand _:
         reset();
-        running = true;
-        paused = false;
-        _frameStart = DateTime.now();
+        _sleepBudget = Duration.zero;
       case final NesPauseCommand _:
         paused = true;
         running = false;
@@ -179,23 +178,25 @@ class NES {
         paused = !paused;
         running = !running;
         _frameStart = DateTime.now();
+        _sleepBudget = Duration.zero;
       case NesUnpauseCommand():
         paused = false;
         running = true;
         _frameStart = DateTime.now();
+        _sleepBudget = Duration.zero;
       case NesSuspendCommand _:
         running = false;
       case NesResumeCommand _:
         if (!paused) {
           running = true;
           _frameStart = DateTime.now();
+          _sleepBudget = Duration.zero;
         }
       case NesStopCommand _:
         on = false;
       case NesStepCommand _:
-        if (!running) {
-          step();
-        }
+        running = false;
+        step();
       case NesRunUntilFrameCommand _:
         running = true;
         stopAfterNextFrame = true;

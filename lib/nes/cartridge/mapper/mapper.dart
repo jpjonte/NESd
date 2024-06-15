@@ -4,6 +4,7 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/cnrom.dart';
 import 'package:nes/nes/cartridge/mapper/mmc1.dart';
+import 'package:nes/nes/cartridge/mapper/mmc3.dart';
 import 'package:nes/nes/cartridge/mapper/nrom.dart';
 import 'package:nes/nes/cartridge/mapper/unrom.dart';
 
@@ -16,11 +17,14 @@ abstract class Mapper {
       1 => MMC1(),
       2 => UNROM(),
       3 => CNROM(),
+      4 => MMC3(),
       _ => throw UnsupportedMapper(mapper),
     };
   }
 
   final int id;
+
+  late final Bus bus;
 
   late final Cartridge cartridge;
 
@@ -41,4 +45,6 @@ abstract class Mapper {
       NametableLayout.single => address & 0x3ff,
     };
   }
+
+  void updatePpuAddress(int address) {}
 }

@@ -100,6 +100,8 @@ class Bus {
   }
 
   void cpuWrite(int address, int value) {
+    value &= 0xff;
+
     if (address == addressA) {
       cpu.A = value;
 
@@ -107,7 +109,6 @@ class Bus {
     }
 
     address &= 0xffff;
-    value &= 0xff;
 
     if (address < 0x2000) {
       cpu.ram[address % 0x800] = value;
@@ -136,12 +137,16 @@ class Bus {
         ..oamDma = true
         ..oamDmaPage = value
         ..oamDmaOffset = 0;
+
+      return;
     }
 
     if (address == 0x4016) {
       inputStrobe = (value & 1) == 1;
       controller1Shift = 0;
       controller2Shift = 0;
+
+      return;
     }
 
     if (address < 0x4020) {
@@ -164,7 +169,11 @@ class Bus {
       return cartridge!.read(this, address);
     }
 
-    return ppu.palette[_paletteAddress(address)];
+    if (address < 0x3fff) {
+      return ppu.palette[_paletteAddress(address)];
+    }
+
+    return 0;
   }
 
   void ppuWrite(int address, int value) {
@@ -174,7 +183,7 @@ class Bus {
       return;
     }
 
-    if (address < 0x3f20) {
+    if (address < 0x3fff) {
       ppu.palette[_paletteAddress(address)] = value;
 
       return;

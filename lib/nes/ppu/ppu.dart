@@ -251,9 +251,24 @@ class PPU {
     palette.fillRange(0, palette.length, 0);
   }
 
-  int read(int address) => bus.ppuRead(address);
+  int read(int address, {bool updateBusAddress = true}) {
+    if (updateBusAddress) {
+      _updateBusAddress(address);
+    }
 
-  void write(int address, int value) => bus.ppuWrite(address, value);
+    return bus.ppuRead(address);
+  }
+
+  void write(int address, int value, {bool updateBusAddress = true}) {
+    if (updateBusAddress) {
+      _updateBusAddress(address);
+    }
+
+    bus.ppuWrite(address, value);
+  }
+
+  void _updateBusAddress(int address) =>
+      bus.cartridge?.mapper.updatePpuAddress(address);
 
   int readRegister(int address) {
     return switch (address) {
@@ -306,6 +321,22 @@ class PPU {
   bool get fetching => lineFetch && cycleFetch;
 
   void step() {
+    _handleRendering();
+
+    _handleOAMADDRReset();
+
+    _handleVBlank();
+
+    _handleRegisterReset();
+
+    _evaluateSprites();
+
+    _handleBusAddressUpdate();
+
+    _updateCounters();
+  }
+
+  void _handleRendering() {
     if (renderingEnabled) {
       if (rendering) {
         _renderPixel();
@@ -346,13 +377,9 @@ class PPU {
         _copyVerticalBits();
       }
     }
+  }
 
-    if (lineVisible || linePreRender) {
-      if (cycle >= 257 && cycle <= 320) {
-        OAMADDR = 0x0000;
-      }
-    }
-
+  void _handleVBlank() {
     if (lineVblank && cycle == 1) {
       PPUSTATUS_V = 1;
 
@@ -361,16 +388,22 @@ class PPU {
         bus.cpu.nmi = true;
       }
     }
+  }
 
+  void _handleRegisterReset() {
     if (linePreRender && cycle == 1) {
       PPUSTATUS_O = 0;
       PPUSTATUS_S = 0;
       PPUSTATUS_V = 0;
     }
+  }
 
-    _evaluateSprites();
-
-    _updateCounters();
+  void _handleOAMADDRReset() {
+    if (lineVisible || linePreRender) {
+      if (cycle >= 257 && cycle <= 320) {
+        OAMADDR = 0x0000;
+      }
+    }
   }
 
   int _readPPUSTATUS() {
@@ -443,15 +476,27 @@ class PPU {
       // t: ....... ABCDEFGH <- d: ABCDEFGH
       t = (t & 0xFF00) | value;
       v = t;
+
+      _updateBusAddress(v);
     }
 
     w = 1 - w;
   }
 
   void _writePPUDATA(int value) {
-    write(v, value);
+    write(v, value, updateBusAddress: false);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
+  }
+
+  void _handleBusAddressUpdate() {
+    if (cycle == 0) {
+      if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
+        _updateBusAddress(0x2000 | v_nametable << 10 | v_coarseScroll);
+      } else if (scanline == 241) {
+        _updateBusAddress(v & 0x3fff);
+      }
+    }
   }
 
   void _updateCounters() {
@@ -490,7 +535,7 @@ class PPU {
   void _renderPixel() {
     final color = _getPixelColor();
 
-    final paletteColor = read(0x3F00 | color);
+    final paletteColor = read(0x3F00 | color, updateBusAddress: false);
 
     final systemColor = systemPalette[paletteColor];
 
@@ -546,10 +591,12 @@ class PPU {
     final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
     final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
 
-    return paletteIndexHigh << 3 |
+    final address = paletteIndexHigh << 3 |
         paletteIndexLow << 2 |
         patternHigh << 1 |
         patternLow;
+
+    return address;
   }
 
   int _getSpritePixelColor(int backgroundColor) {
