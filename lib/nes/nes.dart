@@ -92,6 +92,8 @@ class NES {
   var _sleepBudget = Duration.zero;
 
   void loadCartridge(Cartridge cartridge) {
+    bus.cartridge?.save();
+
     cartridge.mapper.bus = bus;
     bus.cartridge = cartridge;
 
@@ -109,6 +111,8 @@ class NES {
     cpu.reset();
     apu.reset();
     ppu.reset();
+
+    bus.cartridge?.load();
   }
 
   Stream<NesEvent> run() async* {

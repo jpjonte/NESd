@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/cartridge_info.dart';
@@ -28,12 +29,13 @@ class AppWidget extends HookConsumerWidget {
               label: 'About',
               onSelected: () {},
             ),
-            if (PlatformProvidedMenuItem.hasMenu(
-              PlatformProvidedMenuItemType.quit,
-            ))
-              const PlatformProvidedMenuItem(
-                type: PlatformProvidedMenuItemType.quit,
-              ),
+            PlatformMenuItem(
+              label: 'Quit',
+              onSelected: () {
+                controller.save();
+                SystemNavigator.pop();
+              },
+            ),
           ],
         ),
         PlatformMenu(

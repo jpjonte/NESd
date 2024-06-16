@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:nes/exception/invalid_rom_header.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:path/path.dart' as p;
 
 enum NametableLayout { horizontal, vertical, four, single }
 
@@ -174,5 +175,31 @@ class Cartridge {
 
   void write(Bus bus, int address, int value) {
     mapper.write(bus, address, value);
+  }
+
+  void save() {
+    if (!hasBattery) {
+      return;
+    }
+
+    _getSaveFile().writeAsBytesSync(sram);
+  }
+
+  void load() {
+    if (!hasBattery) {
+      return;
+    }
+
+    final saveFile = _getSaveFile();
+
+    if (saveFile.existsSync()) {
+      sram.setAll(0, saveFile.readAsBytesSync());
+    }
+  }
+
+  File _getSaveFile() {
+    final filename = p.setExtension(file, '.sav');
+
+    return File(filename);
   }
 }

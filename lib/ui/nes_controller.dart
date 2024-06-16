@@ -113,6 +113,8 @@ class NesController extends _$NesController {
     _audioOutput.reset();
   }
 
+  void save() => state.bus.cartridge?.save();
+
   void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
 
   void sendCommand(NesCommand command) => state.executeCommand(command);

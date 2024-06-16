@@ -19,6 +19,7 @@ dependencies:
     git:
       url: ssh://git@ssh.git.jpj.dev:8022/bud/mp-audio-stream.git
       ref: feature/buffer-size
+  path: ^1.9.0
   riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
   riverpod_generator: ^2.4.0
