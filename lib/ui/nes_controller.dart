@@ -94,7 +94,12 @@ class NesController extends _$NesController {
   }
 
   Future<void> run() async {
-    state.run().listen((event) => _streamController.add(event));
+    state.run().listen((event) => _streamController.add(event)).onError(
+      // ignore: avoid_types_on_closure_parameters
+      (Object error, StackTrace stackTrace) {
+        return _streamController.addError(error, stackTrace);
+      },
+    );
   }
 
   void suspend() => sendCommand(NesSuspendCommand());
