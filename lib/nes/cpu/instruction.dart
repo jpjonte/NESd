@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cpu/cpu.dart';
 
 enum InstructionType {
@@ -477,4 +478,72 @@ final SRE = Instruction('SRE', (cpu, address) {
 final RRA = Instruction('RRA', (cpu, address) {
   ROR.execute(cpu, address);
   ADC.execute(cpu, address);
+});
+
+final STP = Instruction('STP', (cpu, address) {
+  // TODO stops the CPU
+  // throw UnimplementedError();
+});
+
+final ANC = Instruction('ANC', (cpu, address) {
+  AND.execute(cpu, address);
+  cpu.C = cpu.N;
+});
+
+final ALR = Instruction('ALR', (cpu, address) {
+  AND.execute(cpu, address);
+  LSR.execute(cpu, addressA);
+});
+
+final ARR = Instruction('ARR', (cpu, address) {
+  AND.execute(cpu, address);
+  ROR.execute(cpu, addressA);
+
+  cpu
+    ..C = cpu.A.bit(6)
+    ..V = cpu.A.bit(6) ^ cpu.A.bit(5);
+});
+
+final XAA = Instruction('XAA', (cpu, address) {
+  // unpredictable
+  throw UnimplementedError();
+});
+
+final AHX = Instruction('AHX', (cpu, address) {
+  cpu.write(address, cpu.A & cpu.X & ((address >> 8) + 1));
+});
+
+final TAS = Instruction('TAS', (cpu, address) {
+  cpu
+    ..SP = cpu.A & cpu.X
+    ..write(address, cpu.SP & ((address >> 8) + 1));
+});
+
+final SHY = Instruction('SHY', (cpu, address) {
+  cpu.write(address, cpu.Y & ((address >> 8) + 1));
+});
+
+final SHX = Instruction('SHX', (cpu, address) {
+  cpu.write(address, cpu.X & ((address >> 8) + 1));
+});
+
+final LAS = Instruction('LAS', (cpu, address) {
+  cpu
+    ..A = cpu.SP & cpu.read(address)
+    ..X = cpu.A
+    ..SP = cpu.A
+    ..Z = cpu.A == 0 ? 1 : 0
+    ..N = cpu.A.bit(7);
+});
+
+final AXS = Instruction('AXS', (cpu, address) {
+  final operand = cpu.read(address) & 0xff;
+  final ax = cpu.A & cpu.X;
+  final result = (ax - operand) & 0xff;
+
+  cpu
+    ..C = ax >= operand ? 1 : 0
+    ..X = result
+    ..Z = result == 0 ? 1 : 0
+    ..N = result.bit(7);
 });

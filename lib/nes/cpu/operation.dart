@@ -20,7 +20,7 @@ class Operation {
 final ops = {
   0x00: Operation(BRK, implicit, 7),
   0x01: Operation(ORA, indexedIndirect, 6),
-  // 0x02
+  0x02: Operation(STP, implicit, 2, unofficial: true),
   0x03: Operation(SLO, indexedIndirect, 8, unofficial: true),
   0x04: Operation(NOP, zeroPage, 3, unofficial: true),
   0x05: Operation(ORA, zeroPage, 3),
@@ -29,14 +29,14 @@ final ops = {
   0x08: Operation(PHP, implicit, 3),
   0x09: Operation(ORA, immediate, 2),
   0x0a: Operation(ASL, accumulator, 2),
-  // 0x0b
+  0x0b: Operation(ANC, immediate, 2, unofficial: true),
   0x0c: Operation(NOP, absolute, 4, unofficial: true),
   0x0d: Operation(ORA, absolute, 4),
   0x0e: Operation(ASL, absolute, 6),
   0x0f: Operation(SLO, absolute, 6, unofficial: true),
   0x10: Operation(BPL, relative, 2),
   0x11: Operation(ORA, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0x12
+  0x12: Operation(STP, implicit, 2, unofficial: true),
   0x13: Operation(SLO, indirectIndexed, 8, unofficial: true),
   0x14: Operation(NOP, zeroPageX, 4, unofficial: true),
   0x15: Operation(ORA, zeroPageX, 4),
@@ -53,7 +53,7 @@ final ops = {
   0x1f: Operation(SLO, absoluteX, 7, unofficial: true),
   0x20: Operation(JSR, absolute, 6),
   0x21: Operation(AND, indexedIndirect, 6),
-  // 0x22
+  0x22: Operation(STP, implicit, 2, unofficial: true),
   0x23: Operation(RLA, indexedIndirect, 8, unofficial: true),
   0x24: Operation(BIT, zeroPage, 3),
   0x25: Operation(AND, zeroPage, 3),
@@ -62,14 +62,14 @@ final ops = {
   0x28: Operation(PLP, implicit, 4),
   0x29: Operation(AND, immediate, 2),
   0x2a: Operation(ROL, accumulator, 2),
-  // 0x2b
+  0x2b: Operation(ANC, immediate, 2, unofficial: true),
   0x2c: Operation(BIT, absolute, 4),
   0x2d: Operation(AND, absolute, 4),
   0x2e: Operation(ROL, absolute, 6),
   0x2f: Operation(RLA, absolute, 6, unofficial: true),
   0x30: Operation(BMI, relative, 2),
   0x31: Operation(AND, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0x32
+  0x32: Operation(STP, implicit, 2, unofficial: true),
   0x33: Operation(RLA, indirectIndexed, 8, unofficial: true),
   0x34: Operation(NOP, zeroPageX, 4, unofficial: true),
   0x35: Operation(AND, zeroPageX, 4),
@@ -86,7 +86,7 @@ final ops = {
   0x3f: Operation(RLA, absoluteX, 7, unofficial: true),
   0x40: Operation(RTI, implicit, 6),
   0x41: Operation(EOR, indexedIndirect, 6),
-  // 0x42
+  0x42: Operation(STP, implicit, 2, unofficial: true),
   0x43: Operation(SRE, indexedIndirect, 8, unofficial: true),
   0x44: Operation(NOP, zeroPage, 3, unofficial: true),
   0x45: Operation(EOR, zeroPage, 3),
@@ -95,14 +95,14 @@ final ops = {
   0x48: Operation(PHA, implicit, 3),
   0x49: Operation(EOR, immediate, 2),
   0x4a: Operation(LSR, accumulator, 2),
-  // 0x4b
+  0x4b: Operation(ALR, immediate, 2, unofficial: true),
   0x4c: Operation(JMP, absolute, 3),
   0x4d: Operation(EOR, absolute, 4),
   0x4e: Operation(LSR, absolute, 6),
   0x4f: Operation(SRE, absolute, 6, unofficial: true),
   0x50: Operation(BVC, relative, 2, pageCrossAddsCycle: true),
   0x51: Operation(EOR, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0x52
+  0x52: Operation(STP, implicit, 2, unofficial: true),
   0x53: Operation(SRE, indirectIndexed, 8, unofficial: true),
   0x54: Operation(NOP, zeroPageX, 4, unofficial: true),
   0x55: Operation(EOR, zeroPageX, 4),
@@ -119,7 +119,7 @@ final ops = {
   0x5f: Operation(SRE, absoluteX, 7, unofficial: true),
   0x60: Operation(RTS, implicit, 6),
   0x61: Operation(ADC, indexedIndirect, 6),
-  // 0x62
+  0x62: Operation(STP, implicit, 2, unofficial: true),
   0x63: Operation(RRA, indexedIndirect, 8, unofficial: true),
   0x64: Operation(NOP, zeroPage, 3, unofficial: true),
   0x65: Operation(ADC, zeroPage, 3),
@@ -128,14 +128,14 @@ final ops = {
   0x68: Operation(PLA, implicit, 4),
   0x69: Operation(ADC, immediate, 2),
   0x6a: Operation(ROR, accumulator, 2),
-  // 0x6b
+  0x6b: Operation(ARR, immediate, 2, unofficial: true),
   0x6c: Operation(JMP, indirect, 5),
   0x6d: Operation(ADC, absolute, 4),
   0x6e: Operation(ROR, absolute, 6),
   0x6f: Operation(RRA, absolute, 6, unofficial: true),
   0x70: Operation(BVS, relative, 2, pageCrossAddsCycle: true),
   0x71: Operation(ADC, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0x72
+  0x72: Operation(STP, implicit, 2, unofficial: true),
   0x73: Operation(RRA, indirectIndexed, 8, unofficial: true),
   0x74: Operation(NOP, zeroPageX, 4, unofficial: true),
   0x75: Operation(ADC, zeroPageX, 4),
@@ -152,23 +152,24 @@ final ops = {
   0x7f: Operation(RRA, absoluteX, 7, unofficial: true),
   0x80: Operation(NOP, immediate, 2, unofficial: true),
   0x81: Operation(STA, indexedIndirect, 6),
-  // 0x82
+  0x82: Operation(NOP, immediate, 2, unofficial: true),
   0x83: Operation(SAX, indexedIndirect, 6, unofficial: true),
   0x84: Operation(STY, zeroPage, 3),
   0x85: Operation(STA, zeroPage, 3),
   0x86: Operation(STX, zeroPage, 3),
   0x87: Operation(SAX, zeroPage, 3, unofficial: true),
   0x88: Operation(DEY, implicit, 2),
-  // 0x89
+  0x89: Operation(NOP, immediate, 2, unofficial: true),
   0x8a: Operation(TXA, implicit, 2),
-  // 0x8b
+  0x8b: Operation(XAA, immediate, 2, unofficial: true),
   0x8c: Operation(STY, absolute, 4),
   0x8d: Operation(STA, absolute, 4),
   0x8e: Operation(STX, absolute, 4),
   0x8f: Operation(SAX, absolute, 4, unofficial: true),
   0x90: Operation(BCC, relative, 2, pageCrossAddsCycle: true),
   0x91: Operation(STA, indirectIndexed, 6),
-  // 0x92 .. 0x93
+  0x92: Operation(STP, implicit, 2, unofficial: true),
+  0x93: Operation(AHX, indirectIndexed, 6, unofficial: true),
   0x94: Operation(STY, zeroPageX, 4),
   0x95: Operation(STA, zeroPageX, 4),
   0x96: Operation(STX, zeroPageY, 4),
@@ -176,9 +177,11 @@ final ops = {
   0x98: Operation(TYA, implicit, 2),
   0x99: Operation(STA, absoluteY, 5),
   0x9a: Operation(TXS, implicit, 2),
-  // 0x9b .. 0x9c
+  0x9b: Operation(TAS, absoluteY, 5, unofficial: true),
+  0x9c: Operation(SHY, absoluteX, 5, unofficial: true),
   0x9d: Operation(STA, absoluteX, 5),
-  // 0x9e .. 0x9f
+  0x9e: Operation(SHX, absoluteY, 5, unofficial: true),
+  0x9f: Operation(AHX, absoluteY, 5, unofficial: true),
   0xa0: Operation(LDY, immediate, 2),
   0xa1: Operation(LDA, indexedIndirect, 6),
   0xa2: Operation(LDX, immediate, 2),
@@ -190,14 +193,14 @@ final ops = {
   0xa8: Operation(TAY, implicit, 2),
   0xa9: Operation(LDA, immediate, 2),
   0xaa: Operation(TAX, implicit, 2),
-  // 0xab
+  0xab: Operation(LAX, immediate, 2, unofficial: true),
   0xac: Operation(LDY, absolute, 4),
   0xad: Operation(LDA, absolute, 4),
   0xae: Operation(LDX, absolute, 4),
   0xaf: Operation(LAX, absolute, 4, unofficial: true),
   0xb0: Operation(BCS, relative, 2, pageCrossAddsCycle: true),
   0xb1: Operation(LDA, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0xb2
+  0xb2: Operation(STP, implicit, 2, unofficial: true),
   0xb3: Operation(
     LAX,
     indirectIndexed,
@@ -212,7 +215,13 @@ final ops = {
   0xb8: Operation(CLV, implicit, 2),
   0xb9: Operation(LDA, absoluteY, 4, pageCrossAddsCycle: true),
   0xba: Operation(TSX, implicit, 2),
-  // 0xbb
+  0xbb: Operation(
+    LAS,
+    absoluteY,
+    4,
+    pageCrossAddsCycle: true,
+    unofficial: true,
+  ),
   0xbc: Operation(LDY, absoluteX, 4, pageCrossAddsCycle: true),
   0xbd: Operation(LDA, absoluteX, 4, pageCrossAddsCycle: true),
   0xbe: Operation(LDX, absoluteY, 4, pageCrossAddsCycle: true),
@@ -220,7 +229,7 @@ final ops = {
       Operation(LAX, absoluteY, 4, pageCrossAddsCycle: true, unofficial: true),
   0xc0: Operation(CPY, immediate, 2),
   0xc1: Operation(CMP, indexedIndirect, 6),
-  // 0xc2
+  0xc2: Operation(NOP, immediate, 2, unofficial: true),
   0xc3: Operation(DCP, indexedIndirect, 8, unofficial: true),
   0xc4: Operation(CPY, zeroPage, 3),
   0xc5: Operation(CMP, zeroPage, 3),
@@ -229,14 +238,14 @@ final ops = {
   0xc8: Operation(INY, implicit, 2),
   0xc9: Operation(CMP, immediate, 2),
   0xca: Operation(DEX, implicit, 2),
-  // 0xcb
+  0xcb: Operation(AXS, immediate, 2, unofficial: true),
   0xcc: Operation(CPY, absolute, 4),
   0xcd: Operation(CMP, absolute, 4),
   0xce: Operation(DEC, absolute, 6),
   0xcf: Operation(DCP, absolute, 6, unofficial: true),
   0xd0: Operation(BNE, relative, 2, pageCrossAddsCycle: true),
   0xd1: Operation(CMP, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0xd2
+  0xd2: Operation(STP, implicit, 2, unofficial: true),
   0xd3: Operation(DCP, indirectIndexed, 8, unofficial: true),
   0xd4: Operation(NOP, zeroPageX, 4, unofficial: true),
   0xd5: Operation(CMP, zeroPageX, 4),
@@ -253,7 +262,7 @@ final ops = {
   0xdf: Operation(DCP, absoluteX, 7, unofficial: true),
   0xe0: Operation(CPX, immediate, 2),
   0xe1: Operation(SBC, indexedIndirect, 6),
-  // 0xe2
+  0xe2: Operation(NOP, immediate, 2, unofficial: true),
   0xe3: Operation(ISC, indexedIndirect, 8, unofficial: true),
   0xe4: Operation(CPX, zeroPage, 3),
   0xe5: Operation(SBC, zeroPage, 3),
@@ -269,7 +278,7 @@ final ops = {
   0xef: Operation(ISC, absolute, 6, unofficial: true),
   0xf0: Operation(BEQ, relative, 2, pageCrossAddsCycle: true),
   0xf1: Operation(SBC, indirectIndexed, 5, pageCrossAddsCycle: true),
-  // 0xf2
+  0xf2: Operation(STP, implicit, 2, unofficial: true),
   0xf3: Operation(ISC, indirectIndexed, 8, unofficial: true),
   0xf4: Operation(NOP, zeroPageX, 4, unofficial: true),
   0xf5: Operation(SBC, zeroPageX, 4),
