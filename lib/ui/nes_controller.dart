@@ -8,6 +8,7 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
+import 'package:nes/ui/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -44,7 +45,7 @@ class NesController extends _$NesController {
       onPause: suspend,
       onInactive: suspend,
       onShow: suspend,
-      onResume: resume,
+      onResume: _appResumed,
     );
   }
 
@@ -56,12 +57,23 @@ class NesController extends _$NesController {
 
     audioSampleStream.listen(_audioOutput.processSamples);
 
+    final settings = ref.read(settingsControllerProvider);
+
+    _audioOutput.volume = settings.volume;
+
+    ref.listen(
+      settingsControllerProvider,
+      (_, settings) => _audioOutput.volume = settings.volume,
+    );
+
     return NES();
   }
 
   final _audioOutput = AudioOutput();
 
   double get volume => _audioOutput.volume;
+
+  bool lifeCycleListenerEnabled = true;
 
   set volume(double value) => _audioOutput.volume = value;
 
@@ -134,5 +146,11 @@ class NesController extends _$NesController {
     }
 
     return true;
+  }
+
+  void _appResumed() {
+    if (lifeCycleListenerEnabled) {
+      resume();
+    }
   }
 }

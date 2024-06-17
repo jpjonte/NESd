@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/nes_controller.dart';
+import 'package:nes/ui/settings.dart';
 
 Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
@@ -29,8 +29,11 @@ class DisplayWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsControllerProvider);
     final controller = ref.watch(nesControllerProvider.notifier);
     final nes = ref.watch(nesControllerProvider);
+
+    final mediaQuery = MediaQuery.of(context);
 
     return StreamBuilder(
       stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
@@ -53,9 +56,44 @@ class DisplayWidget extends ConsumerWidget {
           return const Center(child: Text('Failed to load image'));
         }
 
-        return CustomPaint(
-          painter: EmulatorPainter(image: image, nes: nes),
-          child: const SizedBox.expand(),
+        final scale = switch (settings.scaling) {
+          Scaling.x1 => 1.0,
+          Scaling.x2 => 2.0,
+          Scaling.x3 => 3.0,
+          Scaling.x4 => 4.0,
+          Scaling.autoInteger => max(
+              1,
+              min(
+                mediaQuery.size.width ~/ image.width,
+                mediaQuery.size.height ~/ image.height,
+              ),
+            ),
+          Scaling.autoSmooth => max(
+              0.5,
+              min(
+                mediaQuery.size.width / image.width,
+                mediaQuery.size.height / image.height,
+              ),
+            ),
+        };
+
+        final widthScale = settings.stretch ? 8 / 7 : 1.0;
+
+        return ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: mediaQuery.size.width,
+            maxHeight: mediaQuery.size.height,
+          ),
+          child: CustomPaint(
+            painter: EmulatorPainter(
+              image: image,
+              paused: !nes.running,
+              scale: scale.toDouble(),
+              widthScale: widthScale,
+              showBorder: settings.showBorder,
+            ),
+            child: const SizedBox.expand(),
+          ),
         );
       },
     );
@@ -63,10 +101,20 @@ class DisplayWidget extends ConsumerWidget {
 }
 
 class EmulatorPainter extends CustomPainter {
-  EmulatorPainter({required this.image, required this.nes});
+  EmulatorPainter({
+    required this.image,
+    required this.scale,
+    required this.widthScale,
+    required this.showBorder,
+    required this.paused,
+  });
 
   final ui.Image image;
-  final NES nes;
+
+  final double scale;
+  final double widthScale;
+  final bool showBorder;
+  final bool paused;
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
@@ -87,36 +135,31 @@ class EmulatorPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
 
-    const widthScale = 8 / 7;
-
     final width = (image.width * widthScale).round();
     final height = image.height;
 
-    final scale = max(
-      1,
-      min(size.width ~/ width, size.height ~/ height),
-    );
-
-    final topLeft = center - Offset(width / 2, height / 2) * scale.toDouble();
+    final topLeft = center - Offset(width / 2, height / 2) * scale;
 
     const offset = Offset(1, 1);
-    canvas
-      ..drawImageRect(
-        image,
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        topLeft & Size(width * scale.toDouble(), height * scale.toDouble()),
-        _framePaint,
-      )
-      ..drawRect(
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      topLeft & Size(width * scale, height * scale),
+      _framePaint,
+    );
+
+    if (showBorder) {
+      canvas.drawRect(
         (topLeft - offset) &
             Size(
-              (width + 1) * scale.toDouble(),
-              (height + 1) * scale.toDouble(),
+              (width + 1) * scale,
+              (height + 1) * scale,
             ),
         _borderPaint,
       );
+    }
 
-    if (!nes.running) {
+    if (paused) {
       canvas
         ..drawRect(Offset.zero & size, _pauseOverlayPaint)
         ..drawRect(

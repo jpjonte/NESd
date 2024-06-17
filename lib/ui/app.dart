@@ -6,6 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/cartridge_info.dart';
 import 'package:nes/ui/display.dart';
 import 'package:nes/ui/nes_controller.dart';
+import 'package:nes/ui/settings.dart';
+import 'package:nes/ui/settings_screen.dart';
 import 'package:nes/ui/tile_debug.dart';
 
 class AppWidget extends HookConsumerWidget {
@@ -19,18 +21,42 @@ class AppWidget extends HookConsumerWidget {
 
     final controller = ref.read(nesControllerProvider.notifier);
     final cartridge = ref.watch(cartridgeStateProvider);
+    final settings = ref.watch(settingsControllerProvider);
+    final settingsController = ref.read(settingsControllerProvider.notifier);
 
     return PlatformMenuBar(
       menus: [
         PlatformMenu(
-          label: 'NES',
+          label: 'NESd',
           menus: [
+            if (PlatformProvidedMenuItem.hasMenu(
+              PlatformProvidedMenuItemType.about,
+            ))
+              const PlatformProvidedMenuItem(
+                type: PlatformProvidedMenuItemType.about,
+              ),
             PlatformMenuItem(
-              label: 'About',
-              onSelected: () {},
+              label: 'Settings...',
+              shortcut: const CharacterActivator(',', meta: true),
+              onSelected: () async {
+                controller
+                  ..lifeCycleListenerEnabled = false
+                  ..suspend();
+
+                await SettingsScreen.open(context);
+
+                if (!context.mounted) {
+                  return;
+                }
+
+                controller
+                  ..resume()
+                  ..lifeCycleListenerEnabled = true;
+              },
             ),
             PlatformMenuItem(
-              label: 'Quit',
+              label: 'Quit NESd',
+              shortcut: const CharacterActivator('q', meta: true),
               onSelected: () {
                 controller.save();
                 SystemNavigator.pop();
@@ -76,24 +102,22 @@ class AppWidget extends HookConsumerWidget {
             PlatformMenuItem(
               label: 'Volume Up',
               shortcut: const CharacterActivator('+', meta: true),
-              onSelected: () => controller.volume += 0.1,
+              onSelected: () => settingsController.volume += 0.1,
             ),
             PlatformMenuItem(
               label: 'Volume Down',
               shortcut: const CharacterActivator('-', meta: true),
-              onSelected: () => controller.volume -= 0.1,
+              onSelected: () => settingsController.volume -= 0.1,
             ),
           ],
         ),
       ],
       child: Row(
         children: [
-          const Expanded(child: DisplayWidget()),
-          SizedBox(
-            width: 528,
-            child: ListView(
-              padding: const EdgeInsets.all(8),
+          Expanded(
+            child: Column(
               children: [
+                const DisplayWidget(),
                 if (errorState.value != null)
                   Text(
                     errorState.value!,
@@ -102,12 +126,21 @@ class AppWidget extends HookConsumerWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                const TileDebugWidget(),
-                if (cartridge != null)
-                  CartridgeInfoWidget(cartridge: cartridge),
               ],
             ),
           ),
+          if (settings.showTiles || settings.showCartridgeInfo)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 528),
+              child: ListView(
+                padding: const EdgeInsets.all(8),
+                children: [
+                  if (settings.showTiles) const TileDebugWidget(),
+                  if (cartridge != null && settings.showCartridgeInfo)
+                    CartridgeInfoWidget(cartridge: cartridge),
+                ],
+              ),
+            ),
         ],
       ),
     );

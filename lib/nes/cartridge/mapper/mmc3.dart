@@ -33,9 +33,6 @@ class MMC3 extends Mapper {
 
   int? _a12LowStart;
 
-  int _previous = 0;
-  int _previousCycle = 0;
-
   @override
   void reset() {
     _register = 0;
