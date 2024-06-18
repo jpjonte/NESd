@@ -6,8 +6,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
-import 'package:nes/ui/display.dart';
-import 'package:nes/ui/nes_controller.dart';
+import 'package:nes/ui/emulator/display.dart';
+import 'package:nes/ui/emulator/nes_controller.dart';
 
 class TileDebugWidget extends HookConsumerWidget {
   const TileDebugWidget({

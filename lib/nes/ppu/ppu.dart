@@ -6,6 +6,15 @@ import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 
+class SpriteOutput {
+  int patternLow = 0;
+  int patternHigh = 0;
+
+  int attribute = 0;
+
+  int x = 0;
+}
+
 const systemPalette = [
   0x626262,
   0x001fb2,
@@ -193,19 +202,16 @@ class PPU {
 
   int attribute = 0;
 
-  int oamN = 0x00;
+  int oamAddress = 0;
   int oamBuffer = 0;
+
   int spriteCount = 0;
   int secondarySpriteCount = 0;
 
   bool sprite0OnNextLine = false;
   bool sprite0OnCurrentLine = false;
 
-  Uint8List spritePatternLow = Uint8List(8);
-  Uint8List spritePatternHigh = Uint8List(8);
-
-  Uint8List spriteAttribute = Uint8List(8);
-  Uint8List spriteX = Uint8List(8);
+  final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
   void reset() {
     cycles = 0;
@@ -236,7 +242,7 @@ class PPU {
     attributeTableLowShift = 0;
     attribute = 0;
 
-    oamN = 0x00;
+    oamAddress = 0;
     oamBuffer = 0;
 
     spriteCount = 0;
@@ -259,11 +265,7 @@ class PPU {
     return bus.ppuRead(address);
   }
 
-  void write(int address, int value, {bool updateBusAddress = true}) {
-    if (updateBusAddress) {
-      _updateBusAddress(address);
-    }
-
+  void write(int address, int value) {
     bus.ppuWrite(address, value);
   }
 
@@ -337,45 +339,47 @@ class PPU {
   }
 
   void _handleRendering() {
-    if (renderingEnabled) {
-      if (rendering) {
-        _renderPixel();
+    if (!renderingEnabled) {
+      return;
+    }
+
+    if (rendering) {
+      _renderPixel();
+    }
+
+    if (rendering || fetching) {
+      _shiftRegisters();
+    }
+
+    if (fetching) {
+      switch (cycle % 8) {
+        case 0:
+          _loadShiftRegisters();
+        case 1:
+          _fetchNametable();
+        case 3:
+          _fetchAttributeTable();
+        case 5:
+          _fetchPatternTableLow();
+        case 7:
+          _fetchPatternTableHigh();
       }
 
-      if (rendering || fetching) {
-        _shiftBackground();
+      if (cycle % 8 == 0) {
+        _incrementX();
       }
 
-      if (fetching) {
-        switch (cycle % 8) {
-          case 0:
-            _loadShiftRegisters();
-          case 1:
-            _fetchNametable();
-          case 3:
-            _fetchAttributeTable();
-          case 5:
-            _fetchPatternTableLow();
-          case 7:
-            _fetchPatternTableHigh();
-        }
-
-        if (cycle % 8 == 0) {
-          _incrementX();
-        }
-
-        if (cycle == 256) {
-          _incrementY();
-        }
+      if (cycle == 256) {
+        _incrementY();
       }
+    }
 
-      if (lineFetch && cycle == 257) {
-        _copyHorizontalBits();
-      }
+    if (lineFetch && cycle == 257) {
+      _copyHorizontalBits();
+    }
 
-      if (linePreRender && cycle >= 280 && cycle <= 304) {
-        _copyVerticalBits();
-      }
+    if (linePreRender && cycle >= 280 && cycle <= 304) {
+      _copyVerticalBits();
     }
   }
 
@@ -484,18 +488,20 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    write(v, value, updateBusAddress: false);
+    write(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
   }
 
   void _handleBusAddressUpdate() {
-    if (cycle == 0) {
-      if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
-        _updateBusAddress(0x2000 | v_nametable << 10 | v_coarseScroll);
-      } else if (scanline == 241) {
-        _updateBusAddress(v & 0x3fff);
-      }
+    if (cycle > 0) {
+      return;
+    }
+
+    if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
+      _updateBusAddress(0x2000 | v_nametable << 10 | v_coarseScroll);
+    } else if (scanline == 241) {
+      _updateBusAddress(v & 0x3fff);
     }
   }
 
@@ -547,6 +553,8 @@ class PPU {
 
     final spriteColor = _getSpritePixelColor(backgroundColor);
     final spritePriority = spriteColor.bit(4);
+
+    // if the sprite color is selected, bit 4 is set
     final spriteColorValue = (spriteColor & 0xf).setBit(4, 1);
 
     if (PPUMASK_b == 0 && PPUMASK_s == 0) {
@@ -609,21 +617,21 @@ class PPU {
     }
 
     for (var sprite = 0; sprite < spriteCount; sprite++) {
-      final xOffset = currentX - spriteX[sprite];
+      final xOffset = currentX - _spriteOutputs[sprite].x;
 
       if (xOffset < 0 || xOffset > 7) {
         continue;
       }
 
-      final attribute = spriteAttribute[sprite];
+      final attribute = _spriteOutputs[sprite].attribute;
       final palette = attribute & 0x3;
       final priority = attribute.bit(5);
       final flipH = attribute.bit(6);
 
       final fineX = flipH == 1 ? xOffset : 7 - xOffset;
 
-      final patternLow = spritePatternLow[sprite];
-      final patternHigh = spritePatternHigh[sprite];
+      final patternLow = _spriteOutputs[sprite].patternLow;
+      final patternHigh = _spriteOutputs[sprite].patternHigh;
       final pattern =
           ((patternHigh.bit(fineX) << 1) | patternLow.bit(fineX)) & 0x3;
 
@@ -631,6 +639,7 @@ class PPU {
         continue;
       }
 
+      // sprite 0 hit detection
       if (sprite0OnCurrentLine &&
           sprite == 0 &&
           currentX < 255 &&
@@ -645,7 +654,7 @@ class PPU {
     return 0;
   }
 
-  void _shiftBackground() {
+  void _shiftRegisters() {
     patternTableHighShift <<= 1;
     patternTableLowShift <<= 1;
 
@@ -734,104 +743,132 @@ class PPU {
   }
 
   void _evaluateSprites() {
-    // visible scanlines (0-239)
     if (!lineVisible) {
       return;
     }
+
+    _clearSecondaryOam();
+
+    _handleCopyToSecondaryOam();
+
+    _handleSpriteOutput();
+
+    _handleSprite0();
+  }
+
+  void _clearSecondaryOam() {
     if (cycle >= 1 && cycle <= 64) {
       secondaryOam[currentX >> 1] = 0xff;
     }
+  }
 
-    if (cycle >= 65 && cycle <= 256) {
-      if (cycle == 65) {
-        oamN = OAMADDR;
-        secondarySpriteCount = 0;
-        oamBuffer = 0;
-      }
+  void _handleCopyToSecondaryOam() {
+    if (cycle < 65 || cycle > 256) {
+      return;
+    }
 
-      if (cycle.isOdd) {
-        // read from OAM
-        oamBuffer = oam[oamN & 0xff];
-      } else {
-        // write to secondary OAM, unless full
-        if (oamN <= 252) {
-          final y = oamBuffer;
+    if (cycle == 65) {
+      oamAddress = OAMADDR;
+      secondarySpriteCount = 0;
+      oamBuffer = 0;
+    }
 
-          final spriteSize = PPUCTRL_H == 0 ? 8 : 16;
+    if (cycle.isOdd) {
+      // read from OAM
+      oamBuffer = oam[oamAddress & 0xff];
 
-          if (secondarySpriteCount < 8) {
-            if (scanline >= y && scanline < y + spriteSize) {
-              if (oamN == 0) {
-                sprite0OnNextLine = true;
-              }
+      return;
+    }
 
-              secondaryOam[secondarySpriteCount * 4] = y;
-              secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamN + 1];
-              secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamN + 2];
-              secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamN + 3];
+    // don't write to secondary OAM if it is full
+    if (oamAddress > 252) {
+      return;
+    }
 
-              secondarySpriteCount++;
-            }
+    final y = oamBuffer;
 
-            oamN += 4;
-          } else {
-            if (scanline >= y && scanline < y + spriteSize) {
-              PPUSTATUS_O = 1;
+    final spriteSize = PPUCTRL_H == 0 ? 8 : 16;
 
-              oamN += 4;
-            } else {
-              // if this looks like a bug, that's because it is -
-              // it's present on real hardware as well
-              oamN += 5;
-            }
-          }
+    if (secondarySpriteCount < 8) {
+      if (scanline >= y && scanline < y + spriteSize) {
+        if (oamAddress == 0) {
+          sprite0OnNextLine = true;
         }
+
+        secondaryOam[secondarySpriteCount * 4] = y;
+        secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamAddress + 1];
+        secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamAddress + 2];
+        secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamAddress + 3];
+
+        secondarySpriteCount++;
       }
+
+      oamAddress += 4;
+
+      return;
     }
 
-    if (cycle >= 257 && cycle <= 320) {
-      if (cycle == 257) {
-        spriteCount = secondarySpriteCount;
-      }
+    if (scanline >= y && scanline < y + spriteSize) {
+      PPUSTATUS_O = 1; // set overflow flag
 
-      final subcycle = cycle - 257;
-      final sprite = subcycle ~/ 8;
-      final offset = subcycle % 8;
+      oamAddress += 4;
 
-      switch (offset) {
-        case 2:
-          spriteAttribute[sprite] = secondaryOam[sprite * 4 + 2];
-        case 3:
-          spriteX[sprite] = secondaryOam[sprite * 4 + 3];
-        case 4:
-          final bigSprites = PPUCTRL_H == 1;
-
-          final tileIndex = secondaryOam[sprite * 4 + 1];
-          final attribute = spriteAttribute[sprite];
-          final flipV = attribute.bit(7) == 1;
-
-          final y = secondaryOam[sprite * 4];
-          final yOffset = scanline - y;
-          final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
-
-          final isBigSpriteSecondTile = yOffset < 8;
-          final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
-          final tile =
-              bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
-
-          final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
-          final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
-
-          final lowAddress =
-              patternTable << 12 | tile << 4 | fineY + addressOffset;
-          final highAddress =
-              patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
-
-          spritePatternLow[sprite] = read(lowAddress);
-          spritePatternHigh[sprite] = read(highAddress);
-      }
+      return;
     }
 
+    // if this looks like a bug, that's because it is -
+    // it's present on real hardware as well
+    oamAddress += 5;
+  }
+
+  void _handleSpriteOutput() {
+    if (cycle < 257 || cycle > 320) {
+      return;
+    }
+
+    if (cycle == 257) {
+      spriteCount = secondarySpriteCount;
+    }
+
+    final subcycle = cycle - 257;
+    final sprite = subcycle ~/ 8;
+    final offset = subcycle % 8;
+
+    switch (offset) {
+      case 2:
+        _spriteOutputs[sprite].attribute = secondaryOam[sprite * 4 + 2];
+      case 3:
+        _spriteOutputs[sprite].x = secondaryOam[sprite * 4 + 3];
+      case 4:
+        final bigSprites = PPUCTRL_H == 1;
+
+        final tileIndex = secondaryOam[sprite * 4 + 1];
+        final attribute = _spriteOutputs[sprite].attribute;
+        final flipV = attribute.bit(7) == 1;
+
+        final y = secondaryOam[sprite * 4];
+        final yOffset = scanline - y;
+        final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
+
+        final isBigSpriteSecondTile = yOffset < 8;
+        final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
+        final tile =
+            bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
+
+        final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
+        final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
+
+        final lowAddress =
+            patternTable << 12 | tile << 4 | fineY + addressOffset;
+        final highAddress =
+            patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
+
+        _spriteOutputs[sprite].patternLow = read(lowAddress);
+        _spriteOutputs[sprite].patternHigh = read(highAddress);
+    }
+  }
+
+  void _handleSprite0() {
     if (cycle == 328) {
       sprite0OnCurrentLine = sprite0OnNextLine;
       sprite0OnNextLine = false;

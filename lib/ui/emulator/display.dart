@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/ui/nes_controller.dart';
-import 'package:nes/ui/settings.dart';
+import 'package:nes/ui/emulator/nes_controller.dart';
+import 'package:nes/ui/settings/settings.dart';
 
 Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);

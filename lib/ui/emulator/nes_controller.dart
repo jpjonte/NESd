@@ -8,7 +8,7 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/ui/settings.dart';
+import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/ui/settings.dart';
+import 'package:nes/ui/settings/settings.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
