@@ -62,9 +62,17 @@ class NesController extends _$NesController {
     _audioOutput.volume = settings.volume;
 
     ref.listen(
-      settingsControllerProvider,
-      (_, settings) => _audioOutput.volume = settings.volume,
+      settingsControllerProvider.select((settings) => settings.volume),
+      (_, volume) => _audioOutput.volume = volume,
     );
+
+    ref.listen(
+      settingsControllerProvider
+          .select((settings) => settings.autoSaveInterval),
+      (_, interval) => _setAutoSave(interval),
+    );
+
+    _setAutoSave(settings.autoSaveInterval);
 
     return NES();
   }
@@ -80,6 +88,8 @@ class NesController extends _$NesController {
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
   late final CartridgeState _cartridgeState;
+
+  Timer? _autoSaveTimer;
 
   final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
@@ -151,6 +161,17 @@ class NesController extends _$NesController {
   void _appResumed() {
     if (lifeCycleListenerEnabled) {
       resume();
+    }
+  }
+
+  void _setAutoSave(int? interval) {
+    _autoSaveTimer?.cancel();
+
+    if (interval != null) {
+      _autoSaveTimer = Timer.periodic(
+        Duration(minutes: interval),
+        (_) => save(),
+      );
     }
   }
 }

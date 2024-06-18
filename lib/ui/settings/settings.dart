@@ -26,6 +26,7 @@ class Settings with _$Settings {
     @Default(false) bool showTiles,
     @Default(false) bool showCartridgeInfo,
     @Default(Scaling.autoInteger) Scaling scaling,
+    @Default(1) int? autoSaveInterval,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -84,6 +85,13 @@ class SettingsController extends _$SettingsController {
 
   set scaling(Scaling scaling) {
     state = state.copyWith(scaling: scaling);
+    _save();
+  }
+
+  int? get autoSaveInterval => state.autoSaveInterval;
+
+  set autoSaveInterval(int? autoSaveInterval) {
+    state = state.copyWith(autoSaveInterval: autoSaveInterval);
     _save();
   }
 

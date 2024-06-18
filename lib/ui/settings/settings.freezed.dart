@@ -26,6 +26,7 @@ mixin _$Settings {
   bool get showTiles => throw _privateConstructorUsedError;
   bool get showCartridgeInfo => throw _privateConstructorUsedError;
   Scaling get scaling => throw _privateConstructorUsedError;
+  int? get autoSaveInterval => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -44,7 +45,8 @@ abstract class $SettingsCopyWith<$Res> {
       bool showBorder,
       bool showTiles,
       bool showCartridgeInfo,
-      Scaling scaling});
+      Scaling scaling,
+      int? autoSaveInterval});
 }
 
 /// @nodoc
@@ -66,6 +68,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
     Object? scaling = null,
+    Object? autoSaveInterval = freezed,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -92,6 +95,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.scaling
           : scaling // ignore: cast_nullable_to_non_nullable
               as Scaling,
+      autoSaveInterval: freezed == autoSaveInterval
+          ? _value.autoSaveInterval
+          : autoSaveInterval // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -110,7 +117,8 @@ abstract class _$$SettingsImplCopyWith<$Res>
       bool showBorder,
       bool showTiles,
       bool showCartridgeInfo,
-      Scaling scaling});
+      Scaling scaling,
+      int? autoSaveInterval});
 }
 
 /// @nodoc
@@ -130,6 +138,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
     Object? scaling = null,
+    Object? autoSaveInterval = freezed,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -156,6 +165,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.scaling
           : scaling // ignore: cast_nullable_to_non_nullable
               as Scaling,
+      autoSaveInterval: freezed == autoSaveInterval
+          ? _value.autoSaveInterval
+          : autoSaveInterval // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -169,7 +182,8 @@ class _$SettingsImpl implements _Settings {
       this.showBorder = false,
       this.showTiles = false,
       this.showCartridgeInfo = false,
-      this.scaling = Scaling.autoInteger});
+      this.scaling = Scaling.autoInteger,
+      this.autoSaveInterval = 1});
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -192,10 +206,13 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final Scaling scaling;
+  @override
+  @JsonKey()
+  final int? autoSaveInterval;
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval)';
   }
 
   @override
@@ -211,13 +228,15 @@ class _$SettingsImpl implements _Settings {
                 other.showTiles == showTiles) &&
             (identical(other.showCartridgeInfo, showCartridgeInfo) ||
                 other.showCartridgeInfo == showCartridgeInfo) &&
-            (identical(other.scaling, scaling) || other.scaling == scaling));
+            (identical(other.scaling, scaling) || other.scaling == scaling) &&
+            (identical(other.autoSaveInterval, autoSaveInterval) ||
+                other.autoSaveInterval == autoSaveInterval));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, volume, stretch, showBorder,
-      showTiles, showCartridgeInfo, scaling);
+      showTiles, showCartridgeInfo, scaling, autoSaveInterval);
 
   @JsonKey(ignore: true)
   @override
@@ -240,7 +259,8 @@ abstract class _Settings implements Settings {
       final bool showBorder,
       final bool showTiles,
       final bool showCartridgeInfo,
-      final Scaling scaling}) = _$SettingsImpl;
+      final Scaling scaling,
+      final int? autoSaveInterval}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -257,6 +277,8 @@ abstract class _Settings implements Settings {
   bool get showCartridgeInfo;
   @override
   Scaling get scaling;
+  @override
+  int? get autoSaveInterval;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

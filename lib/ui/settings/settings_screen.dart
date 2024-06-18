@@ -40,6 +40,8 @@ class SettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: ListView(
             children: const [
+              Section(title: 'General'),
+              AutoSaveDropDown(),
               Section(title: 'Graphics'),
               StretchSwitch(),
               BorderSwitch(),
@@ -75,6 +77,37 @@ class Section extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: Colors.red[600],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class AutoSaveDropDown extends ConsumerWidget {
+  const AutoSaveDropDown({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final setting =
+        ref.watch(settingsControllerProvider.select((s) => s.autoSaveInterval));
+    final controller = ref.read(settingsControllerProvider.notifier);
+
+    return ListTile(
+      title: const Text('Auto Save Interval'),
+      subtitle: const Text('0 = off'),
+      trailing: Container(
+        constraints: const BoxConstraints(maxWidth: 300),
+        child: TextField(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            hintText: 'off',
+          ),
+          controller: TextEditingController(text: setting?.toString()),
+          onChanged: (value) {
+            final interval = int.tryParse(value);
+
+            controller.autoSaveInterval = interval == 0 ? null : interval;
+          },
         ),
       ),
     );
