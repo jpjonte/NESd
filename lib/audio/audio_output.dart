@@ -60,7 +60,7 @@ class AudioOutput {
   }
 
   void _flushSamples() {
-    final bufferedSize = _audioStream.getBufferFillSize();
+    final bufferedSize = _audioStream.getBufferFilledSize();
     final bufferSize = _audioStream.getBufferSize();
     final remainingBufferSize = bufferSize - bufferedSize;
     final preBufferedSize = _audioBuffer.current;

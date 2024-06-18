@@ -491,11 +491,9 @@ packages:
   mp_audio_stream:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "feature/buffer-size"
-      resolved-ref: "75aeb3562c86554f9b0928a3146beb6b865d68e3"
-      url: "ssh://git@ssh.git.jpj.dev:8022/bud/mp-audio-stream.git"
-    source: git
+      path: "../../other/mp-audio-stream"
+      relative: true
+    source: path
     version: "0.1.5"
   package_config:
     dependency: transitive
