@@ -49,20 +49,6 @@ class NesStepCommand extends NesCommand {}
 
 class NesRunUntilFrameCommand extends NesCommand {}
 
-class NesButtonDownCommand extends NesCommand {
-  NesButtonDownCommand(this.controller, this.button);
-
-  final int controller;
-  final NesButton button;
-}
-
-class NesButtonUpCommand extends NesCommand {
-  NesButtonUpCommand(this.controller, this.button);
-
-  final int controller;
-  final NesButton button;
-}
-
 class NES {
   NES({this.debug = false}) {
     bus
@@ -238,11 +224,15 @@ class NES {
       case NesRunUntilFrameCommand _:
         running = true;
         stopAfterNextFrame = true;
-      case final NesButtonDownCommand command:
-        bus.buttonDown(command.controller, command.button);
-      case final NesButtonUpCommand command:
-        bus.buttonUp(command.controller, command.button);
     }
+  }
+
+  void buttonDown(int controller, NesButton button) {
+    bus.buttonDown(controller, button);
+  }
+
+  void buttonUp(int controller, NesButton button) {
+    bus.buttonUp(controller, button);
   }
 
   void step() {
