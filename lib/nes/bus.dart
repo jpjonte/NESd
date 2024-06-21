@@ -206,6 +206,22 @@ class Bus {
     }
   }
 
+  void triggerIrq() {
+    cpu.triggerIrq();
+  }
+
+  void acknowledgeIrq() {
+    cpu.acknowledgeIrq();
+  }
+
+  void triggerNmi() {
+    cpu.triggerNmi();
+  }
+
+  void triggerDmcDma() {
+    cpu.triggerDmcDma();
+  }
+
   int _paletteAddress(int address) {
     address &= 0x1f;
 

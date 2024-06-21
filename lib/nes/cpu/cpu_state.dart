@@ -1,0 +1,163 @@
+// ignore_for_file: non_constant_identifier_names
+
+import 'package:binarize/binarize.dart';
+
+class CPUState {
+  const CPUState({
+    required this.PC,
+    required this.SP,
+    required this.A,
+    required this.X,
+    required this.Y,
+    required this.P,
+    required this.irq,
+    required this.nmi,
+    required this.ram,
+    required this.oamDma,
+    required this.oamDmaStarted,
+    required this.oamDmaOffset,
+    required this.oamDmaValue,
+    required this.dmcDma,
+    required this.dmcDmaRead,
+    required this.dmcDmaDummy,
+    required this.dmcDmaValue,
+    required this.oamDmaPage,
+    required this.cycles,
+  });
+
+  CPUState.dummy()
+      : PC = 0,
+        SP = 0,
+        A = 0,
+        X = 0,
+        Y = 0,
+        P = 0,
+        irq = false,
+        nmi = false,
+        ram = Uint8List(1),
+        oamDma = false,
+        oamDmaStarted = false,
+        oamDmaOffset = 0,
+        oamDmaValue = 0,
+        dmcDma = false,
+        dmcDmaRead = false,
+        dmcDmaDummy = false,
+        dmcDmaValue = 0,
+        oamDmaPage = 0,
+        cycles = 0;
+
+  final int PC;
+  final int SP;
+  final int A;
+  final int X;
+  final int Y;
+  final int P;
+
+  final bool irq;
+  final bool nmi;
+
+  final Uint8List ram;
+
+  final bool oamDma;
+  final bool oamDmaStarted;
+  final int oamDmaOffset;
+  final int oamDmaValue;
+
+  final bool dmcDma;
+  final bool dmcDmaRead;
+  final bool dmcDmaDummy;
+  final int dmcDmaValue;
+  final int oamDmaPage;
+
+  final int cycles;
+}
+
+class _CPUStateContract extends BinaryContract<CPUState> implements CPUState {
+  _CPUStateContract() : super(CPUState.dummy());
+
+  @override
+  CPUState order(CPUState contract) {
+    return CPUState(
+      PC: contract.PC,
+      SP: contract.SP,
+      A: contract.A,
+      X: contract.X,
+      Y: contract.Y,
+      P: contract.P,
+      irq: contract.irq,
+      nmi: contract.nmi,
+      ram: Uint8List.fromList(contract.ram),
+      oamDma: contract.oamDma,
+      oamDmaStarted: contract.oamDmaStarted,
+      oamDmaOffset: contract.oamDmaOffset,
+      oamDmaValue: contract.oamDmaValue,
+      dmcDma: contract.dmcDma,
+      dmcDmaRead: contract.dmcDmaRead,
+      dmcDmaDummy: contract.dmcDmaDummy,
+      dmcDmaValue: contract.dmcDmaValue,
+      oamDmaPage: contract.oamDmaPage,
+      cycles: contract.cycles,
+    );
+  }
+
+  @override
+  int get PC => type(uint16, (o) => o.PC);
+
+  @override
+  int get A => type(uint8, (o) => o.A);
+
+  @override
+  int get P => type(uint8, (o) => o.P);
+
+  @override
+  int get SP => type(uint8, (o) => o.SP);
+
+  @override
+  int get X => type(uint8, (o) => o.X);
+
+  @override
+  int get Y => type(uint8, (o) => o.Y);
+
+  @override
+  int get cycles => type(uint64, (o) => o.cycles);
+
+  @override
+  bool get dmcDma => type(boolean, (o) => o.dmcDma);
+
+  @override
+  bool get dmcDmaDummy => type(boolean, (o) => o.dmcDmaDummy);
+
+  @override
+  bool get dmcDmaRead => type(boolean, (o) => o.dmcDmaRead);
+
+  @override
+  int get dmcDmaValue => type(uint8, (o) => o.dmcDmaValue);
+
+  @override
+  bool get irq => type(boolean, (o) => o.irq);
+
+  @override
+  bool get nmi => type(boolean, (o) => o.nmi);
+
+  @override
+  bool get oamDma => type(boolean, (o) => o.oamDma);
+
+  @override
+  int get oamDmaOffset => type(uint8, (o) => o.oamDmaOffset);
+
+  @override
+  int get oamDmaPage => type(uint8, (o) => o.oamDmaPage);
+
+  @override
+  bool get oamDmaStarted => type(boolean, (o) => o.oamDmaStarted);
+
+  @override
+  int get oamDmaValue => type(uint8, (o) => o.oamDmaValue);
+
+  @override
+  Uint8List get ram => Uint8List.fromList(
+        type(list(uint8), (o) => o.ram.toList()),
+      );
+}
+
+final cpuStateContract = _CPUStateContract();

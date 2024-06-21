@@ -1,4 +1,5 @@
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/apu/channel/pulse_channel_state.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/apu/unit/envelope_unit.dart';
 import 'package:nes/nes/apu/unit/length_counter_unit.dart';
@@ -25,6 +26,32 @@ class PulseChannel {
 
   int timer = 0;
   int timerPeriod = 0;
+
+  PulseChannelState get state => PulseChannelState(
+        enabled: enabled,
+        duty: duty,
+        constantVolume: constantVolume,
+        volume: volume,
+        dutyIndex: dutyIndex,
+        timer: timer,
+        timerPeriod: timerPeriod,
+        envelopeState: envelope.state,
+        lengthCounterState: lengthCounter.state,
+        sweepState: sweep.state,
+      );
+
+  set state(PulseChannelState state) {
+    enabled = state.enabled;
+    duty = state.duty;
+    constantVolume = state.constantVolume;
+    volume = state.volume;
+    dutyIndex = state.dutyIndex;
+    timer = state.timer;
+    timerPeriod = state.timerPeriod;
+    envelope.state = state.envelopeState;
+    lengthCounter.state = state.lengthCounterState;
+    sweep.state = state.sweepState;
+  }
 
   void reset() {
     enabled = false;

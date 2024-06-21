@@ -1,11 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/apu/apu_state.dart';
 import 'package:nes/nes/apu/channel/dmc_channel.dart';
 import 'package:nes/nes/apu/channel/noise_channel.dart';
 import 'package:nes/nes/apu/channel/pulse_channel.dart';
 import 'package:nes/nes/apu/channel/triangle_channel.dart';
-import 'package:nes/nes/apu/frame_counter.dart';
+import 'package:nes/nes/apu/frame_counter/frame_counter.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/bus.dart';
 
@@ -19,7 +20,7 @@ class APU {
   int cycles = 0;
 
   int sampleIndex = 0;
-  final sampleBuffer = Float32List(100000);
+  final sampleBuffer = Float32List(apuSampleRate * 5);
 
   int _pulse1Samples = 0;
   int _pulse2Samples = 0;
@@ -37,6 +38,43 @@ class APU {
   final noise = NoiseChannel();
 
   final dmc = DMCChannel();
+
+  APUState get state => APUState(
+        cycles: cycles,
+        sampleIndex: sampleIndex,
+        sampleBuffer: sampleBuffer.sublist(0, sampleIndex),
+        pulse1Samples: _pulse1Samples,
+        pulse2Samples: _pulse2Samples,
+        triangleSamples: _triangleSamples,
+        dmcSamples: _dmcSamples,
+        sampleStart: _sampleStart,
+        frameCounterState: frameCounter.state,
+        pulse1State: pulse1.state,
+        pulse2State: pulse2.state,
+        triangleState: triangle.state,
+        noiseState: noise.state,
+        dmcState: dmc.state,
+      );
+
+  set state(APUState state) {
+    cycles = state.cycles;
+
+    sampleIndex = state.sampleIndex;
+
+    sampleBuffer.setAll(0, state.sampleBuffer);
+
+    _pulse1Samples = state.pulse1Samples;
+    _pulse2Samples = state.pulse2Samples;
+    _triangleSamples = state.triangleSamples;
+    _dmcSamples = state.dmcSamples;
+    _sampleStart = state.sampleStart;
+
+    frameCounter.state = state.frameCounterState;
+    pulse1.state = state.pulse1State;
+    pulse2.state = state.pulse2State;
+
+    sampleIndex = 0;
+  }
 
   int readRegister(int address) {
     if (address == 0x4015) {
@@ -132,11 +170,11 @@ class APU {
 
     if (dmc.startDma) {
       dmc.startDma = false;
-      bus.cpu.dmcDma = true;
+      bus.triggerDmcDma();
     }
 
     if (dmc.interrupt) {
-      bus.cpu.irq = true;
+      bus.triggerIrq();
     }
 
     _handleSampling();

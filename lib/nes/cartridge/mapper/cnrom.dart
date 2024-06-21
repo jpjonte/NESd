@@ -1,10 +1,19 @@
 import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cartridge/mapper/cnrom_state.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
 
 class CNROM extends Mapper {
   CNROM() : super(3);
 
   int chrBank = 0;
+
+  @override
+  CNROMState get state => CNROMState(chrBank: chrBank);
+
+  @override
+  set state(covariant CNROMState state) {
+    chrBank = state.chrBank;
+  }
 
   @override
   String name = 'CNROM';

@@ -2,6 +2,7 @@ import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nes/nes/cartridge/mapper/mmc1_state.dart';
 
 class MMC1 extends Mapper {
   MMC1() : super(1);
@@ -25,6 +26,24 @@ class MMC1 extends Mapper {
 
   int get prgBankValue => prgBank & 0xf;
   int get prgBankRam => (prgBank >> 4) & 0x1;
+
+  @override
+  MMC1State get state => MMC1State(
+        shift: shift,
+        control: control,
+        chrBank0: chrBank0,
+        chrBank1: chrBank1,
+        prgBank: prgBank,
+      );
+
+  @override
+  set state(covariant MMC1State state) {
+    shift = state.shift;
+    control = state.control;
+    chrBank0 = state.chrBank0;
+    chrBank1 = state.chrBank1;
+    prgBank = state.prgBank;
+  }
 
   @override
   void reset() {

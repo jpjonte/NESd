@@ -1,5 +1,6 @@
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
 
 class AxROM extends Mapper {
@@ -8,6 +9,18 @@ class AxROM extends Mapper {
   int prgBank = 0;
 
   int chrBank = 0;
+
+  @override
+  AXROMState get state => AXROMState(
+        prgBank: prgBank,
+        chrBank: chrBank,
+      );
+
+  @override
+  set state(covariant AXROMState state) {
+    prgBank = state.prgBank;
+    chrBank = state.chrBank;
+  }
 
   @override
   String name = 'AxROM';

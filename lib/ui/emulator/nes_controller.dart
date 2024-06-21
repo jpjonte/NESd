@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,7 @@ import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/settings/settings.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -61,16 +63,16 @@ class NesController extends _$NesController {
 
     _audioOutput.volume = settings.volume;
 
-    ref.listen(
-      settingsControllerProvider.select((settings) => settings.volume),
-      (_, volume) => _audioOutput.volume = volume,
-    );
-
-    ref.listen(
-      settingsControllerProvider
-          .select((settings) => settings.autoSaveInterval),
-      (_, interval) => _setAutoSave(interval),
-    );
+    ref
+      ..listen(
+        settingsControllerProvider.select((settings) => settings.volume),
+        (_, volume) => _audioOutput.volume = volume,
+      )
+      ..listen(
+        settingsControllerProvider
+            .select((settings) => settings.autoSaveInterval),
+        (_, interval) => _setAutoSave(interval),
+      );
 
     _setAutoSave(settings.autoSaveInterval);
 
@@ -112,6 +114,8 @@ class NesController extends _$NesController {
 
     _cartridgeState.cartridge = cartridge;
 
+    _save();
+
     state.loadCartridge(cartridge);
   }
 
@@ -122,6 +126,8 @@ class NesController extends _$NesController {
         return _streamController.addError(error, stackTrace);
       },
     );
+
+    _load();
   }
 
   void suspend() => sendCommand(NesSuspendCommand());
@@ -133,6 +139,7 @@ class NesController extends _$NesController {
   void reset() {
     sendCommand(NesResetCommand());
     _audioOutput.reset();
+    _load();
   }
 
   void save() => state.bus.cartridge?.save();
@@ -142,6 +149,17 @@ class NesController extends _$NesController {
   void sendCommand(NesCommand command) => state.executeCommand(command);
 
   bool _handleKey(KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.digit1) {
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        _saveState(1);
+      } else {
+        _loadState(1);
+      }
+
+      return true;
+    }
+
     final button = logicalKeyToNesButton[event.logicalKey];
 
     if (button == null) {
@@ -173,5 +191,47 @@ class NesController extends _$NesController {
         (_) => save(),
       );
     }
+  }
+
+  void _save() {
+    final save = state.save();
+
+    if (save != null) {
+      _getSaveFile().writeAsBytesSync(save);
+    }
+  }
+
+  void _load() {
+    final saveFile = _getSaveFile();
+
+    if (saveFile.existsSync()) {
+      state.load(saveFile.readAsBytesSync());
+    }
+  }
+
+  void _saveState(int slot) {
+    final data = state.serialize();
+
+    _getSaveStateFile(slot).writeAsBytesSync(data);
+  }
+
+  void _loadState(int slot) {
+    final saveFile = _getSaveStateFile(slot);
+
+    if (saveFile.existsSync()) {
+      state.deserialize(saveFile.readAsBytesSync());
+    }
+  }
+
+  File _getSaveFile() {
+    final filename = p.setExtension(state.bus.cartridge!.file, '.sav');
+
+    return File(filename);
+  }
+
+  File _getSaveStateFile(int slot) {
+    final filename = p.setExtension(state.bus.cartridge!.file, '.$slot.state');
+
+    return File(filename);
   }
 }

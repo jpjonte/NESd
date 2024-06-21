@@ -84,15 +84,17 @@ class DisplayWidget extends ConsumerWidget {
             maxWidth: mediaQuery.size.width,
             maxHeight: mediaQuery.size.height,
           ),
-          child: CustomPaint(
-            painter: EmulatorPainter(
-              image: image,
-              paused: !nes.running,
-              scale: scale.toDouble(),
-              widthScale: widthScale,
-              showBorder: settings.showBorder,
+          child: ClipRect(
+            child: CustomPaint(
+              painter: EmulatorPainter(
+                image: image,
+                paused: !nes.running,
+                scale: scale.toDouble(),
+                widthScale: widthScale,
+                showBorder: settings.showBorder,
+              ),
+              child: const SizedBox.expand(),
             ),
-            child: const SizedBox.expand(),
           ),
         );
       },
