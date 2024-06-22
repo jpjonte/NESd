@@ -162,7 +162,7 @@ class NesController extends _$NesController {
       .map((event) => (event as FrameNesEvent).samples);
 
   Future<void> loadCartridge(String path) async {
-    sendCommand(NesStopCommand());
+    state.stop();
 
     final cartridge = Cartridge.fromFile(path);
 
@@ -187,23 +187,21 @@ class NesController extends _$NesController {
     _load();
   }
 
-  void suspend() => sendCommand(NesSuspendCommand());
+  void suspend() => state.suspend();
 
-  void togglePause() => sendCommand(NesTogglePauseCommand());
+  void togglePause() => state.togglePause();
 
-  void resume() => sendCommand(NesResumeCommand());
+  void resume() => state.resume();
 
   void reset() {
-    sendCommand(NesResetCommand());
+    state.reset();
     _audioOutput.reset();
     _load();
   }
 
   void save() => _save();
 
-  void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
-
-  void sendCommand(NesCommand command) => state.executeCommand(command);
+  void runUntilFrame() => state.runUntilFrame();
 
   void _dispose() {
     HardwareKeyboard.instance.removeHandler(_handleKey);

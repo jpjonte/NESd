@@ -29,26 +29,6 @@ class FrameNesEvent extends NesEvent {
   final Duration frameTime;
 }
 
-sealed class NesCommand {}
-
-class NesResetCommand extends NesCommand {}
-
-class NesPauseCommand extends NesCommand {}
-
-class NesUnpauseCommand extends NesCommand {}
-
-class NesTogglePauseCommand extends NesCommand {}
-
-class NesSuspendCommand extends NesCommand {}
-
-class NesResumeCommand extends NesCommand {}
-
-class NesStopCommand extends NesCommand {}
-
-class NesStepCommand extends NesCommand {}
-
-class NesRunUntilFrameCommand extends NesCommand {}
-
 class NES {
   NES({this.debug = false}) {
     bus
@@ -190,41 +170,54 @@ class NES {
     return Duration(microseconds: time.floor());
   }
 
-  void executeCommand(NesCommand command) {
-    switch (command) {
-      case final NesResetCommand _:
-        reset();
-        _sleepBudget = Duration.zero;
-      case final NesPauseCommand _:
-        paused = true;
-        running = false;
-      case NesTogglePauseCommand():
-        paused = !paused;
-        running = !running;
-        _frameStart = DateTime.now();
-        _sleepBudget = Duration.zero;
-      case NesUnpauseCommand():
-        paused = false;
-        running = true;
-        _frameStart = DateTime.now();
-        _sleepBudget = Duration.zero;
-      case NesSuspendCommand _:
-        running = false;
-      case NesResumeCommand _:
-        if (!paused) {
-          running = true;
-          _frameStart = DateTime.now();
-          _sleepBudget = Duration.zero;
-        }
-      case NesStopCommand _:
-        on = false;
-      case NesStepCommand _:
-        running = false;
-        step();
-      case NesRunUntilFrameCommand _:
-        running = true;
-        stopAfterNextFrame = true;
+  void pause() {
+    if (running) {
+      paused = true;
+      running = false;
     }
+  }
+
+  void togglePause() {
+    paused = !paused;
+    running = !running;
+
+    if (running) {
+      _frameStart = DateTime.now();
+      _sleepBudget = Duration.zero;
+    }
+  }
+
+  void unpause() {
+    if (!running) {
+      paused = false;
+      running = true;
+      _frameStart = DateTime.now();
+      _sleepBudget = Duration.zero;
+    }
+  }
+
+  void suspend() {
+    if (running) {
+      running = false;
+    }
+  }
+
+  void resume() {
+    if (!paused) {
+      running = true;
+      _frameStart = DateTime.now();
+      _sleepBudget = Duration.zero;
+    }
+  }
+
+  void stop() {
+    on = false;
+    running = false;
+  }
+
+  void runUntilFrame() {
+    running = true;
+    stopAfterNextFrame = true;
   }
 
   void buttonDown(int controller, NesButton button) {
