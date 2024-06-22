@@ -108,7 +108,9 @@ class EmulatorScreen extends HookConsumerWidget {
   }
 
   PlatformMenu _fileMenu(
-      NesController controller, ValueNotifier<String?> errorState) {
+    NesController controller,
+    ValueNotifier<String?> errorState,
+  ) {
     return PlatformMenu(
       label: 'File',
       menus: [

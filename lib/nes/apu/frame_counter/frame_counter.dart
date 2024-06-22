@@ -1,5 +1,6 @@
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/apu/apu.dart';
+import 'package:nes/nes/apu/frame_counter/frame_counter_state.dart';
 
 class FrameCounter {
   FrameCounter(this.apu);
@@ -12,6 +13,20 @@ class FrameCounter {
 
   bool interrupt = false;
   bool interruptInhibit = false;
+
+  FrameCounterState get state => FrameCounterState(
+        counter: counter,
+        fiveStep: fiveStep,
+        interrupt: interrupt,
+        interruptInhibit: interruptInhibit,
+      );
+
+  set state(FrameCounterState value) {
+    counter = value.counter;
+    fiveStep = value.fiveStep;
+    interrupt = value.interrupt;
+    interruptInhibit = value.interruptInhibit;
+  }
 
   void reset() {
     counter = 0;
@@ -104,7 +119,7 @@ class FrameCounter {
         if (!interruptInhibit) {
           interrupt = true;
 
-          apu.bus.cpu.irq = true;
+          apu.bus.triggerIrq();
         }
     }
   }

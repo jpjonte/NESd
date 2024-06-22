@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:nes/nes/apu/channel/pulse_channel.dart';
+import 'package:nes/nes/apu/unit/sweep_unit_state.dart';
 
 class SweepUnit {
   SweepUnit(this.channel, {this.onesComplement = false});
@@ -17,6 +18,26 @@ class SweepUnit {
 
   bool negate = false;
   bool reload = false;
+
+  SweepUnitState get state => SweepUnitState(
+        enabled: enabled,
+        muting: muting,
+        value: value,
+        period: period,
+        shift: shift,
+        negate: negate,
+        reload: reload,
+      );
+
+  set state(SweepUnitState state) {
+    enabled = state.enabled;
+    muting = state.muting;
+    value = state.value;
+    period = state.period;
+    shift = state.shift;
+    negate = state.negate;
+    reload = state.reload;
+  }
 
   void reset() {
     enabled = false;

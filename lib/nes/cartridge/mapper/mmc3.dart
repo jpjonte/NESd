@@ -2,6 +2,7 @@ import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nes/nes/cartridge/mapper/mmc3_state.dart';
 
 class MMC3 extends Mapper {
   MMC3() : super(4);
@@ -32,6 +33,48 @@ class MMC3 extends Mapper {
   bool _irqEnabled = false;
 
   int? _a12LowStart;
+
+  @override
+  MMC3State get state => MMC3State(
+        register: _register,
+        r0: _r0,
+        r1: _r1,
+        r2: _r2,
+        r3: _r3,
+        r4: _r4,
+        r5: _r5,
+        r6: _r6,
+        r7: _r7,
+        prgBankMode: _prgBankMode,
+        chrBankMode: _chrBankMode,
+        mirroring: _mirroring,
+        irqCounter: _irqCounter,
+        irqLatch: _irqLatch,
+        irqReload: _irqReload,
+        irqEnabled: _irqEnabled,
+        a12LowStart: _a12LowStart,
+      );
+
+  @override
+  set state(covariant MMC3State state) {
+    _register = state.register;
+    _r0 = state.r0;
+    _r1 = state.r1;
+    _r2 = state.r2;
+    _r3 = state.r3;
+    _r4 = state.r4;
+    _r5 = state.r5;
+    _r6 = state.r6;
+    _r7 = state.r7;
+    _prgBankMode = state.prgBankMode;
+    _chrBankMode = state.chrBankMode;
+    _mirroring = state.mirroring;
+    _irqCounter = state.irqCounter;
+    _irqLatch = state.irqLatch;
+    _irqReload = state.irqReload;
+    _irqEnabled = state.irqEnabled;
+    _a12LowStart = state.a12LowStart;
+  }
 
   @override
   void reset() {
@@ -139,7 +182,7 @@ class MMC3 extends Mapper {
     }
 
     if (_irqCounter == 0 && _irqEnabled) {
-      bus.cpu.irq = true;
+      bus.triggerIrq();
     }
 
     _irqReload = false;
@@ -205,7 +248,7 @@ class MMC3 extends Mapper {
       // IRQ disable (0xe000 - 0xfffe, even)
       case 0xe000:
         _irqEnabled = false;
-        bus.cpu.irq = false;
+        bus.acknowledgeIrq();
       // IRQ enable (0xe001 - 0xffff, odd)
       case 0xe001:
         _irqEnabled = true;

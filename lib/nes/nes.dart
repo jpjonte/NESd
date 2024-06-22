@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:binarize/binarize.dart';
 import 'package:nes/extension/hex_extension.dart';
 import 'package:nes/nes/apu/apu.dart';
 import 'package:nes/nes/bus.dart';
@@ -9,6 +10,7 @@ import 'package:nes/nes/cpu/address_mode.dart';
 import 'package:nes/nes/cpu/cpu.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
+import 'package:nes/nes/nes_state.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/nes/ppu/ppu.dart';
 import 'package:nes/util/wait.dart';
@@ -47,20 +49,6 @@ class NesStepCommand extends NesCommand {}
 
 class NesRunUntilFrameCommand extends NesCommand {}
 
-class NesButtonDownCommand extends NesCommand {
-  NesButtonDownCommand(this.controller, this.button);
-
-  final int controller;
-  final NesButton button;
-}
-
-class NesButtonUpCommand extends NesCommand {
-  NesButtonUpCommand(this.controller, this.button);
-
-  final int controller;
-  final NesButton button;
-}
-
 class NES {
   NES({this.debug = false}) {
     bus
@@ -91,9 +79,43 @@ class NES {
 
   var _sleepBudget = Duration.zero;
 
-  void loadCartridge(Cartridge cartridge) {
-    bus.cartridge?.save();
+  NESState get state => NESState(
+        cpuState: cpu.state,
+        ppuState: ppu.state,
+        apuState: apu.state,
+        cartridgeState: bus.cartridge!.state,
+        cycles: cycles,
+      );
 
+  set state(NESState state) {
+    cpu.state = state.cpuState;
+    ppu.state = state.ppuState;
+    apu.state = state.apuState;
+    bus.cartridge!.state = state.cartridgeState;
+    cycles = state.cycles;
+
+    _frameStart = DateTime.now();
+    _sleepBudget = Duration.zero;
+  }
+
+  Uint8List serialize() {
+    final writer = Payload.write()..set(nesStateContract, state);
+
+    return binarize(writer);
+  }
+
+  void deserialize(Uint8List bytes) {
+    final reader = Payload.read(bytes);
+    final state = reader.get(nesStateContract);
+
+    this.state = state;
+  }
+
+  Uint8List? save() => bus.cartridge?.save();
+
+  void load(Uint8List save) => bus.cartridge?.load(save);
+
+  void loadCartridge(Cartridge cartridge) {
     cartridge.mapper.bus = bus;
     bus.cartridge = cartridge;
 
@@ -111,8 +133,6 @@ class NES {
     cpu.reset();
     apu.reset();
     ppu.reset();
-
-    bus.cartridge?.load();
   }
 
   Stream<NesEvent> run() async* {
@@ -204,11 +224,15 @@ class NES {
       case NesRunUntilFrameCommand _:
         running = true;
         stopAfterNextFrame = true;
-      case final NesButtonDownCommand command:
-        bus.buttonDown(command.controller, command.button);
-      case final NesButtonUpCommand command:
-        bus.buttonUp(command.controller, command.button);
     }
+  }
+
+  void buttonDown(int controller, NesButton button) {
+    bus.buttonDown(controller, button);
+  }
+
+  void buttonUp(int controller, NesButton button) {
+    bus.buttonUp(controller, button);
   }
 
   void step() {

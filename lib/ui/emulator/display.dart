@@ -39,7 +39,13 @@ class DisplayWidget extends ConsumerWidget {
       stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
       builder: (context, snapshot) {
         if (!nes.on) {
-          return const SizedBox();
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: mediaQuery.size.width,
+              maxHeight: mediaQuery.size.height,
+            ),
+            child: const Center(child: Text('Press ⌘ + O to open a ROM')),
+          );
         }
 
         if (snapshot.hasError) {
@@ -84,15 +90,17 @@ class DisplayWidget extends ConsumerWidget {
             maxWidth: mediaQuery.size.width,
             maxHeight: mediaQuery.size.height,
           ),
-          child: CustomPaint(
-            painter: EmulatorPainter(
-              image: image,
-              paused: !nes.running,
-              scale: scale.toDouble(),
-              widthScale: widthScale,
-              showBorder: settings.showBorder,
+          child: ClipRect(
+            child: CustomPaint(
+              painter: EmulatorPainter(
+                image: image,
+                paused: !nes.running,
+                scale: scale.toDouble(),
+                widthScale: widthScale,
+                showBorder: settings.showBorder,
+              ),
+              child: const SizedBox.expand(),
             ),
-            child: const SizedBox.expand(),
           ),
         );
       },

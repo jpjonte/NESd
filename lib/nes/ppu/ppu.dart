@@ -5,15 +5,8 @@ import 'dart:typed_data';
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
-
-class SpriteOutput {
-  int patternLow = 0;
-  int patternHigh = 0;
-
-  int attribute = 0;
-
-  int x = 0;
-}
+import 'package:nes/nes/ppu/ppu_state.dart';
+import 'package:nes/nes/ppu/sprite_output.dart';
 
 const systemPalette = [
   0x626262,
@@ -213,6 +206,87 @@ class PPU {
 
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
+  PPUState get state => PPUState(
+        PPUCTRL: PPUCTRL,
+        PPUMASK: PPUMASK,
+        PPUSTATUS: PPUSTATUS,
+        OAMADDR: OAMADDR,
+        OAMDATA: OAMDATA,
+        PPUSCROLL: PPUSCROLL,
+        PPUDATA: PPUDATA,
+        v: v,
+        t: t,
+        x: x,
+        w: w,
+        ram: ram,
+        oam: oam,
+        secondaryOam: secondaryOam,
+        palette: palette,
+        frameBuffer: frameBuffer,
+        cycles: cycles,
+        cycle: cycle,
+        scanline: scanline,
+        frames: frames,
+        nametableLatch: nametableLatch,
+        patternTableHighLatch: patternTableHighLatch,
+        patternTableLowLatch: patternTableLowLatch,
+        patternTableHighShift: patternTableHighShift,
+        patternTableLowShift: patternTableLowShift,
+        attributeTableLatch: attributeTableLatch,
+        attributeTableHighShift: attributeTableHighShift,
+        attributeTableLowShift: attributeTableLowShift,
+        attribute: attribute,
+        oamAddress: oamAddress,
+        oamBuffer: oamBuffer,
+        spriteCount: spriteCount,
+        secondarySpriteCount: secondarySpriteCount,
+        sprite0OnNextLine: sprite0OnNextLine,
+        sprite0OnCurrentLine: sprite0OnCurrentLine,
+        spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
+      );
+
+  set state(PPUState state) {
+    PPUCTRL = state.PPUCTRL;
+    PPUMASK = state.PPUMASK;
+    PPUSTATUS = state.PPUSTATUS;
+    OAMADDR = state.OAMADDR;
+    OAMDATA = state.OAMDATA;
+    PPUSCROLL = state.PPUSCROLL;
+    PPUDATA = state.PPUDATA;
+    v = state.v;
+    t = state.t;
+    x = state.x;
+    w = state.w;
+    ram.setAll(0, state.ram);
+    oam.setAll(0, state.oam);
+    secondaryOam.setAll(0, state.secondaryOam);
+    palette.setAll(0, state.palette);
+    frameBuffer.setPixels(state.frameBuffer.pixels);
+    cycles = state.cycles;
+    cycle = state.cycle;
+    scanline = state.scanline;
+    frames = state.frames;
+    nametableLatch = state.nametableLatch;
+    patternTableHighLatch = state.patternTableHighLatch;
+    patternTableLowLatch = state.patternTableLowLatch;
+    patternTableHighShift = state.patternTableHighShift;
+    patternTableLowShift = state.patternTableLowShift;
+    attributeTableLatch = state.attributeTableLatch;
+    attributeTableHighShift = state.attributeTableHighShift;
+    attributeTableLowShift = state.attributeTableLowShift;
+    attribute = state.attribute;
+    oamAddress = state.oamAddress;
+    oamBuffer = state.oamBuffer;
+    spriteCount = state.spriteCount;
+    secondarySpriteCount = state.secondarySpriteCount;
+    sprite0OnNextLine = state.sprite0OnNextLine;
+    sprite0OnCurrentLine = state.sprite0OnCurrentLine;
+
+    for (var i = 0; i < _spriteOutputs.length; i++) {
+      _spriteOutputs[i].state = state.spriteOutputs[i];
+    }
+  }
+
   void reset() {
     cycles = 0;
     cycle = 0;
@@ -389,7 +463,7 @@ class PPU {
 
       // trigger nmi if PPUCTRL.V is set
       if (PPUCTRL_V == 1) {
-        bus.cpu.nmi = true;
+        bus.triggerNmi();
       }
     }
   }

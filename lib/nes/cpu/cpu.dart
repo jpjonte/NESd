@@ -6,6 +6,7 @@ import 'package:nes/exception/invalid_opcode.dart';
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cpu/address_mode.dart';
+import 'package:nes/nes/cpu/cpu_state.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 
@@ -54,6 +55,50 @@ class CPU {
   int oamDmaPage = 0;
 
   int cycles = 0;
+
+  CPUState get state => CPUState(
+        PC: PC,
+        SP: SP,
+        A: A,
+        X: X,
+        Y: Y,
+        P: P,
+        irq: irq,
+        nmi: nmi,
+        ram: ram,
+        oamDma: oamDma,
+        oamDmaStarted: oamDmaStarted,
+        oamDmaOffset: oamDmaOffset,
+        oamDmaValue: oamDmaValue,
+        dmcDma: dmcDma,
+        dmcDmaRead: dmcDmaRead,
+        dmcDmaDummy: dmcDmaDummy,
+        dmcDmaValue: dmcDmaValue,
+        oamDmaPage: oamDmaPage,
+        cycles: cycles,
+      );
+
+  set state(CPUState state) {
+    PC = state.PC;
+    SP = state.SP;
+    A = state.A;
+    X = state.X;
+    Y = state.Y;
+    P = state.P;
+    irq = state.irq;
+    nmi = state.nmi;
+    oamDma = state.oamDma;
+    oamDmaStarted = state.oamDmaStarted;
+    oamDmaOffset = state.oamDmaOffset;
+    oamDmaValue = state.oamDmaValue;
+    dmcDma = state.dmcDma;
+    dmcDmaRead = state.dmcDmaRead;
+    dmcDmaDummy = state.dmcDmaDummy;
+    dmcDmaValue = state.dmcDmaValue;
+    oamDmaPage = state.oamDmaPage;
+    cycles = state.cycles;
+    ram.setAll(0, state.ram);
+  }
 
   int read(int address) => bus.cpuRead(address);
 
@@ -222,5 +267,21 @@ class CPU {
 
   int calculateBranchCycles(int from, int to) {
     return pageCrossed(from, to) ? 2 : 1;
+  }
+
+  void triggerIrq() {
+    irq = true;
+  }
+
+  void acknowledgeIrq() {
+    irq = false;
+  }
+
+  void triggerNmi() {
+    nmi = true;
+  }
+
+  void triggerDmcDma() {
+    dmcDma = true;
   }
 }

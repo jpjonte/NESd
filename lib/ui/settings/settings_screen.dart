@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/settings/settings.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -96,10 +96,12 @@ class AutoSaveDropDown extends ConsumerWidget {
       title: const Text('Auto Save Interval'),
       subtitle: const Text('0 = off'),
       trailing: Container(
-        constraints: const BoxConstraints(maxWidth: 300),
+        constraints: const BoxConstraints(maxWidth: 100),
         child: TextField(
+          textAlign: TextAlign.end,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
+            border: OutlineInputBorder(),
             hintText: 'off',
           ),
           controller: TextEditingController(text: setting?.toString()),
@@ -160,36 +162,37 @@ class ScalingDropDown extends ConsumerWidget {
     return ListTile(
       title: const Text('Scaling'),
       trailing: Container(
+        padding: const EdgeInsets.all(4.0),
         constraints: const BoxConstraints(maxWidth: 300),
-        child: DropdownButton<Scaling>(
-          value: setting,
-          alignment: Alignment.centerRight,
-          onChanged: (value) =>
+        child: DropdownMenu<Scaling>(
+          initialSelection: setting,
+          onSelected: (value) =>
               controller.scaling = value ?? Scaling.autoInteger,
-          items: const [
-            DropdownMenuItem(
+          enableSearch: false,
+          dropdownMenuEntries: const [
+            DropdownMenuEntry(
               value: Scaling.autoInteger,
-              child: Text('Auto (integer)'),
+              label: 'Auto (integer)',
             ),
-            DropdownMenuItem(
+            DropdownMenuEntry(
               value: Scaling.autoSmooth,
-              child: Text('Auto (smooth)'),
+              label: 'Auto (smooth)',
             ),
-            DropdownMenuItem(
+            DropdownMenuEntry(
               value: Scaling.x1,
-              child: Text('1x'),
+              label: '1x',
             ),
-            DropdownMenuItem(
+            DropdownMenuEntry(
               value: Scaling.x2,
-              child: Text('2x'),
+              label: '2x',
             ),
-            DropdownMenuItem(
+            DropdownMenuEntry(
               value: Scaling.x3,
-              child: Text('3x'),
+              label: '3x',
             ),
-            DropdownMenuItem(
+            DropdownMenuEntry(
               value: Scaling.x4,
-              child: Text('4x'),
+              label: '4x',
             ),
           ],
         ),

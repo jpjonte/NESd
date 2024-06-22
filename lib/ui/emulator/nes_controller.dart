@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -9,20 +10,10 @@ import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/settings/settings.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
-
-final logicalKeyToNesButton = {
-  LogicalKeyboardKey.arrowUp: NesButton.up,
-  LogicalKeyboardKey.arrowDown: NesButton.down,
-  LogicalKeyboardKey.arrowLeft: NesButton.left,
-  LogicalKeyboardKey.arrowRight: NesButton.right,
-  LogicalKeyboardKey.enter: NesButton.start,
-  LogicalKeyboardKey.shiftRight: NesButton.select,
-  LogicalKeyboardKey.keyZ: NesButton.a,
-  LogicalKeyboardKey.keyX: NesButton.b,
-};
 
 @riverpod
 class CartridgeState extends _$CartridgeState {
@@ -61,21 +52,86 @@ class NesController extends _$NesController {
 
     _audioOutput.volume = settings.volume;
 
-    ref.listen(
-      settingsControllerProvider.select((settings) => settings.volume),
-      (_, volume) => _audioOutput.volume = volume,
-    );
-
-    ref.listen(
-      settingsControllerProvider
-          .select((settings) => settings.autoSaveInterval),
-      (_, interval) => _setAutoSave(interval),
-    );
+    ref
+      ..listen(
+        settingsControllerProvider.select((settings) => settings.volume),
+        (_, volume) => _audioOutput.volume = volume,
+      )
+      ..listen(
+        settingsControllerProvider
+            .select((settings) => settings.autoSaveInterval),
+        (_, interval) => _setAutoSave(interval),
+      );
 
     _setAutoSave(settings.autoSaveInterval);
 
     return NES();
   }
+
+  late final _keyMap = {
+    (LogicalKeyboardKey.arrowUp, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.up),
+    (LogicalKeyboardKey.arrowUp, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.up),
+    (LogicalKeyboardKey.arrowDown, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.down),
+    (LogicalKeyboardKey.arrowDown, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.down),
+    (LogicalKeyboardKey.arrowLeft, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.left),
+    (LogicalKeyboardKey.arrowLeft, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.left),
+    (LogicalKeyboardKey.arrowRight, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.right),
+    (LogicalKeyboardKey.arrowRight, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.right),
+    (LogicalKeyboardKey.enter, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.start),
+    (LogicalKeyboardKey.enter, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.start),
+    (LogicalKeyboardKey.shiftRight, KeyDownEvent, shift: true): () =>
+        state.buttonDown(0, NesButton.select),
+    (LogicalKeyboardKey.shiftRight, KeyUpEvent, shift: true): () =>
+        state.buttonUp(0, NesButton.select),
+    (LogicalKeyboardKey.keyZ, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.a),
+    (LogicalKeyboardKey.keyZ, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.a),
+    (LogicalKeyboardKey.keyX, KeyDownEvent, shift: false): () =>
+        state.buttonDown(0, NesButton.b),
+    (LogicalKeyboardKey.keyX, KeyUpEvent, shift: false): () =>
+        state.buttonUp(0, NesButton.b),
+    (LogicalKeyboardKey.digit1, KeyDownEvent, shift: false): () =>
+        _loadState(1),
+    (LogicalKeyboardKey.digit1, KeyDownEvent, shift: true): () => _saveState(1),
+    (LogicalKeyboardKey.digit2, KeyDownEvent, shift: false): () =>
+        _loadState(2),
+    (LogicalKeyboardKey.digit2, KeyDownEvent, shift: true): () => _saveState(2),
+    (LogicalKeyboardKey.digit3, KeyDownEvent, shift: false): () =>
+        _loadState(3),
+    (LogicalKeyboardKey.digit3, KeyDownEvent, shift: true): () => _saveState(3),
+    (LogicalKeyboardKey.digit4, KeyDownEvent, shift: false): () =>
+        _loadState(4),
+    (LogicalKeyboardKey.digit4, KeyDownEvent, shift: true): () => _saveState(4),
+    (LogicalKeyboardKey.digit5, KeyDownEvent, shift: false): () =>
+        _loadState(5),
+    (LogicalKeyboardKey.digit5, KeyDownEvent, shift: true): () => _saveState(5),
+    (LogicalKeyboardKey.digit6, KeyDownEvent, shift: false): () =>
+        _loadState(6),
+    (LogicalKeyboardKey.digit6, KeyDownEvent, shift: true): () => _saveState(6),
+    (LogicalKeyboardKey.digit7, KeyDownEvent, shift: false): () =>
+        _loadState(7),
+    (LogicalKeyboardKey.digit7, KeyDownEvent, shift: true): () => _saveState(7),
+    (LogicalKeyboardKey.digit8, KeyDownEvent, shift: false): () =>
+        _loadState(8),
+    (LogicalKeyboardKey.digit8, KeyDownEvent, shift: true): () => _saveState(8),
+    (LogicalKeyboardKey.digit9, KeyDownEvent, shift: false): () =>
+        _loadState(9),
+    (LogicalKeyboardKey.digit9, KeyDownEvent, shift: true): () => _saveState(9),
+    (LogicalKeyboardKey.digit0, KeyDownEvent, shift: false): () =>
+        _loadState(0),
+    (LogicalKeyboardKey.digit0, KeyDownEvent, shift: true): () => _saveState(0),
+  };
 
   final _audioOutput = AudioOutput();
 
@@ -87,7 +143,8 @@ class NesController extends _$NesController {
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
-  late final CartridgeState _cartridgeState;
+
+  late CartridgeState _cartridgeState;
 
   Timer? _autoSaveTimer;
 
@@ -112,6 +169,8 @@ class NesController extends _$NesController {
 
     _cartridgeState.cartridge = cartridge;
 
+    _save();
+
     state.loadCartridge(cartridge);
   }
 
@@ -122,6 +181,8 @@ class NesController extends _$NesController {
         return _streamController.addError(error, stackTrace);
       },
     );
+
+    _load();
   }
 
   void suspend() => sendCommand(NesSuspendCommand());
@@ -133,6 +194,7 @@ class NesController extends _$NesController {
   void reset() {
     sendCommand(NesResetCommand());
     _audioOutput.reset();
+    _load();
   }
 
   void save() => state.bus.cartridge?.save();
@@ -142,18 +204,21 @@ class NesController extends _$NesController {
   void sendCommand(NesCommand command) => state.executeCommand(command);
 
   bool _handleKey(KeyEvent event) {
-    final button = logicalKeyToNesButton[event.logicalKey];
+    if (event is KeyRepeatEvent) {
+      return true;
+    }
 
-    if (button == null) {
+    final action = _keyMap[(
+      event.logicalKey,
+      event.runtimeType,
+      shift: HardwareKeyboard.instance.isShiftPressed,
+    )];
+
+    if (action == null) {
       return false;
     }
 
-    switch (event) {
-      case final KeyDownEvent _:
-        sendCommand(NesButtonDownCommand(0, button));
-      case final KeyUpEvent _:
-        sendCommand(NesButtonUpCommand(0, button));
-    }
+    action();
 
     return true;
   }
@@ -173,5 +238,47 @@ class NesController extends _$NesController {
         (_) => save(),
       );
     }
+  }
+
+  void _save() {
+    final save = state.save();
+
+    if (save != null) {
+      _getSaveFile().writeAsBytesSync(save);
+    }
+  }
+
+  void _load() {
+    final saveFile = _getSaveFile();
+
+    if (saveFile.existsSync()) {
+      state.load(saveFile.readAsBytesSync());
+    }
+  }
+
+  void _saveState(int slot) {
+    final data = state.serialize();
+
+    _getSaveStateFile(slot).writeAsBytesSync(data);
+  }
+
+  void _loadState(int slot) {
+    final saveFile = _getSaveStateFile(slot);
+
+    if (saveFile.existsSync()) {
+      state.deserialize(saveFile.readAsBytesSync());
+    }
+  }
+
+  File _getSaveFile() {
+    final filename = p.setExtension(state.bus.cartridge!.file, '.sav');
+
+    return File(filename);
+  }
+
+  File _getSaveStateFile(int slot) {
+    final filename = p.setExtension(state.bus.cartridge!.file, '.$slot.state');
+
+    return File(filename);
   }
 }

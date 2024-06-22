@@ -1,9 +1,27 @@
+import 'package:nes/nes/apu/unit/envelope_unit_state.dart';
+
 class EnvelopeUnit {
   int volume = 0;
   int period = 0;
   int timer = 0;
   bool start = false;
   bool loop = false;
+
+  EnvelopeUnitState get state => EnvelopeUnitState(
+        volume: volume,
+        period: period,
+        timer: timer,
+        start: start,
+        loop: loop,
+      );
+
+  set state(EnvelopeUnitState value) {
+    volume = value.volume;
+    period = value.period;
+    timer = value.timer;
+    start = value.start;
+    loop = value.loop;
+  }
 
   void reset() {
     volume = 0;

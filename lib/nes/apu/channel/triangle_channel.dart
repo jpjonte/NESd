@@ -1,4 +1,5 @@
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/apu/channel/triangle_channel_state.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/apu/unit/length_counter_unit.dart';
 
@@ -18,6 +19,30 @@ class TriangleChannel {
   int timerPeriod = 0;
 
   bool reload = false;
+
+  TriangleChannelState get state => TriangleChannelState(
+        enabled: enabled,
+        control: control,
+        dutyIndex: dutyIndex,
+        linearCounterPeriod: linearCounterPeriod,
+        linearCounter: linearCounter,
+        timer: timer,
+        timerPeriod: timerPeriod,
+        reload: reload,
+        lengthCounterState: lengthCounter.state,
+      );
+
+  set state(TriangleChannelState state) {
+    enabled = state.enabled;
+    control = state.control;
+    dutyIndex = state.dutyIndex;
+    linearCounterPeriod = state.linearCounterPeriod;
+    linearCounter = state.linearCounter;
+    timer = state.timer;
+    timerPeriod = state.timerPeriod;
+    reload = state.reload;
+    lengthCounter.state = state.lengthCounterState;
+  }
 
   void reset() {
     enabled = false;

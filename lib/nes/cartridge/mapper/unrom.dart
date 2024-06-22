@@ -1,5 +1,6 @@
 import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nes/nes/cartridge/mapper/single_prg_bank_state.dart';
 
 class UNROM extends Mapper {
   UNROM() : super(2);
@@ -8,6 +9,14 @@ class UNROM extends Mapper {
 
   @override
   String name = 'UNROM';
+
+  @override
+  SinglePrgBankState get state => SinglePrgBankState(id: 2, prgBank: prgBank);
+
+  @override
+  set state(covariant SinglePrgBankState state) {
+    prgBank = state.prgBank;
+  }
 
   @override
   void reset() {

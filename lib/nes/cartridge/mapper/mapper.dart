@@ -5,6 +5,7 @@ import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/axrom.dart';
 import 'package:nes/nes/cartridge/mapper/br909x.dart';
 import 'package:nes/nes/cartridge/mapper/cnrom.dart';
+import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nes/nes/cartridge/mapper/mmc1.dart';
 import 'package:nes/nes/cartridge/mapper/mmc3.dart';
 import 'package:nes/nes/cartridge/mapper/nrom.dart';
@@ -31,6 +32,10 @@ abstract class Mapper {
   late final Bus bus;
 
   late final Cartridge cartridge;
+
+  MapperState get state => const MapperState.dummy();
+
+  set state(MapperState state) {}
 
   String get name;
 

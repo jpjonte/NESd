@@ -1,4 +1,5 @@
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/apu/channel/noise_channel_state.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/apu/unit/envelope_unit.dart';
 import 'package:nes/nes/apu/unit/length_counter_unit.dart';
@@ -20,6 +21,32 @@ class NoiseChannel {
   int shiftRegister = 1;
 
   bool mode = false;
+
+  NoiseChannelState get state => NoiseChannelState(
+        enabled: enabled,
+        constantVolume: constantVolume,
+        volume: volume,
+        period: period,
+        timerPeriod: timerPeriod,
+        timer: timer,
+        shiftRegister: shiftRegister,
+        mode: mode,
+        envelopeState: envelope.state,
+        lengthCounterState: lengthCounter.state,
+      );
+
+  set state(NoiseChannelState state) {
+    enabled = state.enabled;
+    constantVolume = state.constantVolume;
+    volume = state.volume;
+    period = state.period;
+    timerPeriod = state.timerPeriod;
+    timer = state.timer;
+    shiftRegister = state.shiftRegister;
+    mode = state.mode;
+    envelope.state = state.envelopeState;
+    lengthCounter.state = state.lengthCounterState;
+  }
 
   void reset() {
     enabled = false;

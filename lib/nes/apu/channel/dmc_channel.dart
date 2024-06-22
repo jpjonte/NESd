@@ -1,4 +1,5 @@
 import 'package:nes/extension/bit_extension.dart';
+import 'package:nes/nes/apu/channel/dmc_channel_state.dart';
 import 'package:nes/nes/bus.dart';
 
 const dmcTable = [
@@ -47,6 +48,46 @@ class DMCChannel {
   bool sampleLoaded = false;
 
   bool startDma = false;
+
+  DMCChannelState get state => DMCChannelState(
+        enabled: enabled,
+        irqEnabled: irqEnabled,
+        interrupt: interrupt,
+        loop: loop,
+        silence: silence,
+        buffer: buffer,
+        rate: rate,
+        bitsRemaining: bitsRemaining,
+        shiftRegister: shiftRegister,
+        timer: timer,
+        level: level,
+        sampleAddress: sampleAddress,
+        sampleLength: sampleLength,
+        address: address,
+        currentLength: length,
+        sampleLoaded: sampleLoaded,
+        startDma: startDma,
+      );
+
+  set state(DMCChannelState value) {
+    enabled = value.enabled;
+    irqEnabled = value.irqEnabled;
+    interrupt = value.interrupt;
+    loop = value.loop;
+    silence = value.silence;
+    buffer = value.buffer;
+    rate = value.rate;
+    bitsRemaining = value.bitsRemaining;
+    shiftRegister = value.shiftRegister;
+    timer = value.timer;
+    level = value.level;
+    sampleAddress = value.sampleAddress;
+    sampleLength = value.sampleLength;
+    address = value.address;
+    length = value.currentLength;
+    sampleLoaded = value.sampleLoaded;
+    startDma = value.startDma;
+  }
 
   void reset() {
     enabled = false;
