@@ -13,7 +13,7 @@ class AddressMode {
   final AddressModeDebugger debug;
 }
 
-bool pageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
+bool wasPageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
 
 final implicit = AddressMode(
   (cpu, pc) => (addressNone, false),
@@ -67,7 +67,7 @@ final absoluteX = AddressMode(
     final address = cpu.read16(pc);
     final targetAddress = address + cpu.X;
 
-    return (targetAddress, pageCrossed(address, targetAddress));
+    return (targetAddress, wasPageCrossed(address, targetAddress));
   },
   2,
   (cpu, pc, operands, address) =>
@@ -78,7 +78,7 @@ final absoluteY = AddressMode(
     final address = cpu.read16(pc);
     final targetAddress = (address + cpu.Y) & 0xffff;
 
-    return (targetAddress, pageCrossed(address, targetAddress));
+    return (targetAddress, wasPageCrossed(address, targetAddress));
   },
   2,
   (cpu, pc, operands, address) =>
@@ -113,7 +113,7 @@ final indirectIndexed = AddressMode(
     final address = cpu.read16(zeroPageAddress, wrap: true);
     final targetAddress = (address + cpu.Y) & 0xffff;
 
-    return (targetAddress, pageCrossed(address, targetAddress));
+    return (targetAddress, wasPageCrossed(address, targetAddress));
   },
   1,
   (cpu, pc, operands, address) => '(\$${operands[0].toHex()}),Y'

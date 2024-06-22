@@ -133,18 +133,13 @@ class Bus {
     }
 
     if (address == 0x4014) {
-      cpu
-        ..oamDma = true
-        ..oamDmaPage = value
-        ..oamDmaOffset = 0;
+      cpu.triggerOamDma(value);
 
       return;
     }
 
     if (address == 0x4016) {
-      inputStrobe = (value & 1) == 1;
-      controller1Shift = 0;
-      controller2Shift = 0;
+      _strobeControllers(value);
 
       return;
     }

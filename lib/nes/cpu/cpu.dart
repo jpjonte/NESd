@@ -15,15 +15,14 @@ class CPU {
 
   final Bus bus;
 
+  int cycles = 0;
+
   int PC = 0x0000;
   int SP = 0x00;
   int A = 0x00;
   int X = 0x00;
   int Y = 0x00;
   int P = 0x00;
-
-  bool irq = false;
-  bool nmi = false;
 
   Uint8List ram = Uint8List(0x0800);
 
@@ -43,18 +42,21 @@ class CPU {
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 
-  bool oamDma = false;
-  bool oamDmaStarted = false;
-  int oamDmaOffset = 0;
-  int oamDmaValue = 0;
+  bool _irq = false;
+  bool _nmi = false;
 
-  bool dmcDma = false;
-  bool dmcDmaRead = false;
-  bool dmcDmaDummy = false;
-  int dmcDmaValue = 0;
-  int oamDmaPage = 0;
+  bool _oamDma = false;
+  bool _oamDmaStarted = false;
 
-  int cycles = 0;
+  int _oamDmaPage = 0;
+  int _oamDmaOffset = 0;
+  int _oamDmaValue = 0;
+
+  bool _dmcDma = false;
+  bool _dmcDmaRead = false;
+  bool _dmcDmaDummy = false;
+
+  int _dmcDmaValue = 0;
 
   CPUState get state => CPUState(
         PC: PC,
@@ -63,40 +65,45 @@ class CPU {
         X: X,
         Y: Y,
         P: P,
-        irq: irq,
-        nmi: nmi,
+        irq: _irq,
+        nmi: _nmi,
         ram: ram,
-        oamDma: oamDma,
-        oamDmaStarted: oamDmaStarted,
-        oamDmaOffset: oamDmaOffset,
-        oamDmaValue: oamDmaValue,
-        dmcDma: dmcDma,
-        dmcDmaRead: dmcDmaRead,
-        dmcDmaDummy: dmcDmaDummy,
-        dmcDmaValue: dmcDmaValue,
-        oamDmaPage: oamDmaPage,
+        oamDma: _oamDma,
+        oamDmaStarted: _oamDmaStarted,
+        oamDmaOffset: _oamDmaOffset,
+        oamDmaValue: _oamDmaValue,
+        dmcDma: _dmcDma,
+        dmcDmaRead: _dmcDmaRead,
+        dmcDmaDummy: _dmcDmaDummy,
+        dmcDmaValue: _dmcDmaValue,
+        oamDmaPage: _oamDmaPage,
         cycles: cycles,
       );
 
   set state(CPUState state) {
+    cycles = state.cycles;
+
     PC = state.PC;
     SP = state.SP;
     A = state.A;
     X = state.X;
     Y = state.Y;
     P = state.P;
-    irq = state.irq;
-    nmi = state.nmi;
-    oamDma = state.oamDma;
-    oamDmaStarted = state.oamDmaStarted;
-    oamDmaOffset = state.oamDmaOffset;
-    oamDmaValue = state.oamDmaValue;
-    dmcDma = state.dmcDma;
-    dmcDmaRead = state.dmcDmaRead;
-    dmcDmaDummy = state.dmcDmaDummy;
-    dmcDmaValue = state.dmcDmaValue;
-    oamDmaPage = state.oamDmaPage;
-    cycles = state.cycles;
+
+    _irq = state.irq;
+    _nmi = state.nmi;
+
+    _oamDma = state.oamDma;
+    _oamDmaStarted = state.oamDmaStarted;
+    _oamDmaOffset = state.oamDmaOffset;
+    _oamDmaValue = state.oamDmaValue;
+    _oamDmaPage = state.oamDmaPage;
+
+    _dmcDma = state.dmcDma;
+    _dmcDmaRead = state.dmcDmaRead;
+    _dmcDmaDummy = state.dmcDmaDummy;
+    _dmcDmaValue = state.dmcDmaValue;
+
     ram.setAll(0, state.ram);
   }
 
@@ -122,7 +129,7 @@ class CPU {
     final low = popStack();
     final high = popStack();
 
-    return low | (high << 8);
+    return (high << 8) | low;
   }
 
   void reset() {
@@ -135,19 +142,19 @@ class CPU {
     X = 0x00;
     Y = 0x00;
 
-    irq = false;
-    nmi = false;
+    _irq = false;
+    _nmi = false;
 
-    oamDma = false;
-    oamDmaStarted = false;
-    oamDmaOffset = 0;
-    oamDmaValue = 0;
-    oamDmaPage = 0;
+    _oamDma = false;
+    _oamDmaStarted = false;
+    _oamDmaOffset = 0;
+    _oamDmaValue = 0;
+    _oamDmaPage = 0;
 
-    dmcDma = false;
-    dmcDmaRead = false;
-    dmcDmaDummy = false;
-    dmcDmaValue = 0;
+    _dmcDma = false;
+    _dmcDmaRead = false;
+    _dmcDmaDummy = false;
+    _dmcDmaValue = 0;
 
     ram.fillRange(0, ram.length, 0);
   }
@@ -180,7 +187,7 @@ class CPU {
     var additionalCycles = 0;
 
     if (op.instruction.type == InstructionType.branch && start != PC) {
-      additionalCycles = calculateBranchCycles(start, PC);
+      additionalCycles = wasPageCrossed(start, PC) ? 2 : 1;
     }
 
     if (op.pageCrossAddsCycle && pageCrossed) {
@@ -191,27 +198,27 @@ class CPU {
   }
 
   void _handleInterrupts() {
-    if (nmi) {
-      nmi = false;
+    if (_nmi) {
+      _nmi = false;
 
       handleIrq(0xfffa);
     }
 
-    if (irq && I == 0) {
-      irq = false;
+    if (_irq && I == 0) {
+      _irq = false;
 
       handleIrq(0xfffe);
     }
   }
 
   bool _handleDMA() {
-    if (!oamDma && !dmcDma) {
+    if (!_oamDma && !_dmcDma) {
       return false;
     }
 
-    if (dmcDma) {
+    if (_dmcDma) {
       _handleDMCDMA();
-    } else if (oamDma) {
+    } else if (_oamDma) {
       _handleOAMDMA();
     }
 
@@ -223,40 +230,43 @@ class CPU {
   void _handleOAMDMA() {
     if (cycles.isEven) {
       // read
-      oamDmaValue = read(oamDmaPage << 8 | oamDmaOffset);
-      oamDmaStarted = true;
-    } else if (oamDmaStarted) {
+      _oamDmaValue = read(_oamDmaPage << 8 | _oamDmaOffset);
+      _oamDmaStarted = true;
+    } else if (_oamDmaStarted) {
       // write
-      bus.ppu.writeOAM(oamDmaOffset++, oamDmaValue);
+      bus.ppu.writeOAM(_oamDmaOffset++, _oamDmaValue);
 
-      if (oamDmaOffset == 256) {
-        oamDma = false;
-        oamDmaOffset = 0;
-        oamDmaStarted = false;
+      if (_oamDmaOffset == 256) {
+        _oamDma = false;
+        _oamDmaOffset = 0;
+        _oamDmaStarted = false;
       }
     }
   }
 
   void _handleDMCDMA() {
-    if (!dmcDmaDummy) {
-      dmcDmaDummy = true;
+    if (!_dmcDmaDummy) {
+      _dmcDmaDummy = true;
 
       return;
     }
 
     if (cycles.isEven) {
-      dmcDmaValue = read(bus.apu.dmc.address);
-      dmcDmaRead = true;
-    } else if (dmcDmaRead) {
-      bus.apu.dmc.writeDma(dmcDmaValue);
-      dmcDmaRead = false;
-      dmcDmaDummy = false;
-      dmcDma = false;
+      // read
+      _dmcDmaValue = read(bus.apu.dmc.address);
+      _dmcDmaRead = true;
+    } else if (_dmcDmaRead) {
+      // write
+      bus.apu.dmc.writeDma(_dmcDmaValue);
+
+      _dmcDmaRead = false;
+      _dmcDmaDummy = false;
+      _dmcDma = false;
     }
   }
 
   void handleIrq(int address) {
-    irq = false;
+    _irq = false;
 
     pushStack16(PC);
     PHP.execute(this, 0);
@@ -265,23 +275,25 @@ class CPU {
     PC = read16(address);
   }
 
-  int calculateBranchCycles(int from, int to) {
-    return pageCrossed(from, to) ? 2 : 1;
-  }
-
   void triggerIrq() {
-    irq = true;
+    _irq = true;
   }
 
   void acknowledgeIrq() {
-    irq = false;
+    _irq = false;
   }
 
   void triggerNmi() {
-    nmi = true;
+    _nmi = true;
   }
 
   void triggerDmcDma() {
-    dmcDma = true;
+    _dmcDma = true;
+  }
+
+  void triggerOamDma(int page) {
+    _oamDma = true;
+    _oamDmaPage = page;
+    _oamDmaOffset = 0;
   }
 }
