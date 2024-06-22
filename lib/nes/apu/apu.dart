@@ -20,15 +20,8 @@ class APU {
   int cycles = 0;
 
   int sampleIndex = 0;
+
   final sampleBuffer = Float32List(apuSampleRate * 5);
-
-  int _pulse1Samples = 0;
-  int _pulse2Samples = 0;
-  int _triangleSamples = 0;
-  int _dmcSamples = 0;
-  int _sampleStart = 0;
-
-  late final frameCounter = FrameCounter(this);
 
   final pulse1 = PulseChannel(onesComplement: true);
   final pulse2 = PulseChannel();
@@ -39,6 +32,14 @@ class APU {
 
   final dmc = DMCChannel();
 
+  late final _frameCounter = FrameCounter(this);
+
+  int _pulse1Samples = 0;
+  int _pulse2Samples = 0;
+  int _triangleSamples = 0;
+  int _dmcSamples = 0;
+  int _sampleStart = 0;
+
   APUState get state => APUState(
         cycles: cycles,
         sampleIndex: sampleIndex,
@@ -48,7 +49,7 @@ class APU {
         triangleSamples: _triangleSamples,
         dmcSamples: _dmcSamples,
         sampleStart: _sampleStart,
-        frameCounterState: frameCounter.state,
+        frameCounterState: _frameCounter.state,
         pulse1State: pulse1.state,
         pulse2State: pulse2.state,
         triangleState: triangle.state,
@@ -69,7 +70,7 @@ class APU {
     _dmcSamples = state.dmcSamples;
     _sampleStart = state.sampleStart;
 
-    frameCounter.state = state.frameCounterState;
+    _frameCounter.state = state.frameCounterState;
     pulse1.state = state.pulse1State;
     pulse2.state = state.pulse2State;
 
@@ -84,7 +85,7 @@ class APU {
           .setBit(2, triangle.status)
           .setBit(3, noise.status)
           .setBit(4, dmc.status)
-          .setBit(6, frameCounter.status)
+          .setBit(6, _frameCounter.status)
           .setBit(7, dmc.interruptStatus);
 
       return status;
@@ -134,7 +135,7 @@ class APU {
       case 0x4015:
         _writeStatus(value);
       case 0x4017:
-        frameCounter.writeControl(value);
+        _frameCounter.writeControl(value);
     }
   }
 
@@ -145,7 +146,7 @@ class APU {
 
     _sampleStart = 0;
 
-    frameCounter.reset();
+    _frameCounter.reset();
 
     pulse1.reset();
     pulse2.reset();
@@ -165,7 +166,7 @@ class APU {
       pulse2.step();
       noise.step();
 
-      frameCounter.step();
+      _frameCounter.step();
     }
 
     if (dmc.startDma) {
@@ -214,6 +215,7 @@ class APU {
   double _output() {
     final diff = cycles - _sampleStart;
 
+    // average samples over the last [diff] cycles
     final pulse1Sample = (_pulse1Samples / diff).floor();
     final pulse2Sample = (_pulse2Samples / diff).floor();
     final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
