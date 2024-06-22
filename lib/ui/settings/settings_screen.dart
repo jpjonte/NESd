@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/settings/settings.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends HookWidget {
   const SettingsScreen({super.key});
 
   static const route = '/settings';
@@ -27,30 +28,45 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tabController = useTabController(initialLength: 4);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Settings',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600),
           padding: const EdgeInsets.all(8.0),
-          child: ListView(
-            children: const [
-              Section(title: 'General'),
-              AutoSaveDropDown(),
-              Section(title: 'Graphics'),
-              StretchSwitch(),
-              BorderSwitch(),
-              ScalingDropDown(),
-              Section(title: 'Audio'),
-              VolumeSlider(),
-              Section(title: 'Debug'),
-              DebugTileSwitch(),
-              CartridgeSwitch(),
+          child: Column(
+            children: [
+              TabBar(
+                controller: tabController,
+                tabs: const [
+                  Tab(child: Center(child: Text('General'))),
+                  Tab(child: Center(child: Text('Graphics'))),
+                  Tab(child: Center(child: Text('Audio'))),
+                  Tab(child: Center(child: Text('Debug'))),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              Expanded(
+                child: TabBarView(
+                  controller: tabController,
+                  children: const [
+                    GeneralSettings(),
+                    GraphicsSettings(),
+                    AudioSettings(),
+                    DebugSettings(),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -59,26 +75,57 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class Section extends StatelessWidget {
-  const Section({
-    required this.title,
-    super.key,
-  });
-
-  final String title;
+class GeneralSettings extends StatelessWidget {
+  const GeneralSettings({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Center(
-        child: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.red[600],
-          ),
-        ),
-      ),
+    return ListView(
+      children: const [
+        AutoSaveDropDown(),
+      ],
+    );
+  }
+}
+
+class GraphicsSettings extends StatelessWidget {
+  const GraphicsSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: const [
+        StretchSwitch(),
+        BorderSwitch(),
+        ScalingDropDown(),
+      ],
+    );
+  }
+}
+
+class AudioSettings extends StatelessWidget {
+  const AudioSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: const [
+        VolumeSlider(),
+      ],
+    );
+  }
+}
+
+class DebugSettings extends StatelessWidget {
+  const DebugSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: const [
+        DebugTileSwitch(),
+        CartridgeSwitch(),
+      ],
     );
   }
 }
