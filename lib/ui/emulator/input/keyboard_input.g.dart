@@ -6,7 +6,7 @@ part of 'keyboard_input.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$keyboardInputHash() => r'3f688c3040a80fd1dd49088d5c08f2c0a356f616';
+String _$keyboardInputHash() => r'6664eaf30f1bb3aea26922314a3e880b8772f5aa';
 
 /// See also [keyboardInput].
 @ProviderFor(keyboardInput)

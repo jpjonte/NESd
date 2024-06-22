@@ -16,7 +16,11 @@ KeyboardInput keyboardInput(KeyboardInputRef ref) {
     settingsControllerProvider.select((settings) => settings.keyMap),
   );
 
-  return KeyboardInput(keyBindings: keyBindings);
+  final input = KeyboardInput(keyBindings: keyBindings);
+
+  ref.onDispose(input.dispose);
+
+  return input;
 }
 
 class KeyboardInput {
@@ -101,12 +105,12 @@ class KeyboardInput {
   }
 
   void _updatePressedKeys(KeyEvent event) {
-    final mappedKey = _mapKey(event.logicalKey);
+    final key = event.logicalKey;
 
     if (event is KeyDownEvent) {
-      _pressedKeys.add(mappedKey);
+      _pressedKeys.addAll([key, ...key.synonyms]);
     } else if (event is KeyUpEvent) {
-      _pressedKeys.remove(mappedKey);
+      _pressedKeys.removeAll([key, ...key.synonyms]);
     }
   }
 
@@ -126,57 +130,9 @@ class KeyboardInput {
     return actions;
   }
 
-  // map specific (left, right) keys to general keys
-  LogicalKeyboardKey _mapKey(LogicalKeyboardKey logicalKey) {
-    return switch (logicalKey) {
-      LogicalKeyboardKey.shiftLeft ||
-      LogicalKeyboardKey.shiftRight =>
-        LogicalKeyboardKey.shift,
-      LogicalKeyboardKey.controlLeft ||
-      LogicalKeyboardKey.controlRight =>
-        LogicalKeyboardKey.control,
-      LogicalKeyboardKey.altLeft ||
-      LogicalKeyboardKey.altRight =>
-        LogicalKeyboardKey.alt,
-      LogicalKeyboardKey.metaLeft ||
-      LogicalKeyboardKey.metaRight =>
-        LogicalKeyboardKey.meta,
-      _ => logicalKey,
-    };
-  }
-
   KeyMap _buildKeyMap(List<KeyBinding> keyBindings) {
-    final keyMap = <Set<LogicalKeyboardKey>, NesAction>{};
-
-    for (final keyBinding in keyBindings) {
-      final keys = _getKeys(keyBinding.keys);
-      final action = _getAction(keyBinding.action);
-
-      if (action == null) {
-        continue;
-      }
-
-      keyMap[keys] = action;
-    }
-
-    return keyMap;
-  }
-
-  Set<LogicalKeyboardKey> _getKeys(Set<int> keyIds) {
-    return keyIds
-        .map((keyId) => LogicalKeyboardKey.findKeyByKeyId(keyId))
-        .where((k) => k != null)
-        .cast<LogicalKeyboardKey>()
-        .toSet();
-  }
-
-  NesAction? _getAction(String code) {
-    for (final action in allActions) {
-      if (action.code == code) {
-        return action;
-      }
-    }
-
-    return null;
+    return {
+      for (final binding in keyBindings) binding.keys: binding.action,
+    };
   }
 }

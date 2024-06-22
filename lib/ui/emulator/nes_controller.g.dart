@@ -6,23 +6,7 @@ part of 'nes_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartridgeStateHash() => r'ebdc59ac71f13a893fa479b667b84d18b0e6b692';
-
-/// See also [CartridgeState].
-@ProviderFor(CartridgeState)
-final cartridgeStateProvider =
-    AutoDisposeNotifierProvider<CartridgeState, Cartridge?>.internal(
-  CartridgeState.new,
-  name: r'cartridgeStateProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$cartridgeStateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$CartridgeState = AutoDisposeNotifier<Cartridge?>;
-String _$nesControllerHash() => r'bf2467ce2256c364a1497bc367f3881ddf6aa196';
+String _$nesControllerHash() => r'0438d23b3a35ad8ad1fec48a58f2ec70e236cc3d';
 
 /// See also [NesController].
 @ProviderFor(NesController)

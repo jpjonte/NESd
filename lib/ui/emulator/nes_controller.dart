@@ -15,20 +15,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nes_controller.g.dart';
 
 @riverpod
-class CartridgeState extends _$CartridgeState {
-  @override
-  Cartridge? build() {
-    return state = null;
-  }
-
-  Cartridge? get cartridge => state;
-
-  set cartridge(Cartridge? cartridge) {
-    state = cartridge;
-  }
-}
-
-@riverpod
 class NesController extends _$NesController {
   NesController() {
     _lifecycleListener = AppLifecycleListener(
@@ -43,29 +29,28 @@ class NesController extends _$NesController {
 
   @override
   NES? build() {
-    _cartridgeState = ref.read(cartridgeStateProvider.notifier);
-
-    final settings = ref.read(settingsControllerProvider);
-
-    _audioOutput.volume = settings.volume;
-
     ref
       ..listen(
         settingsControllerProvider.select((settings) => settings.volume),
         (_, volume) => _audioOutput.volume = volume,
+        fireImmediately: true,
       )
       ..listen(
         settingsControllerProvider
             .select((settings) => settings.autoSaveInterval),
         (_, interval) => _setAutoSave(interval),
+        fireImmediately: true,
+      )
+      ..listen(
+        keyboardInputProvider,
+        (_, input) {
+          input
+            ..keyDownStream.listen(_handleActionDown)
+            ..keyUpStream.listen(_handleActionUp);
+        },
+        fireImmediately: true,
       )
       ..onDispose(_dispose);
-
-    _setAutoSave(settings.autoSaveInterval);
-
-    ref.read(keyboardInputProvider)
-      ..keyDownStream.listen(_handleActionDown)
-      ..keyUpStream.listen(_handleActionUp);
 
     return null;
   }
@@ -80,8 +65,6 @@ class NesController extends _$NesController {
   double get volume => _audioOutput.volume;
 
   set volume(double value) => _audioOutput.volume = value;
-
-  late CartridgeState _cartridgeState;
 
   final _saveManager = SaveManager();
 
@@ -105,8 +88,6 @@ class NesController extends _$NesController {
 
     // give the loop a chance to end
     await Future.delayed(const Duration(milliseconds: 500));
-
-    _cartridgeState.cartridge = cartridge;
 
     _save();
 
@@ -202,6 +183,7 @@ class NesController extends _$NesController {
       case ControllerPress():
         state?.buttonUp(action.controller, action.button);
       default:
+      // no-op
     }
   }
 }

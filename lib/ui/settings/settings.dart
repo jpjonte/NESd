@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nes/ui/emulator/input/action.dart';
 import 'package:nes/ui/emulator/input/action/controller_press.dart';
 import 'package:nes/ui/emulator/input/action/load_file.dart';
 import 'package:nes/ui/emulator/input/action/save_state.dart';
@@ -23,108 +24,108 @@ enum Scaling {
 
 final defaultKeyMap = [
   KeyBinding(
-    keys: {LogicalKeyboardKey.arrowUp.keyId},
-    action: controller1Up.code,
+    keys: {LogicalKeyboardKey.arrowUp},
+    action: controller1Up,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.arrowDown.keyId},
-    action: controller1Down.code,
+    keys: {LogicalKeyboardKey.arrowDown},
+    action: controller1Down,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.arrowLeft.keyId},
-    action: controller1Left.code,
+    keys: {LogicalKeyboardKey.arrowLeft},
+    action: controller1Left,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.arrowRight.keyId},
-    action: controller1Right.code,
+    keys: {LogicalKeyboardKey.arrowRight},
+    action: controller1Right,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.enter.keyId},
-    action: controller1Start.code,
+    keys: {LogicalKeyboardKey.enter},
+    action: controller1Start,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.shift.keyId},
-    action: controller1Select.code,
+    keys: {LogicalKeyboardKey.shift},
+    action: controller1Select,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.keyZ.keyId},
-    action: controller1A.code,
+    keys: {LogicalKeyboardKey.keyZ},
+    action: controller1A,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.keyX.keyId},
-    action: controller1B.code,
+    keys: {LogicalKeyboardKey.keyX},
+    action: controller1B,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit1.keyId},
-    action: loadState1.code,
+    keys: {LogicalKeyboardKey.digit1},
+    action: loadState1,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit1.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState1.code,
+    keys: {LogicalKeyboardKey.digit1, LogicalKeyboardKey.shift},
+    action: saveState1,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit2.keyId},
-    action: loadState2.code,
+    keys: {LogicalKeyboardKey.digit2},
+    action: loadState2,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit2.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState2.code,
+    keys: {LogicalKeyboardKey.digit2, LogicalKeyboardKey.shift},
+    action: saveState2,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit3.keyId},
-    action: loadState3.code,
+    keys: {LogicalKeyboardKey.digit3},
+    action: loadState3,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit3.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState3.code,
+    keys: {LogicalKeyboardKey.digit3, LogicalKeyboardKey.shift},
+    action: saveState3,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit4.keyId},
-    action: loadState4.code,
+    keys: {LogicalKeyboardKey.digit4},
+    action: loadState4,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit4.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState4.code,
+    keys: {LogicalKeyboardKey.digit4, LogicalKeyboardKey.shift},
+    action: saveState4,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit5.keyId},
-    action: loadState5.code,
+    keys: {LogicalKeyboardKey.digit5},
+    action: loadState5,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit5.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState5.code,
+    keys: {LogicalKeyboardKey.digit5, LogicalKeyboardKey.shift},
+    action: saveState5,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit6.keyId},
-    action: loadState6.code,
+    keys: {LogicalKeyboardKey.digit6},
+    action: loadState6,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit6.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState6.code,
+    keys: {LogicalKeyboardKey.digit6, LogicalKeyboardKey.shift},
+    action: saveState6,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit7.keyId},
-    action: loadState7.code,
+    keys: {LogicalKeyboardKey.digit7},
+    action: loadState7,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit7.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState7.code,
+    keys: {LogicalKeyboardKey.digit7, LogicalKeyboardKey.shift},
+    action: saveState7,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit8.keyId},
-    action: loadState8.code,
+    keys: {LogicalKeyboardKey.digit8},
+    action: loadState8,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit8.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState8.code,
+    keys: {LogicalKeyboardKey.digit8, LogicalKeyboardKey.shift},
+    action: saveState8,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit9.keyId},
-    action: loadState9.code,
+    keys: {LogicalKeyboardKey.digit9},
+    action: loadState9,
   ),
   KeyBinding(
-    keys: {LogicalKeyboardKey.digit9.keyId, LogicalKeyboardKey.shift.keyId},
-    action: saveState9.code,
+    keys: {LogicalKeyboardKey.digit9, LogicalKeyboardKey.shift},
+    action: saveState9,
   ),
 ];
 
@@ -135,13 +136,38 @@ class KeyBinding {
     required this.action,
   });
 
-  final Set<int> keys;
-  final String action;
+  @JsonKey(fromJson: _keysFromJson, toJson: _keysToJson)
+  final Set<LogicalKeyboardKey> keys;
+
+  @JsonKey(fromJson: _actionFromJson, toJson: _actionToJson)
+  final NesAction action;
 
   factory KeyBinding.fromJson(Map<String, dynamic> json) =>
       _$KeyBindingFromJson(json);
 
   Map<String, dynamic> toJson() => _$KeyBindingToJson(this);
+
+  static Set<LogicalKeyboardKey> _keysFromJson(List<dynamic> json) {
+    final keys = json.cast<int>();
+
+    return keys
+        .map((keyId) => LogicalKeyboardKey.findKeyByKeyId(keyId))
+        .where((k) => k != null)
+        .cast<LogicalKeyboardKey>()
+        .toSet();
+  }
+
+  static List<int> _keysToJson(Set<LogicalKeyboardKey> keys) {
+    return keys.map((key) => key.keyId).toList();
+  }
+
+  static NesAction _actionFromJson(String json) {
+    return allActions.firstWhere((action) => action.code == json);
+  }
+
+  static String _actionToJson(NesAction action) {
+    return action.code;
+  }
 }
 
 @freezed
@@ -227,6 +253,31 @@ class SettingsController extends _$SettingsController {
 
   set keyMap(List<KeyBinding> keyMap) {
     state = state.copyWith(keyMap: keyMap);
+    _save();
+  }
+
+  void updateKeyBinding(KeyBinding binding) {
+    final index = state.keyMap.indexWhere((b) => b.action == binding.action);
+
+    if (index == -1) {
+      state = state.copyWith(keyMap: [...state.keyMap, binding]);
+    } else {
+      final updated = List<KeyBinding>.from(state.keyMap);
+
+      updated[index] = binding;
+
+      state = state.copyWith(keyMap: updated);
+    }
+
+    _save();
+  }
+
+  void clearKeyBinding(NesAction action) {
+    final updated = List<KeyBinding>.from(state.keyMap)
+      ..removeWhere((b) => b.action == action);
+
+    state = state.copyWith(keyMap: updated);
+
     _save();
   }
 

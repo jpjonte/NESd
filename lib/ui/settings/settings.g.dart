@@ -7,16 +7,14 @@ part of 'settings.dart';
 // **************************************************************************
 
 KeyBinding _$KeyBindingFromJson(Map<String, dynamic> json) => KeyBinding(
-      keys: (json['keys'] as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toSet(),
-      action: json['action'] as String,
+      keys: KeyBinding._keysFromJson(json['keys'] as List),
+      action: KeyBinding._actionFromJson(json['action'] as String),
     );
 
 Map<String, dynamic> _$KeyBindingToJson(KeyBinding instance) =>
     <String, dynamic>{
-      'keys': instance.keys.toList(),
-      'action': instance.action,
+      'keys': KeyBinding._keysToJson(instance.keys),
+      'action': KeyBinding._actionToJson(instance.action),
     };
 
 _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
@@ -61,7 +59,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'ab61f74da27b734123a297a13e8149ce16efd648';
+    r'3069d3233373d405c167b10a49525ce703e6558c';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

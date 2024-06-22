@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/emulator/input/action.dart';
 import 'package:nes/ui/settings/settings.dart';
 
 class SettingsScreen extends HookWidget {
@@ -28,7 +30,7 @@ class SettingsScreen extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabController = useTabController(initialLength: 4);
+    final tabController = useTabController(initialLength: 5);
 
     return Scaffold(
       appBar: AppBar(
@@ -52,6 +54,7 @@ class SettingsScreen extends HookWidget {
                   Tab(child: Center(child: Text('General'))),
                   Tab(child: Center(child: Text('Graphics'))),
                   Tab(child: Center(child: Text('Audio'))),
+                  Tab(child: Center(child: Text('Controls'))),
                   Tab(child: Center(child: Text('Debug'))),
                 ],
               ),
@@ -63,6 +66,7 @@ class SettingsScreen extends HookWidget {
                     GeneralSettings(),
                     GraphicsSettings(),
                     AudioSettings(),
+                    ControlSettings(),
                     DebugSettings(),
                   ],
                 ),
@@ -112,6 +116,127 @@ class AudioSettings extends StatelessWidget {
       children: const [
         VolumeSlider(),
       ],
+    );
+  }
+}
+
+class ControlSettings extends ConsumerWidget {
+  const ControlSettings({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final keyMap = ref.watch(
+      settingsControllerProvider.select((s) => s.keyMap),
+    );
+
+    return ListView(
+      children: [
+        for (final action in allActions)
+          KeyBindingTile(
+            binding: keyMap.firstWhere(
+              (binding) => binding.action == action,
+              orElse: () => KeyBinding(keys: {}, action: action),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class KeyBindingTile extends StatelessWidget {
+  const KeyBindingTile({required this.binding, super.key});
+
+  final KeyBinding binding;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(binding.action.title),
+      trailing: KeyBinder(binding: binding),
+    );
+  }
+}
+
+class KeyBinder extends HookConsumerWidget {
+  const KeyBinder({required this.binding, super.key});
+
+  final KeyBinding binding;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.read(settingsControllerProvider.notifier);
+
+    final theme = Theme.of(context);
+
+    final keys = useState<Set<LogicalKeyboardKey>>({});
+
+    return Focus(
+      skipTraversal: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyRepeatEvent) {
+          return KeyEventResult.handled;
+        }
+
+        if (event is KeyDownEvent) {
+          keys.value = {
+            ...keys.value,
+            event.logicalKey,
+          };
+
+          return KeyEventResult.handled;
+        }
+
+        if (event is KeyUpEvent) {
+          node.unfocus();
+
+          controller.updateKeyBinding(
+            KeyBinding(
+              keys: keys.value,
+              action: binding.action,
+            ),
+          );
+        }
+
+        return KeyEventResult.ignored;
+      },
+      child: Builder(
+        builder: (context) {
+          final focusNode = Focus.of(context);
+          final hasFocus = focusNode.hasFocus;
+
+          String keysToString(Set<LogicalKeyboardKey> keys) {
+            final sorted = keys.toList()..sort((a, b) => b.keyId - a.keyId);
+
+            return sorted.map((key) => key.keyLabel).join(' + ');
+          }
+
+          final text = hasFocus
+              ? (keys.value.isNotEmpty ? keysToString(keys.value) : '...')
+              : keysToString(binding.keys);
+
+          return GestureDetector(
+            onTap: () {
+              if (hasFocus) {
+                focusNode.unfocus();
+              } else {
+                keys.value = {};
+                focusNode.requestFocus();
+              }
+            },
+            onDoubleTap: () => controller.clearKeyBinding(binding.action),
+            child: Container(
+              width: 200,
+              height: 40,
+              decoration: BoxDecoration(
+                color:
+                    theme.colorScheme.primary.withAlpha(hasFocus ? 255 : 100),
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+              child: Center(child: Text(text)),
+            ),
+          );
+        },
+      ),
     );
   }
 }
