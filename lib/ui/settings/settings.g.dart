@@ -6,6 +6,19 @@ part of 'settings.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+KeyBinding _$KeyBindingFromJson(Map<String, dynamic> json) => KeyBinding(
+      keys: (json['keys'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toSet(),
+      action: json['action'] as String,
+    );
+
+Map<String, dynamic> _$KeyBindingToJson(KeyBinding instance) =>
+    <String, dynamic>{
+      'keys': instance.keys.toList(),
+      'action': instance.action,
+    };
+
 _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
     _$SettingsImpl(
       volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
@@ -16,6 +29,10 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
       scaling: $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
           Scaling.autoInteger,
       autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
+      keyMap: (json['keyMap'] as List<dynamic>?)
+              ?.map((e) => KeyBinding.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
@@ -27,6 +44,7 @@ Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
       'showCartridgeInfo': instance.showCartridgeInfo,
       'scaling': _$ScalingEnumMap[instance.scaling]!,
       'autoSaveInterval': instance.autoSaveInterval,
+      'keyMap': instance.keyMap,
     };
 
 const _$ScalingEnumMap = {
@@ -43,7 +61,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'6076577d836fae22d8eb5ebbc8443436f7411b9b';
+    r'ab61f74da27b734123a297a13e8149ce16efd648';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

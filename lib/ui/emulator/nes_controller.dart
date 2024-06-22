@@ -38,10 +38,6 @@ class NesController extends _$NesController {
       onResume: _appResumed,
     );
 
-    _keyboardInput = KeyboardInput()
-      ..keyDownStream.listen(_handleActionDown)
-      ..keyUpStream.listen(_handleActionUp);
-
     audioSampleStream.listen(_audioOutput.processSamples);
   }
 
@@ -67,6 +63,10 @@ class NesController extends _$NesController {
 
     _setAutoSave(settings.autoSaveInterval);
 
+    ref.read(keyboardInputProvider)
+      ..keyDownStream.listen(_handleActionDown)
+      ..keyUpStream.listen(_handleActionUp);
+
     return null;
   }
 
@@ -86,9 +86,6 @@ class NesController extends _$NesController {
   final _saveManager = SaveManager();
 
   Timer? _autoSaveTimer;
-
-  // ignore: unused_field
-  late final KeyboardInput _keyboardInput;
 
   final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
@@ -191,7 +188,7 @@ class NesController extends _$NesController {
 
   void _handleActionDown(NesAction action) {
     switch (action) {
-      case ControllerButtonAction():
+      case ControllerPress():
         state?.buttonDown(action.controller, action.button);
       case SaveState():
         _saveState(action.slot);
@@ -202,7 +199,7 @@ class NesController extends _$NesController {
 
   void _handleActionUp(NesAction action) {
     switch (action) {
-      case ControllerButtonAction():
+      case ControllerPress():
         state?.buttonUp(action.controller, action.button);
       default:
     }

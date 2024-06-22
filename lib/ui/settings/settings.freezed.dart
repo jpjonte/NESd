@@ -27,6 +27,7 @@ mixin _$Settings {
   bool get showCartridgeInfo => throw _privateConstructorUsedError;
   Scaling get scaling => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
+  List<KeyBinding> get keyMap => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -46,7 +47,8 @@ abstract class $SettingsCopyWith<$Res> {
       bool showTiles,
       bool showCartridgeInfo,
       Scaling scaling,
-      int? autoSaveInterval});
+      int? autoSaveInterval,
+      List<KeyBinding> keyMap});
 }
 
 /// @nodoc
@@ -69,6 +71,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showCartridgeInfo = null,
     Object? scaling = null,
     Object? autoSaveInterval = freezed,
+    Object? keyMap = null,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -99,6 +102,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
+      keyMap: null == keyMap
+          ? _value.keyMap
+          : keyMap // ignore: cast_nullable_to_non_nullable
+              as List<KeyBinding>,
     ) as $Val);
   }
 }
@@ -118,7 +125,8 @@ abstract class _$$SettingsImplCopyWith<$Res>
       bool showTiles,
       bool showCartridgeInfo,
       Scaling scaling,
-      int? autoSaveInterval});
+      int? autoSaveInterval,
+      List<KeyBinding> keyMap});
 }
 
 /// @nodoc
@@ -139,6 +147,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showCartridgeInfo = null,
     Object? scaling = null,
     Object? autoSaveInterval = freezed,
+    Object? keyMap = null,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -169,6 +178,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
+      keyMap: null == keyMap
+          ? _value._keyMap
+          : keyMap // ignore: cast_nullable_to_non_nullable
+              as List<KeyBinding>,
     ));
   }
 }
@@ -183,7 +196,9 @@ class _$SettingsImpl implements _Settings {
       this.showTiles = false,
       this.showCartridgeInfo = false,
       this.scaling = Scaling.autoInteger,
-      this.autoSaveInterval = 1});
+      this.autoSaveInterval = 1,
+      final List<KeyBinding> keyMap = const []})
+      : _keyMap = keyMap;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -209,10 +224,18 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final int? autoSaveInterval;
+  final List<KeyBinding> _keyMap;
+  @override
+  @JsonKey()
+  List<KeyBinding> get keyMap {
+    if (_keyMap is EqualUnmodifiableListView) return _keyMap;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_keyMap);
+  }
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval, keyMap: $keyMap)';
   }
 
   @override
@@ -230,13 +253,22 @@ class _$SettingsImpl implements _Settings {
                 other.showCartridgeInfo == showCartridgeInfo) &&
             (identical(other.scaling, scaling) || other.scaling == scaling) &&
             (identical(other.autoSaveInterval, autoSaveInterval) ||
-                other.autoSaveInterval == autoSaveInterval));
+                other.autoSaveInterval == autoSaveInterval) &&
+            const DeepCollectionEquality().equals(other._keyMap, _keyMap));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, volume, stretch, showBorder,
-      showTiles, showCartridgeInfo, scaling, autoSaveInterval);
+  int get hashCode => Object.hash(
+      runtimeType,
+      volume,
+      stretch,
+      showBorder,
+      showTiles,
+      showCartridgeInfo,
+      scaling,
+      autoSaveInterval,
+      const DeepCollectionEquality().hash(_keyMap));
 
   @JsonKey(ignore: true)
   @override
@@ -260,7 +292,8 @@ abstract class _Settings implements Settings {
       final bool showTiles,
       final bool showCartridgeInfo,
       final Scaling scaling,
-      final int? autoSaveInterval}) = _$SettingsImpl;
+      final int? autoSaveInterval,
+      final List<KeyBinding> keyMap}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -279,6 +312,8 @@ abstract class _Settings implements Settings {
   Scaling get scaling;
   @override
   int? get autoSaveInterval;
+  @override
+  List<KeyBinding> get keyMap;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

@@ -1,14 +1,29 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:nes/nes/bus.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/settings/settings.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'keyboard_input.g.dart';
 
 typedef PriorityAction = ({int priority, NesAction action});
+typedef KeyMap = Map<Set<LogicalKeyboardKey>, NesAction>;
+
+@riverpod
+KeyboardInput keyboardInput(KeyboardInputRef ref) {
+  final keyBindings = ref.watch(
+    settingsControllerProvider.select((settings) => settings.keyMap),
+  );
+
+  return KeyboardInput(keyBindings: keyBindings);
+}
 
 class KeyboardInput {
-  KeyboardInput() {
+  KeyboardInput({required List<KeyBinding> keyBindings}) {
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+
+    _keyMap = _buildKeyMap(keyBindings);
   }
 
   Stream<NesAction> get keyDownStream => _keyDownStreamController.stream;
@@ -19,41 +34,7 @@ class KeyboardInput {
 
   final _pressedKeys = <LogicalKeyboardKey>{};
 
-  late final _keyMap = {
-    {LogicalKeyboardKey.arrowUp}: const ControllerButtonAction(0, NesButton.up),
-    {LogicalKeyboardKey.arrowDown}:
-        const ControllerButtonAction(0, NesButton.down),
-    {LogicalKeyboardKey.arrowLeft}:
-        const ControllerButtonAction(0, NesButton.left),
-    {LogicalKeyboardKey.arrowRight}:
-        const ControllerButtonAction(0, NesButton.right),
-    {LogicalKeyboardKey.enter}:
-        const ControllerButtonAction(0, NesButton.start),
-    {LogicalKeyboardKey.shift}:
-        const ControllerButtonAction(0, NesButton.select),
-    {LogicalKeyboardKey.keyZ}: const ControllerButtonAction(0, NesButton.a),
-    {LogicalKeyboardKey.keyX}: const ControllerButtonAction(0, NesButton.b),
-    {LogicalKeyboardKey.digit1}: const LoadState(1),
-    {LogicalKeyboardKey.digit1, LogicalKeyboardKey.shift}: const SaveState(1),
-    {LogicalKeyboardKey.digit2}: const LoadState(2),
-    {LogicalKeyboardKey.digit2, LogicalKeyboardKey.shift}: const SaveState(2),
-    {LogicalKeyboardKey.digit3}: const LoadState(3),
-    {LogicalKeyboardKey.digit3, LogicalKeyboardKey.shift}: const SaveState(3),
-    {LogicalKeyboardKey.digit4}: const LoadState(4),
-    {LogicalKeyboardKey.digit4, LogicalKeyboardKey.shift}: const SaveState(4),
-    {LogicalKeyboardKey.digit5}: const LoadState(5),
-    {LogicalKeyboardKey.digit5, LogicalKeyboardKey.shift}: const SaveState(5),
-    {LogicalKeyboardKey.digit6}: const LoadState(6),
-    {LogicalKeyboardKey.digit6, LogicalKeyboardKey.shift}: const SaveState(6),
-    {LogicalKeyboardKey.digit7}: const LoadState(7),
-    {LogicalKeyboardKey.digit7, LogicalKeyboardKey.shift}: const SaveState(7),
-    {LogicalKeyboardKey.digit8}: const LoadState(8),
-    {LogicalKeyboardKey.digit8, LogicalKeyboardKey.shift}: const SaveState(8),
-    {LogicalKeyboardKey.digit9}: const LoadState(9),
-    {LogicalKeyboardKey.digit9, LogicalKeyboardKey.shift}: const SaveState(9),
-    {LogicalKeyboardKey.digit0}: const LoadState(0),
-    {LogicalKeyboardKey.digit0, LogicalKeyboardKey.shift}: const SaveState(0),
-  };
+  late final KeyMap _keyMap;
 
   void dispose() {
     _keyDownStreamController.close();
@@ -162,5 +143,40 @@ class KeyboardInput {
         LogicalKeyboardKey.meta,
       _ => logicalKey,
     };
+  }
+
+  KeyMap _buildKeyMap(List<KeyBinding> keyBindings) {
+    final keyMap = <Set<LogicalKeyboardKey>, NesAction>{};
+
+    for (final keyBinding in keyBindings) {
+      final keys = _getKeys(keyBinding.keys);
+      final action = _getAction(keyBinding.action);
+
+      if (action == null) {
+        continue;
+      }
+
+      keyMap[keys] = action;
+    }
+
+    return keyMap;
+  }
+
+  Set<LogicalKeyboardKey> _getKeys(Set<int> keyIds) {
+    return keyIds
+        .map((keyId) => LogicalKeyboardKey.findKeyByKeyId(keyId))
+        .where((k) => k != null)
+        .cast<LogicalKeyboardKey>()
+        .toSet();
+  }
+
+  NesAction? _getAction(String code) {
+    for (final action in allActions) {
+      if (action.code == code) {
+        return action;
+      }
+    }
+
+    return null;
   }
 }
