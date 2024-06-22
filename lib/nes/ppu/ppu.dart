@@ -344,7 +344,7 @@ class PPU {
   }
 
   void _updateBusAddress(int address) =>
-      bus.cartridge?.mapper.updatePpuAddress(address);
+      bus.cartridge.mapper.updatePpuAddress(address);
 
   int readRegister(int address) {
     return switch (address) {

@@ -1,12 +1,11 @@
 import 'package:binarize/binarize.dart';
 import 'package:nes/exception/unsupported_mapper.dart';
+import 'package:nes/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nes/nes/cartridge/mapper/cnrom_state.dart';
 import 'package:nes/nes/cartridge/mapper/mmc1_state.dart';
 import 'package:nes/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nes/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nes/nes/cartridge/mapper/single_prg_bank_state.dart';
-
-import 'axrom_state.dart';
 
 abstract class MapperState {
   const MapperState({required this.id});

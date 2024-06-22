@@ -1,6 +1,5 @@
 // ignore_for_file: parameter_assignments
 
-import 'package:nes/exception/cartridge_not_loaded.dart';
 import 'package:nes/nes/apu/apu.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cpu/cpu.dart';
@@ -21,11 +20,13 @@ enum NesButton {
 }
 
 class Bus {
+  Bus(this.cartridge);
+
+  final Cartridge cartridge;
+
   late final CPU cpu;
   late final PPU ppu;
   late final APU apu;
-
-  Cartridge? cartridge;
 
   bool _inputStrobe = false;
 
@@ -59,12 +60,6 @@ class Bus {
 
     if (address < 0x4020) {
       return 0;
-    }
-
-    final cartridge = this.cartridge;
-
-    if (cartridge == null) {
-      throw CartridgeNotLoaded();
     }
 
     return cartridge.read(this, address);
@@ -130,12 +125,6 @@ class Bus {
       return;
     }
 
-    final cartridge = this.cartridge;
-
-    if (cartridge == null) {
-      throw CartridgeNotLoaded();
-    }
-
     cartridge.write(this, address, value);
   }
 
@@ -143,7 +132,7 @@ class Bus {
     address = address & 0x3fff;
 
     if (address < 0x3f00) {
-      return cartridge!.read(this, address);
+      return cartridge.read(this, address);
     }
 
     if (address < 0x3fff) {
@@ -155,7 +144,7 @@ class Bus {
 
   void ppuWrite(int address, int value) {
     if (address < 0x3f00) {
-      cartridge!.write(this, address, value);
+      cartridge.write(this, address, value);
 
       return;
     }

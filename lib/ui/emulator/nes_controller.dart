@@ -37,15 +37,15 @@ class NesController extends _$NesController {
       onShow: suspend,
       onResume: _appResumed,
     );
+
+    HardwareKeyboard.instance.addHandler(_handleKey);
+
+    audioSampleStream.listen(_audioOutput.processSamples);
   }
 
   @override
-  NES build() {
-    HardwareKeyboard.instance.addHandler(_handleKey);
-
+  NES? build() {
     _cartridgeState = ref.read(cartridgeStateProvider.notifier);
-
-    audioSampleStream.listen(_audioOutput.processSamples);
 
     final settings = ref.read(settingsControllerProvider);
 
@@ -65,42 +65,42 @@ class NesController extends _$NesController {
 
     _setAutoSave(settings.autoSaveInterval);
 
-    return NES();
+    return null;
   }
 
   late final _keyMap = {
     (LogicalKeyboardKey.arrowUp, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.up),
+        state?.buttonDown(0, NesButton.up),
     (LogicalKeyboardKey.arrowUp, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.up),
+        state?.buttonUp(0, NesButton.up),
     (LogicalKeyboardKey.arrowDown, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.down),
+        state?.buttonDown(0, NesButton.down),
     (LogicalKeyboardKey.arrowDown, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.down),
+        state?.buttonUp(0, NesButton.down),
     (LogicalKeyboardKey.arrowLeft, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.left),
+        state?.buttonDown(0, NesButton.left),
     (LogicalKeyboardKey.arrowLeft, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.left),
+        state?.buttonUp(0, NesButton.left),
     (LogicalKeyboardKey.arrowRight, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.right),
+        state?.buttonDown(0, NesButton.right),
     (LogicalKeyboardKey.arrowRight, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.right),
+        state?.buttonUp(0, NesButton.right),
     (LogicalKeyboardKey.enter, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.start),
+        state?.buttonDown(0, NesButton.start),
     (LogicalKeyboardKey.enter, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.start),
+        state?.buttonUp(0, NesButton.start),
     (LogicalKeyboardKey.shiftRight, KeyDownEvent, shift: true): () =>
-        state.buttonDown(0, NesButton.select),
+        state?.buttonDown(0, NesButton.select),
     (LogicalKeyboardKey.shiftRight, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.select),
+        state?.buttonUp(0, NesButton.select),
     (LogicalKeyboardKey.keyZ, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.a),
+        state?.buttonDown(0, NesButton.a),
     (LogicalKeyboardKey.keyZ, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.a),
+        state?.buttonUp(0, NesButton.a),
     (LogicalKeyboardKey.keyX, KeyDownEvent, shift: false): () =>
-        state.buttonDown(0, NesButton.b),
+        state?.buttonDown(0, NesButton.b),
     (LogicalKeyboardKey.keyX, KeyUpEvent, shift: false): () =>
-        state.buttonUp(0, NesButton.b),
+        state?.buttonUp(0, NesButton.b),
     (LogicalKeyboardKey.digit1, KeyDownEvent, shift: false): () =>
         _loadState(1),
     (LogicalKeyboardKey.digit1, KeyDownEvent, shift: true): () => _saveState(1),
@@ -162,7 +162,7 @@ class NesController extends _$NesController {
       .map((event) => (event as FrameNesEvent).samples);
 
   Future<void> loadCartridge(String path) async {
-    state.stop();
+    state?.stop();
 
     final cartridge = Cartridge.fromFile(path);
 
@@ -173,11 +173,11 @@ class NesController extends _$NesController {
 
     _save();
 
-    state.loadCartridge(cartridge);
+    state = NES(cartridge);
   }
 
   Future<void> run() async {
-    state.run().listen((event) => _streamController.add(event)).onError(
+    state?.run().listen((event) => _streamController.add(event)).onError(
       // ignore: avoid_types_on_closure_parameters
       (Object error, StackTrace stackTrace) {
         return _streamController.addError(error, stackTrace);
@@ -187,21 +187,21 @@ class NesController extends _$NesController {
     _load();
   }
 
-  void suspend() => state.suspend();
+  void suspend() => state?.suspend();
 
-  void togglePause() => state.togglePause();
+  void togglePause() => state?.togglePause();
 
-  void resume() => state.resume();
+  void resume() => state?.resume();
 
   void reset() {
-    state.reset();
+    state?.reset();
     _audioOutput.reset();
     _load();
   }
 
   void save() => _save();
 
-  void runUntilFrame() => state.runUntilFrame();
+  void runUntilFrame() => state?.runUntilFrame();
 
   void _dispose() {
     HardwareKeyboard.instance.removeHandler(_handleKey);
@@ -247,18 +247,26 @@ class NesController extends _$NesController {
   }
 
   void _save() {
-    _saveManager.save(state);
+    if (state case final state?) {
+      _saveManager.save(state);
+    }
   }
 
   void _load() {
-    _saveManager.load(state);
+    if (state case final state?) {
+      _saveManager.load(state);
+    }
   }
 
   void _saveState(int slot) {
-    _saveManager.saveState(state, slot);
+    if (state case final state?) {
+      _saveManager.saveState(state, slot);
+    }
   }
 
   void _loadState(int slot) {
-    _saveManager.loadState(state, slot);
+    if (state case final state?) {
+      _saveManager.loadState(state, slot);
+    }
   }
 }

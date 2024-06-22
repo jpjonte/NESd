@@ -22,12 +22,12 @@ final cartridgeStateProvider =
 );
 
 typedef _$CartridgeState = AutoDisposeNotifier<Cartridge?>;
-String _$nesControllerHash() => r'b793007db5a603975df0a3d4a59951acf26df052';
+String _$nesControllerHash() => r'8cbe64d02ffe7d9afc0311361dee263e579afabe';
 
 /// See also [NesController].
 @ProviderFor(NesController)
 final nesControllerProvider =
-    AutoDisposeNotifierProvider<NesController, NES>.internal(
+    AutoDisposeNotifierProvider<NesController, NES?>.internal(
   NesController.new,
   name: r'nesControllerProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -37,6 +37,6 @@ final nesControllerProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$NesController = AutoDisposeNotifier<NES>;
+typedef _$NesController = AutoDisposeNotifier<NES?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

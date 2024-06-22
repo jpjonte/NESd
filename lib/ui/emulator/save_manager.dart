@@ -58,7 +58,7 @@ class SaveManager {
   }
 
   Future<String> _getFilename(NES nes, String extension) async {
-    final romName = p.basename(nes.bus.cartridge!.file);
+    final romName = p.basename(nes.bus.cartridge.file);
     final newFilename = p.setExtension(romName, extension);
     final fullPath = p.join(await _getBaseDirectory(), newFilename);
 

@@ -4,12 +4,9 @@ import 'package:nes/nes/nes.dart';
 
 void main() {
   test('Run nestest', () {
-    final nes = NES(debug: true);
-
     final cartridge = Cartridge.fromFile('roms/test/nestest/nestest.nes');
 
-    nes
-      ..loadCartridge(cartridge)
+    final nes = NES(cartridge, debug: true)
       ..cpu.PC = 0xc000
       ..cpu.cycles = 7
       ..ppu.cycle = 21;

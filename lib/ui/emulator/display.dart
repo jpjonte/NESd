@@ -35,19 +35,19 @@ class DisplayWidget extends ConsumerWidget {
 
     final mediaQuery = MediaQuery.of(context);
 
+    if (nes == null) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: mediaQuery.size.width,
+          maxHeight: mediaQuery.size.height,
+        ),
+        child: const Center(child: Text('Press ⌘ + O to open a ROM')),
+      );
+    }
+
     return StreamBuilder(
       stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
       builder: (context, snapshot) {
-        if (!nes.on) {
-          return ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: mediaQuery.size.width,
-              maxHeight: mediaQuery.size.height,
-            ),
-            child: const Center(child: Text('Press ⌘ + O to open a ROM')),
-          );
-        }
-
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }

@@ -89,12 +89,11 @@ class MMC3 extends Mapper {
     _r7 = 0;
 
     _prgBankMode = 0;
-    _chrBankMode = switch (bus.cartridge?.nametableLayout) {
+    _chrBankMode = switch (bus.cartridge.nametableLayout) {
       NametableLayout.vertical => 1,
       NametableLayout.horizontal => 0,
       NametableLayout.four => 0,
       NametableLayout.single => 1,
-      null => 0,
     };
 
     _mirroring = 0;

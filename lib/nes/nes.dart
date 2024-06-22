@@ -30,11 +30,13 @@ class FrameNesEvent extends NesEvent {
 }
 
 class NES {
-  NES({this.debug = false}) {
+  NES(Cartridge cartridge, {this.debug = false}) : bus = Bus(cartridge) {
     bus
       ..cpu = cpu
       ..ppu = ppu
       ..apu = apu;
+
+    cartridge.mapper.bus = bus;
 
     if (debug) {
       File('logs/debug.log').writeAsStringSync('');
@@ -50,7 +52,7 @@ class NES {
 
   late DateTime _frameStart;
 
-  final Bus bus = Bus();
+  final Bus bus;
   late final CPU cpu = CPU(bus);
   late final PPU ppu = PPU(bus);
   late final APU apu = APU(bus);
@@ -63,7 +65,7 @@ class NES {
         cpuState: cpu.state,
         ppuState: ppu.state,
         apuState: apu.state,
-        cartridgeState: bus.cartridge!.state,
+        cartridgeState: bus.cartridge.state,
         cycles: cycles,
       );
 
@@ -71,7 +73,7 @@ class NES {
     cpu.state = state.cpuState;
     ppu.state = state.ppuState;
     apu.state = state.apuState;
-    bus.cartridge!.state = state.cartridgeState;
+    bus.cartridge.state = state.cartridgeState;
     cycles = state.cycles;
 
     _frameStart = DateTime.now();
@@ -91,16 +93,9 @@ class NES {
     this.state = state;
   }
 
-  Uint8List? save() => bus.cartridge?.save();
+  Uint8List? save() => bus.cartridge.save();
 
-  void load(Uint8List save) => bus.cartridge?.load(save);
-
-  void loadCartridge(Cartridge cartridge) {
-    cartridge.mapper.bus = bus;
-    bus.cartridge = cartridge;
-
-    reset();
-  }
+  void load(Uint8List save) => bus.cartridge.load(save);
 
   void reset() {
     cycles = 0;
@@ -108,7 +103,7 @@ class NES {
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
 
-    bus.cartridge?.reset();
+    bus.cartridge.reset();
 
     cpu.reset();
     apu.reset();
