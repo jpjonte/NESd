@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
 
 class MMC3State extends MapperState {
@@ -22,26 +24,27 @@ class MMC3State extends MapperState {
     super.id = 4,
   });
 
-  const MMC3State.dummy()
-      : this(
-          register: 0,
-          r0: 0,
-          r1: 0,
-          r2: 0,
-          r3: 0,
-          r4: 0,
-          r5: 0,
-          r6: 0,
-          r7: 0,
-          prgBankMode: 0,
-          chrBankMode: 0,
-          mirroring: 0,
-          irqCounter: 0,
-          irqLatch: 0,
-          irqReload: false,
-          irqEnabled: false,
-          a12LowStart: null,
-        );
+  factory MMC3State.fromByteData(ByteData data, int offset) {
+    return MMC3State(
+      register: data.getUint8(offset),
+      r0: data.getUint8(offset + 1),
+      r1: data.getUint8(offset + 2),
+      r2: data.getUint8(offset + 3),
+      r3: data.getUint8(offset + 4),
+      r4: data.getUint8(offset + 5),
+      r5: data.getUint8(offset + 6),
+      r6: data.getUint8(offset + 7),
+      r7: data.getUint8(offset + 8),
+      prgBankMode: data.getUint8(offset + 9),
+      chrBankMode: data.getUint8(offset + 10),
+      mirroring: data.getUint8(offset + 11),
+      irqCounter: data.getUint8(offset + 12),
+      irqLatch: data.getUint8(offset + 13),
+      irqReload: data.getUint8(offset + 14) == 1,
+      irqEnabled: data.getUint8(offset + 15) == 1,
+      a12LowStart: data.getUint64(offset + 16),
+    );
+  }
 
   final int register;
   final int r0;
@@ -65,5 +68,30 @@ class MMC3State extends MapperState {
   final bool irqReload;
   final bool irqEnabled;
 
-  final int? a12LowStart;
+  final int a12LowStart;
+
+  @override
+  int get byteLength => 24;
+
+  @override
+  void toByteData(ByteData data, int offset) {
+    data
+      ..setUint8(offset, register)
+      ..setUint8(offset + 1, r0)
+      ..setUint8(offset + 2, r1)
+      ..setUint8(offset + 3, r2)
+      ..setUint8(offset + 4, r3)
+      ..setUint8(offset + 5, r4)
+      ..setUint8(offset + 6, r5)
+      ..setUint8(offset + 7, r6)
+      ..setUint8(offset + 8, r7)
+      ..setUint8(offset + 9, prgBankMode)
+      ..setUint8(offset + 10, chrBankMode)
+      ..setUint8(offset + 11, mirroring)
+      ..setUint8(offset + 12, irqCounter)
+      ..setUint8(offset + 13, irqLatch)
+      ..setUint8(offset + 14, irqReload ? 1 : 0)
+      ..setUint8(offset + 15, irqEnabled ? 1 : 0)
+      ..setUint64(offset + 16, a12LowStart);
+  }
 }

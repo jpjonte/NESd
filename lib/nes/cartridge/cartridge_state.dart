@@ -1,5 +1,6 @@
 import 'package:binarize/binarize.dart';
 import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nes/nes/cartridge/mapper/nrom_state.dart';
 
 class CartridgeState {
   const CartridgeState({
@@ -14,7 +15,7 @@ class CartridgeState {
           chr: Uint8List(1),
           sram: Uint8List(1),
           mapperId: 0,
-          mapperState: const MapperState.dummy(),
+          mapperState: const NROMState(),
         );
 
   final Uint8List chr;

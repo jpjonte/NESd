@@ -33,9 +33,9 @@ abstract class Mapper {
 
   late final Cartridge cartridge;
 
-  MapperState get state => const MapperState.dummy();
+  MapperState get state;
 
-  set state(MapperState state) {}
+  set state(MapperState state);
 
   String get name;
 

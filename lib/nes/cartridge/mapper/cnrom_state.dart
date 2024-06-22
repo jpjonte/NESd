@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
 
 class CNROMState extends MapperState {
@@ -6,7 +8,19 @@ class CNROMState extends MapperState {
     super.id = 3,
   });
 
-  const CNROMState.dummy() : this(chrBank: 0);
+  factory CNROMState.fromByteData(ByteData data, int offset) {
+    return CNROMState(
+      chrBank: data.getUint8(offset),
+    );
+  }
 
   final int chrBank;
+
+  @override
+  int get byteLength => 1;
+
+  @override
+  void toByteData(ByteData data, int offset) {
+    data.setUint8(offset, chrBank);
+  }
 }

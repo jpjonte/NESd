@@ -32,7 +32,7 @@ class MMC3 extends Mapper {
   bool _irqReload = false;
   bool _irqEnabled = false;
 
-  int? _a12LowStart;
+  int _a12LowStart = 0;
 
   @override
   MMC3State get state => MMC3State(
@@ -105,7 +105,7 @@ class MMC3 extends Mapper {
     _irqReload = false;
     _irqEnabled = false;
 
-    _a12LowStart = null;
+    _a12LowStart = 0;
   }
 
   @override
@@ -343,14 +343,16 @@ class MMC3 extends Mapper {
     if (address.bit(12) == 1) {
       // rising edge only counts if A12 was low for at least 3 cycles
       final cyclesHaveElapsed =
-          _a12LowStart != null && (bus.cpu.cycles - _a12LowStart!) >= 3;
+          _a12LowStart > 0 && (bus.cpu.cycles - _a12LowStart) >= 3;
 
-      _a12LowStart = null;
+      _a12LowStart = 0;
 
       return cyclesHaveElapsed;
     }
 
-    _a12LowStart ??= bus.cpu.cycles;
+    if (_a12LowStart == 0) {
+      _a12LowStart = bus.cpu.cycles;
+    }
 
     return false;
   }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
 
 class SinglePrgBankState extends MapperState {
@@ -6,7 +8,20 @@ class SinglePrgBankState extends MapperState {
     required this.prgBank,
   });
 
-  const SinglePrgBankState.dummy() : this(id: 0, prgBank: 0);
+  factory SinglePrgBankState.fromByteData(int id, ByteData data, int offset) {
+    return SinglePrgBankState(
+      id: id,
+      prgBank: data.getUint8(offset),
+    );
+  }
 
   final int prgBank;
+
+  @override
+  int get byteLength => 1;
+
+  @override
+  void toByteData(ByteData data, int offset) {
+    data.setUint8(offset, prgBank);
+  }
 }
