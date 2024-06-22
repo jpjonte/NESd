@@ -91,7 +91,7 @@ class NesController extends _$NesController {
         state.buttonUp(0, NesButton.start),
     (LogicalKeyboardKey.shiftRight, KeyDownEvent, shift: true): () =>
         state.buttonDown(0, NesButton.select),
-    (LogicalKeyboardKey.shiftRight, KeyUpEvent, shift: true): () =>
+    (LogicalKeyboardKey.shiftRight, KeyUpEvent, shift: false): () =>
         state.buttonUp(0, NesButton.select),
     (LogicalKeyboardKey.keyZ, KeyDownEvent, shift: false): () =>
         state.buttonDown(0, NesButton.a),
