@@ -33,6 +33,10 @@ class AudioOutput {
     _init();
   }
 
+  void dispose() {
+    _audioStream.uninit();
+  }
+
   void processSamples(Float32List samples) {
     final volumeApplied =
         Float32List.fromList(samples.map((s) => s * _volume).toList());

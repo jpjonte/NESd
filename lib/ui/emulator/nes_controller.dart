@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -9,8 +8,8 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
+import 'package:nes/ui/emulator/save_manager.dart';
 import 'package:nes/ui/settings/settings.dart';
-import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -61,7 +60,8 @@ class NesController extends _$NesController {
         settingsControllerProvider
             .select((settings) => settings.autoSaveInterval),
         (_, interval) => _setAutoSave(interval),
-      );
+      )
+      ..onDispose(_dispose);
 
     _setAutoSave(settings.autoSaveInterval);
 
@@ -133,18 +133,20 @@ class NesController extends _$NesController {
     (LogicalKeyboardKey.digit0, KeyDownEvent, shift: true): () => _saveState(0),
   };
 
+  // ignore: unused_field
+  late final AppLifecycleListener _lifecycleListener;
+
+  bool lifeCycleListenerEnabled = true;
+
   final _audioOutput = AudioOutput();
 
   double get volume => _audioOutput.volume;
 
-  bool lifeCycleListenerEnabled = true;
-
   set volume(double value) => _audioOutput.volume = value;
 
-  // ignore: unused_field
-  late final AppLifecycleListener _lifecycleListener;
-
   late CartridgeState _cartridgeState;
+
+  final _saveManager = SaveManager();
 
   Timer? _autoSaveTimer;
 
@@ -197,11 +199,17 @@ class NesController extends _$NesController {
     _load();
   }
 
-  void save() => state.bus.cartridge?.save();
+  void save() => _save();
 
   void runUntilFrame() => sendCommand(NesRunUntilFrameCommand());
 
   void sendCommand(NesCommand command) => state.executeCommand(command);
+
+  void _dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKey);
+    _autoSaveTimer?.cancel();
+    _audioOutput.dispose();
+  }
 
   bool _handleKey(KeyEvent event) {
     if (event is KeyRepeatEvent) {
@@ -241,44 +249,18 @@ class NesController extends _$NesController {
   }
 
   void _save() {
-    final save = state.save();
-
-    if (save != null) {
-      _getSaveFile().writeAsBytesSync(save);
-    }
+    _saveManager.save(state);
   }
 
   void _load() {
-    final saveFile = _getSaveFile();
-
-    if (saveFile.existsSync()) {
-      state.load(saveFile.readAsBytesSync());
-    }
+    _saveManager.load(state);
   }
 
   void _saveState(int slot) {
-    final data = state.serialize();
-
-    _getSaveStateFile(slot).writeAsBytesSync(data);
+    _saveManager.saveState(state, slot);
   }
 
   void _loadState(int slot) {
-    final saveFile = _getSaveStateFile(slot);
-
-    if (saveFile.existsSync()) {
-      state.deserialize(saveFile.readAsBytesSync());
-    }
-  }
-
-  File _getSaveFile() {
-    final filename = p.setExtension(state.bus.cartridge!.file, '.sav');
-
-    return File(filename);
-  }
-
-  File _getSaveStateFile(int slot) {
-    final filename = p.setExtension(state.bus.cartridge!.file, '.$slot.state');
-
-    return File(filename);
+    _saveManager.loadState(state, slot);
   }
 }
