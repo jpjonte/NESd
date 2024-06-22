@@ -27,12 +27,10 @@ class Bus {
 
   Cartridge? cartridge;
 
-  bool inputStrobe = false;
+  bool _inputStrobe = false;
 
-  int controller1Status = 0;
-  int controller1Shift = 0;
-  int controller2Status = 0;
-  int controller2Shift = 0;
+  final _controllerStatus = [0, 0];
+  final _controllerShift = [0, 0];
 
   int cpuRead(int address) {
     if (address == addressA) {
@@ -52,27 +50,11 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      final value = controller1Shift < 8
-          ? (controller1Status >> controller1Shift) & 1
-          : 1;
-
-      if (!inputStrobe) {
-        controller1Shift++;
-      }
-
-      return value;
+      return _readController(0);
     }
 
     if (address == 0x4017) {
-      final value = controller2Shift < 8
-          ? (controller2Status >> controller2Shift) & 1
-          : 1;
-
-      if (!inputStrobe) {
-        controller2Shift++;
-      }
-
-      return value;
+      return _readController(1);
     }
 
     if (address < 0x4020) {
@@ -186,19 +168,11 @@ class Bus {
   }
 
   void buttonDown(int controller, NesButton button) {
-    if (controller == 0) {
-      controller1Status |= 1 << button.index;
-    } else {
-      controller2Status |= 1 << button.index;
-    }
+    _controllerStatus[controller] |= 1 << button.index;
   }
 
   void buttonUp(int controller, NesButton button) {
-    if (controller == 0) {
-      controller1Status &= ~(1 << button.index);
-    } else {
-      controller2Status &= ~(1 << button.index);
-    }
+    _controllerStatus[0] &= ~(1 << button.index);
   }
 
   void triggerIrq() {
@@ -215,6 +189,24 @@ class Bus {
 
   void triggerDmcDma() {
     cpu.triggerDmcDma();
+  }
+
+  int _readController(int controller) {
+    final value = _controllerShift[controller] < 8
+        ? (_controllerStatus[controller] >> _controllerShift[controller]) & 1
+        : 1;
+
+    if (!_inputStrobe) {
+      _controllerShift[controller]++;
+    }
+
+    return value;
+  }
+
+  void _strobeControllers(int value) {
+    _inputStrobe = (value & 1) == 1;
+    _controllerShift[0] = 0;
+    _controllerShift[1] = 0;
   }
 
   int _paletteAddress(int address) {
