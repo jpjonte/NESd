@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:nes/audio/audio_output.dart';
-import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
+import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/emulator/input/keyboard_input.dart';
 import 'package:nes/ui/emulator/save_manager.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,7 +38,9 @@ class NesController extends _$NesController {
       onResume: _appResumed,
     );
 
-    HardwareKeyboard.instance.addHandler(_handleKey);
+    _keyboardInput = KeyboardInput()
+      ..keyDownStream.listen(_handleActionDown)
+      ..keyUpStream.listen(_handleActionUp);
 
     audioSampleStream.listen(_audioOutput.processSamples);
   }
@@ -68,71 +70,6 @@ class NesController extends _$NesController {
     return null;
   }
 
-  late final _keyMap = {
-    (LogicalKeyboardKey.arrowUp, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.up),
-    (LogicalKeyboardKey.arrowUp, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.up),
-    (LogicalKeyboardKey.arrowDown, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.down),
-    (LogicalKeyboardKey.arrowDown, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.down),
-    (LogicalKeyboardKey.arrowLeft, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.left),
-    (LogicalKeyboardKey.arrowLeft, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.left),
-    (LogicalKeyboardKey.arrowRight, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.right),
-    (LogicalKeyboardKey.arrowRight, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.right),
-    (LogicalKeyboardKey.enter, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.start),
-    (LogicalKeyboardKey.enter, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.start),
-    (LogicalKeyboardKey.shiftRight, KeyDownEvent, shift: true): () =>
-        state?.buttonDown(0, NesButton.select),
-    (LogicalKeyboardKey.shiftRight, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.select),
-    (LogicalKeyboardKey.keyZ, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.a),
-    (LogicalKeyboardKey.keyZ, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.a),
-    (LogicalKeyboardKey.keyX, KeyDownEvent, shift: false): () =>
-        state?.buttonDown(0, NesButton.b),
-    (LogicalKeyboardKey.keyX, KeyUpEvent, shift: false): () =>
-        state?.buttonUp(0, NesButton.b),
-    (LogicalKeyboardKey.digit1, KeyDownEvent, shift: false): () =>
-        _loadState(1),
-    (LogicalKeyboardKey.digit1, KeyDownEvent, shift: true): () => _saveState(1),
-    (LogicalKeyboardKey.digit2, KeyDownEvent, shift: false): () =>
-        _loadState(2),
-    (LogicalKeyboardKey.digit2, KeyDownEvent, shift: true): () => _saveState(2),
-    (LogicalKeyboardKey.digit3, KeyDownEvent, shift: false): () =>
-        _loadState(3),
-    (LogicalKeyboardKey.digit3, KeyDownEvent, shift: true): () => _saveState(3),
-    (LogicalKeyboardKey.digit4, KeyDownEvent, shift: false): () =>
-        _loadState(4),
-    (LogicalKeyboardKey.digit4, KeyDownEvent, shift: true): () => _saveState(4),
-    (LogicalKeyboardKey.digit5, KeyDownEvent, shift: false): () =>
-        _loadState(5),
-    (LogicalKeyboardKey.digit5, KeyDownEvent, shift: true): () => _saveState(5),
-    (LogicalKeyboardKey.digit6, KeyDownEvent, shift: false): () =>
-        _loadState(6),
-    (LogicalKeyboardKey.digit6, KeyDownEvent, shift: true): () => _saveState(6),
-    (LogicalKeyboardKey.digit7, KeyDownEvent, shift: false): () =>
-        _loadState(7),
-    (LogicalKeyboardKey.digit7, KeyDownEvent, shift: true): () => _saveState(7),
-    (LogicalKeyboardKey.digit8, KeyDownEvent, shift: false): () =>
-        _loadState(8),
-    (LogicalKeyboardKey.digit8, KeyDownEvent, shift: true): () => _saveState(8),
-    (LogicalKeyboardKey.digit9, KeyDownEvent, shift: false): () =>
-        _loadState(9),
-    (LogicalKeyboardKey.digit9, KeyDownEvent, shift: true): () => _saveState(9),
-    (LogicalKeyboardKey.digit0, KeyDownEvent, shift: false): () =>
-        _loadState(0),
-    (LogicalKeyboardKey.digit0, KeyDownEvent, shift: true): () => _saveState(0),
-  };
-
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
 
@@ -149,6 +86,9 @@ class NesController extends _$NesController {
   final _saveManager = SaveManager();
 
   Timer? _autoSaveTimer;
+
+  // ignore: unused_field
+  late final KeyboardInput _keyboardInput;
 
   final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
@@ -204,29 +144,8 @@ class NesController extends _$NesController {
   void runUntilFrame() => state?.runUntilFrame();
 
   void _dispose() {
-    HardwareKeyboard.instance.removeHandler(_handleKey);
     _autoSaveTimer?.cancel();
     _audioOutput.dispose();
-  }
-
-  bool _handleKey(KeyEvent event) {
-    if (event is KeyRepeatEvent) {
-      return true;
-    }
-
-    final action = _keyMap[(
-      event.logicalKey,
-      event.runtimeType,
-      shift: HardwareKeyboard.instance.isShiftPressed,
-    )];
-
-    if (action == null) {
-      return false;
-    }
-
-    action();
-
-    return true;
   }
 
   void _appResumed() {
@@ -267,6 +186,25 @@ class NesController extends _$NesController {
   void _loadState(int slot) {
     if (state case final state?) {
       _saveManager.loadState(state, slot);
+    }
+  }
+
+  void _handleActionDown(NesAction action) {
+    switch (action) {
+      case ControllerButtonAction():
+        state?.buttonDown(action.controller, action.button);
+      case SaveState():
+        _saveState(action.slot);
+      case LoadState():
+        _loadState(action.slot);
+    }
+  }
+
+  void _handleActionUp(NesAction action) {
+    switch (action) {
+      case ControllerButtonAction():
+        state?.buttonUp(action.controller, action.button);
+      default:
     }
   }
 }
