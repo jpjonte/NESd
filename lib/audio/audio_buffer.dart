@@ -11,29 +11,13 @@ class AudioBuffer {
 
   int get size => _buffer.length;
   int get current => (_end - _start) % size;
-  int get remaining => size - current - 1; // subtract 1 so that _end != _start
+  // subtract 1 so that a full buffer is not considered empty
+  // (because start == end)
+  int get remaining => size - current - 1;
 
   void clear() {
     _start = 0;
     _end = 0;
-  }
-
-  int write(Float32List samples) {
-    final writeSize = min(samples.length, remaining);
-
-    if (_end + writeSize < size) {
-      _buffer.setAll(_end, samples.sublist(0, writeSize));
-    } else {
-      final firstSegmentSize = size - _end;
-
-      _buffer
-        ..setAll(_end, samples.sublist(0, firstSegmentSize))
-        ..setAll(0, samples.sublist(firstSegmentSize, writeSize));
-    }
-
-    _end = (_end + writeSize) % size;
-
-    return writeSize;
   }
 
   Float32List read(int size) {
@@ -43,6 +27,8 @@ class AudioBuffer {
     if (_start + readSize < _buffer.length) {
       samples.setAll(0, _buffer.sublist(_start, _start + readSize));
     } else {
+      // read wraps around
+
       final firstSegmentSize = _buffer.length - _start;
       final secondSegmentSize = readSize - firstSegmentSize;
 
@@ -54,5 +40,25 @@ class AudioBuffer {
     _start = (_start + readSize) % _buffer.length;
 
     return samples;
+  }
+
+  int write(Float32List samples) {
+    final writeSize = min(samples.length, remaining);
+
+    if (_end + writeSize < size) {
+      _buffer.setAll(_end, samples.sublist(0, writeSize));
+    } else {
+      // write wraps around
+
+      final firstSegmentSize = size - _end;
+
+      _buffer
+        ..setAll(_end, samples.sublist(0, firstSegmentSize))
+        ..setAll(0, samples.sublist(firstSegmentSize, writeSize));
+    }
+
+    _end = (_end + writeSize) % size;
+
+    return writeSize;
   }
 }
