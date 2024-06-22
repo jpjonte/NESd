@@ -62,26 +62,7 @@ class DisplayWidget extends ConsumerWidget {
           return const Center(child: Text('Failed to load image'));
         }
 
-        final scale = switch (settings.scaling) {
-          Scaling.x1 => 1.0,
-          Scaling.x2 => 2.0,
-          Scaling.x3 => 3.0,
-          Scaling.x4 => 4.0,
-          Scaling.autoInteger => max(
-              1,
-              min(
-                mediaQuery.size.width ~/ image.width,
-                mediaQuery.size.height ~/ image.height,
-              ),
-            ),
-          Scaling.autoSmooth => max(
-              0.5,
-              min(
-                mediaQuery.size.width / image.width,
-                mediaQuery.size.height / image.height,
-              ),
-            ),
-        };
+        final scale = _calculateScale(settings, mediaQuery, image);
 
         final widthScale = settings.stretch ? 8 / 7 : 1.0;
 
@@ -95,7 +76,7 @@ class DisplayWidget extends ConsumerWidget {
               painter: EmulatorPainter(
                 image: image,
                 paused: !nes.running,
-                scale: scale.toDouble(),
+                scale: scale,
                 widthScale: widthScale,
                 showBorder: settings.showBorder,
               ),
@@ -105,6 +86,33 @@ class DisplayWidget extends ConsumerWidget {
         );
       },
     );
+  }
+
+  double _calculateScale(
+    Settings settings,
+    MediaQueryData mediaQuery,
+    ui.Image image,
+  ) {
+    return switch (settings.scaling) {
+      Scaling.x1 => 1.0,
+      Scaling.x2 => 2.0,
+      Scaling.x3 => 3.0,
+      Scaling.x4 => 4.0,
+      Scaling.autoInteger => max(
+          1.0,
+          min(
+            mediaQuery.size.width ~/ image.width,
+            mediaQuery.size.height ~/ image.height,
+          ).toDouble(),
+        ),
+      Scaling.autoSmooth => max(
+          0.5,
+          min(
+            mediaQuery.size.width / image.width,
+            mediaQuery.size.height / image.height,
+          ),
+        ),
+    };
   }
 }
 
@@ -146,39 +154,51 @@ class EmulatorPainter extends CustomPainter {
     final width = (image.width * widthScale).round();
     final height = image.height;
 
-    final topLeft = center - Offset(width / 2, height / 2) * scale;
+    final screenSize = Size(width * scale, height * scale);
 
-    const offset = Offset(1, 1);
-    canvas.drawImageRect(
-      image,
-      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      topLeft & Size(width * scale, height * scale),
-      _framePaint,
-    );
+    final topLeft =
+        center - Offset(screenSize.width / 2, screenSize.height / 2);
+
+    _drawScreen(canvas, topLeft, screenSize);
 
     if (showBorder) {
-      canvas.drawRect(
-        (topLeft - offset) &
-            Size(
-              (width + 1) * scale,
-              (height + 1) * scale,
-            ),
-        _borderPaint,
-      );
+      _drawBorder(canvas, topLeft, screenSize);
     }
 
     if (paused) {
-      canvas
-        ..drawRect(Offset.zero & size, _pauseOverlayPaint)
-        ..drawRect(
-          center.translate(-16, -16) & const Size(16, 48),
-          _pauseIconPaint,
-        )
-        ..drawRect(
-          center.translate(16, -16) & const Size(16, 48),
-          _pauseIconPaint,
-        );
+      _drawPause(canvas, size, center);
     }
+  }
+
+  void _drawScreen(Canvas canvas, Offset topLeft, Size screenSize) {
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      topLeft & screenSize,
+      _framePaint,
+    );
+  }
+
+  void _drawBorder(Canvas canvas, Offset topLeft, Size screenSize) {
+    const offset = Offset(1, 1);
+
+    canvas.drawRect(
+      (topLeft - offset) & screenSize + offset,
+      _borderPaint,
+    );
+  }
+
+  void _drawPause(Canvas canvas, Size size, Offset center) {
+    canvas
+      ..drawRect(Offset.zero & size, _pauseOverlayPaint)
+      ..drawRect(
+        center.translate(-16, -16) & const Size(16, 48),
+        _pauseIconPaint,
+      )
+      ..drawRect(
+        center.translate(16, -16) & const Size(16, 48),
+        _pauseIconPaint,
+      );
   }
 
   @override
