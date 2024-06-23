@@ -9,7 +9,7 @@ const textTheme = TextTheme(
 const sliderTheme = SliderThemeData(
   thumbColor: Color.fromARGB(0xff, 0xee, 0x00, 0x00),
   activeTrackColor: Color.fromARGB(0xff, 0xcc, 0x00, 0x00),
-  inactiveTrackColor: Color.fromARGB(0xff, 0x55, 0x00, 0x00),
+  inactiveTrackColor: Color.fromARGB(0xff, 0x77, 0x00, 0x00),
 );
 
 final nesdThemeLight = ThemeData(
