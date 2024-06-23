@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/emulator/cartridge_info.dart';
 import 'package:nes/ui/emulator/display.dart';
+import 'package:nes/ui/emulator/input/keyboard_input.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/emulator/tile_debug.dart';
 import 'package:nes/ui/settings/settings.dart';
@@ -33,36 +34,43 @@ class EmulatorScreen extends HookConsumerWidget {
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                const DisplayWidget(),
-                if (errorState.value != null)
-                  Text(
-                    errorState.value!,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (settings.showTiles || settings.showCartridgeInfo)
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 528),
-              child: ListView(
-                padding: const EdgeInsets.all(8),
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (focusNode, event) =>
+            ref.read(keyboardInputProvider).handleKeyEvent(event)
+                ? KeyEventResult.handled
+                : KeyEventResult.ignored,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
                 children: [
-                  if (settings.showTiles) const TileDebugWidget(),
-                  if (cartridge != null && settings.showCartridgeInfo)
-                    CartridgeInfoWidget(cartridge: cartridge),
+                  const DisplayWidget(),
+                  if (errorState.value != null)
+                    Text(
+                      errorState.value!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                 ],
               ),
             ),
-        ],
+            if (settings.showTiles || settings.showCartridgeInfo)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 528),
+                child: ListView(
+                  padding: const EdgeInsets.all(8),
+                  children: [
+                    if (settings.showTiles) const TileDebugWidget(),
+                    if (cartridge != null && settings.showCartridgeInfo)
+                      CartridgeInfoWidget(cartridge: cartridge),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

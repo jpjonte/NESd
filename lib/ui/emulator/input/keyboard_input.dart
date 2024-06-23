@@ -25,8 +25,6 @@ KeyboardInput keyboardInput(KeyboardInputRef ref) {
 
 class KeyboardInput {
   KeyboardInput({required List<KeyBinding> keyBindings}) {
-    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
-
     _keyMap = _buildKeyMap(keyBindings);
   }
 
@@ -45,7 +43,7 @@ class KeyboardInput {
     _keyUpStreamController.close();
   }
 
-  bool _handleKeyEvent(KeyEvent event) {
+  bool handleKeyEvent(KeyEvent event) {
     if (event is KeyRepeatEvent) {
       return true;
     }
