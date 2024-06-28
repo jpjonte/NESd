@@ -46,8 +46,15 @@ sealed class NesAction {
     required this.code,
   });
 
+  factory NesAction.fromCode(String code) {
+    return allActions.firstWhere((action) => action.code == code);
+  }
+
   final String title;
   final String code;
+
+  @override
+  String toString() => title;
 }
 
 class ControllerPress extends NesAction {

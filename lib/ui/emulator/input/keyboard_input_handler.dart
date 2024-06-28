@@ -2,30 +2,31 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/settings/controls/binding.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'keyboard_input.g.dart';
+part 'keyboard_input_handler.g.dart';
 
 typedef PriorityAction = ({int priority, NesAction action});
 typedef KeyMap = Map<Set<LogicalKeyboardKey>, NesAction>;
 
 @riverpod
-KeyboardInput keyboardInput(KeyboardInputRef ref) {
-  final keyBindings = ref.watch(
-    settingsControllerProvider.select((settings) => settings.keyMap),
+KeyboardInputHandler keyboardInputHandler(KeyboardInputHandlerRef ref) {
+  final bindings = ref.watch(
+    settingsControllerProvider.select((settings) => settings.bindings),
   );
 
-  final input = KeyboardInput(keyBindings: keyBindings);
+  final input = KeyboardInputHandler(bindings);
 
   ref.onDispose(input.dispose);
 
   return input;
 }
 
-class KeyboardInput {
-  KeyboardInput({required List<KeyBinding> keyBindings}) {
-    _keyMap = _buildKeyMap(keyBindings);
+class KeyboardInputHandler {
+  KeyboardInputHandler(Map<NesAction, InputCombination> bindings) {
+    _bindings = _buildBindingMap(bindings);
   }
 
   Stream<NesAction> get keyDownStream => _keyDownStreamController.stream;
@@ -36,7 +37,7 @@ class KeyboardInput {
 
   final _pressedKeys = <LogicalKeyboardKey>{};
 
-  late final KeyMap _keyMap;
+  late final KeyMap _bindings;
 
   void dispose() {
     _keyDownStreamController.close();
@@ -117,9 +118,9 @@ class KeyboardInput {
   List<PriorityAction> _getActions() {
     final actions = <PriorityAction>[];
 
-    for (final entry in _keyMap.entries) {
-      if (_pressedKeys.containsAll(entry.key)) {
-        actions.add((priority: entry.key.length, action: entry.value));
+    for (final MapEntry(key: input, value: action) in _bindings.entries) {
+      if (_pressedKeys.containsAll(input)) {
+        actions.add((priority: input.length, action: action));
       }
     }
 
@@ -128,9 +129,10 @@ class KeyboardInput {
     return actions;
   }
 
-  KeyMap _buildKeyMap(List<KeyBinding> keyBindings) {
+  KeyMap _buildBindingMap(Map<NesAction, InputCombination> bindings) {
     return {
-      for (final binding in keyBindings) binding.keys: binding.action,
+      for (final MapEntry(key: action, value: input) in bindings.entries)
+        if (input case final KeyboardInputCombination input) input.keys: action,
     };
   }
 }

@@ -1,11 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/action/controller_press.dart';
-import 'package:nes/ui/emulator/input/action/load_file.dart';
-import 'package:nes/ui/emulator/input/action/save_state.dart';
+import 'package:nes/ui/settings/controls/binding.dart';
+import 'package:nes/ui/settings/graphics/scaling.dart';
 import 'package:nes/ui/settings/shared_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,161 +11,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
-enum Scaling {
-  autoInteger,
-  autoSmooth,
-  x1,
-  x2,
-  x3,
-  x4,
+Map<NesAction, InputCombination> bindingsFromJson(
+  dynamic json,
+) {
+  if (json is! Map<String, dynamic>) {
+    return defaultBindings;
+  }
+
+  return json.map(
+    (key, value) => MapEntry(
+      NesAction.fromCode(key),
+      InputCombination.fromJson(value as Map<String, dynamic>),
+    ),
+  );
 }
 
-final defaultKeyMap = [
-  KeyBinding(
-    keys: {LogicalKeyboardKey.arrowUp},
-    action: controller1Up,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.arrowDown},
-    action: controller1Down,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.arrowLeft},
-    action: controller1Left,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.arrowRight},
-    action: controller1Right,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.enter},
-    action: controller1Start,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.shift},
-    action: controller1Select,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.keyZ},
-    action: controller1A,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.keyX},
-    action: controller1B,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit1},
-    action: loadState1,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit1, LogicalKeyboardKey.shift},
-    action: saveState1,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit2},
-    action: loadState2,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit2, LogicalKeyboardKey.shift},
-    action: saveState2,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit3},
-    action: loadState3,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit3, LogicalKeyboardKey.shift},
-    action: saveState3,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit4},
-    action: loadState4,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit4, LogicalKeyboardKey.shift},
-    action: saveState4,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit5},
-    action: loadState5,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit5, LogicalKeyboardKey.shift},
-    action: saveState5,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit6},
-    action: loadState6,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit6, LogicalKeyboardKey.shift},
-    action: saveState6,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit7},
-    action: loadState7,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit7, LogicalKeyboardKey.shift},
-    action: saveState7,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit8},
-    action: loadState8,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit8, LogicalKeyboardKey.shift},
-    action: saveState8,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit9},
-    action: loadState9,
-  ),
-  KeyBinding(
-    keys: {LogicalKeyboardKey.digit9, LogicalKeyboardKey.shift},
-    action: saveState9,
-  ),
-];
-
-@JsonSerializable()
-class KeyBinding {
-  const KeyBinding({
-    required this.keys,
-    required this.action,
-  });
-
-  @JsonKey(fromJson: _keysFromJson, toJson: _keysToJson)
-  final Set<LogicalKeyboardKey> keys;
-
-  @JsonKey(fromJson: _actionFromJson, toJson: _actionToJson)
-  final NesAction action;
-
-  factory KeyBinding.fromJson(Map<String, dynamic> json) =>
-      _$KeyBindingFromJson(json);
-
-  Map<String, dynamic> toJson() => _$KeyBindingToJson(this);
-
-  static Set<LogicalKeyboardKey> _keysFromJson(List<dynamic> json) {
-    final keys = json.cast<int>();
-
-    return keys
-        .map((keyId) => LogicalKeyboardKey.findKeyByKeyId(keyId))
-        .where((k) => k != null)
-        .cast<LogicalKeyboardKey>()
-        .toSet();
-  }
-
-  static List<int> _keysToJson(Set<LogicalKeyboardKey> keys) {
-    return keys.map((key) => key.keyId).toList();
-  }
-
-  static NesAction _actionFromJson(String json) {
-    return allActions.firstWhere((action) => action.code == json);
-  }
-
-  static String _actionToJson(NesAction action) {
-    return action.code;
-  }
+Map<String, dynamic> bindingsToJson(
+  Map<NesAction, InputCombination> bindings,
+) {
+  return {
+    for (final MapEntry(key: action, value: input) in bindings.entries)
+      action.code: input.toJson(),
+  };
 }
 
 @freezed
@@ -180,7 +45,9 @@ class Settings with _$Settings {
     @Default(false) bool showCartridgeInfo,
     @Default(Scaling.autoInteger) Scaling scaling,
     @Default(1) int? autoSaveInterval,
-    @Default([]) List<KeyBinding> keyMap,
+    @Default({})
+    @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+    Map<NesAction, InputCombination> bindings,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -249,34 +116,28 @@ class SettingsController extends _$SettingsController {
     _save();
   }
 
-  List<KeyBinding> get keyMap => state.keyMap;
+  Map<NesAction, InputCombination> get bindings => state.bindings;
 
-  set keyMap(List<KeyBinding> keyMap) {
-    state = state.copyWith(keyMap: keyMap);
+  set bindings(Map<NesAction, InputCombination> bindings) {
+    state = state.copyWith(bindings: bindings);
     _save();
   }
 
-  void updateKeyBinding(KeyBinding binding) {
-    final index = state.keyMap.indexWhere((b) => b.action == binding.action);
-
-    if (index == -1) {
-      state = state.copyWith(keyMap: [...state.keyMap, binding]);
-    } else {
-      final updated = List<KeyBinding>.from(state.keyMap);
-
-      updated[index] = binding;
-
-      state = state.copyWith(keyMap: updated);
-    }
+  void updateBinding(NesAction action, InputCombination binding) {
+    state = state.copyWith(
+      bindings: {
+        ...state.bindings,
+        action: binding,
+      },
+    );
 
     _save();
   }
 
   void clearKeyBinding(NesAction action) {
-    final updated = List<KeyBinding>.from(state.keyMap)
-      ..removeWhere((b) => b.action == action);
+    state.bindings.remove(action);
 
-    state = state.copyWith(keyMap: updated);
+    state = state.copyWith(bindings: state.bindings);
 
     _save();
   }
@@ -289,14 +150,18 @@ class SettingsController extends _$SettingsController {
     final raw = _prefs.getString(settingsKey);
 
     if (raw == null) {
-      return Settings();
+      final settings = Settings(bindings: defaultBindings);
+
+      _prefs.setString(settingsKey, jsonEncode(settings.toJson()));
+
+      return settings;
     }
 
     final loaded = Settings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      keyMap: loaded.keyMap.isEmpty ? defaultKeyMap : loaded.keyMap,
+      bindings: loaded.bindings.isNotEmpty ? loaded.bindings : defaultBindings,
     );
   }
 }

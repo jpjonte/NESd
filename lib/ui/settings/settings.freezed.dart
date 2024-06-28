@@ -27,7 +27,9 @@ mixin _$Settings {
   bool get showCartridgeInfo => throw _privateConstructorUsedError;
   Scaling get scaling => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
-  List<KeyBinding> get keyMap => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+  Map<NesAction, InputCombination> get bindings =>
+      throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -48,7 +50,8 @@ abstract class $SettingsCopyWith<$Res> {
       bool showCartridgeInfo,
       Scaling scaling,
       int? autoSaveInterval,
-      List<KeyBinding> keyMap});
+      @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+      Map<NesAction, InputCombination> bindings});
 }
 
 /// @nodoc
@@ -71,7 +74,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showCartridgeInfo = null,
     Object? scaling = null,
     Object? autoSaveInterval = freezed,
-    Object? keyMap = null,
+    Object? bindings = null,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -102,10 +105,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
-      keyMap: null == keyMap
-          ? _value.keyMap
-          : keyMap // ignore: cast_nullable_to_non_nullable
-              as List<KeyBinding>,
+      bindings: null == bindings
+          ? _value.bindings
+          : bindings // ignore: cast_nullable_to_non_nullable
+              as Map<NesAction, InputCombination>,
     ) as $Val);
   }
 }
@@ -126,7 +129,8 @@ abstract class _$$SettingsImplCopyWith<$Res>
       bool showCartridgeInfo,
       Scaling scaling,
       int? autoSaveInterval,
-      List<KeyBinding> keyMap});
+      @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+      Map<NesAction, InputCombination> bindings});
 }
 
 /// @nodoc
@@ -147,7 +151,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showCartridgeInfo = null,
     Object? scaling = null,
     Object? autoSaveInterval = freezed,
-    Object? keyMap = null,
+    Object? bindings = null,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -178,10 +182,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
-      keyMap: null == keyMap
-          ? _value._keyMap
-          : keyMap // ignore: cast_nullable_to_non_nullable
-              as List<KeyBinding>,
+      bindings: null == bindings
+          ? _value._bindings
+          : bindings // ignore: cast_nullable_to_non_nullable
+              as Map<NesAction, InputCombination>,
     ));
   }
 }
@@ -197,8 +201,9 @@ class _$SettingsImpl implements _Settings {
       this.showCartridgeInfo = false,
       this.scaling = Scaling.autoInteger,
       this.autoSaveInterval = 1,
-      final List<KeyBinding> keyMap = const []})
-      : _keyMap = keyMap;
+      @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+      final Map<NesAction, InputCombination> bindings = const {}})
+      : _bindings = bindings;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -224,18 +229,18 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final int? autoSaveInterval;
-  final List<KeyBinding> _keyMap;
+  final Map<NesAction, InputCombination> _bindings;
   @override
-  @JsonKey()
-  List<KeyBinding> get keyMap {
-    if (_keyMap is EqualUnmodifiableListView) return _keyMap;
+  @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+  Map<NesAction, InputCombination> get bindings {
+    if (_bindings is EqualUnmodifiableMapView) return _bindings;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_keyMap);
+    return EqualUnmodifiableMapView(_bindings);
   }
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval, keyMap: $keyMap)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval, bindings: $bindings)';
   }
 
   @override
@@ -254,7 +259,7 @@ class _$SettingsImpl implements _Settings {
             (identical(other.scaling, scaling) || other.scaling == scaling) &&
             (identical(other.autoSaveInterval, autoSaveInterval) ||
                 other.autoSaveInterval == autoSaveInterval) &&
-            const DeepCollectionEquality().equals(other._keyMap, _keyMap));
+            const DeepCollectionEquality().equals(other._bindings, _bindings));
   }
 
   @JsonKey(ignore: true)
@@ -268,7 +273,7 @@ class _$SettingsImpl implements _Settings {
       showCartridgeInfo,
       scaling,
       autoSaveInterval,
-      const DeepCollectionEquality().hash(_keyMap));
+      const DeepCollectionEquality().hash(_bindings));
 
   @JsonKey(ignore: true)
   @override
@@ -293,7 +298,8 @@ abstract class _Settings implements Settings {
       final bool showCartridgeInfo,
       final Scaling scaling,
       final int? autoSaveInterval,
-      final List<KeyBinding> keyMap}) = _$SettingsImpl;
+      @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+      final Map<NesAction, InputCombination> bindings}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -313,7 +319,8 @@ abstract class _Settings implements Settings {
   @override
   int? get autoSaveInterval;
   @override
-  List<KeyBinding> get keyMap;
+  @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+  Map<NesAction, InputCombination> get bindings;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

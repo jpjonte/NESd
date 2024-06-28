@@ -7,7 +7,8 @@ import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/keyboard_input.dart';
+import 'package:nes/ui/emulator/input/gamepad_input_handler.dart';
+import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/save_manager.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -42,11 +43,20 @@ class NesController extends _$NesController {
         fireImmediately: true,
       )
       ..listen(
-        keyboardInputProvider,
+        keyboardInputHandlerProvider,
         (_, input) {
           input
             ..keyDownStream.listen(_handleActionDown)
             ..keyUpStream.listen(_handleActionUp);
+        },
+        fireImmediately: true,
+      )
+      ..listen(
+        gamepadInputHandlerProvider,
+        (_, input) {
+          input
+            ..buttonDownStream.listen(_handleActionDown)
+            ..buttonUpStream.listen(_handleActionUp);
         },
         fireImmediately: true,
       )
