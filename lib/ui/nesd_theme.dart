@@ -25,6 +25,7 @@ final nesdThemeDark = ThemeData(
   useMaterial3: true,
   colorScheme: const ColorScheme.dark(
     primary: nesdRed,
+    onPrimary: Colors.white,
     surface: Colors.black,
     // ignore: deprecated_member_use
     background: Colors.black,

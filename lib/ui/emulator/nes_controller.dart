@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:nes/audio/audio_output.dart';
+import 'package:nes/exception/empty_archive.dart';
+import 'package:nes/exception/too_many_roms.dart';
+import 'package:nes/exception/unsupported_file_type.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
@@ -12,6 +17,7 @@ import 'package:nes/ui/emulator/input/gamepad_input_handler.dart';
 import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/save_manager.dart';
 import 'package:nes/ui/settings/settings.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -95,7 +101,13 @@ class NesController extends _$NesController {
   Future<void> loadCartridge(String path) async {
     state?.stop();
 
-    final cartridge = Cartridge.fromFile(path);
+    final rom = switch (p.extension(path)) {
+      '.nes' => await File(path).readAsBytes(),
+      '.zip' => _loadZip(path),
+      _ => throw UnsupportedFileType(p.extension(path)),
+    };
+
+    final cartridge = Cartridge.fromFile(path, rom);
 
     // give the loop a chance to end
     await Future.delayed(const Duration(milliseconds: 500));
@@ -137,7 +149,7 @@ class NesController extends _$NesController {
 
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['nes'],
+      allowedExtensions: ['nes', 'zip'],
     );
 
     if (result == null) {
@@ -228,5 +240,24 @@ class NesController extends _$NesController {
       default:
       // no-op
     }
+  }
+
+  Uint8List _loadZip(String path) {
+    final inputStream = InputFileStream(path);
+    final archive = ZipDecoder().decodeBuffer(inputStream);
+
+    final roms = archive.files
+        .where((file) => p.extension(file.name) == '.nes')
+        .toList();
+
+    if (roms.isEmpty) {
+      throw EmptyArchive(path);
+    }
+
+    if (roms.length > 1) {
+      throw TooManyRoms(path);
+    }
+
+    return Uint8List.fromList(roms.single.content as List<int>);
   }
 }

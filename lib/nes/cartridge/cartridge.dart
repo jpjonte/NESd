@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:nes/exception/invalid_rom_header.dart';
@@ -35,10 +34,7 @@ class Cartridge {
     mapper.cartridge = this;
   }
 
-  factory Cartridge.fromFile(String path) {
-    final file = File(path);
-    final rom = file.readAsBytesSync();
-
+  factory Cartridge.fromFile(String path, Uint8List rom) {
     if (rom[0] != 0x4E || rom[1] != 0x45 || rom[2] != 0x53 || rom[3] != 0x1A) {
       throw InvalidRomHeader(rom.sublist(0, 4));
     }

@@ -8,6 +8,7 @@ environment:
   sdk: '>=3.4.1 <4.0.0'
 
 dependencies:
+  archive: ^3.6.1
   binarize: ^1.5.0
   build_runner: ^2.4.10
   file_picker: ^8.0.3
