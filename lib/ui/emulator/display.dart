@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
+import 'package:nes/ui/settings/graphics/scaling.dart';
 import 'package:nes/ui/settings/settings.dart';
+import 'package:nes/ui/settings/settings_screen.dart';
 
 Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
@@ -41,7 +43,26 @@ class DisplayWidget extends ConsumerWidget {
           maxWidth: mediaQuery.size.width,
           maxHeight: mediaQuery.size.height,
         ),
-        child: const Center(child: Text('Press ⌘ + O to open a ROM')),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 200,
+              child: FilledButton(
+                onPressed: controller.selectRom,
+                child: const Text('Open ROM'),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: 200,
+              child: FilledButton(
+                onPressed: () => SettingsScreen.open(context),
+                child: const Text('Settings'),
+              ),
+            ),
+          ],
+        ),
       );
     }
 

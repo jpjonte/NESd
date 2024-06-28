@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:nes/audio/audio_output.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
@@ -130,6 +131,38 @@ class NesController extends _$NesController {
   void save() => _save();
 
   void runUntilFrame() => state?.runUntilFrame();
+
+  Future<void> selectRom() async {
+    suspend();
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['nes'],
+    );
+
+    if (result == null) {
+      resume();
+
+      return;
+    }
+
+    final path = result.files.single.path;
+
+    if (path == null) {
+      resume();
+
+      return;
+    }
+
+    try {
+      await loadCartridge(path);
+      run();
+    } on Exception catch (e) {
+      _streamController.addError('Failed to load ROM: $e');
+
+      resume();
+    }
+  }
 
   void _dispose() {
     _autoSaveTimer?.cancel();

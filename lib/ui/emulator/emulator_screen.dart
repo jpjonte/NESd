@@ -1,11 +1,10 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/emulator/cartridge_info.dart';
 import 'package:nes/ui/emulator/display.dart';
-import 'package:nes/ui/emulator/input/keyboard_input.dart';
+import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/emulator/tile_debug.dart';
 import 'package:nes/ui/settings/settings.dart';
@@ -37,7 +36,7 @@ class EmulatorScreen extends HookConsumerWidget {
       child: Focus(
         autofocus: true,
         onKeyEvent: (focusNode, event) =>
-            ref.read(keyboardInputProvider).handleKeyEvent(event)
+            ref.read(keyboardInputHandlerProvider).handleKeyEvent(event)
                 ? KeyEventResult.handled
                 : KeyEventResult.ignored,
         child: Row(
@@ -127,8 +126,9 @@ class EmulatorScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Open...',
           shortcut: const CharacterActivator('o', meta: true),
-          onSelected: () async {
-            await _loadRom(controller, errorState);
+          onSelected: () {
+            errorState.value = null;
+            controller.selectRom();
           },
         ),
       ],
@@ -174,42 +174,5 @@ class EmulatorScreen extends HookConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _loadRom(
-    NesController controller,
-    ValueNotifier<String?> error,
-  ) async {
-    controller.suspend();
-
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['nes'],
-    );
-
-    if (result == null) {
-      controller.resume();
-
-      return;
-    }
-
-    error.value = null;
-
-    final path = result.files.single.path;
-
-    if (path == null) {
-      controller.resume();
-
-      return;
-    }
-
-    try {
-      await controller.loadCartridge(path);
-      controller.run();
-    } on Exception catch (e) {
-      error.value = 'Failed to load ROM: $e';
-
-      controller.resume();
-    }
   }
 }
