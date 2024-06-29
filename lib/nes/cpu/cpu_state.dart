@@ -32,7 +32,7 @@ class CPUState {
         X = 0,
         Y = 0,
         P = 0,
-        irq = false,
+        irq = 0,
         nmi = false,
         ram = Uint8List(1),
         oamDma = false,
@@ -53,7 +53,7 @@ class CPUState {
   final int Y;
   final int P;
 
-  final bool irq;
+  final int irq;
   final bool nmi;
 
   final Uint8List ram;
@@ -134,7 +134,7 @@ class _CPUStateContract extends BinaryContract<CPUState> implements CPUState {
   int get dmcDmaValue => type(uint8, (o) => o.dmcDmaValue);
 
   @override
-  bool get irq => type(boolean, (o) => o.irq);
+  int get irq => type(uint8, (o) => o.irq);
 
   @override
   bool get nmi => type(boolean, (o) => o.nmi);

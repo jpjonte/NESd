@@ -1,6 +1,7 @@
 import 'package:nes/extension/bit_extension.dart';
 import 'package:nes/nes/apu/apu.dart';
 import 'package:nes/nes/apu/frame_counter/frame_counter_state.dart';
+import 'package:nes/nes/cpu/cpu.dart';
 
 class FrameCounter {
   FrameCounter(this.apu);
@@ -45,6 +46,8 @@ class FrameCounter {
     // it will read back as 1 but it will not be cleared.
     interrupt = false;
 
+    apu.bus.clearIrq(IrqSource.apuFrameCounter);
+
     return value;
   }
 
@@ -55,6 +58,8 @@ class FrameCounter {
 
     if (interruptInhibit) {
       interrupt = false;
+
+      apu.bus.clearIrq(IrqSource.apuFrameCounter);
     }
 
     // TODO Side effects
@@ -119,7 +124,7 @@ class FrameCounter {
         if (!interruptInhibit) {
           interrupt = true;
 
-          apu.bus.triggerIrq();
+          apu.bus.triggerIrq(IrqSource.apuFrameCounter);
         }
     }
   }

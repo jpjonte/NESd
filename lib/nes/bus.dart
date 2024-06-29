@@ -164,16 +164,20 @@ class Bus {
     _controllerStatus[0] &= ~(1 << button.index);
   }
 
-  void triggerIrq() {
-    cpu.triggerIrq();
+  void triggerIrq(IrqSource source) {
+    cpu.triggerIrq(source);
   }
 
-  void acknowledgeIrq() {
-    cpu.acknowledgeIrq();
+  void clearIrq(IrqSource source) {
+    cpu.clearIrq(source);
   }
 
   void triggerNmi() {
     cpu.triggerNmi();
+  }
+
+  void clearNmi() {
+    cpu.clearNmi();
   }
 
   void triggerDmcDma() {

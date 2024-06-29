@@ -3,6 +3,7 @@ import 'package:nes/nes/bus.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/cartridge/mapper/mapper.dart';
 import 'package:nes/nes/cartridge/mapper/mmc3_state.dart';
+import 'package:nes/nes/cpu/cpu.dart';
 
 class MMC3 extends Mapper {
   MMC3() : super(4);
@@ -181,7 +182,7 @@ class MMC3 extends Mapper {
     }
 
     if (_irqCounter == 0 && _irqEnabled) {
-      bus.triggerIrq();
+      bus.triggerIrq(IrqSource.mapper);
     }
 
     _irqReload = false;
@@ -247,7 +248,7 @@ class MMC3 extends Mapper {
       // IRQ disable (0xe000 - 0xfffe, even)
       case 0xe000:
         _irqEnabled = false;
-        bus.acknowledgeIrq();
+        bus.clearIrq(IrqSource.mapper);
       // IRQ enable (0xe001 - 0xffff, odd)
       case 0xe001:
         _irqEnabled = true;

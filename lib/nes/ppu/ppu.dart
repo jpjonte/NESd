@@ -473,6 +473,8 @@ class PPU {
       PPUSTATUS_O = 0;
       PPUSTATUS_S = 0;
       PPUSTATUS_V = 0;
+
+      bus.clearNmi();
     }
   }
 
@@ -489,6 +491,8 @@ class PPU {
 
     PPUSTATUS_V = 0;
     w = 0;
+
+    bus.clearNmi();
 
     return value;
   }

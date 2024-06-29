@@ -9,6 +9,7 @@ import 'package:nes/nes/apu/channel/triangle_channel.dart';
 import 'package:nes/nes/apu/frame_counter/frame_counter.dart';
 import 'package:nes/nes/apu/tables.dart';
 import 'package:nes/nes/bus.dart';
+import 'package:nes/nes/cpu/cpu.dart';
 
 const apuSampleRate = 48000;
 
@@ -175,7 +176,9 @@ class APU {
     }
 
     if (dmc.interrupt) {
-      bus.triggerIrq();
+      bus.triggerIrq(IrqSource.apuDmc);
+    } else {
+      bus.clearIrq(IrqSource.apuDmc);
     }
 
     _handleSampling();
@@ -189,6 +192,7 @@ class APU {
     triangle.status = value;
     noise.status = value;
     dmc.writeStatus(bus, value);
+    bus.clearIrq(IrqSource.apuDmc);
   }
 
   void _handleSampling() {

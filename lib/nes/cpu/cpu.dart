@@ -10,6 +10,20 @@ import 'package:nes/nes/cpu/cpu_state.dart';
 import 'package:nes/nes/cpu/instruction.dart';
 import 'package:nes/nes/cpu/operation.dart';
 
+const nmiVector = 0xfffa;
+const resetVector = 0xfffc;
+const irqVector = 0xfffe;
+
+enum IrqSource {
+  apuFrameCounter(1),
+  apuDmc(2),
+  mapper(4);
+
+  const IrqSource(this.bit);
+
+  final int bit;
+}
+
 class CPU {
   CPU(this.bus);
 
@@ -42,8 +56,14 @@ class CPU {
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 
-  bool _irq = false;
+  int _irq = 0;
+
+  bool _doIrq = false;
+  bool _previousDoIrq = false;
   bool _nmi = false;
+  bool _previousNmi = false;
+  bool _doNmi = false;
+  bool _previousDoNmi = false;
 
   bool _oamDma = false;
   bool _oamDmaStarted = false;
@@ -136,14 +156,19 @@ class CPU {
     cycles = 0;
 
     SP = 0xfd;
-    PC = read(0xfffc) | (read(0xfffd) << 8);
+    PC = read16(resetVector);
     P = 0x24;
     A = 0x00;
     X = 0x00;
     Y = 0x00;
 
-    _irq = false;
+    _irq = 0;
+    _doIrq = false;
+    _previousDoIrq = false;
     _nmi = false;
+    _previousNmi = false;
+    _doNmi = false;
+    _previousDoNmi = false;
 
     _oamDma = false;
     _oamDmaStarted = false;
@@ -160,8 +185,6 @@ class CPU {
   }
 
   void step() {
-    _handleInterrupts();
-
     if (_handleDMA()) {
       return;
     }
@@ -195,19 +218,30 @@ class CPU {
     }
 
     cycles += op.cycles + additionalCycles;
+
+    _handleInterrupts();
   }
 
   void _handleInterrupts() {
-    if (_nmi) {
-      _nmi = false;
+    _previousDoNmi = _doNmi;
 
-      handleIrq(0xfffa);
+    if (!_previousNmi && _nmi) {
+      _doNmi = true;
     }
 
-    if (_irq && I == 0) {
-      _irq = false;
+    _previousNmi = _nmi;
 
-      handleIrq(0xfffe);
+    _previousDoIrq = _doIrq;
+
+    _doIrq = _irq > 0 && I == 0;
+
+    if (_previousDoNmi) {
+      _doNmi = false;
+
+      _handleIrq(nmiVector);
+    } else if (_previousDoIrq) {
+      _irq = 0;
+      _handleIrq(irqVector);
     }
   }
 
@@ -265,26 +299,28 @@ class CPU {
     }
   }
 
-  void handleIrq(int address) {
-    _irq = false;
-
+  void _handleIrq(int address) {
     pushStack16(PC);
-    PHP.execute(this, 0);
+    pushStack(P.setBit(5, 1));
 
     I = 1;
     PC = read16(address);
   }
 
-  void triggerIrq() {
-    _irq = true;
+  void triggerIrq(IrqSource source) {
+    _irq = _irq.setBit(source.bit, 1);
   }
 
-  void acknowledgeIrq() {
-    _irq = false;
+  void clearIrq(IrqSource source) {
+    _irq = _irq.setBit(source.bit, 0);
   }
 
   void triggerNmi() {
     _nmi = true;
+  }
+
+  void clearNmi() {
+    _nmi = false;
   }
 
   void triggerDmcDma() {
@@ -295,5 +331,22 @@ class CPU {
     _oamDma = true;
     _oamDmaPage = page;
     _oamDmaOffset = 0;
+  }
+
+  void BRK() {
+    pushStack16(PC + 1);
+    pushStack(P.setBit(4, 1).setBit(5, 1));
+
+    I = 1;
+
+    if (_doNmi) {
+      _doNmi = false;
+
+      PC = read16(nmiVector);
+    } else {
+      PC = read16(irqVector);
+    }
+
+    _previousDoNmi = false;
   }
 }
