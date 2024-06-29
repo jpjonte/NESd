@@ -135,9 +135,12 @@ class SettingsController extends _$SettingsController {
   }
 
   void clearKeyBinding(NesAction action) {
-    state.bindings.remove(action);
-
-    state = state.copyWith(bindings: state.bindings);
+    state = state.copyWith(
+      bindings: {
+        for (final entry in state.bindings.entries)
+          if (entry.key != action) entry.key: entry.value,
+      },
+    );
 
     _save();
   }

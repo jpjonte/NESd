@@ -1,4 +1,14 @@
-import 'package:nes/ui/emulator/input/action.dart';
+part of '../action.dart';
+
+class SaveState extends NesAction {
+  const SaveState(
+    this.slot, {
+    required super.title,
+    required super.code,
+  });
+
+  final int slot;
+}
 
 const saveState1 = SaveState(
   1,

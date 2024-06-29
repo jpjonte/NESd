@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:nes/ui/emulator/emulator_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/ui/nesd_theme.dart';
-import 'package:nes/ui/settings/settings_screen.dart';
+import 'package:nes/ui/router.dart';
 
-class NesdApp extends StatelessWidget {
+class NesdApp extends ConsumerWidget {
   const NesdApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
       title: 'NESd',
       theme: nesdThemeLight,
       darkTheme: nesdThemeDark,
       debugShowCheckedModeBanner: false,
-      routes: {
-        '/': (_) => const Scaffold(body: EmulatorScreen()),
-        SettingsScreen.route: (_) => const SettingsScreen(),
-      },
+      routerConfig: router.config(),
     );
   }
 }

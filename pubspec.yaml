@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   archive: ^3.6.1
+  auto_route: ^8.2.0
   binarize: ^1.5.0
   build_runner: ^2.4.10
   file_picker: ^8.0.3
@@ -32,6 +33,7 @@ dependencies:
   shared_preferences: ^2.2.3
 
 dev_dependencies:
+  auto_route_generator: ^8.0.0
   flutter_test:
     sdk: flutter
 

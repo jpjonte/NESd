@@ -12,9 +12,6 @@ import 'package:nes/exception/unsupported_file_type.dart';
 import 'package:nes/nes/cartridge/cartridge.dart';
 import 'package:nes/nes/nes.dart';
 import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/gamepad_input_handler.dart';
-import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/save_manager.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
@@ -47,24 +44,6 @@ class NesController extends _$NesController {
         settingsControllerProvider
             .select((settings) => settings.autoSaveInterval),
         (_, interval) => _setAutoSave(interval),
-        fireImmediately: true,
-      )
-      ..listen(
-        keyboardInputHandlerProvider,
-        (_, input) {
-          input
-            ..keyDownStream.listen(_handleActionDown)
-            ..keyUpStream.listen(_handleActionUp);
-        },
-        fireImmediately: true,
-      )
-      ..listen(
-        gamepadInputHandlerProvider,
-        (_, input) {
-          input
-            ..buttonDownStream.listen(_handleActionDown)
-            ..buttonUpStream.listen(_handleActionUp);
-        },
         fireImmediately: true,
       )
       ..onDispose(_dispose);
@@ -207,38 +186,6 @@ class NesController extends _$NesController {
   void _load() {
     if (state case final state?) {
       _saveManager.load(state);
-    }
-  }
-
-  void _saveState(int slot) {
-    if (state case final state?) {
-      _saveManager.saveState(state, slot);
-    }
-  }
-
-  void _loadState(int slot) {
-    if (state case final state?) {
-      _saveManager.loadState(state, slot);
-    }
-  }
-
-  void _handleActionDown(NesAction action) {
-    switch (action) {
-      case ControllerPress():
-        state?.buttonDown(action.controller, action.button);
-      case SaveState():
-        _saveState(action.slot);
-      case LoadState():
-        _loadState(action.slot);
-    }
-  }
-
-  void _handleActionUp(NesAction action) {
-    switch (action) {
-      case ControllerPress():
-        state?.buttonUp(action.controller, action.button);
-      default:
-      // no-op
     }
   }
 

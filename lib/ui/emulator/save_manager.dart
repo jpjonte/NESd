@@ -3,6 +3,12 @@ import 'dart:io';
 import 'package:nes/nes/nes.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'save_manager.g.dart';
+
+@riverpod
+SaveManager saveManager(SaveManagerRef ref) => SaveManager();
 
 class SaveManager {
   static const directoryName = 'NESd';

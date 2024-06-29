@@ -1,5 +1,16 @@
-import 'package:nes/nes/bus.dart';
-import 'package:nes/ui/emulator/input/action.dart';
+part of '../action.dart';
+
+class ControllerPress extends NesAction {
+  const ControllerPress(
+    this.controller,
+    this.button, {
+    required super.title,
+    required super.code,
+  });
+
+  final int controller;
+  final NesButton button;
+}
 
 const controller1Up = ControllerPress(
   0,

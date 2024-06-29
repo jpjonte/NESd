@@ -1,40 +1,34 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/settings/audio/audio_settings.dart';
 import 'package:nes/ui/settings/controls/control_settings.dart';
 import 'package:nes/ui/settings/debug/debug_settings.dart';
 import 'package:nes/ui/settings/general/general_settings.dart';
 import 'package:nes/ui/settings/graphics/graphics_settings.dart';
 
-class SettingsScreen extends HookWidget {
+@RoutePage()
+class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 
-  static const route = '/settings';
-
-  static Future<Object?> open(BuildContext context) async {
-    var alreadyOpen = false;
-
-    Navigator.popUntil(context, (route) {
-      if (route.settings.name == SettingsScreen.route) {
-        alreadyOpen = true;
-      }
-
-      return true;
-    });
-
-    if (!alreadyOpen) {
-      return Navigator.of(context).pushNamed(route);
-    }
-
-    return null;
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 5);
+    final controller = ref.watch(nesControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed: () {
+            controller
+              ..resume()
+              ..lifeCycleListenerEnabled = true;
+
+            AutoRouter.of(context).maybePop();
+          },
+        ),
         title: Text(
           'Settings',
           style: TextStyle(

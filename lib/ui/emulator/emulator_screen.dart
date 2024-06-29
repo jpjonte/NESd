@@ -1,15 +1,18 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/emulator/action_handler.dart';
 import 'package:nes/ui/emulator/cartridge_info.dart';
 import 'package:nes/ui/emulator/display.dart';
 import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/emulator/tile_debug.dart';
+import 'package:nes/ui/router.dart';
 import 'package:nes/ui/settings/settings.dart';
-import 'package:nes/ui/settings/settings_screen.dart';
 
+@RoutePage()
 class EmulatorScreen extends HookConsumerWidget {
   const EmulatorScreen({
     super.key,
@@ -23,6 +26,8 @@ class EmulatorScreen extends HookConsumerWidget {
     final controller = ref.read(nesControllerProvider.notifier);
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
+
+    ref.watch(actionHandlerProvider);
 
     final cartridge = nes?.bus.cartridge;
 
@@ -92,15 +97,7 @@ class EmulatorScreen extends HookConsumerWidget {
               ..lifeCycleListenerEnabled = false
               ..suspend();
 
-            await SettingsScreen.open(context);
-
-            if (!context.mounted) {
-              return;
-            }
-
-            controller
-              ..resume()
-              ..lifeCycleListenerEnabled = true;
+            context.router.navigate(const SettingsRoute());
           },
         ),
         PlatformMenuItem(

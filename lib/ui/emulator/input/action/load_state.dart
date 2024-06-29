@@ -1,4 +1,14 @@
-import 'package:nes/ui/emulator/input/action.dart';
+part of '../action.dart';
+
+class LoadState extends NesAction {
+  const LoadState(
+    this.slot, {
+    required super.title,
+    required super.code,
+  });
+
+  final int slot;
+}
 
 const loadState1 = LoadState(
   1,
