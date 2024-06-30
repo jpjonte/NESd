@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/binding.dart';
+import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/graphics/scaling.dart';
 import 'package:nes/ui/settings/shared_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,7 +11,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
-Map<NesAction, InputCombination> bindingsFromJson(
+typedef BindingMap = Map<NesAction, List<InputCombination?>>;
+
+BindingMap bindingsFromJson(
   dynamic json,
 ) {
   if (json is! Map<String, dynamic>) {
@@ -19,19 +21,37 @@ Map<NesAction, InputCombination> bindingsFromJson(
   }
 
   return json.map(
-    (key, value) => MapEntry(
-      NesAction.fromCode(key),
-      InputCombination.fromJson(value as Map<String, dynamic>),
-    ),
+    (key, value) {
+      final inputs = value is List
+          ? value
+              .map(
+                (e) => e != null
+                    ? InputCombination.fromJson(e as Map<String, dynamic>)
+                    : null,
+              )
+              .toList()
+          : [
+              if (value != null)
+                InputCombination.fromJson(value as Map<String, dynamic>)
+              else
+                null,
+            ];
+
+      return MapEntry(
+        NesAction.fromCode(key),
+        inputs,
+      );
+    },
   );
 }
 
-Map<String, dynamic> bindingsToJson(
-  Map<NesAction, InputCombination> bindings,
-) {
+Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   return {
-    for (final MapEntry(key: action, value: input) in bindings.entries)
-      action.code: input.toJson(),
+    for (final MapEntry(key: action, value: inputs) in bindings.entries)
+      action.code: [
+        for (final input in inputs)
+          if (input != null) input.toJson() else null,
+      ],
   };
 }
 
@@ -47,7 +67,7 @@ class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default({})
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-    Map<NesAction, InputCombination> bindings,
+    Map<NesAction, List<InputCombination?>> bindings,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -116,29 +136,53 @@ class SettingsController extends _$SettingsController {
     _save();
   }
 
-  Map<NesAction, InputCombination> get bindings => state.bindings;
+  BindingMap get bindings => state.bindings;
 
-  set bindings(Map<NesAction, InputCombination> bindings) {
+  set bindings(BindingMap bindings) {
     state = state.copyWith(bindings: bindings);
     _save();
   }
 
-  void updateBinding(NesAction action, InputCombination binding) {
+  void updateBinding(NesAction action, int index, InputCombination input) {
+    final bindings = state.bindings[action] ?? [];
+
+    if (index < bindings.length) {
+      bindings[index] = input;
+    } else {
+      bindings
+        ..addAll(
+          // fill with nulls up to the index
+          List<InputCombination?>.filled(index - bindings.length, null),
+        )
+        ..add(input);
+    }
+
     state = state.copyWith(
       bindings: {
         ...state.bindings,
-        action: binding,
+        action: bindings,
       },
     );
 
     _save();
   }
 
-  void clearKeyBinding(NesAction action) {
+  void clearBinding(NesAction action, int index) {
+    final bindings = state.bindings[action] ?? [];
+
+    if (index < bindings.length - 1) {
+      bindings[index] = null;
+    } else if (index == bindings.length - 1) {
+      bindings.removeAt(index);
+    }
+
     state = state.copyWith(
       bindings: {
         for (final entry in state.bindings.entries)
-          if (entry.key != action) entry.key: entry.value,
+          if (entry.key == action)
+            entry.key: bindings
+          else
+            entry.key: entry.value,
       },
     );
 

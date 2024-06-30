@@ -1,11 +1,10 @@
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/action/all_actions.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
 
-part 'binding.freezed.dart';
-part 'binding.g.dart';
+part 'input_combination.freezed.dart';
+part 'input_combination.g.dart';
 
 final defaultBindings = {
   controller1Up: [
@@ -118,14 +117,6 @@ Set<LogicalKeyboardKey> keysFromJson(List<dynamic> json) {
 
 List<int> keysToJson(Set<LogicalKeyboardKey> keys) {
   return keys.map((key) => key.keyId).toList();
-}
-
-NesAction actionFromJson(String json) {
-  return allActions.firstWhere((action) => action.code == json);
-}
-
-String actionToJson(NesAction action) {
-  return action.code;
 }
 
 @Freezed(unionKey: 'type', fallbackUnion: 'keyboard')

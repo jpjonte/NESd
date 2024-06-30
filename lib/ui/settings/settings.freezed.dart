@@ -28,7 +28,7 @@ mixin _$Settings {
   Scaling get scaling => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, InputCombination> get bindings =>
+  Map<NesAction, List<InputCombination?>> get bindings =>
       throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,7 +51,7 @@ abstract class $SettingsCopyWith<$Res> {
       Scaling scaling,
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, InputCombination> bindings});
+      Map<NesAction, List<InputCombination?>> bindings});
 }
 
 /// @nodoc
@@ -108,7 +108,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
       bindings: null == bindings
           ? _value.bindings
           : bindings // ignore: cast_nullable_to_non_nullable
-              as Map<NesAction, InputCombination>,
+              as Map<NesAction, List<InputCombination?>>,
     ) as $Val);
   }
 }
@@ -130,7 +130,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
       Scaling scaling,
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, InputCombination> bindings});
+      Map<NesAction, List<InputCombination?>> bindings});
 }
 
 /// @nodoc
@@ -185,7 +185,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
       bindings: null == bindings
           ? _value._bindings
           : bindings // ignore: cast_nullable_to_non_nullable
-              as Map<NesAction, InputCombination>,
+              as Map<NesAction, List<InputCombination?>>,
     ));
   }
 }
@@ -202,7 +202,7 @@ class _$SettingsImpl implements _Settings {
       this.scaling = Scaling.autoInteger,
       this.autoSaveInterval = 1,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, InputCombination> bindings = const {}})
+      final Map<NesAction, List<InputCombination?>> bindings = const {}})
       : _bindings = bindings;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
@@ -229,10 +229,10 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final int? autoSaveInterval;
-  final Map<NesAction, InputCombination> _bindings;
+  final Map<NesAction, List<InputCombination?>> _bindings;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, InputCombination> get bindings {
+  Map<NesAction, List<InputCombination?>> get bindings {
     if (_bindings is EqualUnmodifiableMapView) return _bindings;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bindings);
@@ -299,7 +299,7 @@ abstract class _Settings implements Settings {
       final Scaling scaling,
       final int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, InputCombination> bindings}) = _$SettingsImpl;
+      final Map<NesAction, List<InputCombination?>> bindings}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -320,7 +320,7 @@ abstract class _Settings implements Settings {
   int? get autoSaveInterval;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, InputCombination> get bindings;
+  Map<NesAction, List<InputCombination?>> get bindings;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

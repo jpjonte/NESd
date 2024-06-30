@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'binding.dart';
+part of 'input_combination.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/settings/audio/audio_settings.dart';
-import 'package:nes/ui/settings/controls/control_settings.dart';
+import 'package:nes/ui/settings/controls/controls_settings.dart';
 import 'package:nes/ui/settings/debug/debug_settings.dart';
 import 'package:nes/ui/settings/general/general_settings.dart';
 import 'package:nes/ui/settings/graphics/graphics_settings.dart';

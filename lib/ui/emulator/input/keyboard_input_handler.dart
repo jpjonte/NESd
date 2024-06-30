@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/binding.dart';
+import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,7 +25,7 @@ KeyboardInputHandler keyboardInputHandler(KeyboardInputHandlerRef ref) {
 }
 
 class KeyboardInputHandler {
-  KeyboardInputHandler(Map<NesAction, InputCombination> bindings) {
+  KeyboardInputHandler(BindingMap bindings) {
     _bindings = _buildBindingMap(bindings);
   }
 
@@ -129,10 +129,12 @@ class KeyboardInputHandler {
     return actions;
   }
 
-  KeyMap _buildBindingMap(Map<NesAction, InputCombination> bindings) {
+  KeyMap _buildBindingMap(BindingMap bindings) {
     return {
-      for (final MapEntry(key: action, value: input) in bindings.entries)
-        if (input case final KeyboardInputCombination input) input.keys: action,
+      for (final MapEntry(key: action, value: inputs) in bindings.entries)
+        for (final input in inputs)
+          if (input case final KeyboardInputCombination input)
+            input.keys: action,
     };
   }
 }

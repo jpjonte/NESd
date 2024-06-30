@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:gamepads/gamepads.dart';
 import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/binding.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
+import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,7 +30,7 @@ GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
 }
 
 class GamepadInputHandler {
-  GamepadInputHandler(Map<NesAction, InputCombination> bindings) {
+  GamepadInputHandler(BindingMap bindings) {
     _bindings = _buildBindingMap(bindings);
     _subscription = Gamepads.events.listen(_handleGamepadEvent);
   }
@@ -145,11 +145,12 @@ class GamepadInputHandler {
     }
   }
 
-  GamepadMap _buildBindingMap(Map<NesAction, InputCombination> bindings) {
+  GamepadMap _buildBindingMap(BindingMap bindings) {
     return {
-      for (final MapEntry(key: action, value: input) in bindings.entries)
-        if (input case final GamepadInputCombination input)
-          (gamepadId: input.gamepadId, state: input.inputs): action,
+      for (final MapEntry(key: action, value: inputs) in bindings.entries)
+        for (final input in inputs)
+          if (input case final GamepadInputCombination input)
+            (gamepadId: input.gamepadId, state: input.inputs): action,
     };
   }
 }

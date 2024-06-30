@@ -13,6 +13,7 @@ part 'action_handler.g.dart';
 ActionHandler actionHandler(ActionHandlerRef ref) {
   final handler = ActionHandler(
     nes: ref.watch(nesControllerProvider),
+    nesController: ref.watch(nesControllerProvider.notifier),
     router: ref.watch(routerProvider),
     saveManager: ref.watch(saveManagerProvider),
   );
@@ -47,11 +48,13 @@ ActionHandler actionHandler(ActionHandlerRef ref) {
 class ActionHandler {
   const ActionHandler({
     required this.nes,
+    required this.nesController,
     required this.router,
     required this.saveManager,
   });
 
   final NES? nes;
+  final NesController nesController;
   final Router router;
   final SaveManager saveManager;
 
@@ -72,6 +75,10 @@ class ActionHandler {
           nes?.unpause();
         }
       case OpenSettings():
+        nesController
+          ..lifeCycleListenerEnabled = false
+          ..suspend();
+
         router.navigate(const SettingsRoute());
     }
   }
