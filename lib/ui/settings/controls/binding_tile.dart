@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/emulator/input/intents.dart';
 import 'package:nes/ui/settings/controls/binder.dart';
+import 'package:nes/ui/settings/controls/binder_controller.dart';
+import 'package:nes/ui/settings/controls/binder_state.dart';
+import 'package:nes/ui/settings/controls/controls_settings.dart';
 
-class BindingTile extends StatelessWidget {
+class BindingTile extends HookConsumerWidget {
   const BindingTile({
     required this.action,
     super.key,
@@ -11,10 +18,50 @@ class BindingTile extends StatelessWidget {
   final NesAction action;
 
   @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(action.title),
-      trailing: Binder(action: action),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(binderStateProvider(action));
+    final controller = ref.watch(binderControllerProvider(action));
+    final indexController = ref.watch(profileIndexProvider.notifier);
+
+    final focusNode = useFocusNode();
+
+    useListenable(focusNode);
+
+    return Actions(
+      actions: {
+        DecreaseIntent: CallbackAction<DecreaseIntent>(
+          onInvoke: (intent) => indexController.previous(),
+        ),
+        IncreaseIntent: CallbackAction<IncreaseIntent>(
+          onInvoke: (intent) => indexController.next(),
+        ),
+        SecondaryActionIntent: CallbackAction<SecondaryActionIntent>(
+          onInvoke: (intent) => controller.clearBinding(),
+        ),
+      },
+      child: FocusOnHover(
+        focusNode: focusNode,
+        onKeyEvent: controller.handleKeyEvent,
+        onFocusChange: (hasFocus) {
+          if (!hasFocus) {
+            controller.editing = false;
+          }
+        },
+        child: GestureDetector(
+          onDoubleTap: controller.clearBinding,
+          child: ListTile(
+            onTap: () {
+              if (!state.editing) {
+                // focusNode.requestFocus();
+              }
+
+              controller.editing = !state.editing;
+            },
+            title: Text(action.title),
+            trailing: ExcludeFocus(child: Binder(action: action)),
+          ),
+        ),
+      ),
     );
   }
 }

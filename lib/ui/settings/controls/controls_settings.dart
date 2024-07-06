@@ -2,23 +2,35 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/emulator/input/action/all_actions.dart';
+import 'package:nes/ui/emulator/input/intents.dart';
 import 'package:nes/ui/settings/controls/binding_tile.dart';
 import 'package:nes/ui/settings/settings.dart';
+import 'package:nes/ui/settings/settings_tab.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'controls_settings.g.dart';
 
-class ControlsSettings extends HookConsumerWidget {
+class ControlsSettings extends StatelessWidget {
   const ControlsSettings({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView(
-      children: [
-        const ProfileSelectionHeader(),
-        for (final action in allActions) BindingTile(action: action),
-      ],
+  Widget build(BuildContext context) {
+    return SettingsTab(
+      index: 3,
+      child: Column(
+        children: [
+          const ProfileSelectionHeader(),
+          Expanded(
+            child: ListView(
+              children: [
+                for (final action in allActions) BindingTile(action: action),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -61,25 +73,41 @@ class ProfileIndex extends _$ProfileIndex {
   }
 }
 
-class ProfileSelectionHeader extends StatelessWidget {
+class ProfileSelectionHeader extends ConsumerWidget {
   const ProfileSelectionHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const ListTile(
-      trailing: SizedBox(
-        width: 324,
-        height: 40,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            PreviousProfileButton(),
-            SizedBox(width: 8),
-            CurrentProfileHeader(),
-            SizedBox(width: 8),
-            NextProfileButton(),
-            SizedBox(width: 44),
-          ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final indexController = ref.watch(profileIndexProvider.notifier);
+
+    return Actions(
+      actions: {
+        DecreaseIntent: CallbackAction<DecreaseIntent>(
+          onInvoke: (_) => indexController.previous(),
+        ),
+        IncreaseIntent: CallbackAction<IncreaseIntent>(
+            onInvoke: (_) => indexController.next(),),
+      },
+      child: FocusOnHover(
+        child: ListTile(
+          onTap: () {},
+          trailing: const ExcludeFocus(
+            child: SizedBox(
+              width: 324,
+              height: 40,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  PreviousProfileButton(),
+                  SizedBox(width: 8),
+                  CurrentProfileHeader(),
+                  SizedBox(width: 8),
+                  NextProfileButton(),
+                  SizedBox(width: 44),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

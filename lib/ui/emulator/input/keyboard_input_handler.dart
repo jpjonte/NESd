@@ -1,7 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/emulator/input/action_handler.dart';
 import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,32 +16,27 @@ KeyboardInputHandler keyboardInputHandler(KeyboardInputHandlerRef ref) {
     settingsControllerProvider.select((settings) => settings.bindings),
   );
 
-  final input = KeyboardInputHandler(bindings);
+  final actionStream = ref.watch(actionStreamProvider);
 
-  ref.onDispose(input.dispose);
-
-  return input;
+  return KeyboardInputHandler(
+    bindings: bindings,
+    actionStream: actionStream,
+  );
 }
 
 class KeyboardInputHandler {
-  KeyboardInputHandler(BindingMap bindings) {
+  KeyboardInputHandler({
+    required BindingMap bindings,
+    required this.actionStream,
+  }) {
     _bindings = _buildBindingMap(bindings);
   }
 
-  Stream<NesAction> get keyDownStream => _keyDownStreamController.stream;
-  Stream<NesAction> get keyUpStream => _keyUpStreamController.stream;
-
-  final _keyDownStreamController = StreamController<NesAction>.broadcast();
-  final _keyUpStreamController = StreamController<NesAction>.broadcast();
-
-  final _pressedKeys = <LogicalKeyboardKey>{};
+  final ActionStream actionStream;
 
   late final KeyMap _bindings;
 
-  void dispose() {
-    _keyDownStreamController.close();
-    _keyUpStreamController.close();
-  }
+  final _pressedKeys = <LogicalKeyboardKey>{};
 
   bool handleKeyEvent(KeyEvent event) {
     if (event is KeyRepeatEvent) {
@@ -61,7 +55,7 @@ class KeyboardInputHandler {
       // handle all actions that are new
       // until we reach an action with lower priority
       return _addActions(
-        _keyDownStreamController,
+        1.0,
         currentActions,
         previousActions,
         highesPriorityOnly: true,
@@ -69,48 +63,13 @@ class KeyboardInputHandler {
     } else if (event is KeyUpEvent) {
       // handle all actions that are no longer active
       return _addActions(
-        _keyUpStreamController,
+        0.0,
         previousActions,
         currentActions,
       );
     }
 
     return false;
-  }
-
-  bool _addActions(
-    StreamController<NesAction> stream,
-    List<PriorityAction> baseActions,
-    List<PriorityAction> compareActions, {
-    bool highesPriorityOnly = false,
-  }) {
-    int? priority;
-    var triggered = false;
-
-    for (final action in baseActions) {
-      priority ??= action.priority;
-
-      if (highesPriorityOnly && action.priority < priority) {
-        break;
-      }
-
-      if (!compareActions.contains(action)) {
-        stream.add(action.action);
-        triggered = true;
-      }
-    }
-
-    return triggered;
-  }
-
-  void _updatePressedKeys(KeyEvent event) {
-    final key = event.logicalKey;
-
-    if (event is KeyDownEvent) {
-      _pressedKeys.addAll([key, ...key.synonyms]);
-    } else if (event is KeyUpEvent) {
-      _pressedKeys.removeAll([key, ...key.synonyms]);
-    }
   }
 
   // get actions that match the pressed keys, sorted by highest priority first
@@ -127,6 +86,41 @@ class KeyboardInputHandler {
     actions.sort((a, b) => b.priority.compareTo(a.priority));
 
     return actions;
+  }
+
+  void _updatePressedKeys(KeyEvent event) {
+    final key = event.logicalKey;
+
+    if (event is KeyDownEvent) {
+      _pressedKeys.addAll([key, ...key.synonyms]);
+    } else if (event is KeyUpEvent) {
+      _pressedKeys.removeAll([key, ...key.synonyms]);
+    }
+  }
+
+  bool _addActions(
+    double value,
+    List<PriorityAction> baseActions,
+    List<PriorityAction> compareActions, {
+    bool highesPriorityOnly = false,
+  }) {
+    int? priority;
+    var triggered = false;
+
+    for (final action in baseActions) {
+      priority ??= action.priority;
+
+      if (highesPriorityOnly && action.priority < priority) {
+        break;
+      }
+
+      if (!compareActions.contains(action)) {
+        actionStream.add((action: action.action, value: value));
+        triggered = true;
+      }
+    }
+
+    return triggered;
   }
 
   KeyMap _buildBindingMap(BindingMap bindings) {

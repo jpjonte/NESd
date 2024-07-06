@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/settings/settings.dart';
 
 class CartridgeSwitch extends ConsumerWidget {
@@ -11,10 +12,12 @@ class CartridgeSwitch extends ConsumerWidget {
         .watch(settingsControllerProvider.select((s) => s.showCartridgeInfo));
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    return SwitchListTile(
-      title: const Text('Show Cartridge Information'),
-      value: setting,
-      onChanged: (value) => controller.showCartridgeInfo = value,
+    return FocusOnHover(
+      child: SwitchListTile(
+        title: const Text('Show Cartridge Information'),
+        value: setting,
+        onChanged: (value) => controller.showCartridgeInfo = value,
+      ),
     );
   }
 }

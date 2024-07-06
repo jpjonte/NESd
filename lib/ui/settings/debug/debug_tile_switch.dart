@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/settings/settings.dart';
 
 class DebugTileSwitch extends ConsumerWidget {
@@ -11,10 +12,12 @@ class DebugTileSwitch extends ConsumerWidget {
         ref.watch(settingsControllerProvider.select((s) => s.showTiles));
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    return SwitchListTile(
-      title: const Text('Show Tiles'),
-      value: setting,
-      onChanged: (value) => controller.showTiles = value,
+    return FocusOnHover(
+      child: SwitchListTile(
+        title: const Text('Show Tiles'),
+        value: setting,
+        onChanged: (value) => controller.showTiles = value,
+      ),
     );
   }
 }

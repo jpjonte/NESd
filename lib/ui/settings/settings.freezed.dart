@@ -26,10 +26,12 @@ mixin _$Settings {
   bool get showTiles => throw _privateConstructorUsedError;
   bool get showCartridgeInfo => throw _privateConstructorUsedError;
   Scaling get scaling => throw _privateConstructorUsedError;
+  bool get autoSave => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
   Map<NesAction, List<InputCombination?>> get bindings =>
       throw _privateConstructorUsedError;
+  String? get lastRomPath => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -49,9 +51,11 @@ abstract class $SettingsCopyWith<$Res> {
       bool showTiles,
       bool showCartridgeInfo,
       Scaling scaling,
+      bool autoSave,
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, List<InputCombination?>> bindings});
+      Map<NesAction, List<InputCombination?>> bindings,
+      String? lastRomPath});
 }
 
 /// @nodoc
@@ -73,8 +77,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
     Object? scaling = null,
+    Object? autoSave = null,
     Object? autoSaveInterval = freezed,
     Object? bindings = null,
+    Object? lastRomPath = freezed,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -101,6 +107,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.scaling
           : scaling // ignore: cast_nullable_to_non_nullable
               as Scaling,
+      autoSave: null == autoSave
+          ? _value.autoSave
+          : autoSave // ignore: cast_nullable_to_non_nullable
+              as bool,
       autoSaveInterval: freezed == autoSaveInterval
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
@@ -109,6 +119,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.bindings
           : bindings // ignore: cast_nullable_to_non_nullable
               as Map<NesAction, List<InputCombination?>>,
+      lastRomPath: freezed == lastRomPath
+          ? _value.lastRomPath
+          : lastRomPath // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -128,9 +142,11 @@ abstract class _$$SettingsImplCopyWith<$Res>
       bool showTiles,
       bool showCartridgeInfo,
       Scaling scaling,
+      bool autoSave,
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, List<InputCombination?>> bindings});
+      Map<NesAction, List<InputCombination?>> bindings,
+      String? lastRomPath});
 }
 
 /// @nodoc
@@ -150,8 +166,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
     Object? scaling = null,
+    Object? autoSave = null,
     Object? autoSaveInterval = freezed,
     Object? bindings = null,
+    Object? lastRomPath = freezed,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -178,6 +196,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.scaling
           : scaling // ignore: cast_nullable_to_non_nullable
               as Scaling,
+      autoSave: null == autoSave
+          ? _value.autoSave
+          : autoSave // ignore: cast_nullable_to_non_nullable
+              as bool,
       autoSaveInterval: freezed == autoSaveInterval
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
@@ -186,6 +208,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value._bindings
           : bindings // ignore: cast_nullable_to_non_nullable
               as Map<NesAction, List<InputCombination?>>,
+      lastRomPath: freezed == lastRomPath
+          ? _value.lastRomPath
+          : lastRomPath // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -200,9 +226,11 @@ class _$SettingsImpl implements _Settings {
       this.showTiles = false,
       this.showCartridgeInfo = false,
       this.scaling = Scaling.autoInteger,
+      this.autoSave = true,
       this.autoSaveInterval = 1,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, List<InputCombination?>> bindings = const {}})
+      final Map<NesAction, List<InputCombination?>> bindings = const {},
+      this.lastRomPath = null})
       : _bindings = bindings;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
@@ -228,6 +256,9 @@ class _$SettingsImpl implements _Settings {
   final Scaling scaling;
   @override
   @JsonKey()
+  final bool autoSave;
+  @override
+  @JsonKey()
   final int? autoSaveInterval;
   final Map<NesAction, List<InputCombination?>> _bindings;
   @override
@@ -239,8 +270,12 @@ class _$SettingsImpl implements _Settings {
   }
 
   @override
+  @JsonKey()
+  final String? lastRomPath;
+
+  @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSaveInterval: $autoSaveInterval, bindings: $bindings)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath)';
   }
 
   @override
@@ -257,9 +292,13 @@ class _$SettingsImpl implements _Settings {
             (identical(other.showCartridgeInfo, showCartridgeInfo) ||
                 other.showCartridgeInfo == showCartridgeInfo) &&
             (identical(other.scaling, scaling) || other.scaling == scaling) &&
+            (identical(other.autoSave, autoSave) ||
+                other.autoSave == autoSave) &&
             (identical(other.autoSaveInterval, autoSaveInterval) ||
                 other.autoSaveInterval == autoSaveInterval) &&
-            const DeepCollectionEquality().equals(other._bindings, _bindings));
+            const DeepCollectionEquality().equals(other._bindings, _bindings) &&
+            (identical(other.lastRomPath, lastRomPath) ||
+                other.lastRomPath == lastRomPath));
   }
 
   @JsonKey(ignore: true)
@@ -272,8 +311,10 @@ class _$SettingsImpl implements _Settings {
       showTiles,
       showCartridgeInfo,
       scaling,
+      autoSave,
       autoSaveInterval,
-      const DeepCollectionEquality().hash(_bindings));
+      const DeepCollectionEquality().hash(_bindings),
+      lastRomPath);
 
   @JsonKey(ignore: true)
   @override
@@ -297,9 +338,11 @@ abstract class _Settings implements Settings {
       final bool showTiles,
       final bool showCartridgeInfo,
       final Scaling scaling,
+      final bool autoSave,
       final int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, List<InputCombination?>> bindings}) = _$SettingsImpl;
+      final Map<NesAction, List<InputCombination?>> bindings,
+      final String? lastRomPath}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -317,10 +360,14 @@ abstract class _Settings implements Settings {
   @override
   Scaling get scaling;
   @override
+  bool get autoSave;
+  @override
   int? get autoSaveInterval;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
   Map<NesAction, List<InputCombination?>> get bindings;
+  @override
+  String? get lastRomPath;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nes/ui/emulator/input/action.dart';
@@ -20,29 +21,40 @@ BindingMap bindingsFromJson(
     return defaultBindings;
   }
 
-  return json.map(
-    (key, value) {
-      final inputs = value is List
-          ? value
-              .map(
-                (e) => e != null
-                    ? InputCombination.fromJson(e as Map<String, dynamic>)
-                    : null,
-              )
-              .toList()
-          : [
-              if (value != null)
-                InputCombination.fromJson(value as Map<String, dynamic>)
-              else
-                null,
-            ];
+  final bindings = <NesAction, List<InputCombination?>>{};
 
-      return MapEntry(
-        NesAction.fromCode(key),
-        inputs,
-      );
-    },
-  );
+  for (final MapEntry(key: code, :value) in json.entries) {
+    try {
+      final action = NesAction.fromCode(code);
+      final inputs = inputsFromJson(value);
+
+      bindings[action] = inputs;
+      // ignore: avoid_catching_errors
+    } on StateError {
+      // ignore invalid actions
+    }
+  }
+
+  return bindings;
+}
+
+List<InputCombination?> inputsFromJson(dynamic value) {
+  if (value is! List) {
+    return [
+      if (value != null)
+        InputCombination.fromJson(value as Map<String, dynamic>)
+      else
+        null,
+    ];
+  }
+
+  return value
+      .map(
+        (e) => e != null
+            ? InputCombination.fromJson(e as Map<String, dynamic>)
+            : null,
+      )
+      .toList();
 }
 
 Map<String, dynamic> bindingsToJson(BindingMap bindings) {
@@ -64,10 +76,12 @@ class Settings with _$Settings {
     @Default(false) bool showTiles,
     @Default(false) bool showCartridgeInfo,
     @Default(Scaling.autoInteger) Scaling scaling,
+    @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
     @Default({})
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
     Map<NesAction, List<InputCombination?>> bindings,
+    @Default(null) String? lastRomPath,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -90,61 +104,65 @@ class SettingsController extends _$SettingsController {
   double get volume => state.volume;
 
   set volume(double volume) {
-    state = state.copyWith(volume: volume.clamp(0.0, 1.0));
-    _save();
+    _update(state.copyWith(volume: volume.clamp(0.0, 1.0)));
   }
 
   bool get showBorder => state.showBorder;
 
   set showBorder(bool showBorder) {
-    state = state.copyWith(showBorder: showBorder);
-    _save();
+    _update(state.copyWith(showBorder: showBorder));
   }
 
   bool get stretch => state.stretch;
 
   set stretch(bool stretch) {
-    state = state.copyWith(stretch: stretch);
-    _save();
+    _update(state.copyWith(stretch: stretch));
   }
 
   bool get showTiles => state.showTiles;
 
   set showTiles(bool showTiles) {
-    state = state.copyWith(showTiles: showTiles);
-    _save();
+    _update(state.copyWith(showTiles: showTiles));
   }
 
   bool get showCartridgeInfo => state.showCartridgeInfo;
 
   set showCartridgeInfo(bool showCartridgeInfo) {
-    state = state.copyWith(showCartridgeInfo: showCartridgeInfo);
-    _save();
+    _update(state.copyWith(showCartridgeInfo: showCartridgeInfo));
   }
 
   Scaling get scaling => state.scaling;
 
   set scaling(Scaling scaling) {
-    state = state.copyWith(scaling: scaling);
-    _save();
+    _update(state.copyWith(scaling: scaling));
   }
 
-  int? get autoSaveInterval => state.autoSaveInterval;
+  bool get autoSave => state.autoSave;
 
-  set autoSaveInterval(int? autoSaveInterval) {
-    state = state.copyWith(autoSaveInterval: autoSaveInterval);
-    _save();
+  set autoSave(bool autoSave) {
+    _update(state.copyWith(autoSave: autoSave));
+  }
+
+  int get autoSaveInterval => state.autoSaveInterval ?? 1;
+
+  set autoSaveInterval(int autoSaveInterval) {
+    _update(state.copyWith(autoSaveInterval: max(1, autoSaveInterval)));
+  }
+
+  String? get lastRomPath => state.lastRomPath;
+
+  set lastRomPath(String? lastRomPath) {
+    _update(state.copyWith(lastRomPath: lastRomPath));
   }
 
   BindingMap get bindings => state.bindings;
 
   set bindings(BindingMap bindings) {
-    state = state.copyWith(bindings: bindings);
-    _save();
+    _update(state.copyWith(bindings: bindings));
   }
 
   void updateBinding(NesAction action, int index, InputCombination input) {
-    final bindings = state.bindings[action] ?? [];
+    final bindings = state.bindings[action] ?? <InputCombination?>[];
 
     if (index < bindings.length) {
       bindings[index] = input;
@@ -157,14 +175,14 @@ class SettingsController extends _$SettingsController {
         ..add(input);
     }
 
-    state = state.copyWith(
-      bindings: {
-        ...state.bindings,
-        action: bindings,
-      },
+    _update(
+      state.copyWith(
+        bindings: {
+          ...state.bindings,
+          action: bindings,
+        },
+      ),
     );
-
-    _save();
   }
 
   void clearBinding(NesAction action, int index) {
@@ -176,20 +194,21 @@ class SettingsController extends _$SettingsController {
       bindings.removeAt(index);
     }
 
-    state = state.copyWith(
-      bindings: {
-        for (final entry in state.bindings.entries)
-          if (entry.key == action)
-            entry.key: bindings
-          else
-            entry.key: entry.value,
-      },
+    _update(
+      state.copyWith(
+        bindings: {
+          for (final entry in state.bindings.entries)
+            if (entry.key == action)
+              entry.key: bindings
+            else
+              entry.key: entry.value,
+        },
+      ),
     );
-
-    _save();
   }
 
-  void _save() {
+  void _update(Settings settings) {
+    state = settings;
     _prefs.setString(settingsKey, jsonEncode(state.toJson()));
   }
 

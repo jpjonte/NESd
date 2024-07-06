@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/settings/settings.dart';
 
 class StretchSwitch extends ConsumerWidget {
@@ -11,10 +12,12 @@ class StretchSwitch extends ConsumerWidget {
         ref.watch(settingsControllerProvider.select((s) => s.stretch));
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    return SwitchListTile(
-      title: const Text('Stretch screen'),
-      value: setting,
-      onChanged: (value) => controller.stretch = value,
+    return FocusOnHover(
+      child: SwitchListTile(
+        title: const Text('Stretch screen'),
+        value: setting,
+        onChanged: (value) => controller.stretch = value,
+      ),
     );
   }
 }

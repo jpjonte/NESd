@@ -7,7 +7,7 @@ part of 'keyboard_input_handler.dart';
 // **************************************************************************
 
 String _$keyboardInputHandlerHash() =>
-    r'9c9d40e4eb6227a4eb4c989f231ef5039ded8436';
+    r'a1ea1f7600ae5126972dd76175f42d72bf12bf1d';
 
 /// See also [keyboardInputHandler].
 @ProviderFor(keyboardInputHandler)

@@ -3,20 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nes/ui/common/focus_on_hover.dart';
 import 'package:nes/ui/settings/settings.dart';
 
-class BorderSwitch extends ConsumerWidget {
-  const BorderSwitch({super.key});
+class AutoSaveSwitch extends ConsumerWidget {
+  const AutoSaveSwitch({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.showBorder));
+        ref.watch(settingsControllerProvider.select((s) => s.autoSave));
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(
       child: SwitchListTile(
-        title: const Text('Show Border'),
+        title: const Text('Auto Save'),
         value: setting,
-        onChanged: (value) => controller.showBorder = value,
+        onChanged: (value) => controller.autoSave = value,
       ),
     );
   }

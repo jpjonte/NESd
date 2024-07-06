@@ -7,7 +7,7 @@ part of 'gamepad_input_handler.dart';
 // **************************************************************************
 
 String _$gamepadInputHandlerHash() =>
-    r'4e999314df2149999f28203f0cc2dcd8abcdc4ca';
+    r'6b6f4d215958a41f76d5568b76dfd395094893ea';
 
 /// See also [gamepadInputHandler].
 @ProviderFor(gamepadInputHandler)

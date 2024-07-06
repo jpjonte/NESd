@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:nes/extension/iterable_extension.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/emulator/input/action_handler.dart';
 import 'package:nes/ui/settings/controls/binder_state.dart';
 import 'package:nes/ui/settings/controls/controls_settings.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
@@ -21,6 +22,7 @@ class BinderController {
     required this.settingsController,
     required this.state,
     required this.inputs,
+    required this.actionHandler,
   }) {
     _subscription = Gamepads.events.listen(_handleGamepadEvent);
   }
@@ -30,6 +32,7 @@ class BinderController {
   final SettingsController settingsController;
   final BinderState state;
   final List<InputCombination?> inputs;
+  final ActionHandler actionHandler;
 
   late final StreamSubscription<GamepadEvent> _subscription;
 
@@ -37,18 +40,26 @@ class BinderController {
     _subscription.cancel();
   }
 
-  void toggleEditing() {
-    if (state.editing) {
-      state.editing = false;
-    } else {
-      state
-        ..editing = true
-        ..input = null;
+  bool get editing => state.editing;
+
+  set editing(bool value) {
+    if (value == state.editing) {
+      return;
     }
+
+    if (value) {
+      state.input = null;
+
+      actionHandler.enabled = false;
+    } else {
+      actionHandler.enabled = true;
+    }
+
+    state.editing = value;
   }
 
   void clearBinding() {
-    state.editing = false;
+    editing = false;
     settingsController.clearBinding(action, profileIndex);
   }
 
@@ -79,7 +90,7 @@ class BinderController {
     }
 
     if (event is KeyUpEvent) {
-      state.editing = false;
+      editing = false;
 
       settingsController.updateBinding(action, profileIndex, updatedBinding);
     }
@@ -123,7 +134,7 @@ class BinderController {
         },
       );
     } else if (gamepadInput != null) {
-      state.editing = false;
+      editing = false;
 
       settingsController.updateBinding(action, profileIndex, updatedBinding);
     }
@@ -141,6 +152,7 @@ BinderController binderController(BinderControllerRef ref, NesAction action) {
       settingsControllerProvider
           .select((settings) => settings.bindings[action] ?? []),
     ),
+    actionHandler: ref.watch(actionHandlerProvider),
   );
 
   ref.onDispose(controller.onDispose);

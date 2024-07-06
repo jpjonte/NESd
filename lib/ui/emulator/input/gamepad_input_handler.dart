@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:gamepads/gamepads.dart';
 import 'package:nes/ui/emulator/input/action.dart';
+import 'package:nes/ui/emulator/input/action_handler.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
 import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/settings.dart';
@@ -22,7 +23,9 @@ GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
     settingsControllerProvider.select((settings) => settings.bindings),
   );
 
-  final input = GamepadInputHandler(bindings);
+  final actionStream = ref.watch(actionStreamProvider);
+
+  final input = GamepadInputHandler(bindings, actionStream: actionStream);
 
   ref.onDispose(input.dispose);
 
@@ -30,18 +33,14 @@ GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
 }
 
 class GamepadInputHandler {
-  GamepadInputHandler(BindingMap bindings) {
+  GamepadInputHandler(BindingMap bindings, {required this.actionStream}) {
     _bindings = _buildBindingMap(bindings);
     _subscription = Gamepads.events.listen(_handleGamepadEvent);
   }
 
+  final ActionStream actionStream;
+
   late final StreamSubscription<GamepadEvent> _subscription;
-
-  Stream<NesAction> get buttonDownStream => _buttonDownStreamController.stream;
-  Stream<NesAction> get buttonUpStream => _buttonUpStreamController.stream;
-
-  final _buttonDownStreamController = StreamController<NesAction>.broadcast();
-  final _buttonUpStreamController = StreamController<NesAction>.broadcast();
 
   final _state = <String, Set<GamepadInput>>{};
 
@@ -49,8 +48,6 @@ class GamepadInputHandler {
 
   void dispose() {
     _subscription.cancel();
-    _buttonDownStreamController.close();
-    _buttonUpStreamController.close();
   }
 
   void _handleGamepadEvent(GamepadEvent event) {
@@ -68,7 +65,7 @@ class GamepadInputHandler {
       // handle all actions that are new
       // until we reach an action with lower priority
       _addActions(
-        _buttonDownStreamController,
+        value,
         currentActions,
         previousActions,
         highesPriorityOnly: true,
@@ -76,7 +73,7 @@ class GamepadInputHandler {
     } else if (value < _inputOffThreshold) {
       // handle all actions that are no longer active
       _addActions(
-        _buttonUpStreamController,
+        value,
         previousActions,
         currentActions,
       );
@@ -125,7 +122,7 @@ class GamepadInputHandler {
   }
 
   void _addActions(
-    StreamController<NesAction> stream,
+    double value,
     List<PriorityAction> baseActions,
     List<PriorityAction> compareActions, {
     bool highesPriorityOnly = false,
@@ -140,7 +137,7 @@ class GamepadInputHandler {
       }
 
       if (!compareActions.contains(action)) {
-        stream.add(action.action);
+        actionStream.add((action: action.action, value: value));
       }
     }
   }

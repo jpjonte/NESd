@@ -1,10 +1,22 @@
 import 'package:nes/ui/emulator/input/action.dart';
 
 const allActions = [
-  openSettings,
+  openMenu,
   togglePause,
   pause,
   unpause,
+  stop,
+  previousInput,
+  nextInput,
+  confirm,
+  secondaryAction,
+  cancel,
+  previousTab,
+  nextTab,
+  menuDecrease,
+  menuIncrease,
+  decreaseVolume,
+  increaseVolume,
   controller1Up,
   controller1Down,
   controller1Left,

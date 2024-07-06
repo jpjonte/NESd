@@ -123,6 +123,11 @@ class NesController extends _$NesController {
 
   void runUntilFrame() => state?.runUntilFrame();
 
+  void stop() {
+    state?.stop();
+    state = null;
+  }
+
   Future<void> selectRom() async {
     suspend();
 
@@ -144,6 +149,12 @@ class NesController extends _$NesController {
 
       return;
     }
+
+    await loadRom(path);
+  }
+
+  Future<void> loadRom(String path) async {
+    suspend();
 
     try {
       await loadCartridge(path);
