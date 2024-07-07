@@ -20,7 +20,10 @@ dependencies:
   flutter_riverpod: ^2.5.1
   freezed_annotation: ^2.4.1
   gamepads:
-    path: ../../other/gamepads/packages/gamepads
+    git:
+      url: git@github.com:jpjonte/gamepads.git
+      ref: feature/nesd
+      path: packages/gamepads
   hooks_riverpod: ^2.5.1
   json_annotation: ^4.9.0
   mp_audio_stream:
@@ -45,9 +48,20 @@ dev_dependencies:
 
 dependency_overrides:
   gamepads_darwin:
-    path: ../../other/gamepads/packages/gamepads_darwin
+    git:
+      url: git@github.com:jpjonte/gamepads.git
+      ref: feature/nesd
+      path: packages/gamepads_darwin
+  gamepads_linux:
+    git:
+      url: git@github.com:jpjonte/gamepads.git
+      ref: feature/nesd
+      path: packages/gamepads_linux
   gamepads_platform_interface:
-    path: ../../other/gamepads/packages/gamepads_platform_interface
+    git:
+      url: git@github.com:jpjonte/gamepads.git
+      ref: feature/nesd
+      path: packages/gamepads_platform_interface
 
 flutter:
   uses-material-design: true
