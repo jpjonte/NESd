@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nes/ui/emulator/cartridge_info.dart';
 import 'package:nes/ui/emulator/display.dart';
 import 'package:nes/ui/emulator/input/action_handler.dart';
-import 'package:nes/ui/emulator/input/gamepad_input_handler.dart';
+import 'package:nes/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nes/ui/emulator/nes_controller.dart';
 import 'package:nes/ui/emulator/tile_debug.dart';
