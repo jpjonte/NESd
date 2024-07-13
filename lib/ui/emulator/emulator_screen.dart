@@ -23,8 +23,8 @@ class EmulatorScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final errorState = useState<String?>(null);
 
-    final nes = ref.watch(nesControllerProvider);
-    final controller = ref.read(nesControllerProvider.notifier);
+    final nes = ref.watch(nesStateProvider);
+    final controller = ref.read(nesControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
 

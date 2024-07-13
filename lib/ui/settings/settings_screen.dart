@@ -34,7 +34,7 @@ class SettingsScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 5);
-    final controller = ref.watch(nesControllerProvider.notifier);
+    final controller = ref.watch(nesControllerProvider);
 
     final indexController = ref.watch(settingsTabIndexProvider.notifier);
 

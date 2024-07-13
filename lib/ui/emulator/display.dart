@@ -38,8 +38,8 @@ class DisplayWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
-    final controller = ref.watch(nesControllerProvider.notifier);
-    final nes = ref.watch(nesControllerProvider);
+    final controller = ref.watch(nesControllerProvider);
+    final nes = ref.watch(nesStateProvider);
     final settingsController = ref.watch(settingsControllerProvider.notifier);
 
     final mediaQuery = MediaQuery.of(context);

@@ -51,7 +51,7 @@ class MenuScreen extends HookConsumerWidget {
                 width: 200,
                 child: FilledButton(
                   onPressed: () {
-                    ref.read(nesControllerProvider.notifier).stop();
+                    ref.read(nesControllerProvider).stop();
                     ref.read(routerProvider).navigate(const EmulatorRoute());
                   },
                   child: const Text('Quit Game'),

@@ -16,8 +16,8 @@ class TileDebugWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nes = ref.read(nesControllerProvider);
-    final controller = ref.read(nesControllerProvider.notifier);
+    final nes = ref.read(nesStateProvider);
+    final controller = ref.read(nesControllerProvider);
 
     final stream = useStream(controller.frameBufferStream);
 

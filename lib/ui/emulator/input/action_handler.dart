@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
+import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
@@ -41,10 +42,11 @@ ActionHandler actionHandler(ActionHandlerRef ref) {
   final actionStream = ref.watch(actionStreamProvider);
 
   final handler = ActionHandler(
-    nes: ref.watch(nesControllerProvider),
-    nesController: ref.watch(nesControllerProvider.notifier),
+    nes: ref.watch(nesStateProvider),
+    nesController: ref.watch(nesControllerProvider),
     router: ref.read(routerProvider),
     saveManager: ref.watch(saveManagerProvider),
+    audioOutput: ref.watch(audioOutputProvider),
     actionStream: actionStream.stream,
   );
 
@@ -59,6 +61,7 @@ class ActionHandler {
     required this.nesController,
     required this.router,
     required this.saveManager,
+    required this.audioOutput,
     required Stream<NesActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
@@ -70,6 +73,7 @@ class ActionHandler {
   final NesController nesController;
   final Router router;
   final SaveManager saveManager;
+  final AudioOutput audioOutput;
 
   late final StreamSubscription<NesActionEvent> _actionSubscription;
 
@@ -153,9 +157,9 @@ class ActionHandler {
       case StopAction():
         nesController.stop();
       case DecreaseVolume():
-        nesController.volume -= 0.1;
+        audioOutput.volume -= 0.1;
       case IncreaseVolume():
-        nesController.volume += 0.1;
+        audioOutput.volume += 0.1;
       default:
       // no-op
     }

@@ -20,47 +20,72 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nes_controller.g.dart';
 
 @riverpod
-class NesController extends _$NesController {
-  NesController() {
-    _lifecycleListener = AppLifecycleListener(
-      onPause: suspend,
-      onInactive: suspend,
-      onShow: suspend,
-      onResume: _appResumed,
-    );
-
-    audioSampleStream.listen(_audioOutput.processSamples);
-  }
-
+class NesState extends _$NesState {
   @override
   NES? build() {
-    ref
-      ..listen(
-        settingsControllerProvider.select((settings) => settings.volume),
-        (_, volume) => _audioOutput.volume = volume,
-        fireImmediately: true,
-      )
-      ..listen(
-        settingsControllerProvider
-            .select((settings) => settings.autoSaveInterval),
-        (_, interval) => _setAutoSave(interval),
-        fireImmediately: true,
-      )
-      ..onDispose(_dispose);
-
     return null;
   }
+
+  NES? get nes => state;
+
+  Stream<NesEvent> run(Cartridge cartridge) {
+    final newNes = NES(cartridge);
+
+    state = newNes;
+
+    return newNes.run();
+  }
+
+  void stop() {
+    state?.stop();
+    state = null;
+  }
+}
+
+@riverpod
+NesController nesController(NesControllerRef ref) {
+  final controller = NesController(
+    nesState: ref.watch(nesStateProvider.notifier),
+    audioOutput: ref.watch(audioOutputProvider),
+  );
+
+  ref.onDispose(controller._dispose);
+
+  final settingsSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.autoSaveInterval),
+    (_, interval) => controller.setAutoSave(interval),
+    fireImmediately: true,
+  );
+
+  ref.onDispose(settingsSubscription.close);
+
+  return controller;
+}
+
+class NesController {
+  NesController({
+    required this.nesState,
+    required this.audioOutput,
+  }) {
+    _lifecycleListener = AppLifecycleListener(
+      onPause: _appSuspended,
+      onInactive: _appSuspended,
+      onShow: _appSuspended,
+      onResume: _appResumed,
+    );
+  }
+
+
+  final NesState nesState;
+
+  final AudioOutput audioOutput;
+
+  NES? get nes => nesState.nes;
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
 
   bool lifeCycleListenerEnabled = true;
-
-  final _audioOutput = AudioOutput();
-
-  double get volume => _audioOutput.volume;
-
-  set volume(double value) => _audioOutput.volume = value;
 
   final _saveManager = SaveManager();
 
@@ -73,12 +98,10 @@ class NesController extends _$NesController {
       .where((event) => event is FrameNesEvent)
       .map((event) => (event as FrameNesEvent).frameBuffer);
 
-  Stream<Float32List> get audioSampleStream => _streamController.stream
-      .where((event) => event is FrameNesEvent)
-      .map((event) => (event as FrameNesEvent).samples);
+  StreamSubscription<NesEvent>? _nesEventSubscription;
 
-  Future<void> loadCartridge(String path) async {
-    state?.stop();
+  Future<Cartridge> loadCartridge(String path) async {
+    nes?.stop();
 
     final rom = switch (p.extension(path)) {
       '.nes' => await File(path).readAsBytes(),
@@ -93,39 +116,28 @@ class NesController extends _$NesController {
 
     _save();
 
-    state = NES(cartridge);
+    return cartridge;
   }
 
-  Future<void> run() async {
-    state?.run().listen((event) => _streamController.add(event)).onError(
-      // ignore: avoid_types_on_closure_parameters
-      (Object error, StackTrace stackTrace) {
-        return _streamController.addError(error, stackTrace);
-      },
-    );
+  void suspend() => nes?.suspend();
 
-    _load();
-  }
+  void togglePause() => nes?.togglePause();
 
-  void suspend() => state?.suspend();
-
-  void togglePause() => state?.togglePause();
-
-  void resume() => state?.resume();
+  void resume() => nes?.resume();
 
   void reset() {
-    state?.reset();
-    _audioOutput.reset();
+    nes?.reset();
+    audioOutput.reset();
     _load();
   }
 
   void save() => _save();
 
-  void runUntilFrame() => state?.runUntilFrame();
+  void runUntilFrame() => nes?.runUntilFrame();
 
   void stop() {
-    state?.stop();
-    state = null;
+    nes?.stop();
+    nesState.stop();
   }
 
   Future<void> selectRom() async {
@@ -157,8 +169,19 @@ class NesController extends _$NesController {
     suspend();
 
     try {
-      await loadCartridge(path);
-      run();
+      final cartridge = await loadCartridge(path);
+
+      _nesEventSubscription?.cancel();
+
+      _nesEventSubscription = nesState.run(cartridge).listen(_handleNesEvent)
+        ..onError(
+          // ignore: avoid_types_on_closure_parameters
+          (Object error, StackTrace stackTrace) {
+            return _streamController.addError(error, stackTrace);
+          },
+        );
+
+      _load();
     } on Exception catch (e) {
       _streamController.addError('Failed to load ROM: $e');
 
@@ -166,9 +189,25 @@ class NesController extends _$NesController {
     }
   }
 
+  void _handleNesEvent(NesEvent event) {
+    _streamController.add(event);
+
+    if (event is FrameNesEvent) {
+      audioOutput.processSamples(event.samples);
+    }
+  }
+
   void _dispose() {
     _autoSaveTimer?.cancel();
-    _audioOutput.dispose();
+    audioOutput.dispose();
+    _streamController.close();
+    _lifecycleListener.dispose();
+  }
+
+  void _appSuspended() {
+    if (lifeCycleListenerEnabled) {
+      suspend();
+    }
   }
 
   void _appResumed() {
@@ -177,7 +216,7 @@ class NesController extends _$NesController {
     }
   }
 
-  void _setAutoSave(int? interval) {
+  void setAutoSave(int? interval) {
     _autoSaveTimer?.cancel();
 
     if (interval != null) {
@@ -189,14 +228,14 @@ class NesController extends _$NesController {
   }
 
   void _save() {
-    if (state case final state?) {
-      _saveManager.save(state);
+    if (nes case final nes?) {
+      _saveManager.save(nes);
     }
   }
 
   void _load() {
-    if (state case final state?) {
-      _saveManager.load(state);
+    if (nes case final nes?) {
+      _saveManager.load(nes);
     }
   }
 
