@@ -79,9 +79,9 @@ class ActionHandler {
 
   bool enabled = true;
 
-  bool get _inGame => _currentRoute == EmulatorRoute.name && nes != null;
+  bool get _inGame => _currentRoute == MainRoute.name && nes != null;
 
-  String _currentRoute = EmulatorRoute.name;
+  String _currentRoute = MainRoute.name;
 
   void dispose() {
     _actionSubscription.cancel();
@@ -103,10 +103,10 @@ class ActionHandler {
 
   void handleActionDown(NesAction action) {
     if (action is OpenMenu) {
-      if (_currentRoute == EmulatorRoute.name) {
+      if (_currentRoute == MainRoute.name) {
         router.navigate(const MenuRoute());
       } else {
-        router.navigate(const EmulatorRoute());
+        router.navigate(const MainRoute());
       }
 
       return;

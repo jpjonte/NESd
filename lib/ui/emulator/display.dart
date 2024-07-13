@@ -1,19 +1,13 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/file_picker/file_picker_screen.dart';
-import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
@@ -40,72 +34,11 @@ class DisplayWidget extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final controller = ref.watch(nesControllerProvider);
     final nes = ref.watch(nesStateProvider);
-    final settingsController = ref.watch(settingsControllerProvider.notifier);
 
     final mediaQuery = MediaQuery.of(context);
 
     if (nes == null) {
-      return FocusScope(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: mediaQuery.size.width,
-            maxHeight: mediaQuery.size.height,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  autofocus: true,
-                  onPressed: () async {
-                    final directory = settings.lastRomPath != null
-                        ? Directory(settings.lastRomPath!)
-                        : await getApplicationDocumentsDirectory();
-
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    final path = await AutoRouter.of(context).push<String?>(
-                      FilePickerRoute(
-                        title: 'Select a ROM',
-                        initialDirectory: directory.path,
-                        type: FilePickerType.file,
-                        allowedExtensions: const ['.nes', '.zip'],
-                      ),
-                    );
-
-                    if (path != null) {
-                      settingsController.lastRomPath = p.dirname(path);
-                      controller.loadRom(path);
-                    }
-                  },
-                  child: const Text('Open ROM'),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  onPressed: () =>
-                      ref.read(routerProvider).navigate(const SettingsRoute()),
-                  child: const Text('Settings'),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  onPressed: () => SystemChannels.platform
-                      .invokeMethod('SystemNavigator.pop'),
-                  child: const Text('Quit'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox();
     }
 
     return StreamBuilder(

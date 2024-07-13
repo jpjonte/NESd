@@ -82,6 +82,7 @@ class Settings with _$Settings {
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
     Map<NesAction, List<InputCombination?>> bindings,
     @Default(null) String? lastRomPath,
+    @Default([]) List<String> recentRomPaths,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -153,6 +154,24 @@ class SettingsController extends _$SettingsController {
 
   set lastRomPath(String? lastRomPath) {
     _update(state.copyWith(lastRomPath: lastRomPath));
+  }
+
+  List<String> get recentRomPaths => state.recentRomPaths;
+
+  void addRecentRomPath(String path) {
+    final recent = state.recentRomPaths.toList();
+
+    if (recent.contains(path)) {
+      recent.remove(path);
+    }
+
+    recent.insert(0, path);
+
+    _update(state.copyWith(recentRomPaths: recent.take(5).toList()));
+  }
+
+  void clearRecentRomPaths() {
+    _update(state.copyWith(recentRomPaths: []));
   }
 
   BindingMap get bindings => state.bindings;

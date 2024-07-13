@@ -49,6 +49,7 @@ NesController nesController(NesControllerRef ref) {
     nesState: ref.watch(nesStateProvider.notifier),
     audioOutput: ref.watch(audioOutputProvider),
     router: ref.read(routerProvider),
+    settingsController: ref.read(settingsControllerProvider.notifier),
   );
 
   ref.onDispose(controller._dispose);
@@ -69,6 +70,7 @@ class NesController {
     required this.nesState,
     required this.audioOutput,
     required this.router,
+    required this.settingsController,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -85,6 +87,8 @@ class NesController {
   final AudioOutput audioOutput;
 
   final Router router;
+
+  final SettingsController settingsController;
 
   NES? get nes => nesState.nes;
 
@@ -187,6 +191,10 @@ class NesController {
           },
         );
 
+      settingsController
+        ..lastRomPath = p.dirname(path)
+        ..addRecentRomPath(path);
+
       _load();
     } on Exception catch (e) {
       _streamController.addError('Failed to load ROM: $e');
@@ -268,7 +276,7 @@ class NesController {
   void _updateRoute() {
     final route = router.current.name;
 
-    if (route == EmulatorRoute.name) {
+    if (route == MainRoute.name) {
       lifeCycleListenerEnabled = true;
 
       resume();

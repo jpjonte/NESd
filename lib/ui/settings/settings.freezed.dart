@@ -32,6 +32,7 @@ mixin _$Settings {
   Map<NesAction, List<InputCombination?>> get bindings =>
       throw _privateConstructorUsedError;
   String? get lastRomPath => throw _privateConstructorUsedError;
+  List<String> get recentRomPaths => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -55,7 +56,8 @@ abstract class $SettingsCopyWith<$Res> {
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
-      String? lastRomPath});
+      String? lastRomPath,
+      List<String> recentRomPaths});
 }
 
 /// @nodoc
@@ -81,6 +83,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? autoSaveInterval = freezed,
     Object? bindings = null,
     Object? lastRomPath = freezed,
+    Object? recentRomPaths = null,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -123,6 +126,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.lastRomPath
           : lastRomPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      recentRomPaths: null == recentRomPaths
+          ? _value.recentRomPaths
+          : recentRomPaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ) as $Val);
   }
 }
@@ -146,7 +153,8 @@ abstract class _$$SettingsImplCopyWith<$Res>
       int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
-      String? lastRomPath});
+      String? lastRomPath,
+      List<String> recentRomPaths});
 }
 
 /// @nodoc
@@ -170,6 +178,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? autoSaveInterval = freezed,
     Object? bindings = null,
     Object? lastRomPath = freezed,
+    Object? recentRomPaths = null,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -212,6 +221,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.lastRomPath
           : lastRomPath // ignore: cast_nullable_to_non_nullable
               as String?,
+      recentRomPaths: null == recentRomPaths
+          ? _value._recentRomPaths
+          : recentRomPaths // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -230,8 +243,10 @@ class _$SettingsImpl implements _Settings {
       this.autoSaveInterval = 1,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings = const {},
-      this.lastRomPath = null})
-      : _bindings = bindings;
+      this.lastRomPath = null,
+      final List<String> recentRomPaths = const []})
+      : _bindings = bindings,
+        _recentRomPaths = recentRomPaths;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -272,10 +287,18 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final String? lastRomPath;
+  final List<String> _recentRomPaths;
+  @override
+  @JsonKey()
+  List<String> get recentRomPaths {
+    if (_recentRomPaths is EqualUnmodifiableListView) return _recentRomPaths;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recentRomPaths);
+  }
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths)';
   }
 
   @override
@@ -298,7 +321,9 @@ class _$SettingsImpl implements _Settings {
                 other.autoSaveInterval == autoSaveInterval) &&
             const DeepCollectionEquality().equals(other._bindings, _bindings) &&
             (identical(other.lastRomPath, lastRomPath) ||
-                other.lastRomPath == lastRomPath));
+                other.lastRomPath == lastRomPath) &&
+            const DeepCollectionEquality()
+                .equals(other._recentRomPaths, _recentRomPaths));
   }
 
   @JsonKey(ignore: true)
@@ -314,7 +339,8 @@ class _$SettingsImpl implements _Settings {
       autoSave,
       autoSaveInterval,
       const DeepCollectionEquality().hash(_bindings),
-      lastRomPath);
+      lastRomPath,
+      const DeepCollectionEquality().hash(_recentRomPaths));
 
   @JsonKey(ignore: true)
   @override
@@ -342,7 +368,8 @@ abstract class _Settings implements Settings {
       final int? autoSaveInterval,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings,
-      final String? lastRomPath}) = _$SettingsImpl;
+      final String? lastRomPath,
+      final List<String> recentRomPaths}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -368,6 +395,8 @@ abstract class _Settings implements Settings {
   Map<NesAction, List<InputCombination?>> get bindings;
   @override
   String? get lastRomPath;
+  @override
+  List<String> get recentRomPaths;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
@@ -45,9 +46,7 @@ class FilePickerScreen extends HookWidget {
         ),
       ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
-          padding: const EdgeInsets.all(8.0),
+        child: NesdMenuWrapper(
           child: FocusChild(
             autofocus: true,
             child: Column(

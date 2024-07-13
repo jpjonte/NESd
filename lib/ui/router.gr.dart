@@ -15,12 +15,6 @@ abstract class _$Router extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
-    EmulatorRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const EmulatorScreen(),
-      );
-    },
     FilePickerRoute.name: (routeData) {
       final args = routeData.argsAs<FilePickerRouteArgs>();
       return AutoRoutePage<String?>(
@@ -32,6 +26,12 @@ abstract class _$Router extends RootStackRouter {
           allowedExtensions: args.allowedExtensions,
           key: args.key,
         ),
+      );
+    },
+    MainRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const MainScreen(),
       );
     },
     MenuRoute.name: (routeData) {
@@ -47,20 +47,6 @@ abstract class _$Router extends RootStackRouter {
       );
     },
   };
-}
-
-/// generated route for
-/// [EmulatorScreen]
-class EmulatorRoute extends PageRouteInfo<void> {
-  const EmulatorRoute({List<PageRouteInfo>? children})
-      : super(
-          EmulatorRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'EmulatorRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
 }
 
 /// generated route for
@@ -114,6 +100,20 @@ class FilePickerRouteArgs {
   String toString() {
     return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, key: $key}';
   }
+}
+
+/// generated route for
+/// [MainScreen]
+class MainRoute extends PageRouteInfo<void> {
+  const MainRoute({List<PageRouteInfo>? children})
+      : super(
+          MainRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'MainRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
 }
 
 /// generated route for

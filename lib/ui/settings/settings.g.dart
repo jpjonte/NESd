@@ -21,6 +21,10 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
           ? const {}
           : bindingsFromJson(json['bindings']),
       lastRomPath: json['lastRomPath'] as String? ?? null,
+      recentRomPaths: (json['recentRomPaths'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
@@ -35,6 +39,7 @@ Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
       'autoSaveInterval': instance.autoSaveInterval,
       'bindings': bindingsToJson(instance.bindings),
       'lastRomPath': instance.lastRomPath,
+      'recentRomPaths': instance.recentRomPaths,
     };
 
 const _$ScalingEnumMap = {
@@ -51,7 +56,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'1f1a07e66d28731d6306638b9497351f33346e36';
+    r'2ea260479d93dc0e10726009cdfa201e0629039a';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

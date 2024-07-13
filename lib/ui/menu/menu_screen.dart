@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/dividers.dart';
+import 'package:nesd/ui/common/nesd_button.dart';
+import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/router.dart';
 
@@ -22,49 +25,35 @@ class MenuScreen extends HookConsumerWidget {
         ),
       ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
-          padding: const EdgeInsets.all(8.0),
+        child: NesdMenuWrapper(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  autofocus: true,
-                  onPressed: () =>
-                      ref.read(routerProvider).navigate(const EmulatorRoute()),
-                  child: const Text('Resume'),
-                ),
+              NesdButton(
+                autofocus: true,
+                onPressed: () =>
+                    ref.read(routerProvider).navigate(const MainRoute()),
+                child: const Text('Resume'),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  onPressed: () =>
-                      ref.read(routerProvider).push(const SettingsRoute()),
-                  child: const Text('Settings'),
-                ),
+              const NesdVerticalDivider(),
+              NesdButton(
+                onPressed: () =>
+                    ref.read(routerProvider).push(const SettingsRoute()),
+                child: const Text('Settings'),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  onPressed: () {
-                    ref.read(nesControllerProvider).stop();
-                    ref.read(routerProvider).navigate(const EmulatorRoute());
-                  },
-                  child: const Text('Quit Game'),
-                ),
+              const NesdVerticalDivider(),
+              NesdButton(
+                onPressed: () {
+                  ref.read(nesControllerProvider).stop();
+                  ref.read(routerProvider).navigate(const MainRoute());
+                },
+                child: const Text('Quit Game'),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: 200,
-                child: FilledButton(
-                  onPressed: () => SystemChannels.platform
-                      .invokeMethod('SystemNavigator.pop'),
-                  child: const Text('Quit NESd'),
-                ),
+              const NesdVerticalDivider(),
+              NesdButton(
+                onPressed: () =>
+                    SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+                child: const Text('Quit NESd'),
               ),
             ],
           ),

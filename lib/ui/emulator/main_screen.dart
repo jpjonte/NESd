@@ -8,14 +8,15 @@ import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
+import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 @RoutePage()
-class EmulatorScreen extends HookConsumerWidget {
-  const EmulatorScreen({
+class MainScreen extends HookConsumerWidget {
+  const MainScreen({
     super.key,
   });
 
@@ -46,41 +47,50 @@ class EmulatorScreen extends HookConsumerWidget {
       ],
       child: Focus(
         autofocus: true,
-        onKeyEvent: (focusNode, event) {
-          return keyboardInputHandler.handleKeyEvent(event)
-              ? KeyEventResult.handled
-              : KeyEventResult.ignored;
-        },
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
+        onKeyEvent: (focusNode, event) =>
+            keyboardInputHandler.handleKeyEvent(event)
+                ? KeyEventResult.handled
+                : KeyEventResult.ignored,
+        child: Scaffold(
+          body: Builder(
+            builder: (context) {
+              if (nes == null) {
+                return const MainMenu();
+              }
+
+              return Row(
                 children: [
-                  const DisplayWidget(),
-                  if (errorState.value != null)
-                    Text(
-                      errorState.value!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const DisplayWidget(),
+                        if (errorState.value != null)
+                          Text(
+                            errorState.value!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (settings.showTiles || settings.showCartridgeInfo)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 528),
+                      child: ListView(
+                        padding: const EdgeInsets.all(8),
+                        children: [
+                          if (settings.showTiles) const TileDebugWidget(),
+                          if (cartridge != null && settings.showCartridgeInfo)
+                            CartridgeInfoWidget(cartridge: cartridge),
+                        ],
                       ),
                     ),
                 ],
-              ),
-            ),
-            if (settings.showTiles || settings.showCartridgeInfo)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 528),
-                child: ListView(
-                  padding: const EdgeInsets.all(8),
-                  children: [
-                    if (settings.showTiles) const TileDebugWidget(),
-                    if (cartridge != null && settings.showCartridgeInfo)
-                      CartridgeInfoWidget(cartridge: cartridge),
-                  ],
-                ),
-              ),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );

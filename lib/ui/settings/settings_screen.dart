@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/audio/audio_settings.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
@@ -70,9 +71,7 @@ class SettingsScreen extends HookConsumerWidget {
               ),
             ),
           },
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 800),
-            padding: const EdgeInsets.all(8.0),
+          child: NesdMenuWrapper(
             child: Column(
               children: [
                 TabBar(
