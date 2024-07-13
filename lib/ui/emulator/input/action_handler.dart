@@ -99,18 +99,18 @@ class ActionHandler {
 
   void handleActionDown(NesAction action) {
     if (action is OpenMenu) {
-      if (_currentRoute == SettingsRoute.name) {
+      if (_currentRoute == EmulatorRoute.name) {
+        nesController
+          ..lifeCycleListenerEnabled = false
+          ..suspend();
+
+        router.navigate(const MenuRoute());
+      } else {
         nesController
           ..lifeCycleListenerEnabled = true
           ..resume();
 
         router.navigate(const EmulatorRoute());
-      } else {
-        nesController
-          ..lifeCycleListenerEnabled = false
-          ..suspend();
-
-        router.navigate(const SettingsRoute());
       }
 
       return;
