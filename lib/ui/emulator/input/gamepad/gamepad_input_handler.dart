@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:gamepads/gamepads.dart';
 import 'package:nes/ui/emulator/input/action.dart';
 import 'package:nes/ui/emulator/input/action_handler.dart';
+import 'package:nes/ui/emulator/input/gamepad/gamepad_input_event.dart';
+import 'package:nes/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
 import 'package:nes/ui/settings/controls/input_combination.dart';
 import 'package:nes/ui/settings/settings.dart';
@@ -24,8 +25,13 @@ GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
   );
 
   final actionStream = ref.watch(actionStreamProvider);
+  final inputMapper = ref.watch(gamepadInputMapperProvider);
 
-  final input = GamepadInputHandler(bindings, actionStream: actionStream);
+  final input = GamepadInputHandler(
+    bindings,
+    actionStream: actionStream,
+    inputMapper: inputMapper,
+  );
 
   ref.onDispose(input.dispose);
 
@@ -33,14 +39,18 @@ GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
 }
 
 class GamepadInputHandler {
-  GamepadInputHandler(BindingMap bindings, {required this.actionStream}) {
+  GamepadInputHandler(
+    BindingMap bindings, {
+    required this.actionStream,
+    required GamepadInputMapper inputMapper,
+  }) {
     _bindings = _buildBindingMap(bindings);
-    _subscription = Gamepads.events.listen(_handleGamepadEvent);
+    _subscription = inputMapper.stream.listen(_handleGamepadEvent);
   }
 
   final ActionStream actionStream;
 
-  late final StreamSubscription<GamepadEvent> _subscription;
+  late final StreamSubscription<GamepadInputEvent> _subscription;
 
   final _state = <String, Set<GamepadInput>>{};
 
@@ -50,7 +60,7 @@ class GamepadInputHandler {
     _subscription.cancel();
   }
 
-  void _handleGamepadEvent(GamepadEvent event) {
+  void _handleGamepadEvent(GamepadInputEvent event) {
     // get actions that match the previous state
     final previousActions = _getActions();
 
@@ -102,7 +112,7 @@ class GamepadInputHandler {
     return actions;
   }
 
-  void _updateState(GamepadEvent event) {
+  void _updateState(GamepadInputEvent event) {
     final initialState = _state[event.gamepadId] ?? {};
     final value = event.value.abs();
 
@@ -110,14 +120,14 @@ class GamepadInputHandler {
       _state[event.gamepadId] = {
         ...initialState,
         GamepadInput(
-          id: event.key,
+          id: event.inputId,
           direction: event.value.sign.toInt(),
         ),
       };
     } else if (value < _inputOffThreshold) {
       _state[event.gamepadId] = {
         ...initialState,
-      }..removeWhere((button) => button.id == event.key);
+      }..removeWhere((button) => button.id == event.inputId);
     }
   }
 

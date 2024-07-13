@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gamepads/gamepads.dart';
 import 'package:nes/extension/iterable_extension.dart';
 import 'package:nes/ui/emulator/input/action.dart';
 import 'package:nes/ui/emulator/input/action_handler.dart';
+import 'package:nes/ui/emulator/input/gamepad/gamepad_input_event.dart';
+import 'package:nes/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
 import 'package:nes/ui/settings/controls/binder_state.dart';
 import 'package:nes/ui/settings/controls/controls_settings.dart';
 import 'package:nes/ui/settings/controls/gamepad_input.dart';
@@ -23,8 +24,9 @@ class BinderController {
     required this.state,
     required this.inputs,
     required this.actionHandler,
+    required GamepadInputMapper gamepadInputMapper,
   }) {
-    _subscription = Gamepads.events.listen(_handleGamepadEvent);
+    _subscription = gamepadInputMapper.stream.listen(_handleGamepadEvent);
   }
 
   final NesAction action;
@@ -34,7 +36,7 @@ class BinderController {
   final List<InputCombination?> inputs;
   final ActionHandler actionHandler;
 
-  late final StreamSubscription<GamepadEvent> _subscription;
+  late final StreamSubscription<GamepadInputEvent> _subscription;
 
   void onDispose() {
     _subscription.cancel();
@@ -98,7 +100,7 @@ class BinderController {
     return KeyEventResult.ignored;
   }
 
-  void _handleGamepadEvent(GamepadEvent event) {
+  void _handleGamepadEvent(GamepadInputEvent event) {
     if (!state.editing) {
       return;
     }
@@ -119,7 +121,7 @@ class BinderController {
     }
 
     final gamepadInput = updatedBinding.inputs.firstWhereOrNull(
-      (input) => input.id == event.key,
+      (input) => input.id == event.inputId,
     );
 
     if (event.value.abs() > 0.5) {
@@ -127,7 +129,7 @@ class BinderController {
         inputs: {
           ...updatedBinding.inputs,
           GamepadInput(
-            id: event.key,
+            id: event.inputId,
             direction: event.value.sign.toInt(),
             label: event.label,
           ),
@@ -153,6 +155,7 @@ BinderController binderController(BinderControllerRef ref, NesAction action) {
           .select((settings) => settings.bindings[action] ?? []),
     ),
     actionHandler: ref.watch(actionHandlerProvider),
+    gamepadInputMapper: ref.watch(gamepadInputMapperProvider),
   );
 
   ref.onDispose(controller.onDispose);
