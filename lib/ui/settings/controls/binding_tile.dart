@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/intents.dart';
-import 'package:nes/ui/settings/controls/binder.dart';
-import 'package:nes/ui/settings/controls/binder_controller.dart';
-import 'package:nes/ui/settings/controls/binder_state.dart';
-import 'package:nes/ui/settings/controls/controls_settings.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/settings/controls/binder.dart';
+import 'package:nesd/ui/settings/controls/binder_controller.dart';
+import 'package:nesd/ui/settings/controls/binder_state.dart';
+import 'package:nesd/ui/settings/controls/controls_settings.dart';
 
 class BindingTile extends HookConsumerWidget {
   const BindingTile({

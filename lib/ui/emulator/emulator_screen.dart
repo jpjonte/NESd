@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nes/ui/emulator/cartridge_info.dart';
-import 'package:nes/ui/emulator/display.dart';
-import 'package:nes/ui/emulator/input/action_handler.dart';
-import 'package:nes/ui/emulator/input/gamepad/gamepad_input_handler.dart';
-import 'package:nes/ui/emulator/input/keyboard_input_handler.dart';
-import 'package:nes/ui/emulator/nes_controller.dart';
-import 'package:nes/ui/emulator/tile_debug.dart';
-import 'package:nes/ui/router.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
+import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
+import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/tile_debug.dart';
+import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 @RoutePage()
 class EmulatorScreen extends HookConsumerWidget {

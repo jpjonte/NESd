@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:nes/nes/apu/channel/pulse_channel.dart';
-import 'package:nes/nes/apu/unit/sweep_unit_state.dart';
+import 'package:nesd/nes/apu/channel/pulse_channel.dart';
+import 'package:nesd/nes/apu/unit/sweep_unit_state.dart';
 
 class SweepUnit {
   SweepUnit(this.channel, {this.onesComplement = false});

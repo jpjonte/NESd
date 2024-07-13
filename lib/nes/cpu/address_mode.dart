@@ -1,6 +1,6 @@
-import 'package:nes/extension/hex_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cpu/cpu.dart';
+import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cpu/cpu.dart';
 
 typedef AddressReader = (int, bool) Function(CPU, int);
 typedef AddressModeDebugger = String Function(CPU, int, List<int>, int);

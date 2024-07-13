@@ -1,4 +1,4 @@
-import 'package:nes/nes/apu/filter/filter.dart';
+import 'package:nesd/nes/apu/filter/filter.dart';
 
 class FilterChain {
   FilterChain(this.filters);

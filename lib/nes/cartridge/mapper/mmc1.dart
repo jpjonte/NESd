@@ -1,8 +1,8 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
-import 'package:nes/nes/cartridge/mapper/mmc1_state.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/cartridge/mapper/mmc1_state.dart';
 
 class MMC1 extends Mapper {
   MMC1() : super(1);

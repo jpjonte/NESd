@@ -1,4 +1,4 @@
-import 'package:nes/exception/nesd_exception.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 
 class UnsupportedFileType extends NesdException {
   UnsupportedFileType(String extension)

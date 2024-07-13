@@ -1,7 +1,7 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/channel/triangle_channel_state.dart';
-import 'package:nes/nes/apu/tables.dart';
-import 'package:nes/nes/apu/unit/length_counter_unit.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/channel/triangle_channel_state.dart';
+import 'package:nesd/nes/apu/tables.dart';
+import 'package:nesd/nes/apu/unit/length_counter_unit.dart';
 
 class TriangleChannel {
   bool enabled = false;

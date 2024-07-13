@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nes/extension/bit_extension.dart';
+import 'package:nesd/extension/bit_extension.dart';
 
 void main() {
   test('test get bit', () {

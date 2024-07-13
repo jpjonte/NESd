@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:nes/ui/common/focus_child.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/nesd_theme.dart';
+import 'package:nesd/ui/common/focus_child.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
 enum FilePickerType {

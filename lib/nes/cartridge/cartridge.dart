@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:nes/exception/invalid_rom_header.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/cartridge_state.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/exception/invalid_rom_header.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/cartridge_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
 enum NametableLayout { horizontal, vertical, four, single }
 

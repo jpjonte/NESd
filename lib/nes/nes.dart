@@ -2,18 +2,18 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:binarize/binarize.dart';
-import 'package:nes/extension/hex_extension.dart';
-import 'package:nes/nes/apu/apu.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
-import 'package:nes/nes/cpu/address_mode.dart';
-import 'package:nes/nes/cpu/cpu.dart';
-import 'package:nes/nes/cpu/instruction.dart';
-import 'package:nes/nes/cpu/operation.dart';
-import 'package:nes/nes/nes_state.dart';
-import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/nes/ppu/ppu.dart';
-import 'package:nes/util/wait.dart';
+import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
+import 'package:nesd/nes/cpu/cpu.dart';
+import 'package:nesd/nes/cpu/instruction.dart';
+import 'package:nesd/nes/cpu/operation.dart';
+import 'package:nesd/nes/nes_state.dart';
+import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/util/wait.dart';
 
 sealed class NesEvent {}
 

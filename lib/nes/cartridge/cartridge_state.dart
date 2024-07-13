@@ -1,6 +1,6 @@
 import 'package:binarize/binarize.dart';
-import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
-import 'package:nes/nes/cartridge/mapper/nrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 
 class CartridgeState {
   const CartridgeState({

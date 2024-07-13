@@ -1,5 +1,5 @@
-import 'package:nes/nes/cpu/address_mode.dart';
-import 'package:nes/nes/cpu/instruction.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
+import 'package:nesd/nes/cpu/instruction.dart';
 
 class Operation {
   Operation(

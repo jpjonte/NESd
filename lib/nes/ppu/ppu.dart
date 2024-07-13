@@ -2,11 +2,11 @@
 
 import 'dart:typed_data';
 
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/nes/ppu/ppu_state.dart';
-import 'package:nes/nes/ppu/sprite_output.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/nes/ppu/ppu_state.dart';
+import 'package:nesd/nes/ppu/sprite_output.dart';
 
 const systemPalette = [
   0x626262,

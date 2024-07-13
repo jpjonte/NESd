@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/settings/graphics/scaling.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/settings/graphics/scaling.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 class ScalingDropdown extends HookConsumerWidget {
   const ScalingDropdown({super.key});

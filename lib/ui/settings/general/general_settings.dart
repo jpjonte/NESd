@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:nes/ui/settings/general/auto_save_interval.dart';
-import 'package:nes/ui/settings/general/auto_save_switch.dart';
-import 'package:nes/ui/settings/settings_tab.dart';
+import 'package:nesd/ui/settings/general/auto_save_interval.dart';
+import 'package:nesd/ui/settings/general/auto_save_switch.dart';
+import 'package:nesd/ui/settings/settings_tab.dart';
 
 class GeneralSettings extends StatelessWidget {
   const GeneralSettings({super.key});

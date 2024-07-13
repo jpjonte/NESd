@@ -1,8 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:binarize/binarize.dart';
-import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/nes/ppu/sprite_output.dart';
+import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/nes/ppu/sprite_output.dart';
 
 class PPUState {
   PPUState({

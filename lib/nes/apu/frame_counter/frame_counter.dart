@@ -1,7 +1,7 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/apu.dart';
-import 'package:nes/nes/apu/frame_counter/frame_counter_state.dart';
-import 'package:nes/nes/cpu/cpu.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
+import 'package:nesd/nes/cpu/cpu.dart';
 
 class FrameCounter {
   FrameCounter(this.apu);

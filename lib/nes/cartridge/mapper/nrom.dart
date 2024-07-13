@@ -1,7 +1,7 @@
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
-import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
-import 'package:nes/nes/cartridge/mapper/nrom_state.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 
 class NROM extends Mapper {
   NROM() : super(0);

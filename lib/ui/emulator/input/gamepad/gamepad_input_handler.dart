@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/action_handler.dart';
-import 'package:nes/ui/emulator/input/gamepad/gamepad_input_event.dart';
-import 'package:nes/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
-import 'package:nes/ui/settings/controls/gamepad_input.dart';
-import 'package:nes/ui/settings/controls/input_combination.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/settings/controls/gamepad_input.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_handler.g.dart';

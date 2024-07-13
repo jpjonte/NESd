@@ -1,4 +1,4 @@
-import 'package:nes/nes/apu/unit/length_counter_unit_state.dart';
+import 'package:nesd/nes/apu/unit/length_counter_unit_state.dart';
 
 class LengthCounterUnit {
   bool halt = false;

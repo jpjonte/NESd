@@ -1,6 +1,6 @@
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/mapper/cnrom_state.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
 class CNROM extends Mapper {
   CNROM() : super(3);

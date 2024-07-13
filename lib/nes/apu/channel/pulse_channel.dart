@@ -1,9 +1,9 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/channel/pulse_channel_state.dart';
-import 'package:nes/nes/apu/tables.dart';
-import 'package:nes/nes/apu/unit/envelope_unit.dart';
-import 'package:nes/nes/apu/unit/length_counter_unit.dart';
-import 'package:nes/nes/apu/unit/sweep_unit.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/channel/pulse_channel_state.dart';
+import 'package:nesd/nes/apu/tables.dart';
+import 'package:nesd/nes/apu/unit/envelope_unit.dart';
+import 'package:nesd/nes/apu/unit/length_counter_unit.dart';
+import 'package:nesd/nes/apu/unit/sweep_unit.dart';
 
 class PulseChannel {
   PulseChannel({this.onesComplement = false});

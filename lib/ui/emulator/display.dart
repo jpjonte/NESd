@@ -6,12 +6,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/nes/ppu/frame_buffer.dart';
-import 'package:nes/ui/emulator/nes_controller.dart';
-import 'package:nes/ui/file_picker/file_picker_screen.dart';
-import 'package:nes/ui/router.dart';
-import 'package:nes/ui/settings/graphics/scaling.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/settings/graphics/scaling.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

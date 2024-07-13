@@ -1,7 +1,7 @@
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/controls_settings.dart';
-import 'package:nes/ui/settings/controls/input_combination.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/settings/controls/controls_settings.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'binder_state.g.dart';

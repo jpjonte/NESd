@@ -1,15 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/apu_state.dart';
-import 'package:nes/nes/apu/channel/dmc_channel.dart';
-import 'package:nes/nes/apu/channel/noise_channel.dart';
-import 'package:nes/nes/apu/channel/pulse_channel.dart';
-import 'package:nes/nes/apu/channel/triangle_channel.dart';
-import 'package:nes/nes/apu/frame_counter/frame_counter.dart';
-import 'package:nes/nes/apu/tables.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cpu/cpu.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/apu_state.dart';
+import 'package:nesd/nes/apu/channel/dmc_channel.dart';
+import 'package:nesd/nes/apu/channel/noise_channel.dart';
+import 'package:nesd/nes/apu/channel/pulse_channel.dart';
+import 'package:nesd/nes/apu/channel/triangle_channel.dart';
+import 'package:nesd/nes/apu/frame_counter/frame_counter.dart';
+import 'package:nesd/nes/apu/tables.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cpu/cpu.dart';
 
 const apuSampleRate = 48000;
 

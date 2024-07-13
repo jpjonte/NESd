@@ -1,5 +1,5 @@
-import 'package:nes/nes/bus.dart';
-import 'package:nes/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/ui/emulator/input/action/all_actions.dart';
 
 part 'action/controller_press.dart';
 part 'action/load_state.dart';

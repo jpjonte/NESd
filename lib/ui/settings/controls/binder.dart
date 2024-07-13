@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/nesd_theme.dart';
-import 'package:nes/ui/settings/controls/binder_controller.dart';
-import 'package:nes/ui/settings/controls/binder_state.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/settings/controls/binder_controller.dart';
+import 'package:nesd/ui/settings/controls/binder_state.dart';
 
 class Binder extends ConsumerWidget {
   const Binder({

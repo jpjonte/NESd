@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/gamepad_input.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 
 part 'input_combination.freezed.dart';
 part 'input_combination.g.dart';

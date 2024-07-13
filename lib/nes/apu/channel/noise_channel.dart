@@ -1,8 +1,8 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/channel/noise_channel_state.dart';
-import 'package:nes/nes/apu/tables.dart';
-import 'package:nes/nes/apu/unit/envelope_unit.dart';
-import 'package:nes/nes/apu/unit/length_counter_unit.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/channel/noise_channel_state.dart';
+import 'package:nesd/nes/apu/tables.dart';
+import 'package:nesd/nes/apu/unit/envelope_unit.dart';
+import 'package:nesd/nes/apu/unit/length_counter_unit.dart';
 
 class NoiseChannel {
   bool enabled = false;

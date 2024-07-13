@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/emulator/input/intents.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 class AutoSaveInterval extends ConsumerWidget {
   const AutoSaveInterval({super.key});
@@ -20,9 +20,11 @@ class AutoSaveInterval extends ConsumerWidget {
     return Actions(
       actions: {
         DecreaseIntent: CallbackAction<DecreaseIntent>(
-            onInvoke: (intent) => controller.autoSaveInterval = current - 1,),
+          onInvoke: (intent) => controller.autoSaveInterval = current - 1,
+        ),
         IncreaseIntent: CallbackAction<IncreaseIntent>(
-            onInvoke: (intent) => controller.autoSaveInterval = current + 1,),
+          onInvoke: (intent) => controller.autoSaveInterval = current + 1,
+        ),
       },
       child: FocusOnHover(
         child: ListTile(

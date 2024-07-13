@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/ui/emulator/emulator_screen.dart';
-import 'package:nes/ui/file_picker/file_picker_screen.dart';
-import 'package:nes/ui/settings/settings_screen.dart';
+import 'package:nesd/ui/emulator/emulator_screen.dart';
+import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/settings/settings_screen.dart';
 
 part 'router.gr.dart';
 

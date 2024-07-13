@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class AXROMState extends MapperState {
   const AXROMState({

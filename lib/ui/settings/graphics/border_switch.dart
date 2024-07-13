@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 class BorderSwitch extends ConsumerWidget {
   const BorderSwitch({super.key});

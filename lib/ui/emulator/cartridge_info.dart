@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 
 class CartridgeInfoWidget extends StatelessWidget {
   const CartridgeInfoWidget({

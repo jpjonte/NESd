@@ -2,12 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nes/ui/common/focus_on_hover.dart';
-import 'package:nes/ui/emulator/input/action/all_actions.dart';
-import 'package:nes/ui/emulator/input/intents.dart';
-import 'package:nes/ui/settings/controls/binding_tile.dart';
-import 'package:nes/ui/settings/settings.dart';
-import 'package:nes/ui/settings/settings_tab.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/ui/settings/settings_tab.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'controls_settings.g.dart';
@@ -86,7 +86,8 @@ class ProfileSelectionHeader extends ConsumerWidget {
           onInvoke: (_) => indexController.previous(),
         ),
         IncreaseIntent: CallbackAction<IncreaseIntent>(
-            onInvoke: (_) => indexController.next(),),
+          onInvoke: (_) => indexController.next(),
+        ),
       },
       child: FocusOnHover(
         child: ListTile(

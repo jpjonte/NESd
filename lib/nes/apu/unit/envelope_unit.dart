@@ -1,4 +1,4 @@
-import 'package:nes/nes/apu/unit/envelope_unit_state.dart';
+import 'package:nesd/nes/apu/unit/envelope_unit_state.dart';
 
 class EnvelopeUnit {
   int volume = 0;

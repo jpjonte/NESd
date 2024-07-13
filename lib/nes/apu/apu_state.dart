@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:binarize/binarize.dart';
-import 'package:nes/nes/apu/channel/dmc_channel_state.dart';
-import 'package:nes/nes/apu/channel/noise_channel_state.dart';
-import 'package:nes/nes/apu/channel/pulse_channel_state.dart';
-import 'package:nes/nes/apu/channel/triangle_channel_state.dart';
-import 'package:nes/nes/apu/frame_counter/frame_counter_state.dart';
+import 'package:nesd/nes/apu/channel/dmc_channel_state.dart';
+import 'package:nesd/nes/apu/channel/noise_channel_state.dart';
+import 'package:nesd/nes/apu/channel/pulse_channel_state.dart';
+import 'package:nesd/nes/apu/channel/triangle_channel_state.dart';
+import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
 
 class APUState {
   const APUState({

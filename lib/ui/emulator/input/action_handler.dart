@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
-import 'package:nes/nes/nes.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/intents.dart';
-import 'package:nes/ui/emulator/nes_controller.dart';
-import 'package:nes/ui/emulator/save_manager.dart';
-import 'package:nes/ui/router.dart';
+import 'package:nesd/nes/nes.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/save_manager.dart';
+import 'package:nesd/ui/router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'action_handler.g.dart';

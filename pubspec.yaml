@@ -1,4 +1,4 @@
-name: nes
+name: nesd
 description: "NES emulator"
 publish_to: 'none'
 

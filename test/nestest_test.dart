@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
-import 'package:nes/nes/nes.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/nes.dart';
 
 void main() {
   test('Run nestest', () {

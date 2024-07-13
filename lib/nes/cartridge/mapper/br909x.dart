@@ -1,6 +1,6 @@
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
-import 'package:nes/nes/cartridge/mapper/single_prg_bank_state.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/cartridge/mapper/single_prg_bank_state.dart';
 
 class BR909x extends Mapper {
   BR909x() : super(71);

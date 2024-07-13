@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/emulator/input/action_handler.dart';
-import 'package:nes/ui/settings/controls/input_combination.dart';
-import 'package:nes/ui/settings/settings.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'keyboard_input_handler.g.dart';

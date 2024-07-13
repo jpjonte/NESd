@@ -1,8 +1,8 @@
 import 'package:binarize/binarize.dart';
-import 'package:nes/nes/apu/apu_state.dart';
-import 'package:nes/nes/cartridge/cartridge_state.dart';
-import 'package:nes/nes/cpu/cpu_state.dart';
-import 'package:nes/nes/ppu/ppu_state.dart';
+import 'package:nesd/nes/apu/apu_state.dart';
+import 'package:nesd/nes/cartridge/cartridge_state.dart';
+import 'package:nesd/nes/cpu/cpu_state.dart';
+import 'package:nesd/nes/ppu/ppu_state.dart';
 
 class NESState {
   const NESState({

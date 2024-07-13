@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
-import 'package:nes/audio/audio_buffer.dart';
+import 'package:nesd/audio/audio_buffer.dart';
 
 class AudioOutput {
   AudioOutput() {

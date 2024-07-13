@@ -1,6 +1,6 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/apu/channel/dmc_channel_state.dart';
-import 'package:nes/nes/bus.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/channel/dmc_channel_state.dart';
+import 'package:nesd/nes/bus.dart';
 
 const dmcTable = [
   428,

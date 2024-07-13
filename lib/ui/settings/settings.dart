@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nes/ui/emulator/input/action.dart';
-import 'package:nes/ui/settings/controls/input_combination.dart';
-import 'package:nes/ui/settings/graphics/scaling.dart';
-import 'package:nes/ui/settings/shared_preferences.dart';
+import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
+import 'package:nesd/ui/settings/graphics/scaling.dart';
+import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

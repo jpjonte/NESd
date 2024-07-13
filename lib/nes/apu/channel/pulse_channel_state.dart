@@ -1,7 +1,7 @@
 import 'package:binarize/binarize.dart';
-import 'package:nes/nes/apu/unit/envelope_unit_state.dart';
-import 'package:nes/nes/apu/unit/length_counter_unit_state.dart';
-import 'package:nes/nes/apu/unit/sweep_unit_state.dart';
+import 'package:nesd/nes/apu/unit/envelope_unit_state.dart';
+import 'package:nesd/nes/apu/unit/length_counter_unit_state.dart';
+import 'package:nesd/nes/apu/unit/sweep_unit_state.dart';
 
 class PulseChannelState {
   const PulseChannelState({

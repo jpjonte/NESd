@@ -2,13 +2,13 @@
 
 import 'dart:typed_data';
 
-import 'package:nes/exception/invalid_opcode.dart';
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cpu/address_mode.dart';
-import 'package:nes/nes/cpu/cpu_state.dart';
-import 'package:nes/nes/cpu/instruction.dart';
-import 'package:nes/nes/cpu/operation.dart';
+import 'package:nesd/exception/invalid_opcode.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
+import 'package:nesd/nes/cpu/cpu_state.dart';
+import 'package:nesd/nes/cpu/instruction.dart';
+import 'package:nesd/nes/cpu/operation.dart';
 
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;

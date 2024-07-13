@@ -1,7 +1,7 @@
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/mapper/axrom_state.dart';
-import 'package:nes/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
 class AxROM extends Mapper {
   AxROM() : super(7);

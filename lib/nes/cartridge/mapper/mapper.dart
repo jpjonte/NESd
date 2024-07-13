@@ -1,15 +1,15 @@
-import 'package:nes/exception/unsupported_mapper.dart';
-import 'package:nes/extension/bit_extension.dart';
-import 'package:nes/nes/bus.dart';
-import 'package:nes/nes/cartridge/cartridge.dart';
-import 'package:nes/nes/cartridge/mapper/axrom.dart';
-import 'package:nes/nes/cartridge/mapper/br909x.dart';
-import 'package:nes/nes/cartridge/mapper/cnrom.dart';
-import 'package:nes/nes/cartridge/mapper/mapper_state.dart';
-import 'package:nes/nes/cartridge/mapper/mmc1.dart';
-import 'package:nes/nes/cartridge/mapper/mmc3.dart';
-import 'package:nes/nes/cartridge/mapper/nrom.dart';
-import 'package:nes/nes/cartridge/mapper/unrom.dart';
+import 'package:nesd/exception/unsupported_mapper.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/mapper/axrom.dart';
+import 'package:nesd/nes/cartridge/mapper/br909x.dart';
+import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mmc1.dart';
+import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
+import 'package:nesd/nes/cartridge/mapper/nrom.dart';
+import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 
 abstract class Mapper {
   Mapper(this.id);
