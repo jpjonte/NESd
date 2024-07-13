@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
@@ -13,6 +13,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/save_manager.dart';
+import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -47,6 +48,7 @@ NesController nesController(NesControllerRef ref) {
   final controller = NesController(
     nesState: ref.watch(nesStateProvider.notifier),
     audioOutput: ref.watch(audioOutputProvider),
+    router: ref.read(routerProvider),
   );
 
   ref.onDispose(controller._dispose);
@@ -66,6 +68,7 @@ class NesController {
   NesController({
     required this.nesState,
     required this.audioOutput,
+    required this.router,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -73,12 +76,15 @@ class NesController {
       onShow: _appSuspended,
       onResume: _appResumed,
     );
-  }
 
+    router.addListener(_updateRoute);
+  }
 
   final NesState nesState;
 
   final AudioOutput audioOutput;
+
+  final Router router;
 
   NES? get nes => nesState.nes;
 
@@ -202,6 +208,7 @@ class NesController {
     audioOutput.dispose();
     _streamController.close();
     _lifecycleListener.dispose();
+    router.removeListener(_updateRoute);
   }
 
   void _appSuspended() {
@@ -256,5 +263,19 @@ class NesController {
     }
 
     return Uint8List.fromList(roms.single.content as List<int>);
+  }
+
+  void _updateRoute() {
+    final route = router.current.name;
+
+    if (route == EmulatorRoute.name) {
+      lifeCycleListenerEnabled = true;
+
+      resume();
+    } else {
+      suspend();
+
+      lifeCycleListenerEnabled = false;
+    }
   }
 }

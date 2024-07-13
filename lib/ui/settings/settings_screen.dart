@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
-import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/audio/audio_settings.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/debug/debug_settings.dart';
@@ -34,7 +33,6 @@ class SettingsScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 5);
-    final controller = ref.watch(nesControllerProvider);
 
     final indexController = ref.watch(settingsTabIndexProvider.notifier);
 
@@ -50,15 +48,6 @@ class SettingsScreen extends HookConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(
-          onPressed: () {
-            controller
-              ..resume()
-              ..lifeCycleListenerEnabled = true;
-
-            AutoRouter.of(context).maybePopTop();
-          },
-        ),
         title: Text(
           'Settings',
           style: TextStyle(

@@ -99,13 +99,8 @@ class EmulatorScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Settings...',
           shortcut: const CharacterActivator(',', meta: true),
-          onSelected: () async {
-            controller
-              ..lifeCycleListenerEnabled = false
-              ..suspend();
-
-            context.router.navigate(const SettingsRoute());
-          },
+          onSelected: () async =>
+              context.router.navigate(const SettingsRoute()),
         ),
         PlatformMenuItem(
           label: 'Quit NESd',

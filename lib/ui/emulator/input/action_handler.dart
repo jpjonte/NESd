@@ -50,7 +50,7 @@ ActionHandler actionHandler(ActionHandlerRef ref) {
     actionStream: actionStream.stream,
   );
 
-  ref.onDispose(() => handler.dispose());
+  ref.onDispose(handler.dispose);
 
   return handler;
 }
@@ -104,16 +104,8 @@ class ActionHandler {
   void handleActionDown(NesAction action) {
     if (action is OpenMenu) {
       if (_currentRoute == EmulatorRoute.name) {
-        nesController
-          ..lifeCycleListenerEnabled = false
-          ..suspend();
-
         router.navigate(const MenuRoute());
       } else {
-        nesController
-          ..lifeCycleListenerEnabled = true
-          ..resume();
-
         router.navigate(const EmulatorRoute());
       }
 

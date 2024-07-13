@@ -6,7 +6,7 @@ part of 'nes_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nesControllerHash() => r'1f1583b5dca8325e0c60313dd7219c72ea733485';
+String _$nesControllerHash() => r'4acd4591e7cae7da187451324b8bdebcf607894f';
 
 /// See also [nesController].
 @ProviderFor(nesController)
@@ -21,7 +21,7 @@ final nesControllerProvider = AutoDisposeProvider<NesController>.internal(
 );
 
 typedef NesControllerRef = AutoDisposeProviderRef<NesController>;
-String _$nesStateHash() => r'89f263bf28185148a73857ec2f03f2b3574c8e97';
+String _$nesStateHash() => r'78aa5449b54a31ddc993afefa413638242e84188';
 
 /// See also [NesState].
 @ProviderFor(NesState)
