@@ -373,7 +373,7 @@ packages:
     description:
       path: "packages/gamepads"
       ref: "feature/nesd"
-      resolved-ref: be0803c1e27f43d10579bce7c4a7930244f7c8df
+      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
@@ -381,16 +381,16 @@ packages:
     dependency: transitive
     description:
       name: gamepads_android
-      sha256: c9067f086f5c637856e559b376cb434c221b4a6bb33e1faa871dcb06ec71f362
+      sha256: d7b329d279fe230e5b255bc146c8b5c988bd139fc318d118586c1d1fdf7f52ee
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   gamepads_darwin:
     dependency: "direct overridden"
     description:
       path: "packages/gamepads_darwin"
       ref: "feature/nesd"
-      resolved-ref: be0803c1e27f43d10579bce7c4a7930244f7c8df
+      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
@@ -398,16 +398,16 @@ packages:
     dependency: transitive
     description:
       name: gamepads_ios
-      sha256: "4b54724d4ab94f4c3f38af1df992be720a6d1951001da072089a7d4d11fd176b"
+      sha256: "2e0e5e699d674f31eed53ae0cf6cb9cbf2c9e00042862794215fc1bd51c4006a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   gamepads_linux:
     dependency: "direct overridden"
     description:
       path: "packages/gamepads_linux"
       ref: "feature/nesd"
-      resolved-ref: be0803c1e27f43d10579bce7c4a7930244f7c8df
+      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
@@ -416,7 +416,7 @@ packages:
     description:
       path: "packages/gamepads_platform_interface"
       ref: "feature/nesd"
-      resolved-ref: be0803c1e27f43d10579bce7c4a7930244f7c8df
+      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
@@ -424,10 +424,10 @@ packages:
     dependency: transitive
     description:
       name: gamepads_windows
-      sha256: "177b98ce0c34f20a72c778641965d1428908ff1dc31dcede64320f309af4c635"
+      sha256: ae2aa9436757cf8af3bb79fa0813e09ed92d9d93e3c0998619021f5d9ba591ad
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.1+1"
   glob:
     dependency: transitive
     description:
