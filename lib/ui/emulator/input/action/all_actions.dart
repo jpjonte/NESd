@@ -42,6 +42,7 @@ const allActions = [
   saveState7,
   saveState8,
   saveState9,
+  loadState0,
   loadState1,
   loadState2,
   loadState3,

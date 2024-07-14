@@ -13,6 +13,8 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/ui/toast/toast_overlay.dart';
+import 'package:nesd/ui/toast/toaster.dart';
 
 @RoutePage()
 class MainScreen extends HookConsumerWidget {
@@ -22,17 +24,25 @@ class MainScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final errorState = useState<String?>(null);
-
     final nes = ref.watch(nesStateProvider);
     final controller = ref.read(nesControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
 
-    // make sure services are instantiated
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Overlay.of(context)
+            .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
+      });
+
+      return null;
+    });
+
+    // make sure services are kept alive
     ref
       ..watch(actionHandlerProvider)
-      ..watch(gamepadInputHandlerProvider);
+      ..watch(gamepadInputHandlerProvider)
+      ..watch(toasterProvider);
 
     final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
 
@@ -41,7 +51,7 @@ class MainScreen extends HookConsumerWidget {
     return PlatformMenuBar(
       menus: [
         _mainMenu(context, controller),
-        _fileMenu(controller, errorState),
+        _fileMenu(controller),
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
@@ -60,21 +70,7 @@ class MainScreen extends HookConsumerWidget {
 
               return Row(
                 children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const DisplayWidget(),
-                        if (errorState.value != null)
-                          Text(
-                            errorState.value!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                  const Expanded(child: DisplayWidget()),
                   if (settings.showTiles || settings.showCartridgeInfo)
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 528),
@@ -125,20 +121,14 @@ class MainScreen extends HookConsumerWidget {
     return mainMenu;
   }
 
-  PlatformMenu _fileMenu(
-    NesController controller,
-    ValueNotifier<String?> errorState,
-  ) {
+  PlatformMenu _fileMenu(NesController controller) {
     return PlatformMenu(
       label: 'File',
       menus: [
         PlatformMenuItem(
           label: 'Open...',
           shortcut: const CharacterActivator('o', meta: true),
-          onSelected: () {
-            errorState.value = null;
-            controller.selectRom();
-          },
+          onSelected: controller.selectRom,
         ),
       ],
     );

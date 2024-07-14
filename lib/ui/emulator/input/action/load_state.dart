@@ -10,6 +10,12 @@ class LoadState extends NesAction {
   final int slot;
 }
 
+const loadState0 = LoadState(
+  0,
+  title: 'Load State 0 (auto save)',
+  code: 'loadState0.load',
+);
+
 const loadState1 = LoadState(
   1,
   title: 'Load State 1',

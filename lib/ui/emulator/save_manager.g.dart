@@ -6,7 +6,7 @@ part of 'save_manager.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$saveManagerHash() => r'874d0d3a7159dff7dcdc53045710fc1e9da0bd4d';
+String _$saveManagerHash() => r'a3753055c4cc35bc7d8e4b03599f40570b3c4f2f';
 
 /// See also [saveManager].
 @ProviderFor(saveManager)

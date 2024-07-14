@@ -31,6 +31,9 @@ final defaultBindings = {
   controller1B: [
     InputCombination.keyboard({LogicalKeyboardKey.keyX}),
   ],
+  loadState0: [
+    InputCombination.keyboard({LogicalKeyboardKey.digit0}),
+  ],
   loadState1: [
     InputCombination.keyboard({LogicalKeyboardKey.digit1}),
   ],

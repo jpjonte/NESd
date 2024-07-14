@@ -20,6 +20,7 @@ const nesdRed = MaterialColor(
 
 const textTheme = TextTheme(
   bodyMedium: TextStyle(fontSize: 12.0),
+  bodyLarge: TextStyle(fontSize: 16.0),
 );
 
 final sliderTheme = SliderThemeData(

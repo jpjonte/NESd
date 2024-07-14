@@ -15,6 +15,7 @@ import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/save_manager.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -50,6 +51,8 @@ NesController nesController(NesControllerRef ref) {
     audioOutput: ref.watch(audioOutputProvider),
     router: ref.read(routerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
+    toaster: ref.watch(toasterProvider),
+    saveManager: ref.watch(saveManagerProvider),
   );
 
   ref.onDispose(controller._dispose);
@@ -71,6 +74,8 @@ class NesController {
     required this.audioOutput,
     required this.router,
     required this.settingsController,
+    required this.toaster,
+    required this.saveManager,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -90,14 +95,16 @@ class NesController {
 
   final SettingsController settingsController;
 
+  final Toaster toaster;
+
+  final SaveManager saveManager;
+
   NES? get nes => nesState.nes;
 
   // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
 
   bool lifeCycleListenerEnabled = true;
-
-  final _saveManager = SaveManager();
 
   Timer? _autoSaveTimer;
 
@@ -187,7 +194,7 @@ class NesController {
         ..onError(
           // ignore: avoid_types_on_closure_parameters
           (Object error, StackTrace stackTrace) {
-            return _streamController.addError(error, stackTrace);
+            toaster.send(Toast.error(error.toString()));
           },
         );
 
@@ -197,7 +204,7 @@ class NesController {
 
       _load();
     } on Exception catch (e) {
-      _streamController.addError('Failed to load ROM: $e');
+      toaster.send(Toast.error('Failed to load ROM: $e'));
 
       resume();
     }
@@ -237,21 +244,17 @@ class NesController {
     if (interval != null) {
       _autoSaveTimer = Timer.periodic(
         Duration(minutes: interval),
-        (_) => save(),
+        (_) => saveManager.saveState(nes, 0),
       );
     }
   }
 
   void _save() {
-    if (nes case final nes?) {
-      _saveManager.save(nes);
-    }
+    saveManager.save(nes);
   }
 
   void _load() {
-    if (nes case final nes?) {
-      _saveManager.load(nes);
-    }
+    saveManager.load(nes);
   }
 
   Uint8List _loadZip(String path) {

@@ -183,15 +183,11 @@ class ActionHandler {
   }
 
   void _saveState(int slot) {
-    if (nes case final nes?) {
-      saveManager.saveState(nes, slot);
-    }
+    saveManager.saveState(nes, slot);
   }
 
   void _loadState(int slot) {
-    if (nes case final nes?) {
-      saveManager.loadState(nes, slot);
-    }
+    saveManager.loadState(nes, slot);
   }
 
   void _updateRoute() {
