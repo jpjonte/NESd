@@ -1,0 +1,23 @@
+display_name: NESd
+icon: assets/logo.png
+summary: A NES Emulator written in Dart and Flutter
+group: Applications/Games
+vendor: John Paul Jonte
+packager: John Paul Jonte
+packagerEmail: mail@jpjonte.de
+license: MIT
+url: https://github.com/jpjonte/nesd
+
+build_arch: x86_64
+
+keywords:
+  - NES
+  - Emulator
+  - NES Emulator
+
+generic_name: NES Emulator
+
+categories:
+  - Games
+
+startup_notify: true

@@ -1,0 +1,28 @@
+display_name: NESd
+package_name: nesd
+
+maintainer:
+  name: John Paul Jonte
+  email: mail@jpjonte.de
+
+priority: optional
+
+section: x11
+
+installed_size: 23860
+
+essential: false
+
+icon: assets/logo.png
+
+keywords:
+  - NES
+  - Emulator
+  - NES Emulator
+
+generic_name: NES Emulator
+
+categories:
+  - Games
+
+startup_notify: true

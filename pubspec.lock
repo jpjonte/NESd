@@ -373,10 +373,10 @@ packages:
     description:
       path: "packages/gamepads"
       ref: "feature/nesd"
-      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
+      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
-    version: "0.1.1"
+    version: "0.1.2"
   gamepads_android:
     dependency: transitive
     description:
@@ -390,10 +390,10 @@ packages:
     description:
       path: "packages/gamepads_darwin"
       ref: "feature/nesd"
-      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
+      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
-    version: "0.1.1"
+    version: "0.1.2"
   gamepads_ios:
     dependency: transitive
     description:
@@ -407,16 +407,16 @@ packages:
     description:
       path: "packages/gamepads_linux"
       ref: "feature/nesd"
-      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
+      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
-    version: "0.1.1"
+    version: "0.1.1+1"
   gamepads_platform_interface:
     dependency: "direct overridden"
     description:
       path: "packages/gamepads_platform_interface"
       ref: "feature/nesd"
-      resolved-ref: "5dd341a0ecb957cf0910f4ef67d09cb8cb3f6785"
+      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
       url: "git@github.com:jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
