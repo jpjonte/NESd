@@ -75,6 +75,11 @@ final nesdThemeLight = ThemeData(
   dividerTheme: dividerTheme,
 );
 
+final dialogThemeDark = DialogTheme(
+  backgroundColor: const Color(0xFF1a1a1a),
+  shadowColor: nesdRed[600],
+);
+
 final nesdThemeDark = ThemeData(
   useMaterial3: true,
   colorScheme: ColorScheme.dark(
@@ -91,4 +96,5 @@ final nesdThemeDark = ThemeData(
   sliderTheme: sliderTheme,
   filledButtonTheme: filledButtonTheme,
   dividerTheme: dividerTheme,
+  dialogTheme: dialogThemeDark,
 );

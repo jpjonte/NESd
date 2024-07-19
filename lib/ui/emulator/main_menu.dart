@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
@@ -25,7 +26,6 @@ class MainMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(nesControllerProvider);
-
     final settings = ref.watch(settingsControllerProvider);
 
     return FocusChild(
@@ -68,6 +68,14 @@ class MainMenu extends ConsumerWidget {
                 onPressed: () =>
                     ref.read(routerProvider).navigate(const SettingsRoute()),
                 child: const Text('Settings'),
+              ),
+              const NesdVerticalDivider(),
+              NesdButton(
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (context) => const AboutDialog(),
+                ),
+                child: const Text('About'),
               ),
               const NesdVerticalDivider(),
               NesdButton(
