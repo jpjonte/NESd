@@ -1,0 +1,29 @@
+name: CI pipeline
+on: [push]
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.GAMEPADS_PRIVATE_KEY }}
+            ${{ secrets.MP_AUDIO_STREAM_PRIVATE_KEY }}
+      - run: ci/build/prepare.sh
+      - run: ci/build/macos/prepare.sh
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - run: ci/build/macos/build.sh
+      - id: env
+        run: ci/build/macos/env.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NESd ${{ steps.env.outputs.release_name }} macOS
+          path: ${{ steps.env.outputs.path }}
+          if-no-files-found: error

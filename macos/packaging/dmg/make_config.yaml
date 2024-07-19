@@ -1,0 +1,17 @@
+title: NESd
+
+icon: ../../../build/macos/Build/Products/Release/NESd.app/Contents/Resources/AppIcon.icns
+background-color: "#FFFFFF"
+
+contents:
+  - x: 155
+    y: 270
+    type: file
+    path: ../../../build/macos/Build/Products/Release/NESd.app
+  - x: 445
+    y: 260
+    type: link
+    path: /Applications
+
+code-sign:
+  signing-identity: 4PZ4DG492N

@@ -599,9 +599,11 @@ packages:
   mp_audio_stream:
     dependency: "direct main"
     description:
-      path: "../../other/mp-audio-stream"
-      relative: true
-    source: path
+      path: "."
+      ref: "feature/buffer-size"
+      resolved-ref: "2dbf1f396b5db4a6e13884ea47e9b3d3cfba48a1"
+      url: "git@github.com:jpjonte/mp-audio-stream.git"
+    source: git
     version: "0.1.5"
   package_config:
     dependency: transitive

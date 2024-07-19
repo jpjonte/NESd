@@ -27,7 +27,9 @@ dependencies:
   hooks_riverpod: ^2.5.1
   json_annotation: ^4.9.0
   mp_audio_stream:
-    path: ../../other/mp-audio-stream
+    git:
+      url: git@github.com:jpjonte/mp-audio-stream.git
+      ref: feature/buffer-size
   package_info_plus: ^8.0.0
   path: ^1.9.0
   path_provider: ^2.1.3
