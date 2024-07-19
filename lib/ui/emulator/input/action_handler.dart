@@ -140,6 +140,8 @@ class ActionHandler {
         _loadState(action.slot);
       case TogglePauseAction():
         nes?.togglePause();
+      case ToggleFastForward():
+        nes?.toggleFastForward();
       case PauseAction(paused: final paused):
         if (paused) {
           nes?.pause();

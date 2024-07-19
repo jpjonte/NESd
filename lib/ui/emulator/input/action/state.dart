@@ -24,6 +24,13 @@ class StopAction extends NesAction {
   });
 }
 
+class ToggleFastForward extends NesAction {
+  const ToggleFastForward({
+    required super.title,
+    required super.code,
+  });
+}
+
 class DecreaseVolume extends NesAction {
   const DecreaseVolume({
     required super.title,
@@ -58,6 +65,11 @@ const unpause = PauseAction(
 const stop = StopAction(
   title: 'Stop Game',
   code: 'state.stop',
+);
+
+const toggleFastForward = ToggleFastForward(
+  title: 'Toggle Fast Forward',
+  code: 'state.toggleFastForward',
 );
 
 const decreaseVolume = DecreaseVolume(

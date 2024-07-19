@@ -50,6 +50,8 @@ class NES {
   bool paused = false;
   bool stopAfterNextFrame = false;
 
+  bool fastForward = false;
+
   late DateTime _frameStart;
 
   final Bus bus;
@@ -103,6 +105,8 @@ class NES {
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
 
+    fastForward = false;
+
     bus.cartridge.reset();
 
     cpu.reset();
@@ -133,7 +137,9 @@ class NES {
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         yield FrameNesEvent(
           frameBuffer: ppu.frameBuffer,
-          samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
+          samples: fastForward
+              ? Float32List(0)
+              : apu.sampleBuffer.sublist(0, apu.sampleIndex),
           frameTime: DateTime.now().difference(_frameStart),
         );
 
@@ -159,6 +165,10 @@ class NES {
   }
 
   Duration _calculateSleepTime(Duration elapsedTime, int samples) {
+    if (fastForward) {
+      return Duration.zero;
+    }
+
     final targetAudioTime = 1000000 * samples / apuSampleRate;
     final time = targetAudioTime - elapsedTime.inMicroseconds;
 
@@ -178,6 +188,14 @@ class NES {
 
     if (running) {
       _frameStart = DateTime.now();
+      _sleepBudget = Duration.zero;
+    }
+  }
+
+  void toggleFastForward() {
+    fastForward = !fastForward;
+
+    if (fastForward) {
       _sleepBudget = Duration.zero;
     }
   }

@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -72,6 +72,7 @@ class DisplayWidget extends ConsumerWidget {
               painter: EmulatorPainter(
                 image: image,
                 paused: !nes.running,
+                fastForward: nes.fastForward,
                 scale: scale,
                 widthScale: widthScale,
                 showBorder: settings.showBorder,
@@ -119,6 +120,7 @@ class EmulatorPainter extends CustomPainter {
     required this.widthScale,
     required this.showBorder,
     required this.paused,
+    required this.fastForward,
   });
 
   final ui.Image image;
@@ -127,12 +129,18 @@ class EmulatorPainter extends CustomPainter {
   final double widthScale;
   final bool showBorder;
   final bool paused;
+  final bool fastForward;
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
   final _pauseOverlayPaint = Paint()..color = Colors.black.withOpacity(0.5);
 
-  final _pauseIconPaint = Paint()..color = Colors.white;
+  final _iconPaint = Paint()..color = Colors.white;
+
+  final _outlinePaint = Paint()
+    ..color = Colors.black
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 4;
 
   final _borderPaint = Paint()
     ..strokeWidth = 1
@@ -140,6 +148,24 @@ class EmulatorPainter extends CustomPainter {
     ..style = PaintingStyle.stroke;
 
   final _framePaint = Paint();
+
+  final _fastForwardPath = Path()
+    ..addPolygon(
+      [
+        const Offset(0, -16),
+        const Offset(16, 0),
+        const Offset(0, 16),
+      ],
+      true,
+    )
+    ..addPolygon(
+      [
+        const Offset(14, -16),
+        const Offset(30, 0),
+        const Offset(14, 16),
+      ],
+      true,
+    );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -163,6 +189,10 @@ class EmulatorPainter extends CustomPainter {
 
     if (paused) {
       _drawPause(canvas, size, center);
+    }
+
+    if (fastForward) {
+      _drawFastForward(canvas, size, topLeft + const Offset(8, 24));
     }
   }
 
@@ -189,12 +219,28 @@ class EmulatorPainter extends CustomPainter {
       ..drawRect(Offset.zero & size, _pauseOverlayPaint)
       ..drawRect(
         center.translate(-16, -16) & const Size(16, 48),
-        _pauseIconPaint,
+        _outlinePaint,
+      )
+      ..drawRect(
+        center.translate(-16, -16) & const Size(16, 48),
+        _iconPaint,
       )
       ..drawRect(
         center.translate(16, -16) & const Size(16, 48),
-        _pauseIconPaint,
+        _outlinePaint,
+      )
+      ..drawRect(
+        center.translate(16, -16) & const Size(16, 48),
+        _iconPaint,
       );
+  }
+
+  void _drawFastForward(Canvas canvas, Size size, Offset center) {
+    final path = _fastForwardPath.shift(center);
+
+    canvas
+      ..drawPath(path, _outlinePaint)
+      ..drawPath(path, _iconPaint);
   }
 
   @override

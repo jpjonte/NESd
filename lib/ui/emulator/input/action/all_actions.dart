@@ -6,6 +6,7 @@ const allActions = [
   pause,
   unpause,
   stop,
+  toggleFastForward,
   previousInput,
   nextInput,
   confirm,
