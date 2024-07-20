@@ -7,7 +7,6 @@ import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
-import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
@@ -44,8 +43,6 @@ class MainScreen extends HookConsumerWidget {
       ..watch(gamepadInputHandlerProvider)
       ..watch(toasterProvider);
 
-    final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
-
     final cartridge = nes?.bus.cartridge;
 
     return PlatformMenuBar(
@@ -55,38 +52,31 @@ class MainScreen extends HookConsumerWidget {
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
-      child: Focus(
-        autofocus: true,
-        onKeyEvent: (focusNode, event) =>
-            keyboardInputHandler.handleKeyEvent(event)
-                ? KeyEventResult.handled
-                : KeyEventResult.ignored,
-        child: Scaffold(
-          body: Builder(
-            builder: (context) {
-              if (nes == null) {
-                return const MainMenu();
-              }
+      child: Scaffold(
+        body: Builder(
+          builder: (context) {
+            if (nes == null) {
+              return const MainMenu();
+            }
 
-              return Row(
-                children: [
-                  const Expanded(child: DisplayWidget()),
-                  if (settings.showTiles || settings.showCartridgeInfo)
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 528),
-                      child: ListView(
-                        padding: const EdgeInsets.all(8),
-                        children: [
-                          if (settings.showTiles) const TileDebugWidget(),
-                          if (cartridge != null && settings.showCartridgeInfo)
-                            CartridgeInfoWidget(cartridge: cartridge),
-                        ],
-                      ),
+            return Row(
+              children: [
+                const Expanded(child: DisplayWidget()),
+                if (settings.showTiles || settings.showCartridgeInfo)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 528),
+                    child: ListView(
+                      padding: const EdgeInsets.all(8),
+                      children: [
+                        if (settings.showTiles) const TileDebugWidget(),
+                        if (cartridge != null && settings.showCartridgeInfo)
+                          CartridgeInfoWidget(cartridge: cartridge),
+                      ],
                     ),
-                ],
-              );
-            },
-          ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -34,6 +35,7 @@ class DisplayWidget extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final controller = ref.watch(nesControllerProvider);
     final nes = ref.watch(nesStateProvider);
+    final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
 
     final mediaQuery = MediaQuery.of(context);
 
@@ -41,47 +43,55 @@ class DisplayWidget extends ConsumerWidget {
       return const SizedBox();
     }
 
-    return StreamBuilder(
-      stream: controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (focusNode, event) =>
+          keyboardInputHandler.handleKeyEvent(event)
+              ? KeyEventResult.handled
+              : KeyEventResult.ignored,
+      child: StreamBuilder(
+        stream:
+            controller.frameBufferStream.asyncMap(convertFrameBufferToImage),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final image = snapshot.data;
+          final image = snapshot.data;
 
-        if (image == null) {
-          return const Center(child: Text('Failed to load image'));
-        }
+          if (image == null) {
+            return const Center(child: Text('Failed to load image'));
+          }
 
-        final scale = _calculateScale(settings, mediaQuery, image);
+          final scale = _calculateScale(settings, mediaQuery, image);
 
-        final widthScale = settings.stretch ? 8 / 7 : 1.0;
+          final widthScale = settings.stretch ? 8 / 7 : 1.0;
 
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: mediaQuery.size.width,
-            maxHeight: mediaQuery.size.height,
-          ),
-          child: ClipRect(
-            child: CustomPaint(
-              painter: EmulatorPainter(
-                image: image,
-                paused: !nes.running,
-                fastForward: nes.fastForward,
-                scale: scale,
-                widthScale: widthScale,
-                showBorder: settings.showBorder,
-              ),
-              child: const SizedBox.expand(),
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: mediaQuery.size.width,
+              maxHeight: mediaQuery.size.height,
             ),
-          ),
-        );
-      },
+            child: ClipRect(
+              child: CustomPaint(
+                painter: EmulatorPainter(
+                  image: image,
+                  paused: !nes.running,
+                  fastForward: nes.fastForward,
+                  scale: scale,
+                  widthScale: widthScale,
+                  showBorder: settings.showBorder,
+                ),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
