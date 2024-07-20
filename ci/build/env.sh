@@ -9,11 +9,13 @@ if [ "$GITHUB_REF_TYPE" == "tag" ]; then
 elif [ "$GITHUB_REF_NAME" == "main" ]; then
   release_name="latest"
 else
-  release_name="$GITHUB_SHA"
+  release_name=$(git rev-parse --short HEAD)
 fi
 
 {
   echo "version=$version"
-  echo "path=dist/$version/nesd-$version+$version-macos.dmg"
+  echo "macos_path=dist/$version/nesd-$version+$version-macos.dmg"
+  echo "linux_deb_path=dist/$version/nesd-$version+$version-linux.deb"
+  echo "linux_rpm_path=dist/$version/nesd-$version+$version-linux.rpm"
   echo "release_name=$release_name"
 } >> "$GITHUB_OUTPUT"
