@@ -137,9 +137,7 @@ class NES {
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         yield FrameNesEvent(
           frameBuffer: ppu.frameBuffer,
-          samples: fastForward
-              ? Float32List(0)
-              : apu.sampleBuffer.sublist(0, apu.sampleIndex),
+          samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
           frameTime: DateTime.now().difference(_frameStart),
         );
 
