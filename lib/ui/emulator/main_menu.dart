@@ -40,9 +40,7 @@ class MainMenu extends ConsumerWidget {
                 const NesdVerticalDivider(),
               NesdButton(
                 onPressed: () async {
-                  final directory = settings.lastRomPath != null
-                      ? Directory(settings.lastRomPath!)
-                      : await getApplicationDocumentsDirectory();
+                  final directory = await _getRomPath(settings);
 
                   if (!context.mounted) {
                     return;
@@ -88,6 +86,22 @@ class MainMenu extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<Directory> _getRomPath(Settings settings) async {
+    final lastRomPath = settings.lastRomPath;
+
+    if (lastRomPath == null) {
+      return getApplicationDocumentsDirectory();
+    }
+
+    final lastRomDirectory = Directory(lastRomPath);
+
+    if (!lastRomDirectory.existsSync()) {
+      return getApplicationDocumentsDirectory();
+    }
+
+    return lastRomDirectory;
   }
 }
 
