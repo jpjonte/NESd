@@ -33,7 +33,7 @@ class AboutDialog extends ConsumerWidget {
             ),
           ),
           onTap: () => launchUrl(Uri.parse('https://github.com/jpjonte/nesd')),
-        )
+        ),
       ],
     );
   }
