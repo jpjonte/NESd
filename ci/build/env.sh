@@ -17,5 +17,6 @@ fi
   echo "macos_path=dist/$version/nesd-$version+$version-macos.dmg"
   echo "linux_deb_path=dist/$version/nesd-$version+$version-linux.deb"
   echo "linux_rpm_path=dist/$version/nesd-$version+$version-linux.rpm"
+  echo "windows_path=build/windows/x64/runner/Release"
   echo "release_name=$release_name"
 } >> "$GITHUB_OUTPUT"

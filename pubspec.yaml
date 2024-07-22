@@ -21,14 +21,14 @@ dependencies:
   freezed_annotation: ^2.4.1
   gamepads:
     git:
-      url: git@github.com:jpjonte/gamepads.git
+      url: https://github.com/jpjonte/gamepads.git
       ref: feature/nesd
       path: packages/gamepads
   hooks_riverpod: ^2.5.1
   json_annotation: ^4.9.0
   mp_audio_stream:
     git:
-      url: git@github.com:jpjonte/mp-audio-stream.git
+      url: https://github.com/jpjonte/mp-audio-stream.git
       ref: feature/buffer-size
   package_info_plus: ^8.0.0
   path: ^1.9.0
@@ -53,19 +53,24 @@ dev_dependencies:
 dependency_overrides:
   gamepads_darwin:
     git:
-      url: git@github.com:jpjonte/gamepads.git
+      url: https://github.com/jpjonte/gamepads.git
       ref: feature/nesd
       path: packages/gamepads_darwin
   gamepads_linux:
     git:
-      url: git@github.com:jpjonte/gamepads.git
+      url: https://github.com/jpjonte/gamepads.git
       ref: feature/nesd
       path: packages/gamepads_linux
   gamepads_platform_interface:
     git:
-      url: git@github.com:jpjonte/gamepads.git
+      url: https://github.com/jpjonte/gamepads.git
       ref: feature/nesd
       path: packages/gamepads_platform_interface
+  gamepads_windows:
+    git:
+      url: https://github.com/jpjonte/gamepads.git
+      ref: feature/nesd
+      path: packages/gamepads_windows
 
 flutter:
   uses-material-design: true
@@ -76,5 +81,7 @@ flutter:
 flutter_launcher_icons:
   image_path: "assets/logo.png"
   macos:
+    generate: true
+  windows:
     generate: true
 

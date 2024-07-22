@@ -45,7 +45,6 @@ jobs:
       - run: ci/build/linux/build.sh
       - id: env
         run: ci/build/env.sh
-      - run: ls -la dist/${{ steps.env.outputs.version }}/
       - uses: actions/upload-artifact@v4
         with:
           name: NESd ${{ steps.env.outputs.release_name }} Linux deb
@@ -55,4 +54,24 @@ jobs:
         with:
           name: NESd ${{ steps.env.outputs.release_name }} Linux rpm
           path: ${{ steps.env.outputs.linux_rpm_path }}
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - run: ci/build/windows/prepare.ps1
+      - run: ci/build/windows/build.ps1
+      - id: env
+        shell: bash
+        run: |
+          alias yq="/C/ProgramData/chocolatey/lib/yq/tools/yq.exe"
+          ci/build/env.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NESd ${{ steps.env.outputs.release_name }} Windows
+          path: ${{ steps.env.outputs.windows_path }}
           if-no-files-found: error

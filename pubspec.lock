@@ -373,8 +373,8 @@ packages:
     description:
       path: "packages/gamepads"
       ref: "feature/nesd"
-      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
-      url: "git@github.com:jpjonte/gamepads.git"
+      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.2"
   gamepads_android:
@@ -390,8 +390,8 @@ packages:
     description:
       path: "packages/gamepads_darwin"
       ref: "feature/nesd"
-      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
-      url: "git@github.com:jpjonte/gamepads.git"
+      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.2"
   gamepads_ios:
@@ -407,8 +407,8 @@ packages:
     description:
       path: "packages/gamepads_linux"
       ref: "feature/nesd"
-      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
-      url: "git@github.com:jpjonte/gamepads.git"
+      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.1+1"
   gamepads_platform_interface:
@@ -416,17 +416,18 @@ packages:
     description:
       path: "packages/gamepads_platform_interface"
       ref: "feature/nesd"
-      resolved-ref: f6337f5561cdf482de647139a9d2110b3514cf5e
-      url: "git@github.com:jpjonte/gamepads.git"
+      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
   gamepads_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: gamepads_windows
-      sha256: ae2aa9436757cf8af3bb79fa0813e09ed92d9d93e3c0998619021f5d9ba591ad
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/gamepads_windows"
+      ref: "feature/nesd"
+      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      url: "https://github.com/jpjonte/gamepads.git"
+    source: git
     version: "0.1.1+1"
   glob:
     dependency: transitive
@@ -602,7 +603,7 @@ packages:
       path: "."
       ref: "feature/buffer-size"
       resolved-ref: "2dbf1f396b5db4a6e13884ea47e9b3d3cfba48a1"
-      url: "git@github.com:jpjonte/mp-audio-stream.git"
+      url: "https://github.com/jpjonte/mp-audio-stream.git"
     source: git
     version: "0.1.5"
   package_config:
