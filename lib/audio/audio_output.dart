@@ -62,14 +62,7 @@ class AudioOutput {
     final volumeApplied =
         Float32List.fromList(samples.map((s) => s * _volume).toList());
 
-    final writeSize = _audioBuffer.write(volumeApplied);
-
-    if (writeSize < volumeApplied.length) {
-      print(
-        'audio prebuffer full (${_audioBuffer.size}),'
-        ' wrote $writeSize/${volumeApplied.length}',
-      );
-    }
+    _audioBuffer.write(volumeApplied);
 
     _flushSamples();
   }
@@ -93,20 +86,11 @@ class AudioOutput {
 
     if (_buffering) {
       if (preBufferedSize < preBufferSize * 0.5) {
-        print(
-          'waiting for prebuffer to fill:'
-          ' buffered $preBufferedSize / $preBufferSize',
-        );
-
         return;
       }
 
-      print('audio prebuffer filled, resuming');
-
       _buffering = false;
     } else if (bufferedSize == 0) {
-      print('audio output buffer empty, buffering');
-
       _buffering = true;
 
       return;
@@ -115,16 +99,12 @@ class AudioOutput {
     if (remainingBufferSize == 0) {
       _audioBuffer.clear(); // drop samples to catch up
 
-      print('audio output buffer full');
-
       return;
     }
 
     final flushSize = min(remainingBufferSize, preBufferedSize);
 
     if (flushSize == 0) {
-      print('b $preBufferedSize -> not flushing samples');
-
       return;
     }
 
