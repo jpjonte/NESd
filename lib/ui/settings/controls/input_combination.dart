@@ -106,6 +106,39 @@ final defaultBindings = {
       {LogicalKeyboardKey.digit9, LogicalKeyboardKey.shift},
     ),
   ],
+  togglePause: [
+    InputCombination.keyboard({LogicalKeyboardKey.keyP}),
+  ],
+  toggleFastForward: [
+    InputCombination.keyboard({LogicalKeyboardKey.space}),
+  ],
+  openMenu: [
+    InputCombination.keyboard({LogicalKeyboardKey.escape}),
+  ],
+  previousInput: [
+    InputCombination.keyboard({LogicalKeyboardKey.arrowUp}),
+  ],
+  nextInput: [
+    InputCombination.keyboard({LogicalKeyboardKey.arrowDown}),
+  ],
+  confirm: [
+    InputCombination.keyboard({LogicalKeyboardKey.enter}),
+  ],
+  secondaryAction: [
+    InputCombination.keyboard({LogicalKeyboardKey.shift}),
+  ],
+  cancel: [
+    InputCombination.keyboard({LogicalKeyboardKey.backspace}),
+  ],
+  previousTab: [
+    InputCombination.keyboard({
+      LogicalKeyboardKey.shift,
+      LogicalKeyboardKey.tab,
+    }),
+  ],
+  nextTab: [
+    InputCombination.keyboard({LogicalKeyboardKey.tab}),
+  ],
 };
 
 Set<LogicalKeyboardKey> keysFromJson(List<dynamic> json) {

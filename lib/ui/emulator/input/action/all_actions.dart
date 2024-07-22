@@ -1,23 +1,29 @@
 import 'package:nesd/ui/emulator/input/action.dart';
 
-const allActions = [
+const menuActions = [
   openMenu,
-  togglePause,
-  pause,
-  unpause,
-  stop,
-  toggleFastForward,
-  previousInput,
-  nextInput,
+  menuDecrease,
+  menuIncrease,
   confirm,
   secondaryAction,
   cancel,
   previousTab,
   nextTab,
-  menuDecrease,
-  menuIncrease,
+  previousInput,
+  nextInput,
+];
+
+const emulatorActions = [
+  pause,
+  unpause,
+  togglePause,
+  stop,
+  toggleFastForward,
   decreaseVolume,
   increaseVolume,
+];
+
+const inputActions = [
   controller1Up,
   controller1Down,
   controller1Left,
@@ -34,23 +40,33 @@ const allActions = [
   controller2Select,
   controller2A,
   controller2B,
-  saveState1,
-  saveState2,
-  saveState3,
-  saveState4,
-  saveState5,
-  saveState6,
-  saveState7,
-  saveState8,
-  saveState9,
+];
+
+const saveStateActions = [
   loadState0,
+  saveState1,
   loadState1,
+  saveState2,
   loadState2,
+  saveState3,
   loadState3,
+  saveState4,
   loadState4,
+  saveState5,
   loadState5,
+  saveState6,
   loadState6,
+  saveState7,
   loadState7,
+  saveState8,
   loadState8,
+  saveState9,
   loadState9,
+];
+
+const allActions = [
+  ...menuActions,
+  ...emulatorActions,
+  ...inputActions,
+  ...saveStateActions,
 ];
