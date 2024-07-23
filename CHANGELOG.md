@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added an about dialog
 - Implemented a fast-forward action
 - Added a menu button to the main screen when in game
+- Automated builds and releases
 
 ### Fixed
 
