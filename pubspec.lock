@@ -373,7 +373,7 @@ packages:
     description:
       path: "packages/gamepads"
       ref: "feature/nesd"
-      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      resolved-ref: "34e098dbdb99495226886daa1c414f44628a41ca"
       url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.2"
@@ -390,7 +390,7 @@ packages:
     description:
       path: "packages/gamepads_darwin"
       ref: "feature/nesd"
-      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      resolved-ref: "34e098dbdb99495226886daa1c414f44628a41ca"
       url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.2"
@@ -407,7 +407,7 @@ packages:
     description:
       path: "packages/gamepads_linux"
       ref: "feature/nesd"
-      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      resolved-ref: "34e098dbdb99495226886daa1c414f44628a41ca"
       url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.1+1"
@@ -416,7 +416,7 @@ packages:
     description:
       path: "packages/gamepads_platform_interface"
       ref: "feature/nesd"
-      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      resolved-ref: "34e098dbdb99495226886daa1c414f44628a41ca"
       url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.1"
@@ -425,7 +425,7 @@ packages:
     description:
       path: "packages/gamepads_windows"
       ref: "feature/nesd"
-      resolved-ref: "6bac5fcba7626ce4882187b059e9aa7271bc7db9"
+      resolved-ref: "34e098dbdb99495226886daa1c414f44628a41ca"
       url: "https://github.com/jpjonte/gamepads.git"
     source: git
     version: "0.1.1+1"
@@ -1023,10 +1023,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_windows
-      sha256: ecf9725510600aa2bb6d7ddabe16357691b6d2805f66216a97d1b881e21beff7
+      sha256: "49c10f879746271804767cb45551ec5592cdab00ee105c06dddde1a98f73b185"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "3.1.2"
   uuid:
     dependency: transitive
     description:
