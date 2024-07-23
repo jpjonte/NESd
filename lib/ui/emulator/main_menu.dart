@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
@@ -10,6 +9,7 @@ import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
+import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/nesd_theme.dart';
@@ -77,8 +77,7 @@ class MainMenu extends ConsumerWidget {
               ),
               const NesdVerticalDivider(),
               NesdButton(
-                onPressed: () =>
-                    SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+                onPressed: () => quit(),
                 child: const Text('Quit'),
               ),
             ],

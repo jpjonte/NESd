@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
+import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/router.dart';
 
@@ -51,8 +51,7 @@ class MenuScreen extends HookConsumerWidget {
               ),
               const NesdVerticalDivider(),
               NesdButton(
-                onPressed: () =>
-                    SystemChannels.platform.invokeMethod('SystemNavigator.pop'),
+                onPressed: () => quit(),
                 child: const Text('Quit NESd'),
               ),
             ],
