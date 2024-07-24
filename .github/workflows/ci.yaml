@@ -3,6 +3,8 @@ on: [push]
 jobs:
   build-macos:
     runs-on: macos-latest
+    outputs:
+      release_name: ${{ steps.env.outputs.release_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -92,8 +94,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - id: env
-        run: ci/release/extract_changelog_nightly.sh
+      - run: ci/release/extract_changelog_nightly.sh
       - run: echo "${{ steps.env.outputs.changes }}"
       - uses: actions/download-artifact@v4
         with:
@@ -118,8 +119,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - id: env
-        run: ci/release/extract_changelog.sh
+      - run: ci/release/extract_changelog.sh
       - run: echo "${{ steps.env.outputs.changes }}"
       - uses: actions/download-artifact@v4
         with:
@@ -128,6 +128,6 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*
-          name: NESd ${{ steps.env.outputs.release_name }}
+          name: NESd ${{ needs.build-macos.outputs.release_name }}
           body: ${{ steps.env.outputs.changes }}
           artifactErrorsFailBuild: true
