@@ -24,7 +24,7 @@ jobs:
       - run: ci/build/macos/build.sh
       - id: env
         run: ci/build/env.sh
-      - run: mv ${{ steps.env.outputs.macos_path }} ./${{ steps.env.outputs.macos_artifact }}
+      - run: mv ${{ steps.env.outputs.dist_path }}/*.dmg ./${{ steps.env.outputs.macos_artifact }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.macos_artifact }}
@@ -49,8 +49,8 @@ jobs:
       - id: env
         run: ci/build/env.sh
       - run: |
-          mv ${{ steps.env.outputs.linux_deb_path }} ./${{ steps.env.outputs.linux_deb_artifact }}
-          mv ${{ steps.env.outputs.linux_rpm_path }} ./${{ steps.env.outputs.linux_rpm_artifact }}
+          mv ${{ steps.env.outputs.dist_path }}/*.deb ./${{ steps.env.outputs.linux_deb_artifact }}
+          mv ${{ steps.env.outputs.dist_path }}/*.rpm ./${{ steps.env.outputs.linux_rpm_artifact }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.linux_deb_artifact }}
