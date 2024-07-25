@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/file_picker/file_system/android_saf_file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/native_file_system.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -12,11 +17,15 @@ void main() async {
   final preferences = await SharedPreferences.getInstance();
   final packageInfo = await PackageInfo.fromPlatform();
 
+  final fileSystem =
+      Platform.isAndroid ? AndroidSafFileSystem() : NativeFileSystem();
+
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(preferences),
         packageInfoProvider.overrideWithValue(packageInfo),
+        fileSystemProvider.overrideWithValue(fileSystem),
       ],
       child: const NesdApp(),
     ),

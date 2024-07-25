@@ -24,6 +24,7 @@ abstract class _$Router extends RootStackRouter {
           initialDirectory: args.initialDirectory,
           type: args.type,
           allowedExtensions: args.allowedExtensions,
+          onChangeDirectory: args.onChangeDirectory,
           key: args.key,
         ),
       );
@@ -57,6 +58,7 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
     required String initialDirectory,
     required FilePickerType type,
     List<String> allowedExtensions = const [],
+    void Function(Directory)? onChangeDirectory,
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
@@ -66,6 +68,7 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
             initialDirectory: initialDirectory,
             type: type,
             allowedExtensions: allowedExtensions,
+            onChangeDirectory: onChangeDirectory,
             key: key,
           ),
           initialChildren: children,
@@ -83,6 +86,7 @@ class FilePickerRouteArgs {
     required this.initialDirectory,
     required this.type,
     this.allowedExtensions = const [],
+    this.onChangeDirectory,
     this.key,
   });
 
@@ -94,11 +98,13 @@ class FilePickerRouteArgs {
 
   final List<String> allowedExtensions;
 
+  final void Function(Directory)? onChangeDirectory;
+
   final Key? key;
 
   @override
   String toString() {
-    return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, key: $key}';
+    return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, onChangeDirectory: $onChangeDirectory, key: $key}';
   }
 }
 

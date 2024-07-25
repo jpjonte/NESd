@@ -12,6 +12,7 @@ import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -27,6 +28,8 @@ class MainMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(nesControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
+    final settingsController = ref.read(settingsControllerProvider.notifier);
+    final filesystem = ref.watch(fileSystemProvider);
 
     return FocusChild(
       autofocus: true,
@@ -40,7 +43,7 @@ class MainMenu extends ConsumerWidget {
                 const NesdVerticalDivider(),
               NesdButton(
                 onPressed: () async {
-                  final directory = await _getRomPath(settings);
+                  final directory = await _getRomPath(filesystem, settings);
 
                   if (!context.mounted) {
                     return;
@@ -52,6 +55,9 @@ class MainMenu extends ConsumerWidget {
                       initialDirectory: directory.path,
                       type: FilePickerType.file,
                       allowedExtensions: const ['.nes', '.zip'],
+                      onChangeDirectory: (directory) {
+                        settingsController.lastRomPath = directory.path;
+                      },
                     ),
                   );
 
@@ -87,20 +93,21 @@ class MainMenu extends ConsumerWidget {
     );
   }
 
-  Future<Directory> _getRomPath(Settings settings) async {
+  Future<Directory> _getRomPath(
+    FileSystem filesystem,
+    Settings settings,
+  ) async {
     final lastRomPath = settings.lastRomPath;
 
     if (lastRomPath == null) {
       return getApplicationDocumentsDirectory();
     }
 
-    final lastRomDirectory = Directory(lastRomPath);
-
-    if (!lastRomDirectory.existsSync()) {
+    if (!(await filesystem.exists(lastRomPath))) {
       return getApplicationDocumentsDirectory();
     }
 
-    return lastRomDirectory;
+    return Directory(lastRomPath);
   }
 }
 

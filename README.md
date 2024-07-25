@@ -1,10 +1,12 @@
 # NESd
 
 A NES Emulator written in Dart and Flutter.
-Currently only supports macOS and Linux (tested on Steam Deck).
+Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
+If you sponsor an iOS device and the Apple developer account fee, I'll add iOS support ;) 
 
 ## Features
 
+- Runs on macOS, Linux, Windows, and Android
 - CPU, PPU, and APU emulation
 - SRAM saves
 - Save states
