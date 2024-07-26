@@ -59,8 +59,12 @@ NesController nesController(NesControllerRef ref) {
   ref.onDispose(controller._dispose);
 
   final settingsSubscription = ref.listen(
-    settingsControllerProvider.select((settings) => settings.autoSaveInterval),
-    (_, interval) => controller.setAutoSave(interval),
+    settingsControllerProvider
+        .select((settings) => (settings.autoSave, settings.autoSaveInterval)),
+    (_, setting) => controller.setAutoSave(
+      enabled: setting.$1,
+      interval: setting.$2,
+    ),
     fireImmediately: true,
   );
 
@@ -242,13 +246,26 @@ class NesController {
     }
   }
 
-  void setAutoSave(int? interval) {
+  void setAutoSave({
+    required bool enabled,
+    required int? interval,
+  }) {
     _autoSaveTimer?.cancel();
 
-    if (interval != null) {
+    if (enabled && interval != null) {
       _autoSaveTimer = Timer.periodic(
         Duration(minutes: interval),
-        (_) => saveManager.saveState(nes, 0),
+        (_) {
+          if (nes == null) {
+            return;
+          }
+
+          if (!nes!.running) {
+            return;
+          }
+
+          saveManager.saveState(nes, 0);
+        },
       );
     }
   }
