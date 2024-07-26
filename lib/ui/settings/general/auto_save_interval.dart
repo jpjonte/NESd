@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -27,11 +28,11 @@ class AutoSaveInterval extends ConsumerWidget {
         ),
       },
       child: FocusOnHover(
-        child: ListTile(
+        child: SettingsTile(
           enabled: autoSave,
           title: const Text('Auto Save Interval'),
           onTap: () {},
-          trailing: ExcludeFocusTraversal(
+          child: ExcludeFocusTraversal(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 100),
               child: Padding(

@@ -76,6 +76,8 @@ class SettingsScreen extends HookConsumerWidget {
               children: [
                 TabBar(
                   controller: tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.center,
                   tabs: const [
                     Tab(child: Center(child: Text('General'))),
                     Tab(child: Center(child: Text('Graphics'))),
