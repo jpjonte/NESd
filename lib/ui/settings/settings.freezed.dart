@@ -33,6 +33,13 @@ mixin _$Settings {
       throw _privateConstructorUsedError;
   String? get lastRomPath => throw _privateConstructorUsedError;
   List<String> get recentRomPaths => throw _privateConstructorUsedError;
+  bool get showTouchControls => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+  List<TouchInputConfig> get narrowTouchInputConfig =>
+      throw _privateConstructorUsedError;
+  @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+  List<TouchInputConfig> get wideTouchInputConfig =>
+      throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -57,7 +64,12 @@ abstract class $SettingsCopyWith<$Res> {
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
-      List<String> recentRomPaths});
+      List<String> recentRomPaths,
+      bool showTouchControls,
+      @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+      List<TouchInputConfig> narrowTouchInputConfig,
+      @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+      List<TouchInputConfig> wideTouchInputConfig});
 }
 
 /// @nodoc
@@ -84,6 +96,9 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
+    Object? showTouchControls = null,
+    Object? narrowTouchInputConfig = null,
+    Object? wideTouchInputConfig = null,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -130,6 +145,18 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.recentRomPaths
           : recentRomPaths // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      showTouchControls: null == showTouchControls
+          ? _value.showTouchControls
+          : showTouchControls // ignore: cast_nullable_to_non_nullable
+              as bool,
+      narrowTouchInputConfig: null == narrowTouchInputConfig
+          ? _value.narrowTouchInputConfig
+          : narrowTouchInputConfig // ignore: cast_nullable_to_non_nullable
+              as List<TouchInputConfig>,
+      wideTouchInputConfig: null == wideTouchInputConfig
+          ? _value.wideTouchInputConfig
+          : wideTouchInputConfig // ignore: cast_nullable_to_non_nullable
+              as List<TouchInputConfig>,
     ) as $Val);
   }
 }
@@ -154,7 +181,12 @@ abstract class _$$SettingsImplCopyWith<$Res>
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
-      List<String> recentRomPaths});
+      List<String> recentRomPaths,
+      bool showTouchControls,
+      @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+      List<TouchInputConfig> narrowTouchInputConfig,
+      @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+      List<TouchInputConfig> wideTouchInputConfig});
 }
 
 /// @nodoc
@@ -179,6 +211,9 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
+    Object? showTouchControls = null,
+    Object? narrowTouchInputConfig = null,
+    Object? wideTouchInputConfig = null,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -225,6 +260,18 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value._recentRomPaths
           : recentRomPaths // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      showTouchControls: null == showTouchControls
+          ? _value.showTouchControls
+          : showTouchControls // ignore: cast_nullable_to_non_nullable
+              as bool,
+      narrowTouchInputConfig: null == narrowTouchInputConfig
+          ? _value._narrowTouchInputConfig
+          : narrowTouchInputConfig // ignore: cast_nullable_to_non_nullable
+              as List<TouchInputConfig>,
+      wideTouchInputConfig: null == wideTouchInputConfig
+          ? _value._wideTouchInputConfig
+          : wideTouchInputConfig // ignore: cast_nullable_to_non_nullable
+              as List<TouchInputConfig>,
     ));
   }
 }
@@ -244,9 +291,16 @@ class _$SettingsImpl implements _Settings {
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings = const {},
       this.lastRomPath = null,
-      final List<String> recentRomPaths = const []})
+      final List<String> recentRomPaths = const [],
+      this.showTouchControls = false,
+      @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+      final List<TouchInputConfig> narrowTouchInputConfig = const [],
+      @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+      final List<TouchInputConfig> wideTouchInputConfig = const []})
       : _bindings = bindings,
-        _recentRomPaths = recentRomPaths;
+        _recentRomPaths = recentRomPaths,
+        _narrowTouchInputConfig = narrowTouchInputConfig,
+        _wideTouchInputConfig = wideTouchInputConfig;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -297,8 +351,31 @@ class _$SettingsImpl implements _Settings {
   }
 
   @override
+  @JsonKey()
+  final bool showTouchControls;
+  final List<TouchInputConfig> _narrowTouchInputConfig;
+  @override
+  @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+  List<TouchInputConfig> get narrowTouchInputConfig {
+    if (_narrowTouchInputConfig is EqualUnmodifiableListView)
+      return _narrowTouchInputConfig;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_narrowTouchInputConfig);
+  }
+
+  final List<TouchInputConfig> _wideTouchInputConfig;
+  @override
+  @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+  List<TouchInputConfig> get wideTouchInputConfig {
+    if (_wideTouchInputConfig is EqualUnmodifiableListView)
+      return _wideTouchInputConfig;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_wideTouchInputConfig);
+  }
+
+  @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig)';
   }
 
   @override
@@ -323,7 +400,13 @@ class _$SettingsImpl implements _Settings {
             (identical(other.lastRomPath, lastRomPath) ||
                 other.lastRomPath == lastRomPath) &&
             const DeepCollectionEquality()
-                .equals(other._recentRomPaths, _recentRomPaths));
+                .equals(other._recentRomPaths, _recentRomPaths) &&
+            (identical(other.showTouchControls, showTouchControls) ||
+                other.showTouchControls == showTouchControls) &&
+            const DeepCollectionEquality().equals(
+                other._narrowTouchInputConfig, _narrowTouchInputConfig) &&
+            const DeepCollectionEquality()
+                .equals(other._wideTouchInputConfig, _wideTouchInputConfig));
   }
 
   @JsonKey(ignore: true)
@@ -340,7 +423,10 @@ class _$SettingsImpl implements _Settings {
       autoSaveInterval,
       const DeepCollectionEquality().hash(_bindings),
       lastRomPath,
-      const DeepCollectionEquality().hash(_recentRomPaths));
+      const DeepCollectionEquality().hash(_recentRomPaths),
+      showTouchControls,
+      const DeepCollectionEquality().hash(_narrowTouchInputConfig),
+      const DeepCollectionEquality().hash(_wideTouchInputConfig));
 
   @JsonKey(ignore: true)
   @override
@@ -369,7 +455,12 @@ abstract class _Settings implements Settings {
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings,
       final String? lastRomPath,
-      final List<String> recentRomPaths}) = _$SettingsImpl;
+      final List<String> recentRomPaths,
+      final bool showTouchControls,
+      @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+      final List<TouchInputConfig> narrowTouchInputConfig,
+      @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+      final List<TouchInputConfig> wideTouchInputConfig}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -397,6 +488,14 @@ abstract class _Settings implements Settings {
   String? get lastRomPath;
   @override
   List<String> get recentRomPaths;
+  @override
+  bool get showTouchControls;
+  @override
+  @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+  List<TouchInputConfig> get narrowTouchInputConfig;
+  @override
+  @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+  List<TouchInputConfig> get wideTouchInputConfig;
   @override
   @JsonKey(ignore: true)
   _$$SettingsImplCopyWith<_$SettingsImpl> get copyWith =>

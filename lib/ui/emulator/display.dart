@@ -79,6 +79,8 @@ class DisplayWidget extends ConsumerWidget {
                     image,
                   );
 
+                  final narrow = constraints.maxWidth < constraints.maxHeight;
+
                   return ConstrainedBox(
                     constraints: constraints,
                     child: ClipRect(
@@ -90,6 +92,7 @@ class DisplayWidget extends ConsumerWidget {
                           scale: scale,
                           widthScale: widthScale,
                           showBorder: settings.showBorder,
+                          anchorAtTop: settings.showTouchControls && narrow,
                         ),
                         child: const SizedBox.expand(),
                       ),
@@ -151,6 +154,7 @@ class EmulatorPainter extends CustomPainter {
     required this.showBorder,
     required this.paused,
     required this.fastForward,
+    required this.anchorAtTop,
   });
 
   final ui.Image image;
@@ -160,6 +164,7 @@ class EmulatorPainter extends CustomPainter {
   final bool showBorder;
   final bool paused;
   final bool fastForward;
+  final bool anchorAtTop;
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
@@ -201,12 +206,15 @@ class EmulatorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, _backgroundPaint);
 
-    final center = Offset(size.width / 2, size.height / 2);
-
-    final width = (image.width * widthScale).round();
-    final height = image.height;
+    final width = image.width;
+    final height = (image.height / widthScale).round();
 
     final screenSize = Size(width * scale, height * scale);
+
+    final center = Offset(
+      size.width / 2,
+      anchorAtTop ? height / 2 + 150 : size.height / 2,
+    );
 
     final topLeft =
         center - Offset(screenSize.width / 2, screenSize.height / 2);

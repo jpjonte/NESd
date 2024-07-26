@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -67,6 +68,31 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   };
 }
 
+List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
+  if (json is! List || json.isEmpty) {
+    return defaultNarrowConfig;
+  }
+
+  return touchInputConfigsFromJson(json);
+}
+
+List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
+  if (json is! List || json.isEmpty) {
+    return defaultWideConfig;
+  }
+
+  return touchInputConfigsFromJson(json);
+}
+
+List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
+  return json
+      .map(
+        (e) => TouchInputConfig.fromJson(e as Map<String, dynamic>),
+      )
+      .whereType<TouchInputConfig>()
+      .toList();
+}
+
 @freezed
 class Settings with _$Settings {
   factory Settings({
@@ -83,6 +109,13 @@ class Settings with _$Settings {
     Map<NesAction, List<InputCombination?>> bindings,
     @Default(null) String? lastRomPath,
     @Default([]) List<String> recentRomPaths,
+    @Default(false) bool showTouchControls,
+    @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+    @Default([])
+    List<TouchInputConfig> narrowTouchInputConfig,
+    @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+    @Default([])
+    List<TouchInputConfig> wideTouchInputConfig,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -174,6 +207,12 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(recentRomPaths: []));
   }
 
+  bool get showTouchControls => state.showTouchControls;
+
+  set showTouchControls(bool showTouchControls) {
+    _update(state.copyWith(showTouchControls: showTouchControls));
+  }
+
   BindingMap get bindings => state.bindings;
 
   set bindings(BindingMap bindings) {
@@ -224,6 +263,19 @@ class SettingsController extends _$SettingsController {
         },
       ),
     );
+  }
+
+  List<TouchInputConfig> get narrowTouchInputConfig =>
+      state.narrowTouchInputConfig;
+
+  set narrowTouchInputConfig(List<TouchInputConfig> narrowTouchInputConfig) {
+    _update(state.copyWith(narrowTouchInputConfig: narrowTouchInputConfig));
+  }
+
+  List<TouchInputConfig> get wideTouchInputConfig => state.wideTouchInputConfig;
+
+  set wideTouchInputConfig(List<TouchInputConfig> wideTouchInputConfig) {
+    _update(state.copyWith(wideTouchInputConfig: wideTouchInputConfig));
   }
 
   void _update(Settings settings) {

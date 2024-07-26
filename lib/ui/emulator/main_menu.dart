@@ -10,6 +10,7 @@ import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/quit.dart';
+import 'package:nesd/ui/common/separated_column.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
@@ -35,56 +36,63 @@ class MainMenu extends ConsumerWidget {
       autofocus: true,
       child: Center(
         child: NesdMenuWrapper(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: ListView(
             children: [
               const RecentRomList(),
               if (settings.recentRomPaths.isNotEmpty)
                 const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () async {
-                  final directory = await _getRomPath(filesystem, settings);
+              Center(
+                child: NesdButton(
+                  onPressed: () async {
+                    final directory = await _getRomPath(filesystem, settings);
 
-                  if (!context.mounted) {
-                    return;
-                  }
+                    if (!context.mounted) {
+                      return;
+                    }
 
-                  final path = await AutoRouter.of(context).push<String?>(
-                    FilePickerRoute(
-                      title: 'Select a ROM',
-                      initialDirectory: directory.path,
-                      type: FilePickerType.file,
-                      allowedExtensions: const ['.nes', '.zip'],
-                      onChangeDirectory: (directory) {
-                        settingsController.lastRomPath = directory.path;
-                      },
-                    ),
-                  );
+                    final path = await AutoRouter.of(context).push<String?>(
+                      FilePickerRoute(
+                        title: 'Select a ROM',
+                        initialDirectory: directory.path,
+                        type: FilePickerType.file,
+                        allowedExtensions: const ['.nes', '.zip'],
+                        onChangeDirectory: (directory) {
+                          settingsController.lastRomPath = directory.path;
+                        },
+                      ),
+                    );
 
-                  if (path != null) {
-                    controller.loadRom(path);
-                  }
-                },
-                child: const Text('Open ROM'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () =>
-                    ref.read(routerProvider).navigate(const SettingsRoute()),
-                child: const Text('Settings'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () => showDialog(
-                  context: context,
-                  builder: (context) => const AboutDialog(),
+                    if (path != null) {
+                      controller.loadRom(path);
+                    }
+                  },
+                  child: const Text('Open ROM'),
                 ),
-                child: const Text('About'),
               ),
               const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () => quit(),
-                child: const Text('Quit'),
+              Center(
+                child: NesdButton(
+                  onPressed: () =>
+                      ref.read(routerProvider).navigate(const SettingsRoute()),
+                  child: const Text('Settings'),
+                ),
+              ),
+              const NesdVerticalDivider(),
+              Center(
+                child: NesdButton(
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) => const AboutDialog(),
+                  ),
+                  child: const Text('About'),
+                ),
+              ),
+              const NesdVerticalDivider(),
+              Center(
+                child: NesdButton(
+                  onPressed: () => quit(),
+                  child: const Text('Quit'),
+                ),
               ),
             ],
           ),
@@ -122,24 +130,21 @@ class RecentRomList extends ConsumerWidget {
 
     final controller = ref.read(nesControllerProvider);
 
-    return ListView.separated(
-      shrinkWrap: true,
-      separatorBuilder: (context, index) => const Divider(),
-      itemCount: settings.recentRomPaths.length,
-      itemBuilder: (context, index) {
-        final path = settings.recentRomPaths[index];
-
-        return FocusOnHover(
-          child: ListTile(
-            leading: Icon(
-              Icons.videogame_asset,
-              color: nesdRed[500],
+    return SeparatedColumn(
+      separatorBuilder: (index) => const Divider(),
+      children: [
+        for (final path in settings.recentRomPaths)
+          FocusOnHover(
+            child: ListTile(
+              leading: Icon(
+                Icons.videogame_asset,
+                color: nesdRed[500],
+              ),
+              title: Text(p.basename(path)),
+              onTap: () => controller.loadRom(path),
             ),
-            title: Text(p.basename(path)),
-            onTap: () => controller.loadRom(path),
           ),
-        );
-      },
+      ],
     );
   }
 }
