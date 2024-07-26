@@ -28,14 +28,17 @@ class MainScreen extends HookConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
 
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Overlay.of(context)
-            .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
-      });
+    useEffect(
+      () {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Overlay.of(context)
+              .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
+        });
 
-      return null;
-    });
+        return null;
+      },
+      [],
+    );
 
     // make sure services are kept alive
     ref
