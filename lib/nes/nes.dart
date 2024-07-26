@@ -242,17 +242,23 @@ class NES {
   void step() {
     _debug();
 
-    cycles++;
+    final diff = cycles - cpu.cycles * 12;
 
-    while (cpu.cycles < cycles / 12) {
-      cpu.step();
+    if (diff > 0) {
+      cycles += diff;
     }
 
-    while (ppu.cycles < cycles / 4) {
+    final cyclesBefore = cpu.cycles;
+
+    cpu.step();
+
+    cycles += (cpu.cycles - cyclesBefore) * 12;
+
+    while (ppu.cycles * 4 < cycles) {
       ppu.step();
     }
 
-    while (apu.cycles < cycles / 12) {
+    while (apu.cycles * 12 < cycles) {
       apu.step();
     }
   }
