@@ -27,6 +27,13 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 
 ## Screenshots
 
-![docs/smb.png](docs/smb.png)
-![docs/zelda.png](docs/zelda.png)
-![docs/kirby.png](docs/kirby.png)
+## Android
+<img src="docs/android_kirby.png" width="800" />
+<img src="docs/android_smb.png" width="400" />
+<img src="docs/android_menu.png" width="400" />
+
+## macOS
+
+<img src="docs/smb.png" width="400" />
+<img src="docs/zelda.png" width="400" />
+<img src="docs/kirby.png" width="400" />
