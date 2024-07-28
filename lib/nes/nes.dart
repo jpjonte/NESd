@@ -22,11 +22,13 @@ class FrameNesEvent extends NesEvent {
     required this.frameBuffer,
     required this.samples,
     required this.frameTime,
+    required this.sleepBudget,
   });
 
   final FrameBuffer frameBuffer;
   final Float32List samples;
   final Duration frameTime;
+  final Duration sleepBudget;
 }
 
 class NES {
@@ -123,6 +125,8 @@ class NES {
 
     _frameStart = DateTime.now();
 
+    var frameTime = Duration.zero;
+
     while (on) {
       if (!running) {
         await wait(const Duration(milliseconds: 10));
@@ -138,7 +142,8 @@ class NES {
         yield FrameNesEvent(
           frameBuffer: ppu.frameBuffer,
           samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
-          frameTime: DateTime.now().difference(_frameStart),
+          frameTime: frameTime, // last frame time
+          sleepBudget: _sleepBudget,
         );
 
         if (stopAfterNextFrame) {
@@ -147,7 +152,7 @@ class NES {
           paused = true;
         }
 
-        final frameTime = DateTime.now().difference(_frameStart);
+        frameTime = DateTime.now().difference(_frameStart);
 
         _frameStart = DateTime.now();
 

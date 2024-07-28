@@ -119,9 +119,12 @@ class NesController {
   final StreamController<NesEvent> _streamController =
       StreamController.broadcast();
 
-  Stream<FrameBuffer> get frameBufferStream => _streamController.stream
+  Stream<FrameNesEvent> get frameEventStream => _streamController.stream
       .where((event) => event is FrameNesEvent)
-      .map((event) => (event as FrameNesEvent).frameBuffer);
+      .map((event) => event as FrameNesEvent);
+
+  Stream<FrameBuffer> get frameBufferStream =>
+      frameEventStream.map((event) => event.frameBuffer);
 
   StreamSubscription<NesEvent>? _nesEventSubscription;
 

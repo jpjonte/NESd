@@ -14,6 +14,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - Gamepad support
 - Load ROMs from file or ZIP archive
 - Touch screen controls
+- Debug overlay
 
 ## Supported mappers
 

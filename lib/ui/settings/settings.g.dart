@@ -13,6 +13,7 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
       showBorder: json['showBorder'] as bool? ?? false,
       showTiles: json['showTiles'] as bool? ?? false,
       showCartridgeInfo: json['showCartridgeInfo'] as bool? ?? false,
+      showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
       scaling: $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
           Scaling.autoInteger,
       autoSave: json['autoSave'] as bool? ?? true,
@@ -41,6 +42,7 @@ Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
       'showBorder': instance.showBorder,
       'showTiles': instance.showTiles,
       'showCartridgeInfo': instance.showCartridgeInfo,
+      'showDebugOverlay': instance.showDebugOverlay,
       'scaling': _$ScalingEnumMap[instance.scaling]!,
       'autoSave': instance.autoSave,
       'autoSaveInterval': instance.autoSaveInterval,
@@ -66,7 +68,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'80aeb204562129d424e978d077052cf4730e3ea1';
+    r'dd7bb9ba1033aa9684cd89da3635eac2acaf68a4';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

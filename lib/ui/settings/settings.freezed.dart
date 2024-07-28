@@ -25,6 +25,7 @@ mixin _$Settings {
   bool get showBorder => throw _privateConstructorUsedError;
   bool get showTiles => throw _privateConstructorUsedError;
   bool get showCartridgeInfo => throw _privateConstructorUsedError;
+  bool get showDebugOverlay => throw _privateConstructorUsedError;
   Scaling get scaling => throw _privateConstructorUsedError;
   bool get autoSave => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
@@ -58,6 +59,7 @@ abstract class $SettingsCopyWith<$Res> {
       bool showBorder,
       bool showTiles,
       bool showCartridgeInfo,
+      bool showDebugOverlay,
       Scaling scaling,
       bool autoSave,
       int? autoSaveInterval,
@@ -90,6 +92,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showBorder = null,
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
+    Object? showDebugOverlay = null,
     Object? scaling = null,
     Object? autoSave = null,
     Object? autoSaveInterval = freezed,
@@ -120,6 +123,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
       showCartridgeInfo: null == showCartridgeInfo
           ? _value.showCartridgeInfo
           : showCartridgeInfo // ignore: cast_nullable_to_non_nullable
+              as bool,
+      showDebugOverlay: null == showDebugOverlay
+          ? _value.showDebugOverlay
+          : showDebugOverlay // ignore: cast_nullable_to_non_nullable
               as bool,
       scaling: null == scaling
           ? _value.scaling
@@ -175,6 +182,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
       bool showBorder,
       bool showTiles,
       bool showCartridgeInfo,
+      bool showDebugOverlay,
       Scaling scaling,
       bool autoSave,
       int? autoSaveInterval,
@@ -205,6 +213,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showBorder = null,
     Object? showTiles = null,
     Object? showCartridgeInfo = null,
+    Object? showDebugOverlay = null,
     Object? scaling = null,
     Object? autoSave = null,
     Object? autoSaveInterval = freezed,
@@ -235,6 +244,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
       showCartridgeInfo: null == showCartridgeInfo
           ? _value.showCartridgeInfo
           : showCartridgeInfo // ignore: cast_nullable_to_non_nullable
+              as bool,
+      showDebugOverlay: null == showDebugOverlay
+          ? _value.showDebugOverlay
+          : showDebugOverlay // ignore: cast_nullable_to_non_nullable
               as bool,
       scaling: null == scaling
           ? _value.scaling
@@ -285,6 +298,7 @@ class _$SettingsImpl implements _Settings {
       this.showBorder = false,
       this.showTiles = false,
       this.showCartridgeInfo = false,
+      this.showDebugOverlay = false,
       this.scaling = Scaling.autoInteger,
       this.autoSave = true,
       this.autoSaveInterval = 1,
@@ -320,6 +334,9 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final bool showCartridgeInfo;
+  @override
+  @JsonKey()
+  final bool showDebugOverlay;
   @override
   @JsonKey()
   final Scaling scaling;
@@ -375,7 +392,7 @@ class _$SettingsImpl implements _Settings {
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig)';
   }
 
   @override
@@ -391,6 +408,8 @@ class _$SettingsImpl implements _Settings {
                 other.showTiles == showTiles) &&
             (identical(other.showCartridgeInfo, showCartridgeInfo) ||
                 other.showCartridgeInfo == showCartridgeInfo) &&
+            (identical(other.showDebugOverlay, showDebugOverlay) ||
+                other.showDebugOverlay == showDebugOverlay) &&
             (identical(other.scaling, scaling) || other.scaling == scaling) &&
             (identical(other.autoSave, autoSave) ||
                 other.autoSave == autoSave) &&
@@ -418,6 +437,7 @@ class _$SettingsImpl implements _Settings {
       showBorder,
       showTiles,
       showCartridgeInfo,
+      showDebugOverlay,
       scaling,
       autoSave,
       autoSaveInterval,
@@ -449,6 +469,7 @@ abstract class _Settings implements Settings {
       final bool showBorder,
       final bool showTiles,
       final bool showCartridgeInfo,
+      final bool showDebugOverlay,
       final Scaling scaling,
       final bool autoSave,
       final int? autoSaveInterval,
@@ -475,6 +496,8 @@ abstract class _Settings implements Settings {
   bool get showTiles;
   @override
   bool get showCartridgeInfo;
+  @override
+  bool get showDebugOverlay;
   @override
   Scaling get scaling;
   @override

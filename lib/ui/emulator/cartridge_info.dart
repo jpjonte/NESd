@@ -49,11 +49,13 @@ class TableRow extends StatelessWidget {
   const TableRow(
     this.label,
     this.value, {
+    this.color,
     super.key,
   });
 
   final String label;
   final String value;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +65,7 @@ class TableRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
+          Text(value, style: TextStyle(color: color)),
         ],
       ),
     );

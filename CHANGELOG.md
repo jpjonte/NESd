@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Performance improvements
 - Support for small and narrow screens
 - Touch screen controls
+- Debug overlay
+
+### Fixed
+
+- Autosave now only occurs when autosave is enabled and the game is running
 
 ## [0.2.0] - 2024-07-23
 
