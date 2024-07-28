@@ -3,9 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,6 +23,7 @@ class ControlsSettings extends StatelessWidget {
       index: 3,
       child: Column(
         children: [
+          const ShowTouchControlsSwitch(),
           const ProfileSelectionHeader(),
           Expanded(
             child: ListView(
@@ -90,23 +93,20 @@ class ProfileSelectionHeader extends ConsumerWidget {
         ),
       },
       child: FocusOnHover(
-        child: ListTile(
+        child: SettingsTile(
           onTap: () {},
-          trailing: const ExcludeFocus(
-            child: SizedBox(
-              width: 324,
-              height: 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  PreviousProfileButton(),
-                  SizedBox(width: 8),
-                  CurrentProfileHeader(),
-                  SizedBox(width: 8),
-                  NextProfileButton(),
-                  SizedBox(width: 44),
-                ],
-              ),
+          child: const SizedBox(
+            width: 324,
+            height: 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PreviousProfileButton(),
+                SizedBox(width: 8),
+                CurrentProfileHeader(),
+                SizedBox(width: 8),
+                NextProfileButton(),
+              ],
             ),
           ),
         ),

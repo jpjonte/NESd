@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -23,12 +24,12 @@ class VolumeSlider extends ConsumerWidget {
         ),
       },
       child: FocusOnHover(
-        child: ListTile(
+        child: SettingsTile(
           title: const Text('Volume'),
           onTap: () => controller.volume = 0.5,
-          trailing: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: ExcludeFocusTraversal(
+          child: LayoutBuilder(
+            builder: (_, constraints) => SizedBox(
+              width: constraints.maxWidth,
               child: Slider(
                 value: setting,
                 onChanged: (value) => controller.volume = value,

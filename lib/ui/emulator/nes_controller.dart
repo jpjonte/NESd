@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
@@ -13,6 +12,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/save_manager.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -53,13 +53,18 @@ NesController nesController(NesControllerRef ref) {
     settingsController: ref.read(settingsControllerProvider.notifier),
     toaster: ref.watch(toasterProvider),
     saveManager: ref.watch(saveManagerProvider),
+    fileSystem: ref.read(fileSystemProvider),
   );
 
   ref.onDispose(controller._dispose);
 
   final settingsSubscription = ref.listen(
-    settingsControllerProvider.select((settings) => settings.autoSaveInterval),
-    (_, interval) => controller.setAutoSave(interval),
+    settingsControllerProvider
+        .select((settings) => (settings.autoSave, settings.autoSaveInterval)),
+    (_, setting) => controller.setAutoSave(
+      enabled: setting.$1,
+      interval: setting.$2,
+    ),
     fireImmediately: true,
   );
 
@@ -76,6 +81,7 @@ class NesController {
     required this.settingsController,
     required this.toaster,
     required this.saveManager,
+    required this.fileSystem,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -99,6 +105,8 @@ class NesController {
 
   final SaveManager saveManager;
 
+  final FileSystem fileSystem;
+
   NES? get nes => nesState.nes;
 
   // ignore: unused_field
@@ -120,9 +128,11 @@ class NesController {
   Future<Cartridge> loadCartridge(String path) async {
     nes?.stop();
 
+    final data = await fileSystem.read(path);
+
     final rom = switch (p.extension(path)) {
-      '.nes' => await File(path).readAsBytes(),
-      '.zip' => _loadZip(path),
+      '.nes' => data,
+      '.zip' => _loadZip(path, data),
       _ => throw UnsupportedFileType(p.extension(path)),
     };
 
@@ -198,9 +208,7 @@ class NesController {
           },
         );
 
-      settingsController
-        ..lastRomPath = p.dirname(path)
-        ..addRecentRomPath(path);
+      settingsController.addRecentRomPath(path);
 
       _load();
     } on Exception catch (e) {
@@ -238,13 +246,26 @@ class NesController {
     }
   }
 
-  void setAutoSave(int? interval) {
+  void setAutoSave({
+    required bool enabled,
+    required int? interval,
+  }) {
     _autoSaveTimer?.cancel();
 
-    if (interval != null) {
+    if (enabled && interval != null) {
       _autoSaveTimer = Timer.periodic(
         Duration(minutes: interval),
-        (_) => saveManager.saveState(nes, 0),
+        (_) {
+          if (nes == null) {
+            return;
+          }
+
+          if (!nes!.running) {
+            return;
+          }
+
+          saveManager.saveState(nes, 0);
+        },
       );
     }
   }
@@ -257,8 +278,8 @@ class NesController {
     saveManager.load(nes);
   }
 
-  Uint8List _loadZip(String path) {
-    final inputStream = InputFileStream(path);
+  Uint8List _loadZip(String path, Uint8List data) {
+    final inputStream = InputStream(data);
     final archive = ZipDecoder().decodeBuffer(inputStream);
 
     final roms = archive.files

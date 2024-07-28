@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binder.dart';
@@ -49,16 +50,11 @@ class BindingTile extends HookConsumerWidget {
         },
         child: GestureDetector(
           onDoubleTap: controller.clearBinding,
-          child: ListTile(
-            onTap: () {
-              if (!state.editing) {
-                // focusNode.requestFocus();
-              }
-
-              controller.editing = !state.editing;
-            },
+          child: SettingsTile(
+            adaptive: true,
+            onTap: () => controller.editing = !state.editing,
             title: Text(action.title),
-            trailing: ExcludeFocus(child: Binder(action: action)),
+            child: Binder(action: action),
           ),
         ),
       ),

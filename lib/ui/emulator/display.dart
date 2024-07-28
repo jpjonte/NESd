@@ -39,8 +39,6 @@ class DisplayWidget extends ConsumerWidget {
     final nes = ref.watch(nesStateProvider);
     final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
 
-    final mediaQuery = MediaQuery.of(context);
-
     if (nes == null) {
       return const SizedBox();
     }
@@ -71,28 +69,36 @@ class DisplayWidget extends ConsumerWidget {
                 return const Center(child: Text('Failed to load image'));
               }
 
-              final scale = _calculateScale(settings, mediaQuery, image);
-
               final widthScale = settings.stretch ? 8 / 7 : 1.0;
 
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: mediaQuery.size.width,
-                  maxHeight: mediaQuery.size.height,
-                ),
-                child: ClipRect(
-                  child: CustomPaint(
-                    painter: EmulatorPainter(
-                      image: image,
-                      paused: !nes.running,
-                      fastForward: nes.fastForward,
-                      scale: scale,
-                      widthScale: widthScale,
-                      showBorder: settings.showBorder,
+              return LayoutBuilder(
+                builder: (_, constraints) {
+                  final scale = _calculateScale(
+                    settings,
+                    Size(constraints.maxWidth, constraints.maxHeight),
+                    image,
+                  );
+
+                  final narrow = constraints.maxWidth < constraints.maxHeight;
+
+                  return ConstrainedBox(
+                    constraints: constraints,
+                    child: ClipRect(
+                      child: CustomPaint(
+                        painter: EmulatorPainter(
+                          image: image,
+                          paused: !nes.running,
+                          fastForward: nes.fastForward,
+                          scale: scale,
+                          widthScale: widthScale,
+                          showBorder: settings.showBorder,
+                          anchorAtTop: settings.showTouchControls && narrow,
+                        ),
+                        child: const SizedBox.expand(),
+                      ),
                     ),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
+                  );
+                },
               );
             },
           ),
@@ -114,7 +120,7 @@ class DisplayWidget extends ConsumerWidget {
 
   double _calculateScale(
     Settings settings,
-    MediaQueryData mediaQuery,
+    Size size,
     ui.Image image,
   ) {
     return switch (settings.scaling) {
@@ -125,15 +131,15 @@ class DisplayWidget extends ConsumerWidget {
       Scaling.autoInteger => max(
           1.0,
           min(
-            mediaQuery.size.width ~/ image.width,
-            mediaQuery.size.height ~/ image.height,
+            size.width ~/ image.width,
+            size.height ~/ image.height,
           ).toDouble(),
         ),
       Scaling.autoSmooth => max(
           0.5,
           min(
-            mediaQuery.size.width / image.width,
-            mediaQuery.size.height / image.height,
+            size.width / image.width,
+            size.height / image.height,
           ),
         ),
     };
@@ -148,6 +154,7 @@ class EmulatorPainter extends CustomPainter {
     required this.showBorder,
     required this.paused,
     required this.fastForward,
+    required this.anchorAtTop,
   });
 
   final ui.Image image;
@@ -157,6 +164,7 @@ class EmulatorPainter extends CustomPainter {
   final bool showBorder;
   final bool paused;
   final bool fastForward;
+  final bool anchorAtTop;
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
@@ -198,12 +206,15 @@ class EmulatorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, _backgroundPaint);
 
-    final center = Offset(size.width / 2, size.height / 2);
-
-    final width = (image.width * widthScale).round();
-    final height = image.height;
+    final width = image.width;
+    final height = (image.height / widthScale).round();
 
     final screenSize = Size(width * scale, height * scale);
+
+    final center = Offset(
+      size.width / 2,
+      anchorAtTop ? height / 2 + 150 : size.height / 2,
+    );
 
     final topLeft =
         center - Offset(screenSize.width / 2, screenSize.height / 2);

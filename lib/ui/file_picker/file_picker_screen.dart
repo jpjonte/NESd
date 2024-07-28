@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 
 enum FilePickerType {
@@ -16,12 +19,13 @@ enum FilePickerType {
 }
 
 @RoutePage<String?>()
-class FilePickerScreen extends HookWidget {
+class FilePickerScreen extends HookConsumerWidget {
   const FilePickerScreen({
     required this.title,
     required this.initialDirectory,
     required this.type,
     this.allowedExtensions = const [],
+    this.onChangeDirectory,
     super.key,
   });
 
@@ -29,11 +33,39 @@ class FilePickerScreen extends HookWidget {
   final String initialDirectory;
   final FilePickerType type;
   final List<String> allowedExtensions;
+  final void Function(Directory)? onChangeDirectory;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filesystem = ref.watch(fileSystemProvider);
+    final settingsController = ref.watch(settingsControllerProvider.notifier);
+
     final directory = useState(Directory(initialDirectory));
-    final files = _getFiles(directory.value);
+
+    final future = useMemoized(
+      () => _getFiles(filesystem, directory, settingsController),
+      [directory.value],
+    );
+
+    final filesValue = useFuture(future);
+
+    if (filesValue.hasError) {
+      return Center(
+        child: Text(
+          filesValue.error.toString(),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+
+    if (!filesValue.hasData) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final files = filesValue.data!;
 
     return Scaffold(
       appBar: AppBar(
@@ -51,15 +83,29 @@ class FilePickerScreen extends HookWidget {
             autofocus: true,
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Center(
-                    child: Text(
+                InkWell(
+                  onTap: () async {
+                    final result = await filesystem.chooseDirectory(
                       directory.value.path,
-                      style: TextStyle(
-                        fontSize:
-                            Theme.of(context).textTheme.bodyLarge?.fontSize,
-                        fontWeight: FontWeight.bold,
+                    );
+
+                    if (result != null) {
+                      final newDirectory = Directory(result);
+
+                      directory.value = newDirectory;
+                      onChangeDirectory?.call(newDirectory);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Center(
+                      child: Text(
+                        directory.value.path,
+                        style: TextStyle(
+                          fontSize:
+                              Theme.of(context).textTheme.bodyLarge?.fontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -75,8 +121,15 @@ class FilePickerScreen extends HookWidget {
                               color: nesdRed[500],
                             ),
                             title: const Text('Up a directory'),
-                            onTap: () =>
-                                directory.value = directory.value.parent,
+                            onTap: () {
+                              final parentDirectory = directory.value.parent;
+
+                              directory.value = parentDirectory;
+                              settingsController.lastRomPath =
+                                  parentDirectory.path;
+
+                              onChangeDirectory?.call(parentDirectory);
+                            },
                           ),
                         );
                       }
@@ -93,15 +146,14 @@ class FilePickerScreen extends HookWidget {
                           ),
                           enabled: file is Directory ||
                               allowedExtensions.isEmpty ||
-                              allowedExtensions
-                                  .contains(p.extension(file.path)),
-                          title: Text(p.basename(file.path)),
+                              allowedExtensions.contains(p.extension(file)),
+                          title: Text(p.basename(file)),
                           onTap: () {
                             // TODO directory selection mode
                             if (file is Directory) {
-                              directory.value = file;
+                              directory.value = Directory(file);
                             } else {
-                              context.router.maybePop(file.path);
+                              context.router.maybePop(file);
                             }
                           },
                         ),
@@ -119,26 +171,43 @@ class FilePickerScreen extends HookWidget {
     );
   }
 
-  List<FileSystemEntity> _getFiles(Directory directory) {
-    final children = directory.listSync().where((entity) {
-      if (p.basename(entity.path).startsWith('.')) {
+  Future<List<String>> _getFiles(
+    FileSystem filesystem,
+    ValueNotifier<Directory> directory,
+    SettingsController settingsController,
+  ) async {
+    final (resultDirectory, allFiles) = await filesystem.list(
+      directory.value.path,
+    );
+
+    if (resultDirectory != directory.value.path) {
+      directory.value = Directory(resultDirectory);
+    }
+
+    final children = allFiles.where((file) {
+      if (p.basename(file).startsWith('.')) {
         return false;
       }
 
       if (type == FilePickerType.directory) {
-        return entity is Directory;
+        return file is Directory;
       }
 
       return true;
     }).toList()
       ..sort((a, b) {
-        if (a is Directory && b is! Directory) {
+        final aType = File(a).statSync().type;
+        final bType = File(b).statSync().type;
+
+        if (aType == FileSystemEntityType.directory &&
+            bType != FileSystemEntityType.directory) {
           return -1;
-        } else if (a is! Directory && b is Directory) {
+        } else if (aType != FileSystemEntityType.directory &&
+            bType == FileSystemEntityType.directory) {
           return 1;
         }
 
-        return a.path.compareTo(b.path);
+        return a.compareTo(b);
       });
 
     return children;

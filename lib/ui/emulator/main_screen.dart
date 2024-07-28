@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
-import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/emulator_widget.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/main_menu.dart';
@@ -28,14 +28,17 @@ class MainScreen extends HookConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
 
-    useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Overlay.of(context)
-            .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
-      });
+    useEffect(
+      () {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Overlay.of(context)
+              .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
+        });
 
-      return null;
-    });
+        return null;
+      },
+      [],
+    );
 
     // make sure services are kept alive
     ref
@@ -52,31 +55,33 @@ class MainScreen extends HookConsumerWidget {
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
-      child: Scaffold(
-        body: Builder(
-          builder: (context) {
-            if (nes == null) {
-              return const MainMenu();
-            }
+      child: SafeArea(
+        child: Scaffold(
+          body: Builder(
+            builder: (context) {
+              if (nes == null) {
+                return const MainMenu();
+              }
 
-            return Row(
-              children: [
-                const Expanded(child: DisplayWidget()),
-                if (settings.showTiles || settings.showCartridgeInfo)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 528),
-                    child: ListView(
-                      padding: const EdgeInsets.all(8),
-                      children: [
-                        if (settings.showTiles) const TileDebugWidget(),
-                        if (cartridge != null && settings.showCartridgeInfo)
-                          CartridgeInfoWidget(cartridge: cartridge),
-                      ],
+              return Row(
+                children: [
+                  const Expanded(child: EmulatorWidget()),
+                  if (settings.showTiles || settings.showCartridgeInfo)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 528),
+                      child: ListView(
+                        padding: const EdgeInsets.all(8),
+                        children: [
+                          if (settings.showTiles) const TileDebugWidget(),
+                          if (cartridge != null && settings.showCartridgeInfo)
+                            CartridgeInfoWidget(cartridge: cartridge),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

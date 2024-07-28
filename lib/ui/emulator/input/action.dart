@@ -17,6 +17,8 @@ sealed class NesAction {
     return allActions.firstWhere((action) => action.code == code);
   }
 
+  static String toJson(NesAction action) => action.code;
+
   final String title;
   final String code;
 

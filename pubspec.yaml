@@ -36,6 +36,10 @@ dependencies:
   riverpod: ^2.5.1
   riverpod_annotation: ^2.3.5
   riverpod_generator: ^2.4.0
+  saf:
+    git:
+      url: https://github.com/jpjonte/saf.git
+      ref: feature/nesd
   shared_preferences: ^2.2.3
   url_launcher: ^6.3.0
 
@@ -84,4 +88,5 @@ flutter_launcher_icons:
     generate: true
   windows:
     generate: true
+  android: true
 

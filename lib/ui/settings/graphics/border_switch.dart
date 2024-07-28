@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class BorderSwitch extends ConsumerWidget {
@@ -13,7 +14,7 @@ class BorderSwitch extends ConsumerWidget {
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(
-      child: SwitchListTile(
+      child: SwitchSettingsTile(
         title: const Text('Show Border'),
         value: setting,
         onChanged: (value) => controller.showBorder = value,
