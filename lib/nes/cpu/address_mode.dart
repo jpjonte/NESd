@@ -55,12 +55,12 @@ final relative = AddressMode(
     return (pc + 1 + offsetSigned, false);
   },
   1,
-  (cpu, pc, operands, address) => '\$${address.toHex(4)}',
+  (cpu, pc, operands, address) => '\$${address.toHex(width: 4)}',
 );
 final absolute = AddressMode(
   (cpu, pc) => (cpu.read16(pc), false),
   2,
-  (cpu, pc, operands, address) => '\$${address.toHex(4)}',
+  (cpu, pc, operands, address) => '\$${address.toHex(width: 4)}',
 );
 final absoluteX = AddressMode(
   (cpu, pc) {
@@ -71,7 +71,7 @@ final absoluteX = AddressMode(
   },
   2,
   (cpu, pc, operands, address) =>
-      '\$${cpu.read16(pc).toHex(4)},X @ ${address.toHex(4)}',
+      '\$${cpu.read16(pc).toHex(width: 4)},X @ ${address.toHex(width: 4)}',
 );
 final absoluteY = AddressMode(
   (cpu, pc) {
@@ -82,7 +82,7 @@ final absoluteY = AddressMode(
   },
   2,
   (cpu, pc, operands, address) =>
-      '\$${cpu.read16(pc).toHex(4)},Y' ' @ ${address.toHex(4)}',
+      '\$${cpu.read16(pc).toHex(width: 4)},Y' ' @ ${address.toHex(width: 4)}',
 );
 final indirect = AddressMode(
   (cpu, pc) {
@@ -93,7 +93,8 @@ final indirect = AddressMode(
   },
   2,
   (cpu, pc, operands, address) =>
-      '(\$${operands[1].toHex()}${operands[0].toHex()}) = ${address.toHex(4)}',
+      '(\$${operands[1].toHex()}${operands[0].toHex()}) ='
+      ' ${address.toHex(width: 4)}',
 );
 final indexedIndirect = AddressMode(
   (cpu, pc) {
@@ -105,7 +106,7 @@ final indexedIndirect = AddressMode(
   1,
   (cpu, pc, operands, address) => '(\$${operands[0].toHex()},X)'
       ' @ ${((cpu.read(pc) + cpu.X) & 0xff).toHex()}'
-      ' = ${address.toHex(4)}',
+      ' = ${address.toHex(width: 4)}',
 );
 final indirectIndexed = AddressMode(
   (cpu, pc) {
@@ -117,6 +118,6 @@ final indirectIndexed = AddressMode(
   },
   1,
   (cpu, pc, operands, address) => '(\$${operands[0].toHex()}),Y'
-      ' = ${cpu.read16(cpu.read(pc), wrap: true).toHex(4)}'
-      ' @ ${address.toHex(4)}',
+      ' = ${cpu.read16(cpu.read(pc), wrap: true).toHex(width: 4)}'
+      ' @ ${address.toHex(width: 4)}',
 );

@@ -294,7 +294,7 @@ class NES {
   }
 
   void _debugOp(int pc, int opcode) {
-    _writeDebug('${pc.toHex(4)}  ${opcode.toHex()} ');
+    _writeDebug('${pc.toHex(width: 4)}  ${opcode.toHex()} ');
   }
 
   List<int> _getOperands(Operation op, int pc) {
