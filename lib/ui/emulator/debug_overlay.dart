@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide TableRow;
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
@@ -48,19 +48,19 @@ class DebugOverlay extends HookConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  TableRow('Event Time', eventTime.toStringAsFixed(3)),
-                  TableRow('Frame Time', frameTime.toStringAsFixed(3)),
-                  TableRow(
+                  KeyValue('Event Time', eventTime.toStringAsFixed(3)),
+                  KeyValue('Frame Time', frameTime.toStringAsFixed(3)),
+                  KeyValue(
                     'FPS',
                     fps.toStringAsFixed(1),
                     color: fps < 60 ? nesdRed : null,
                   ),
-                  TableRow(
+                  KeyValue(
                     'Events per second',
                     eps.toStringAsFixed(1),
                     color: eps < 60 ? nesdRed : null,
                   ),
-                  TableRow('Sleep Budget', sleepBudget.toStringAsFixed(3)),
+                  KeyValue('Sleep Budget', sleepBudget.toStringAsFixed(3)),
                 ],
               ),
             ),

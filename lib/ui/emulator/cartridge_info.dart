@@ -20,24 +20,24 @@ class CartridgeInfoWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TableRow('Filename', File(cartridge.file).uri.pathSegments.last),
-            TableRow('ROM format', cartridge.romFormat.toString()),
-            TableRow('PRG ROM size', '${cartridge.prgRomSize} bytes'),
-            TableRow('CHR ROM size', '${cartridge.chrRomSize} bytes'),
-            TableRow('Nametable layout', '${cartridge.nametableLayout}'),
-            TableRow(
+            KeyValue('Filename', File(cartridge.file).uri.pathSegments.last),
+            KeyValue('ROM format', cartridge.romFormat.toString()),
+            KeyValue('PRG ROM size', '${cartridge.prgRomSize} bytes'),
+            KeyValue('CHR ROM size', '${cartridge.chrRomSize} bytes'),
+            KeyValue('Nametable layout', '${cartridge.nametableLayout}'),
+            KeyValue(
               'Alternative nametable layout',
               '${cartridge.alternativeNametableLayout}',
             ),
-            TableRow('Has battery', '${cartridge.hasBattery}'),
-            TableRow('Has trainer', '${cartridge.hasTrainer}'),
-            TableRow('Console type', '${cartridge.consoleType}'),
-            TableRow(
+            KeyValue('Has battery', '${cartridge.hasBattery}'),
+            KeyValue('Has trainer', '${cartridge.hasTrainer}'),
+            KeyValue('Console type', '${cartridge.consoleType}'),
+            KeyValue(
               'Mapper',
               '${cartridge.mapper.name} (${cartridge.mapper.id})',
             ),
-            TableRow('PRG RAM size', '${cartridge.prgRamSize} bytes'),
-            TableRow('TV system', '${cartridge.tvSystem}'),
+            KeyValue('PRG RAM size', '${cartridge.prgRamSize} bytes'),
+            KeyValue('TV system', '${cartridge.tvSystem}'),
           ],
         ),
       ),
@@ -45,8 +45,8 @@ class CartridgeInfoWidget extends StatelessWidget {
   }
 }
 
-class TableRow extends StatelessWidget {
-  const TableRow(
+class KeyValue extends StatelessWidget {
+  const KeyValue(
     this.label,
     this.value, {
     this.color,
