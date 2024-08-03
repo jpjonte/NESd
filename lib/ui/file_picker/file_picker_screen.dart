@@ -125,8 +125,6 @@ class FilePickerScreen extends HookConsumerWidget {
                               final parentDirectory = directory.value.parent;
 
                               directory.value = parentDirectory;
-                              settingsController.lastRomPath =
-                                  parentDirectory.path;
 
                               onChangeDirectory?.call(parentDirectory);
                             },

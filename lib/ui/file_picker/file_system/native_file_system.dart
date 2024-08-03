@@ -17,7 +17,7 @@ class NativeFileSystem extends FileSystem {
 
   @override
   Future<bool> exists(String path) async {
-    return File(path).existsSync();
+    return FileSystemEntity.typeSync(path) != FileSystemEntityType.notFound;
   }
 
   @override
