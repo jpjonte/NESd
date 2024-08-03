@@ -208,6 +208,7 @@ class NesController {
           // ignore: avoid_types_on_closure_parameters
           (Object error, StackTrace stackTrace) {
             toaster.send(Toast.error(error.toString()));
+            nesState.stop();
           },
         );
 
