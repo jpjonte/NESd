@@ -78,7 +78,7 @@ class SaveManager {
 
       toaster.send(Toast.info('State loaded from slot $slot'));
     } else {
-      toaster.send(Toast.info('No save state found in slot $slot'));
+      toaster.send(Toast.warning('No save state found in slot $slot'));
     }
   }
 
