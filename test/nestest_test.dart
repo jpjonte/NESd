@@ -12,7 +12,8 @@ void main() {
 
     final cartridge = Cartridge.fromFile(path, file.readAsBytesSync());
 
-    final nes = NES(cartridge, debug: true)
+    final nes = NES(cartridge)
+      ..reset()
       ..cpu.PC = 0xc000
       ..cpu.cycles = 7
       ..ppu.cycle = 21;
