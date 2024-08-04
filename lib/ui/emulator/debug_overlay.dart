@@ -12,7 +12,7 @@ class DebugOverlay extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(nesControllerProvider);
 
-    final lastEvent = useState(DateTime.now());
+    final lastEvent = useRef(DateTime.now());
 
     return StreamBuilder(
       stream: controller.frameEventStream,
