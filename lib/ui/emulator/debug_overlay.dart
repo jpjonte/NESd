@@ -53,12 +53,22 @@ class DebugOverlay extends HookConsumerWidget {
                   KeyValue(
                     'FPS',
                     fps.toStringAsFixed(1),
-                    color: fps < 60 ? nesdRed : null,
+                    color: switch (fps) {
+                      < 30 => nesdRed,
+                      < 45 => Colors.orange,
+                      < 60 => Colors.yellow,
+                      _ => null,
+                    },
                   ),
                   KeyValue(
                     'Events per second',
                     eps.toStringAsFixed(1),
-                    color: eps < 60 ? nesdRed : null,
+                    color: switch (eps) {
+                      < 30 => nesdRed,
+                      < 45 => Colors.orange,
+                      < 60 => Colors.yellow,
+                      _ => null,
+                    },
                   ),
                   KeyValue('Sleep Budget', sleepBudget.toStringAsFixed(3)),
                 ],
