@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Games are now stopped completely if emulation crashes
+
+### Fixed
+
+- Fixed an issue where the last opened directory was not saved
+- Fixed file picker not correctly detecting directories on Android
+
 ## [0.3.0] - 2024-07-28
 
 ### Added
