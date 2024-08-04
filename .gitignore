@@ -31,6 +31,7 @@ migrate_working_dir/
 .fvm/
 
 roms/
+!roms/test/nestest/nestest.nes
 logs/
 dist/**/*
 !dist/.gitkeep
