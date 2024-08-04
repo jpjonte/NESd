@@ -17,7 +17,7 @@ abstract class _$Router extends RootStackRouter {
   final Map<String, PageFactory> pagesMap = {
     FilePickerRoute.name: (routeData) {
       final args = routeData.argsAs<FilePickerRouteArgs>();
-      return AutoRoutePage<String?>(
+      return AutoRoutePage<FileSystemFile?>(
         routeData: routeData,
         child: FilePickerScreen(
           title: args.title,

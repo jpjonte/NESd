@@ -14,6 +14,7 @@ import 'package:nesd/ui/common/separated_column.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -50,7 +51,8 @@ class MainMenu extends ConsumerWidget {
                       return;
                     }
 
-                    final path = await AutoRouter.of(context).push<String?>(
+                    final file =
+                        await AutoRouter.of(context).push<FileSystemFile?>(
                       FilePickerRoute(
                         title: 'Select a ROM',
                         initialDirectory: directory.path,
@@ -62,8 +64,8 @@ class MainMenu extends ConsumerWidget {
                       ),
                     );
 
-                    if (path != null) {
-                      controller.loadRom(path);
+                    if (file != null) {
+                      controller.loadRom(file.path);
                     }
                   },
                   child: const Text('Open ROM'),
