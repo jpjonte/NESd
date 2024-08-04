@@ -359,8 +359,6 @@ class NES {
   }
 
   void _writeDebug(String message) {
-    stdout.write(message);
-
     File('logs/debug.log').writeAsStringSync(message, mode: FileMode.append);
   }
 }
