@@ -8,6 +8,7 @@ import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
@@ -134,22 +135,30 @@ class FilePickerScreen extends HookConsumerWidget {
 
                       final file = files[index - 1];
 
+                      final isDirectory =
+                          file.type == FileSystemFileType.directory;
+
+                      final enabled = isDirectory ||
+                          allowedExtensions.isEmpty ||
+                          allowedExtensions.contains(p.extension(file.path));
+
                       return FocusOnHover(
                         child: ListTile(
                           leading: Icon(
-                            file is Directory
+                            isDirectory
                                 ? Icons.folder
-                                : Icons.videogame_asset,
+                                : enabled
+                                    ? Icons.videogame_asset
+                                    : null,
                             color: nesdRed[500],
                           ),
-                          enabled: file is Directory ||
-                              allowedExtensions.isEmpty ||
-                              allowedExtensions.contains(p.extension(file)),
-                          title: Text(p.basename(file)),
+                          enabled: enabled,
+                          title: Text(p.basename(file.path)),
                           onTap: () {
                             // TODO directory selection mode
-                            if (file is Directory) {
-                              directory.value = Directory(file);
+                            if (isDirectory) {
+                              directory.value = Directory(file.path);
+                              onChangeDirectory?.call(Directory(file.path));
                             } else {
                               context.router.maybePop(file);
                             }
@@ -169,7 +178,7 @@ class FilePickerScreen extends HookConsumerWidget {
     );
   }
 
-  Future<List<String>> _getFiles(
+  Future<List<FileSystemFile>> _getFiles(
     FileSystem filesystem,
     ValueNotifier<Directory> directory,
     SettingsController settingsController,
@@ -183,7 +192,7 @@ class FilePickerScreen extends HookConsumerWidget {
     }
 
     final children = allFiles.where((file) {
-      if (p.basename(file).startsWith('.')) {
+      if (p.basename(file.path).startsWith('.')) {
         return false;
       }
 
@@ -194,18 +203,18 @@ class FilePickerScreen extends HookConsumerWidget {
       return true;
     }).toList()
       ..sort((a, b) {
-        final aType = File(a).statSync().type;
-        final bType = File(b).statSync().type;
+        final aType = a.type;
+        final bType = b.type;
 
-        if (aType == FileSystemEntityType.directory &&
-            bType != FileSystemEntityType.directory) {
+        if (aType == FileSystemFileType.directory &&
+            bType != FileSystemFileType.directory) {
           return -1;
-        } else if (aType != FileSystemEntityType.directory &&
-            bType == FileSystemEntityType.directory) {
+        } else if (aType != FileSystemFileType.directory &&
+            bType == FileSystemFileType.directory) {
           return 1;
         }
 
-        return a.compareTo(b);
+        return a.path.compareTo(b.path);
       });
 
     return children;
