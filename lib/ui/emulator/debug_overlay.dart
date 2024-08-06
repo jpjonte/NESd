@@ -70,7 +70,15 @@ class DebugOverlay extends HookConsumerWidget {
                       _ => null,
                     },
                   ),
-                  KeyValue('Sleep Budget', sleepBudget.toStringAsFixed(3)),
+                  KeyValue(
+                    'Sleep Budget',
+                    sleepBudget.toStringAsFixed(3),
+                    color: switch (sleepBudget) {
+                      < -16 => nesdRed,
+                      < 0 => Colors.orange,
+                      _ => null,
+                    },
+                  ),
                 ],
               ),
             ),
