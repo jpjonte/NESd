@@ -38,6 +38,8 @@ class Bus {
       return cpu.A;
     }
 
+    address &= 0xffff;
+
     if (address < 0x2000) {
       return cpu.ram[address & 0x07ff];
     }
