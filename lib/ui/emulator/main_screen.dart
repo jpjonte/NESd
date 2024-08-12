@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
+import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/emulator_widget.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
@@ -68,13 +69,13 @@ class MainScreen extends HookConsumerWidget {
                   const Expanded(child: EmulatorWidget()),
                   if (settings.showTiles || settings.showCartridgeInfo)
                     ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 528),
-                      child: ListView(
-                        padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(maxWidth: 512),
+                      child: Column(
                         children: [
                           if (settings.showTiles) const TileDebugWidget(),
                           if (cartridge != null && settings.showCartridgeInfo)
                             CartridgeInfoWidget(cartridge: cartridge),
+                          const DebuggerWidget(),
                         ],
                       ),
                     ),

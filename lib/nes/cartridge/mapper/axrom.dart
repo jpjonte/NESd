@@ -32,7 +32,7 @@ class AxROM extends Mapper {
   }
 
   @override
-  int read(Bus bus, int address) {
+  int read(Bus bus, int address, {bool debug = false}) {
     if (address < 0x2000) {
       return cartridge.chr[_chrAddress(address)];
     }

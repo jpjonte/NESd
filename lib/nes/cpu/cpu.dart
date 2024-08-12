@@ -7,6 +7,7 @@ import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
+import 'package:nesd/nes/cpu/instruction.dart' as instr show BRK;
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 
@@ -25,9 +26,10 @@ enum IrqSource {
 }
 
 class CPU {
-  CPU(this.bus);
+  CPU(this.bus, {this.debug = false});
 
   final Bus bus;
+  final bool debug;
 
   int cycles = 0;
 
@@ -78,6 +80,8 @@ class CPU {
 
   int _dmcDmaValue = 0;
 
+  final List<int> callStack = [];
+
   CPUState get state => CPUState(
         PC: PC,
         SP: SP,
@@ -127,11 +131,12 @@ class CPU {
     ram.setAll(0, state.ram);
   }
 
-  int read(int address) => bus.cpuRead(address);
+  int read(int address) => bus.cpuRead(address, debug: debug);
 
   int read16(int address, {bool wrap = false}) => bus.cpuRead16(
         address,
         wrap: wrap,
+        debug: debug,
       );
 
   void write(int address, int value) => bus.cpuWrite(address, value);
@@ -148,6 +153,15 @@ class CPU {
   int popStack16() {
     final low = popStack();
     final high = popStack();
+
+    return (high << 8) | low;
+  }
+
+  int peekStack() => read(0x100 + SP);
+
+  int peekStack16() {
+    final low = read(0x100 + SP + 1);
+    final high = read(0x100 + SP);
 
     return (high << 8) | low;
   }
@@ -202,6 +216,8 @@ class CPU {
     final (address, pageCrossed) = op.addressMode.read(this, PC);
 
     PC += op.addressMode.operandCount;
+
+    _updateCallStack(op);
 
     final start = PC;
 
@@ -352,5 +368,16 @@ class CPU {
     }
 
     _previousDoNmi = false;
+  }
+
+  void _updateCallStack(Operation op) {
+    if (op.instruction == JSR) {
+      callStack.add(PC);
+    } else if (op.instruction == instr.BRK) {
+      callStack.add(PC + 1);
+    } else if (callStack.isNotEmpty &&
+        (op.instruction == RTI || op.instruction == RTS)) {
+      callStack.removeLast();
+    }
   }
 }

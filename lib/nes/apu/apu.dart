@@ -80,7 +80,7 @@ class APU {
     sampleIndex = 0;
   }
 
-  int readRegister(int address) {
+  int readRegister(int address, {bool debug = false}) {
     if (address == 0x4015) {
       final status = 0
           .setBit(0, pulse1.status)
@@ -88,7 +88,7 @@ class APU {
           .setBit(2, triangle.status)
           .setBit(3, noise.status)
           .setBit(4, dmc.status)
-          .setBit(6, _frameCounter.status)
+          .setBit(6, _frameCounter.getStatus(debug: debug))
           .setBit(7, dmc.interruptStatus);
 
       return status;

@@ -17,6 +17,7 @@ dependencies:
     sdk: flutter
   flutter_hooks: ^0.20.5
   flutter_launcher_icons: ^0.13.1
+  flutter_material_design_icons: ^1.1.7447
   flutter_riverpod: ^2.5.1
   freezed_annotation: ^2.4.1
   gamepads:

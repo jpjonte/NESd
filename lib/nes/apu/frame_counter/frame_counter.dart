@@ -38,15 +38,17 @@ class FrameCounter {
     interruptInhibit = false;
   }
 
-  int get status {
+  int getStatus({bool debug = false}) {
     final value = interrupt ? 1 : 0;
 
-    // TODO
-    // If an interrupt flag was set at the same moment of the read,
-    // it will read back as 1 but it will not be cleared.
-    interrupt = false;
+    if (!debug) {
+      // TODO
+      // If an interrupt flag was set at the same moment of the read,
+      // it will read back as 1 but it will not be cleared.
+      interrupt = false;
 
-    apu.bus.clearIrq(IrqSource.apuFrameCounter);
+      apu.bus.clearIrq(IrqSource.apuFrameCounter);
+    }
 
     return value;
   }

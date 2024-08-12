@@ -181,8 +181,8 @@ class Cartridge {
     mapper.reset();
   }
 
-  int read(Bus bus, int address) {
-    return mapper.read(bus, address);
+  int read(Bus bus, int address, {bool debug = false}) {
+    return mapper.read(bus, address, debug: debug);
   }
 
   void write(Bus bus, int address, int value) {

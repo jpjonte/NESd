@@ -41,7 +41,7 @@ abstract class Mapper {
 
   void reset() {}
 
-  int read(Bus bus, int address);
+  int read(Bus bus, int address, {bool debug = false});
 
   void write(Bus bus, int address, int value);
 

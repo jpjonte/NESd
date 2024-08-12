@@ -29,9 +29,23 @@ class FrameNesEvent extends NesEvent {
   final Duration sleepBudget;
 }
 
+class StepNesEvent extends NesEvent {}
+
 class SuspendNesEvent extends NesEvent {}
 
 class ResumeNesEvent extends NesEvent {}
+
+class Breakpoint {
+  const Breakpoint(
+    this.address, {
+    this.hidden = false,
+    this.removeOnHit = false,
+  });
+
+  final int address;
+  final bool hidden;
+  final bool removeOnHit;
+}
 
 class NES {
   NES(Cartridge cartridge, {this.debug = false}) : bus = Bus(cartridge) {
@@ -71,6 +85,10 @@ class NES {
 
   var _sleepBudget = Duration.zero;
 
+  final List<Breakpoint> _breakpoints = [];
+
+  List<Breakpoint> get breakpoints => _breakpoints;
+
   NESState get state => NESState(
         cpuState: cpu.state,
         ppuState: ppu.state,
@@ -88,6 +106,14 @@ class NES {
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
+  }
+
+  void addBreakpoint(Breakpoint breakpoint) {
+    _breakpoints.add(breakpoint);
+  }
+
+  void removeBreakpoint(int address) {
+    _breakpoints.removeWhere((b) => b.address == address);
   }
 
   void dispose() {
@@ -151,9 +177,9 @@ class NES {
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         _streamController.add(
           FrameNesEvent(
-          samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
-          frameTime: frameTime, // last frame time
-          sleepBudget: _sleepBudget,
+            samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
+            frameTime: frameTime, // last frame time
+            sleepBudget: _sleepBudget,
           ),
         );
 
@@ -194,7 +220,7 @@ class NES {
   }
 
   void pause() {
-      paused = true;
+    paused = true;
 
     suspend();
   }
@@ -216,13 +242,13 @@ class NES {
   }
 
   void unpause() {
-      paused = false;
+    paused = false;
 
     resume();
   }
 
   void suspend() {
-      running = false;
+    running = false;
 
     _streamController.add(SuspendNesEvent());
   }
@@ -280,6 +306,70 @@ class NES {
     for (var i = 0; i < apuDiff; i++) {
       apu.step();
     }
+
+    final breakpoint =
+        _breakpoints.where((b) => b.address == cpu.PC).firstOrNull;
+
+    if (breakpoint != null) {
+      pause();
+
+      if (breakpoint.removeOnHit) {
+        _breakpoints.remove(breakpoint);
+      }
+    }
+  }
+
+  void stepInto() {
+    final start = cpu.PC;
+
+    do {
+      step();
+      apu.sampleIndex = 0;
+    } while (start == cpu.PC);
+
+    _streamController.add(StepNesEvent());
+  }
+
+  void stepOver() {
+    final op = ops[bus.cpuRead(cpu.PC)];
+
+    if (op == null) {
+      return;
+    }
+
+    if (op.instruction != JSR && op.instruction != BRK) {
+      stepInto();
+
+      return;
+    }
+
+    final next = cpu.PC + op.addressMode.operandCount + 1;
+
+    do {
+      step();
+
+      apu.sampleIndex = 0;
+    } while (cpu.PC != next);
+
+    _streamController.add(StepNesEvent());
+  }
+
+  void stepOut() {
+    if (cpu.callStack.isEmpty) {
+      stepInto();
+
+      return;
+    }
+
+    final returnAddress = cpu.callStack.last;
+
+    do {
+      step();
+
+      apu.sampleIndex = 0;
+    } while (cpu.PC != returnAddress);
+
+    _streamController.add(StepNesEvent());
   }
 
   void _debug() {

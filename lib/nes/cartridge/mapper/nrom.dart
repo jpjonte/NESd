@@ -18,7 +18,7 @@ class NROM extends Mapper {
   }
 
   @override
-  int read(Bus bus, int address) {
+  int read(Bus bus, int address, {bool debug = false}) {
     if (address < 0x2000) {
       if (cartridge.chr.isEmpty) {
         return 0;

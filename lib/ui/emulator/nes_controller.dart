@@ -151,6 +151,11 @@ class NesController {
 
   void togglePause() => nes?.togglePause();
 
+  void stepInto() => nes?.stepInto();
+
+  void stepOver() => nes?.stepOver();
+
+  void stepOut() => nes?.stepOut();
 
   void reset() {
     nes?.reset();

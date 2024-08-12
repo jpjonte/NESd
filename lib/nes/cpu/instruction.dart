@@ -451,7 +451,7 @@ final DCP = Instruction('DCP', (cpu, address) {
   CMP.execute(cpu, address);
 });
 
-final ISC = Instruction('ISB', (cpu, address) {
+final ISC = Instruction('ISC', (cpu, address) {
   INC.execute(cpu, address);
   SBC.execute(cpu, address);
 });

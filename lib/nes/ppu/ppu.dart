@@ -346,11 +346,11 @@ class PPU {
   void _updateBusAddress(int address) =>
       bus.cartridge.mapper.updatePpuAddress(address);
 
-  int readRegister(int address) {
+  int readRegister(int address, {bool debug = false}) {
     return switch (address) {
-      0x2002 => _readPPUSTATUS(),
+      0x2002 => _readPPUSTATUS(debug: debug),
       0x2004 => _readOAMDATA(),
-      0x2007 => _readPPUDATA(),
+      0x2007 => _readPPUDATA(debug: debug),
       _ => 0,
     };
   }
@@ -417,16 +417,16 @@ class PPU {
       return;
     }
 
-      _renderPixel();
+    _renderPixel();
 
-      _shiftRegisters();
+    _shiftRegisters();
 
     _fetch();
 
-      _copyHorizontalBits();
+    _copyHorizontalBits();
 
-      _copyVerticalBits();
-    }
+    _copyVerticalBits();
+  }
 
   void _handleVBlank() {
     if (lineVblank && cycle == 1) {
@@ -457,13 +457,15 @@ class PPU {
     }
   }
 
-  int _readPPUSTATUS() {
+  int _readPPUSTATUS({bool debug = false}) {
     final value = PPUSTATUS;
 
-    PPUSTATUS_V = 0;
-    w = 0;
+    if (!debug) {
+      PPUSTATUS_V = 0;
+      w = 0;
 
-    bus.clearNmi();
+      bus.clearNmi();
+    }
 
     return value;
   }
@@ -472,18 +474,22 @@ class PPU {
     return oam[OAMADDR];
   }
 
-  int _readPPUDATA() {
+  int _readPPUDATA({bool debug = false}) {
     // return buffer from last read
     var value = PPUDATA;
 
-    PPUDATA = read(v);
+    if (!debug) {
+      PPUDATA = read(v);
+    }
 
     // always return current palette data
     if (v >= 0x3F00) {
       value = PPUDATA;
     }
 
-    v += PPUCTRL_I == 0 ? 1 : 32;
+    if (!debug) {
+      v += PPUCTRL_I == 0 ? 1 : 32;
+    }
 
     return value;
   }
