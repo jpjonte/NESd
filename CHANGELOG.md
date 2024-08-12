@@ -6,14 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- A hover overlay to the tile debug view
+  - shows various parameters of the highlighted tile
+  - can be locked and unlocked by clicking on the tile
+- A basic debugger
+  - bytecode and disassembly
+  - current register values
+  - step into, step over, step out, run to address
+  - breakpoints
+
 ### Changed
 
 - Games are now stopped completely if emulation crashes
+- Improved performance of the CPU and the tile debug view
 
 ### Fixed
 
 - Fixed an issue where the last opened directory was not saved
 - Fixed file picker not correctly detecting directories on Android
+- Fixed a bug in memory reads performed by the CPU
 
 ## [0.3.0] - 2024-07-28
 
