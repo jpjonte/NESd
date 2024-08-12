@@ -10,7 +10,6 @@ import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/nes.dart';
-import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/save_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/router.dart';
@@ -35,11 +34,14 @@ class NesState extends _$NesState {
 
     state = newNes;
 
-    return newNes.run();
+    newNes.run();
+
+    return newNes.eventStream;
   }
 
   void stop() {
     state?.stop();
+    state?.dispose();
     state = null;
   }
 }
@@ -116,16 +118,6 @@ class NesController {
 
   Timer? _autoSaveTimer;
 
-  final StreamController<NesEvent> _streamController =
-      StreamController.broadcast();
-
-  Stream<FrameNesEvent> get frameEventStream => _streamController.stream
-      .where((event) => event is FrameNesEvent)
-      .map((event) => event as FrameNesEvent);
-
-  Stream<FrameBuffer> get frameBufferStream =>
-      frameEventStream.map((event) => event.frameBuffer);
-
   StreamSubscription<NesEvent>? _nesEventSubscription;
 
   Future<Cartridge> loadCartridge(String path) async {
@@ -151,9 +143,14 @@ class NesController {
 
   void suspend() => nes?.suspend();
 
+  void resume() => nes?.resume();
+
+  void pause() => nes?.pause();
+
+  void unpause() => nes?.unpause();
+
   void togglePause() => nes?.togglePause();
 
-  void resume() => nes?.resume();
 
   void reset() {
     nes?.reset();
@@ -223,8 +220,6 @@ class NesController {
   }
 
   void _handleNesEvent(NesEvent event) {
-    _streamController.add(event);
-
     if (event is FrameNesEvent) {
       audioOutput.processSamples(event.samples);
     }
@@ -233,7 +228,6 @@ class NesController {
   void _dispose() {
     _autoSaveTimer?.cancel();
     audioOutput.dispose();
-    _streamController.close();
     _lifecycleListener.dispose();
     router.removeListener(_updateRoute);
   }

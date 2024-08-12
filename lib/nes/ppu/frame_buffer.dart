@@ -13,9 +13,9 @@ class FrameBuffer {
   void setPixel(int x, int y, int color) {
     final index = (y * width + x) * 4;
 
-    pixels[index] = color >> 16 & 0xff;
-    pixels[index + 1] = color >> 8 & 0xff;
-    pixels[index + 2] = color & 0xff;
+    pixels[index] = color >> 16;
+    pixels[index + 1] = color >> 8;
+    pixels[index + 2] = color;
     pixels[index + 3] = 0xff;
   }
 

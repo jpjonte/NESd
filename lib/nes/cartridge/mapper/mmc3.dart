@@ -111,18 +111,11 @@ class MMC3 extends Mapper {
   @override
   int read(Bus bus, int address) {
     if (address < 0x2000) {
-      final chrAddress = _chrAddress(address);
-      final chrValue = cartridge.chr[chrAddress];
-
-      return chrValue;
+      return cartridge.chr[_chrAddress(address)];
     }
 
     if (address < 0x3f00) {
-      final ntAddress = _nametableAddress(address & 0xfff);
-
-      final value = bus.ppu.ram[ntAddress];
-
-      return value;
+      return bus.ppu.ram[_nametableAddress(address)];
     }
 
     if (address < 0x6000) {
@@ -198,7 +191,7 @@ class MMC3 extends Mapper {
   }
 
   void _writePpuRam(int address, int value) {
-    bus.ppu.ram[_nametableAddress(address & 0xfff)] = value;
+    bus.ppu.ram[_nametableAddress(address)] = value;
   }
 
   void _writeCartridgeSram(int address, int value) {
@@ -292,21 +285,17 @@ class MMC3 extends Mapper {
   }
 
   int _nametableAddress(int address) {
+    final masked = address & 0x0fff;
+
     return switch (_mirroring) {
-      0 => switch (address) {
-          < 0x0400 => address,
-          < 0x0800 => address,
-          < 0x0c00 => address - 0x800,
-          < 0x1000 => address - 0x800,
+      0 => switch (masked) {
+          < 0x0400 => masked,
+          < 0x0800 => masked,
+          < 0x0c00 => masked - 0x800,
+          < 0x1000 => masked - 0x800,
           _ => 0,
         }, // address & 0x7ff, // vertical
-      1 => switch (address) {
-          < 0x0400 => address,
-          < 0x0800 => address - 0x400,
-          < 0x0c00 => address - 0x400,
-          < 0x1000 => address - 0x800,
-          _ => 0,
-        }, //(address & 0x7ff).setBit(10, address.bit(11)), // horizontal
+      1 => (address & 0x7ff).setBit(10, address.bit(11)), // horizontal
       _ => 0,
     };
   }
@@ -324,15 +313,15 @@ class MMC3 extends Mapper {
             (cartridge.prgRom.length - 0x4000) | address & 0x3fff,
           _ => 0,
         },
-      1 => switch ((address >> 13) & 0x3) {
+      1 => switch (address & 0xe000) {
           // 0x8000 - 0x9fff -> second to last bank
-          0 => (cartridge.prgRom.length - 0x4000) | address & 0x1fff,
+          0x8000 => (cartridge.prgRom.length - 0x4000) | address & 0x1fff,
           // 0xa000 - 0xbfff -> r7
-          1 => _r7 << 13 | address & 0x1fff,
+          0xa000 => _r7 << 13 | address & 0x1fff,
           // 0xc000 - 0xdfff -> r6
-          2 => _r6 << 13 | address & 0x1fff,
+          0xc000 => _r6 << 13 | address & 0x1fff,
           // 0xe000 - 0xffff -> last bank
-          3 => (cartridge.prgRom.length - 0x2000) | address & 0x1fff,
+          0xe000 => (cartridge.prgRom.length - 0x2000) | address & 0x1fff,
           _ => 0,
         },
       _ => 0,

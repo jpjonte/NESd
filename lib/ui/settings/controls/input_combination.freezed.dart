@@ -79,6 +79,8 @@ mixin _$InputCombination {
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
+
+  /// Serializes this InputCombination to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
@@ -98,6 +100,9 @@ class _$InputCombinationCopyWithImpl<$Res, $Val extends InputCombination>
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
+
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
 }
 
 /// @nodoc
@@ -121,6 +126,8 @@ class __$$KeyboardInputCombinationImplCopyWithImpl<$Res>
       $Res Function(_$KeyboardInputCombinationImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -174,12 +181,14 @@ class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
             const DeepCollectionEquality().equals(other._keys, _keys));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_keys));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$KeyboardInputCombinationImplCopyWith<_$KeyboardInputCombinationImpl>
@@ -282,7 +291,10 @@ abstract class KeyboardInputCombination extends InputCombination {
 
   @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
   Set<LogicalKeyboardKey> get keys;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$KeyboardInputCombinationImplCopyWith<_$KeyboardInputCombinationImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -306,6 +318,8 @@ class __$$GamepadInputCombinationImplCopyWithImpl<$Res>
       $Res Function(_$GamepadInputCombinationImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -379,12 +393,14 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
                 other.gamepadName == gamepadName));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, gamepadId,
       const DeepCollectionEquality().hash(_inputs), gamepadName);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$GamepadInputCombinationImplCopyWith<_$GamepadInputCombinationImpl>
@@ -489,7 +505,10 @@ abstract class GamepadInputCombination extends InputCombination {
   String get gamepadId;
   Set<GamepadInput> get inputs;
   String get gamepadName;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of InputCombination
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$GamepadInputCombinationImplCopyWith<_$GamepadInputCombinationImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

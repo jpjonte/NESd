@@ -137,12 +137,8 @@ class Bus {
       return cartridge.read(this, address);
     }
 
-    if (address < 0x3fff) {
       return ppu.palette[_paletteAddress(address)];
     }
-
-    return 0;
-  }
 
   void ppuWrite(int address, int value) {
     if (address < 0x3f00) {

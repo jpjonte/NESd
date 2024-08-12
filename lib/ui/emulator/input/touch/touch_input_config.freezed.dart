@@ -211,8 +211,13 @@ mixin _$TouchInputConfig {
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
+
+  /// Serializes this TouchInputConfig to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $TouchInputConfigCopyWith<TouchInputConfig> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -236,6 +241,8 @@ class _$TouchInputConfigCopyWithImpl<$Res, $Val extends TouchInputConfig>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -282,6 +289,8 @@ class __$$RectangleButtonConfigImplCopyWithImpl<$Res>
       $Res Function(_$RectangleButtonConfigImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -377,12 +386,14 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
             (identical(other.label, label) || other.label == label));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, action, x, y, width, height, label);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RectangleButtonConfigImplCopyWith<_$RectangleButtonConfigImpl>
@@ -620,8 +631,11 @@ abstract class RectangleButtonConfig extends TouchInputConfig {
   double get width;
   double get height;
   String get label;
+
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RectangleButtonConfigImplCopyWith<_$RectangleButtonConfigImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
@@ -651,6 +665,8 @@ class __$$CircleButtonConfigImplCopyWithImpl<$Res>
       $Res Function(_$CircleButtonConfigImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -736,11 +752,13 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
             (identical(other.label, label) || other.label == label));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, action, x, y, size, label);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$CircleButtonConfigImplCopyWith<_$CircleButtonConfigImpl> get copyWith =>
@@ -976,8 +994,11 @@ abstract class CircleButtonConfig extends TouchInputConfig {
   double get y;
   double get size;
   String get label;
+
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CircleButtonConfigImplCopyWith<_$CircleButtonConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1014,6 +1035,8 @@ class __$$JoyStickConfigImplCopyWithImpl<$Res>
       _$JoyStickConfigImpl _value, $Res Function(_$JoyStickConfigImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1148,12 +1171,14 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
                 other.deadZone == deadZone));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, upAction, downAction, leftAction,
       rightAction, x, y, size, innerSize, deadZone);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$JoyStickConfigImplCopyWith<_$JoyStickConfigImpl> get copyWith =>
@@ -1406,8 +1431,11 @@ abstract class JoyStickConfig extends TouchInputConfig {
   double get size;
   double get innerSize;
   double get deadZone;
+
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$JoyStickConfigImplCopyWith<_$JoyStickConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1443,6 +1471,8 @@ class __$$DPadConfigImplCopyWithImpl<$Res>
       _$DPadConfigImpl _value, $Res Function(_$DPadConfigImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1566,12 +1596,14 @@ class _$DPadConfigImpl extends DPadConfig {
                 other.deadZone == deadZone));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, upAction, downAction, leftAction,
       rightAction, x, y, size, deadZone);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$DPadConfigImplCopyWith<_$DPadConfigImpl> get copyWith =>
@@ -1821,8 +1853,11 @@ abstract class DPadConfig extends TouchInputConfig {
   double get y;
   double get size;
   double get deadZone;
+
+  /// Create a copy of TouchInputConfig
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DPadConfigImplCopyWith<_$DPadConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

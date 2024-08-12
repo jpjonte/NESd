@@ -4,7 +4,9 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -29,15 +31,19 @@ Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   return frame.image;
 }
 
-class DisplayWidget extends ConsumerWidget {
+class DisplayWidget extends HookConsumerWidget {
   const DisplayWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
-    final controller = ref.watch(nesControllerProvider);
     final nes = ref.watch(nesStateProvider);
     final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
+
+    useStream(
+      nes?.eventStream
+          .where((event) => event is FrameNesEvent || event is SuspendNesEvent),
+    );
 
     if (nes == null) {
       return const SizedBox();
@@ -51,9 +57,8 @@ class DisplayWidget extends ConsumerWidget {
               : KeyEventResult.ignored,
       child: Stack(
         children: [
-          StreamBuilder(
-            stream: controller.frameBufferStream
-                .asyncMap(convertFrameBufferToImage),
+          FutureBuilder(
+            future: convertFrameBufferToImage(nes.ppu.frameBuffer),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));

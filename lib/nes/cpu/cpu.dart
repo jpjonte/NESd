@@ -184,9 +184,9 @@ class CPU {
     ram.fillRange(0, ram.length, 0);
   }
 
-  void step() {
+  int step() {
     if (_handleDMA()) {
-      return;
+      return 1;
     }
 
     final opcode = read(PC);
@@ -217,9 +217,13 @@ class CPU {
       additionalCycles++;
     }
 
-    cycles += op.cycles + additionalCycles;
+    final executedCycles = op.cycles + additionalCycles;
+
+    cycles += executedCycles;
 
     _handleInterrupts();
+
+    return executedCycles;
   }
 
   void _handleInterrupts() {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,7 +12,6 @@ import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/nes_state.dart';
-import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/util/wait.dart';
 
@@ -19,17 +19,19 @@ sealed class NesEvent {}
 
 class FrameNesEvent extends NesEvent {
   FrameNesEvent({
-    required this.frameBuffer,
     required this.samples,
     required this.frameTime,
     required this.sleepBudget,
   });
 
-  final FrameBuffer frameBuffer;
   final Float32List samples;
   final Duration frameTime;
   final Duration sleepBudget;
 }
+
+class SuspendNesEvent extends NesEvent {}
+
+class ResumeNesEvent extends NesEvent {}
 
 class NES {
   NES(Cartridge cartridge, {this.debug = false}) : bus = Bus(cartridge) {
@@ -63,6 +65,10 @@ class NES {
 
   int cycles = 0;
 
+  Stream<NesEvent> get eventStream => _streamController.stream;
+
+  final _streamController = StreamController<NesEvent>.broadcast();
+
   var _sleepBudget = Duration.zero;
 
   NESState get state => NESState(
@@ -82,6 +88,10 @@ class NES {
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
+  }
+
+  void dispose() {
+    _streamController.close();
   }
 
   Uint8List serialize() {
@@ -116,7 +126,7 @@ class NES {
     ppu.reset();
   }
 
-  Stream<NesEvent> run() async* {
+  Future<void> run() async {
     reset();
 
     on = true;
@@ -139,17 +149,18 @@ class NES {
       step();
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        yield FrameNesEvent(
-          frameBuffer: ppu.frameBuffer,
+        _streamController.add(
+          FrameNesEvent(
           samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
           frameTime: frameTime, // last frame time
           sleepBudget: _sleepBudget,
+          ),
         );
 
         if (stopAfterNextFrame) {
-          running = false;
           stopAfterNextFrame = false;
-          paused = true;
+
+          pause();
         }
 
         frameTime = DateTime.now().difference(_frameStart);
@@ -161,6 +172,10 @@ class NES {
         apu.sampleIndex = 0;
 
         _sleepBudget += sleepTime;
+
+        if (_sleepBudget.inSeconds < -1) {
+          _sleepBudget = Duration.zero;
+        }
 
         await wait(_sleepBudget);
       }
@@ -179,19 +194,16 @@ class NES {
   }
 
   void pause() {
-    if (running) {
       paused = true;
-      running = false;
-    }
+
+    suspend();
   }
 
   void togglePause() {
-    paused = !paused;
-    running = !running;
-
     if (running) {
-      _frameStart = DateTime.now();
-      _sleepBudget = Duration.zero;
+      pause();
+    } else {
+      unpause();
     }
   }
 
@@ -204,18 +216,15 @@ class NES {
   }
 
   void unpause() {
-    if (!running) {
       paused = false;
-      running = true;
-      _frameStart = DateTime.now();
-      _sleepBudget = Duration.zero;
-    }
+
+    resume();
   }
 
   void suspend() {
-    if (running) {
       running = false;
-    }
+
+    _streamController.add(SuspendNesEvent());
   }
 
   void resume() {
@@ -223,6 +232,8 @@ class NES {
       running = true;
       _frameStart = DateTime.now();
       _sleepBudget = Duration.zero;
+
+      _streamController.add(ResumeNesEvent());
     }
   }
 
@@ -232,8 +243,9 @@ class NES {
   }
 
   void runUntilFrame() {
-    running = true;
     stopAfterNextFrame = true;
+
+    unpause();
   }
 
   void buttonDown(int controller, NesButton button) {
@@ -253,17 +265,19 @@ class NES {
       cycles += diff;
     }
 
-    final cyclesBefore = cpu.cycles;
+    final cpuCycles = cpu.step();
 
-    cpu.step();
+    cycles += cpuCycles * 12;
 
-    cycles += (cpu.cycles - cyclesBefore) * 12;
+    final ppuDiff = cycles - ppu.cycles * 4;
 
-    while (ppu.cycles * 4 < cycles) {
+    for (var i = 0; i < ppuDiff; i++) {
       ppu.step();
     }
 
-    while (apu.cycles * 12 < cycles) {
+    final apuDiff = cycles - apu.cycles * 12;
+
+    for (var i = 0; i < apuDiff; i++) {
       apu.step();
     }
   }

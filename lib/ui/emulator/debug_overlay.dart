@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/nesd_theme.dart';
@@ -10,12 +11,14 @@ class DebugOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(nesControllerProvider);
+    final nes = ref.watch(nesStateProvider);
 
     final lastEvent = useRef(DateTime.now());
 
     return StreamBuilder(
-      stream: controller.frameEventStream,
+      stream: nes?.eventStream
+          .where((event) => event is FrameNesEvent)
+          .cast<FrameNesEvent>(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));

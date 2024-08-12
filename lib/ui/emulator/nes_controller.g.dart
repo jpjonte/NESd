@@ -21,7 +21,7 @@ final nesControllerProvider = AutoDisposeProvider<NesController>.internal(
 );
 
 typedef NesControllerRef = AutoDisposeProviderRef<NesController>;
-String _$nesStateHash() => r'78aa5449b54a31ddc993afefa413638242e84188';
+String _$nesStateHash() => r'8bce731f6fdd8b19da58d743cf90af381d3f293e';
 
 /// See also [NesState].
 @ProviderFor(NesState)

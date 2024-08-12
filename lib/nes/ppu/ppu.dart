@@ -417,45 +417,16 @@ class PPU {
       return;
     }
 
-    if (rendering) {
       _renderPixel();
-    }
 
-    if (rendering || fetching) {
       _shiftRegisters();
-    }
 
-    if (fetching) {
-      switch (cycle % 8) {
-        case 0:
-          _loadShiftRegisters();
-        case 1:
-          _fetchNametable();
-        case 3:
-          _fetchAttributeTable();
-        case 5:
-          _fetchPatternTableLow();
-        case 7:
-          _fetchPatternTableHigh();
-      }
+    _fetch();
 
-      if (cycle % 8 == 0) {
-        _incrementX();
-      }
-
-      if (cycle == 256) {
-        _incrementY();
-      }
-    }
-
-    if (lineFetch && cycle == 257) {
       _copyHorizontalBits();
-    }
 
-    if (linePreRender && cycle >= 280 && cycle <= 304) {
       _copyVerticalBits();
     }
-  }
 
   void _handleVBlank() {
     if (lineVblank && cycle == 1) {
@@ -617,11 +588,15 @@ class PPU {
   }
 
   void _renderPixel() {
+    if (!rendering) {
+      return;
+    }
+
     final color = _getPixelColor();
 
     final paletteColor = read(0x3F00 | color, updateBusAddress: false);
 
-    final systemColor = systemPalette[paletteColor];
+    final systemColor = systemPalette[paletteColor & 0x3f];
 
     frameBuffer.setPixel(currentX, scanline, systemColor);
   }
@@ -733,6 +708,10 @@ class PPU {
   }
 
   void _shiftRegisters() {
+    if (!rendering && !fetching) {
+      return;
+    }
+
     patternTableHighShift <<= 1;
     patternTableLowShift <<= 1;
 
@@ -767,6 +746,31 @@ class PPU {
     final quadrantShift = ((v_coarseY & 0x2) << 1) | (v_coarseX & 0x2);
 
     attributeTableLatch = (value >> quadrantShift) & 0x03;
+  }
+
+  void _fetch() {
+    if (!fetching) {
+      return;
+    }
+
+    final subcycle = cycle & 7;
+
+    if (subcycle == 0) {
+      _loadShiftRegisters();
+      _incrementX();
+    } else if (subcycle == 1) {
+      _fetchNametable();
+    } else if (subcycle == 3) {
+      _fetchAttributeTable();
+    } else if (subcycle == 5) {
+      _fetchPatternTableLow();
+    } else if (subcycle == 7) {
+      _fetchPatternTableHigh();
+    }
+
+    if (cycle == 256) {
+      _incrementY();
+    }
   }
 
   void _fetchPatternTableLow() {
@@ -810,11 +814,19 @@ class PPU {
   }
 
   void _copyHorizontalBits() {
+    if (!lineFetch || cycle != 257) {
+      return;
+    }
+
     v_coarseX = t_coarseX;
     v_nametableX = t_nametableX;
   }
 
   void _copyVerticalBits() {
+    if (!linePreRender || cycle < 280 || cycle > 304) {
+      return;
+    }
+
     v_coarseY = t_coarseY;
     v_fineY = t_fineY;
     v_nametableY = t_nametableY;
