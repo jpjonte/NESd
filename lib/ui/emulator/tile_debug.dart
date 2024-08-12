@@ -11,6 +11,14 @@ import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 
+const nametableWidth = 32 * 8;
+const nametableHeight = 30 * 8;
+
+const width = 2 * nametableWidth;
+const height = 2 * nametableHeight;
+
+final buffer = FrameBuffer(width: width, height: height);
+
 int getNametableAddress(int n, int ty, int tx) =>
     0x2000 | n << 10 | ty << 5 | tx;
 
@@ -36,9 +44,15 @@ class TileDebugWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nes = ref.read(nesStateProvider);
-    final controller = ref.read(nesControllerProvider);
 
-    final stream = useStream(controller.frameBufferStream);
+    final stream = useStream(
+      nes?.eventStream.where(
+        (event) =>
+            event is FrameNesEvent ||
+            event is StepNesEvent ||
+            event is SuspendNesEvent,
+      ),
+    );
 
     if (nes == null) {
       return const SizedBox();
@@ -81,14 +95,6 @@ class TileDebugWidget extends HookConsumerWidget {
   }
 
   Future<ui.Image> _buildTileImage(NES nes) async {
-    const nametableWidth = 32 * 8;
-    const nametableHeight = 30 * 8;
-
-    const width = 2 * nametableWidth;
-    const height = 2 * nametableHeight;
-
-    final buffer = FrameBuffer(width: width, height: height);
-
     final patternTableIndex = nes.ppu.PPUCTRL_B;
 
     for (var n = 0; n < 4; n++) {
@@ -105,8 +111,7 @@ class TileDebugWidget extends HookConsumerWidget {
 
           for (var py = 0; py < 8; py++) {
             final patternTableLowByte = nes.bus.ppuRead(chrAddress + py);
-            final patternTableHighByte = nes.bus
-                .ppuRead(patternTableIndex << 12 | nametableByte << 4 | py + 8);
+            final patternTableHighByte = nes.bus.ppuRead(chrAddress + py + 8);
 
             for (var px = 0; px < 8; px++) {
               final patternHigh = (patternTableHighByte >> (7 - px)) & 0x1;
@@ -122,7 +127,7 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final systemPaletteIndex = nes.bus.ppuRead(paletteAddress);
 
-              final color = systemPalette[systemPaletteIndex];
+              final color = systemPalette[systemPaletteIndex & 0x3f];
 
               buffer.setPixel(
                 nx * nametableWidth + tx * 8 + px,
