@@ -55,6 +55,10 @@ final dividerTheme = DividerThemeData(
   endIndent: 0,
 );
 
+final inputDecorationTheme = InputDecorationTheme(
+  hintStyle: TextStyle(color: Colors.grey[500]),
+);
+
 final focusColor = nesdRed[700]!;
 
 final surfaceContainerColor = nesdRed[800]!;
@@ -78,6 +82,7 @@ final nesdThemeLight = ThemeData(
 final dialogThemeDark = DialogTheme(
   backgroundColor: const Color(0xFF1a1a1a),
   shadowColor: nesdRed[600],
+  elevation: 4,
 );
 
 final nesdThemeDark = ThemeData(
@@ -97,4 +102,5 @@ final nesdThemeDark = ThemeData(
   filledButtonTheme: filledButtonTheme,
   dividerTheme: dividerTheme,
   dialogTheme: dialogThemeDark,
+  inputDecorationTheme: inputDecorationTheme,
 );
