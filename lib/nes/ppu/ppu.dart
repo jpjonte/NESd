@@ -339,7 +339,11 @@ class PPU {
     return bus.ppuRead(address);
   }
 
-  void write(int address, int value) {
+  void write(int address, int value, {bool updateBusAddress = true}) {
+    if (updateBusAddress) {
+      _updateBusAddress(address);
+    }
+
     bus.ppuWrite(address, value);
   }
 
@@ -929,6 +933,13 @@ class PPU {
     final subcycle = cycle - 257;
     final sprite = subcycle ~/ 8;
     final offset = subcycle % 8;
+
+    if (sprite > spriteCount) {
+      _fetchPatternTableLow();
+      _fetchPatternTableHigh();
+
+      return;
+    }
 
     switch (offset) {
       case 2:
