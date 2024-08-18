@@ -23,6 +23,7 @@ mixin _$DebuggerState {
   int get X => throw _privateConstructorUsedError;
   int get Y => throw _privateConstructorUsedError;
   int get SP => throw _privateConstructorUsedError;
+  int get P => throw _privateConstructorUsedError;
   bool get C => throw _privateConstructorUsedError;
   bool get Z => throw _privateConstructorUsedError;
   bool get I => throw _privateConstructorUsedError;
@@ -40,6 +41,7 @@ mixin _$DebuggerState {
   bool get spriteOverflow => throw _privateConstructorUsedError;
   bool get sprite0Hit => throw _privateConstructorUsedError;
   bool get vBlank => throw _privateConstructorUsedError;
+  bool get executionLogOpen => throw _privateConstructorUsedError;
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.
@@ -62,6 +64,7 @@ abstract class $DebuggerStateCopyWith<$Res> {
       int X,
       int Y,
       int SP,
+      int P,
       bool C,
       bool Z,
       bool I,
@@ -78,7 +81,8 @@ abstract class $DebuggerStateCopyWith<$Res> {
       int x,
       bool spriteOverflow,
       bool sprite0Hit,
-      bool vBlank});
+      bool vBlank,
+      bool executionLogOpen});
 }
 
 /// @nodoc
@@ -103,6 +107,7 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
     Object? X = null,
     Object? Y = null,
     Object? SP = null,
+    Object? P = null,
     Object? C = null,
     Object? Z = null,
     Object? I = null,
@@ -120,6 +125,7 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
     Object? spriteOverflow = null,
     Object? sprite0Hit = null,
     Object? vBlank = null,
+    Object? executionLogOpen = null,
   }) {
     return _then(_value.copyWith(
       enabled: null == enabled
@@ -149,6 +155,10 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
       SP: null == SP
           ? _value.SP
           : SP // ignore: cast_nullable_to_non_nullable
+              as int,
+      P: null == P
+          ? _value.P
+          : P // ignore: cast_nullable_to_non_nullable
               as int,
       C: null == C
           ? _value.C
@@ -218,6 +228,10 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
           ? _value.vBlank
           : vBlank // ignore: cast_nullable_to_non_nullable
               as bool,
+      executionLogOpen: null == executionLogOpen
+          ? _value.executionLogOpen
+          : executionLogOpen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -238,6 +252,7 @@ abstract class _$$DebuggerStateImplCopyWith<$Res>
       int X,
       int Y,
       int SP,
+      int P,
       bool C,
       bool Z,
       bool I,
@@ -254,7 +269,8 @@ abstract class _$$DebuggerStateImplCopyWith<$Res>
       int x,
       bool spriteOverflow,
       bool sprite0Hit,
-      bool vBlank});
+      bool vBlank,
+      bool executionLogOpen});
 }
 
 /// @nodoc
@@ -277,6 +293,7 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     Object? X = null,
     Object? Y = null,
     Object? SP = null,
+    Object? P = null,
     Object? C = null,
     Object? Z = null,
     Object? I = null,
@@ -294,6 +311,7 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     Object? spriteOverflow = null,
     Object? sprite0Hit = null,
     Object? vBlank = null,
+    Object? executionLogOpen = null,
   }) {
     return _then(_$DebuggerStateImpl(
       enabled: null == enabled
@@ -323,6 +341,10 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
       SP: null == SP
           ? _value.SP
           : SP // ignore: cast_nullable_to_non_nullable
+              as int,
+      P: null == P
+          ? _value.P
+          : P // ignore: cast_nullable_to_non_nullable
               as int,
       C: null == C
           ? _value.C
@@ -392,6 +414,10 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
           ? _value.vBlank
           : vBlank // ignore: cast_nullable_to_non_nullable
               as bool,
+      executionLogOpen: null == executionLogOpen
+          ? _value.executionLogOpen
+          : executionLogOpen // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -407,6 +433,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
       this.X = 0,
       this.Y = 0,
       this.SP = 0,
+      this.P = 0,
       this.C = false,
       this.Z = false,
       this.I = false,
@@ -423,7 +450,8 @@ class _$DebuggerStateImpl implements _DebuggerState {
       this.x = 0,
       this.spriteOverflow = false,
       this.sprite0Hit = false,
-      this.vBlank = false})
+      this.vBlank = false,
+      this.executionLogOpen = false})
       : _disassembly = disassembly,
         _breakpoints = breakpoints;
 
@@ -454,6 +482,9 @@ class _$DebuggerStateImpl implements _DebuggerState {
   @override
   @JsonKey()
   final int SP;
+  @override
+  @JsonKey()
+  final int P;
   @override
   @JsonKey()
   final bool C;
@@ -511,10 +542,13 @@ class _$DebuggerStateImpl implements _DebuggerState {
   @override
   @JsonKey()
   final bool vBlank;
+  @override
+  @JsonKey()
+  final bool executionLogOpen;
 
   @override
   String toString() {
-    return 'DebuggerState(enabled: $enabled, disassembly: $disassembly, PC: $PC, A: $A, X: $X, Y: $Y, SP: $SP, C: $C, Z: $Z, I: $I, D: $D, B: $B, V: $V, N: $N, breakpoints: $breakpoints, canStepOut: $canStepOut, scanline: $scanline, cycle: $cycle, v: $v, t: $t, x: $x, spriteOverflow: $spriteOverflow, sprite0Hit: $sprite0Hit, vBlank: $vBlank)';
+    return 'DebuggerState(enabled: $enabled, disassembly: $disassembly, PC: $PC, A: $A, X: $X, Y: $Y, SP: $SP, P: $P, C: $C, Z: $Z, I: $I, D: $D, B: $B, V: $V, N: $N, breakpoints: $breakpoints, canStepOut: $canStepOut, scanline: $scanline, cycle: $cycle, v: $v, t: $t, x: $x, spriteOverflow: $spriteOverflow, sprite0Hit: $sprite0Hit, vBlank: $vBlank, executionLogOpen: $executionLogOpen)';
   }
 
   @override
@@ -530,6 +564,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
             (identical(other.X, X) || other.X == X) &&
             (identical(other.Y, Y) || other.Y == Y) &&
             (identical(other.SP, SP) || other.SP == SP) &&
+            (identical(other.P, P) || other.P == P) &&
             (identical(other.C, C) || other.C == C) &&
             (identical(other.Z, Z) || other.Z == Z) &&
             (identical(other.I, I) || other.I == I) &&
@@ -551,7 +586,9 @@ class _$DebuggerStateImpl implements _DebuggerState {
                 other.spriteOverflow == spriteOverflow) &&
             (identical(other.sprite0Hit, sprite0Hit) ||
                 other.sprite0Hit == sprite0Hit) &&
-            (identical(other.vBlank, vBlank) || other.vBlank == vBlank));
+            (identical(other.vBlank, vBlank) || other.vBlank == vBlank) &&
+            (identical(other.executionLogOpen, executionLogOpen) ||
+                other.executionLogOpen == executionLogOpen));
   }
 
   @override
@@ -564,6 +601,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
         X,
         Y,
         SP,
+        P,
         C,
         Z,
         I,
@@ -580,7 +618,8 @@ class _$DebuggerStateImpl implements _DebuggerState {
         x,
         spriteOverflow,
         sprite0Hit,
-        vBlank
+        vBlank,
+        executionLogOpen
       ]);
 
   /// Create a copy of DebuggerState
@@ -601,6 +640,7 @@ abstract class _DebuggerState implements DebuggerState {
       final int X,
       final int Y,
       final int SP,
+      final int P,
       final bool C,
       final bool Z,
       final bool I,
@@ -617,7 +657,8 @@ abstract class _DebuggerState implements DebuggerState {
       final int x,
       final bool spriteOverflow,
       final bool sprite0Hit,
-      final bool vBlank}) = _$DebuggerStateImpl;
+      final bool vBlank,
+      final bool executionLogOpen}) = _$DebuggerStateImpl;
 
   @override
   bool get enabled;
@@ -633,6 +674,8 @@ abstract class _DebuggerState implements DebuggerState {
   int get Y;
   @override
   int get SP;
+  @override
+  int get P;
   @override
   bool get C;
   @override
@@ -667,6 +710,8 @@ abstract class _DebuggerState implements DebuggerState {
   bool get sprite0Hit;
   @override
   bool get vBlank;
+  @override
+  bool get executionLogOpen;
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.

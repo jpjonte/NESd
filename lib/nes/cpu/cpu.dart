@@ -34,6 +34,8 @@ class CPU {
   final Bus bus;
   final bool debug;
 
+  bool executionLogEnabled = false;
+
   int cycles = 0;
 
   int PC = 0x0000;
@@ -212,6 +214,10 @@ class CPU {
 
     if (op == null) {
       throw InvalidOpcode(PC, opcode);
+    }
+
+    if (executionLogEnabled) {
+      eventBus.add(StepNesEvent(opcode, op));
     }
 
     PC++;

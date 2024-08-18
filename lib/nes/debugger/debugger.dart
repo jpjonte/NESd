@@ -95,6 +95,7 @@ class Debugger {
           X: nes.cpu.X,
           Y: nes.cpu.Y,
           SP: nes.cpu.SP,
+          P: nes.cpu.P,
           C: nes.cpu.C == 1,
           Z: nes.cpu.Z == 1,
           I: nes.cpu.I == 1,

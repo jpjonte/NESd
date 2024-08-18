@@ -18,6 +18,7 @@ class DebuggerState with _$DebuggerState {
     @Default(0) int X,
     @Default(0) int Y,
     @Default(0) int SP,
+    @Default(0) int P,
     @Default(false) bool C,
     @Default(false) bool Z,
     @Default(false) bool I,
@@ -35,6 +36,7 @@ class DebuggerState with _$DebuggerState {
     @Default(false) bool spriteOverflow,
     @Default(false) bool sprite0Hit,
     @Default(false) bool vBlank,
+    @Default(false) bool executionLogOpen,
   }) = _DebuggerState;
 }
 
@@ -49,5 +51,9 @@ class DebuggerNotifier extends _$DebuggerNotifier {
 
   set debuggerState(DebuggerState state) {
     this.state = state;
+  }
+
+  void toggleExecutionLog() {
+    state = state.copyWith(executionLogOpen: !state.executionLogOpen);
   }
 }

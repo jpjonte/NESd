@@ -36,13 +36,8 @@ class NES {
       ..apu = apu;
 
     cartridge.mapper.bus = bus;
-
-    if (debug) {
-      File('logs/debug.log').writeAsStringSync('');
-    }
   }
 
-  final bool debug;
   final Bus bus;
   late final CPU cpu = CPU(eventBus: eventBus, bus: bus);
   late final PPU ppu = PPU(bus);
@@ -280,17 +275,17 @@ class NES {
     }
 
     if (_breakpoints.isNotEmpty) {
-    final breakpoint =
-        _breakpoints.where((b) => b.address == cpu.PC).firstOrNull;
+      final breakpoint =
+          _breakpoints.where((b) => b.address == cpu.PC).firstOrNull;
 
-    if (breakpoint != null) {
-      pause();
+      if (breakpoint != null) {
+        pause();
 
-      if (breakpoint.removeOnHit) {
-        _breakpoints.remove(breakpoint);
+        if (breakpoint.removeOnHit) {
+          _breakpoints.remove(breakpoint);
+        }
       }
     }
-  }
   }
 
   void stepInto() {

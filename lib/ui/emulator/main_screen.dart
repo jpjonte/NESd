@@ -2,10 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/emulator_widget.dart';
+import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/main_menu.dart';
@@ -28,6 +30,7 @@ class MainScreen extends HookConsumerWidget {
     final controller = ref.read(nesControllerProvider);
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
+    final debuggerState = ref.watch(debuggerNotifierProvider);
 
     useEffect(
       () {
@@ -79,6 +82,8 @@ class MainScreen extends HookConsumerWidget {
                         ],
                       ),
                     ),
+                  if (debuggerState.executionLogOpen)
+                    const ExecutionLogWidget(),
                 ],
               );
             },

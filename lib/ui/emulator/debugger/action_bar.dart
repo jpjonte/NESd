@@ -34,6 +34,7 @@ class ActionBar extends StatelessWidget {
           GoToPcButton(scrollController: scrollController),
           GoToAddressButton(scrollController: scrollController),
           BreakpointListButton(scrollController: scrollController),
+          const OpenExecutionLogButton(),
         ],
       ),
     );
@@ -238,6 +239,23 @@ class BreakpointListButton extends StatelessWidget {
       },
       icon: const Icon(Icons.circle),
       tooltip: 'Breakpoints',
+    );
+  }
+}
+
+class OpenExecutionLogButton extends ConsumerWidget {
+  const OpenExecutionLogButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.watch(debuggerNotifierProvider.notifier);
+
+    return IconButton(
+      onPressed: () => notifier.toggleExecutionLog(),
+      icon: const Icon(Icons.list),
+      tooltip: 'Execution log',
     );
   }
 }

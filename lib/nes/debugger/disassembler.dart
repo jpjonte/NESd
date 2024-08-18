@@ -1,7 +1,12 @@
+import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
+import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'disassembler.g.dart';
@@ -72,6 +77,118 @@ class Disassembler {
       ..sort((a, b) => a.address.compareTo(b.address));
   }
 
+  DisassemblyLine? disassembleLine(
+    int address, {
+    bool isEntrypoint = false,
+    CPUState? state,
+    int? readAddress,
+    int? value,
+  }) {
+    if (state != null) {
+      debugCpu.state = state;
+    }
+
+    final opcode = debugCpu.read(address);
+
+    final op = ops[opcode];
+
+    if (op == null) {
+      return null;
+    }
+
+    final operandCount = op.addressMode.operandCount;
+
+    final operands = List.generate(
+      operandCount,
+      (index) => debugCpu.read(address + 1 + index),
+      growable: false,
+    );
+
+    final (readAddress, _) = op.addressMode.read(debugCpu, address + 1);
+
+    final value = debugCpu.read(readAddress);
+
+    final disassembledOperands = _disassemble(
+      op,
+      address + 1,
+      operands,
+      readAddress,
+      value,
+    );
+
+    final line = DisassemblyLine(
+      address: address,
+      opcode: opcode,
+      operation: op,
+      operands: operands,
+      disassembledOperands: disassembledOperands,
+      readAddress: readAddress,
+      sectionStart: isEntrypoint,
+      sectionEnd: op.instruction == RTS || op.instruction == RTI,
+    );
+
+    lines[address] = line;
+
+    for (var i = 1; i <= operandCount; i++) {
+      final next = address + i;
+
+      if (lines.containsKey(next)) {
+        lines.remove(next);
+      }
+    }
+
+    return line;
+  }
+
+  String _disassemble(
+    Operation op,
+    int address,
+    List<int> operands,
+    int readAddress,
+    int value,
+  ) {
+    return switch (op.addressMode) {
+      Implicit() => '',
+      Accumulator() => 'A',
+      Immediate() => '#\$${operands[0].toHex()}',
+      ZeroPage() => '\$${operands[0].toHex()}' ' = \$${value.toHex()}',
+      ZeroPageX() => '\$${operands[0].toHex()},X'
+          ' [\$${readAddress.toHex(width: 4)}]'
+          ' = \$${value.toHex()}',
+      ZeroPageY() => '\$${operands[0].toHex()},Y'
+          ' [\$${readAddress.toHex(width: 4)}]'
+          ' = \$${value.toHex()}',
+      Relative() => '\$${readAddress.toHex(width: 4)}',
+      Absolute() => _disassembleAbsolute(readAddress, op),
+      AbsoluteX() =>
+        '\$${((readAddress - debugCpu.X) & 0xffff).toHex(width: 4)},X'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
+      AbsoluteY() =>
+        '\$${((readAddress - debugCpu.Y) & 0xffff).toHex(width: 4)},Y'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
+      Indirect() => '(\$${operands[1].toHex()}${operands[0].toHex()}) ='
+          ' \$${readAddress.toHex(width: 4)}',
+      IndexedIndirect() => '(\$${operands[0].toHex()},X)'
+          ' [\$${readAddress.toHex(width: 4)}]'
+          ' = \$${value.toHex()}',
+      IndirectIndexed() => '(\$${operands[0].toHex()}),Y'
+          ' [\$${readAddress.toHex(width: 4)}]'
+          ' = \$${value.toHex()}',
+    };
+  }
+
+  String _disassembleAbsolute(int address, Operation op) {
+    final buffer = StringBuffer('\$${address.toHex(width: 4)}');
+
+    if (op.instruction != JSR && op.instruction != JMP) {
+      buffer.write(' = \$${debugCpu.read(address).toHex()}');
+    }
+
+    return buffer.toString();
+  }
+
   void _search(List<DisassemblerSearchNode> queue) {
     final visited = <int>{};
 
@@ -82,50 +199,14 @@ class Disassembler {
 
       visited.add(pc);
 
-      final opcode = debugCpu.read(pc);
+      final line = disassembleLine(pc, isEntrypoint: current.entrypoint);
 
-      final op = ops[opcode];
-
-      if (op == null) {
+      if (line == null) {
         continue;
       }
 
-      final operandCount = op.addressMode.operandCount;
-
-      final operands = List.generate(
-        operandCount,
-        (index) => debugCpu.read(pc + 1 + index),
-        growable: false,
-      );
-
-      final (address, _) = op.addressMode.read(debugCpu, pc + 1);
-
-      final disassembledOperands = op.addressMode.debug(
-        debugCpu,
-        pc + 1,
-        operands,
-        address,
-      );
-
-      final line = DisassemblyLine(
-        address: pc,
-        opcode: opcode,
-        operation: op,
-        operands: operands,
-        disassembledOperands: disassembledOperands,
-        sectionStart: current.entrypoint,
-        sectionEnd: op.instruction == RTS || op.instruction == RTI,
-      );
-
-      lines[pc] = line;
-
-      for (var i = 1; i <= operandCount; i++) {
-        final next = pc + i;
-
-        if (lines.containsKey(next)) {
-          lines.remove(next);
-        }
-      }
+      final op = line.operation;
+      final operandCount = line.operation.addressMode.operandCount;
 
       final children = <DisassemblerSearchNode>[];
 
@@ -141,7 +222,7 @@ class Disassembler {
           op.instruction.type == InstructionType.jump) {
         children.add(
           DisassemblerSearchNode(
-            address,
+            line.readAddress,
             entrypoint: op.instruction == JSR || op.instruction == BRK,
             depth: current.depth + 1,
           ),
@@ -159,6 +240,58 @@ class Disassembler {
   }
 }
 
+class DummyDisassembler implements Disassembler {
+  @override
+  Disassembly update() {
+    return [];
+  }
+
+  @override
+  void _search(List<DisassemblerSearchNode> queue) {}
+
+  @override
+  CPU get cpu => throw UnimplementedError();
+
+  @override
+  CPU get debugCpu => throw UnimplementedError();
+
+  @override
+  DisassemblyLine? disassembleLine(
+    int address, {
+    bool isEntrypoint = false,
+    CPUState? state,
+    int? readAddress,
+    int? value,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Map<int, DisassemblyLine> get lines => throw UnimplementedError();
+
+  @override
+  String _disassemble(
+    Operation op,
+    int address,
+    List<int> operands,
+    int readAddress,
+    int value,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
+  String _disassembleAbsolute(int address, Operation op) {
+    throw UnimplementedError();
+  }
+
+  @override
+  set debugCpu(CPU debugCpu) {}
+
+  @override
+  EventBus get eventBus => throw UnimplementedError();
+}
+
 class DisassemblyLine {
   const DisassemblyLine({
     required this.address,
@@ -166,6 +299,7 @@ class DisassemblyLine {
     required this.operation,
     required this.operands,
     required this.disassembledOperands,
+    required this.readAddress,
     required this.sectionStart,
     required this.sectionEnd,
   });
@@ -175,6 +309,7 @@ class DisassemblyLine {
   final Operation operation;
   final List<int> operands;
   final String disassembledOperands;
+  final int readAddress;
   final bool sectionStart;
   final bool sectionEnd;
 }
