@@ -199,7 +199,7 @@ class NES {
 
         _sleepBudget += sleepTime;
 
-        if (_sleepBudget.inSeconds < -1) {
+        if (_sleepBudget.isNegative) {
           _sleepBudget = Duration.zero;
         }
 
