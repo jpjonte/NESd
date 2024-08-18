@@ -323,6 +323,8 @@ class CPU {
     pushStack16(PC);
     pushStack(P.setBit(5, 1));
 
+    callStack.add(PC);
+
     I = 1;
     PC = read16(address);
   }
