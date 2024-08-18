@@ -1,5 +1,8 @@
 # NESd
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/jpjonte/nesd/ci.yaml)
+![GitHub Release](https://img.shields.io/github/v/release/jpjonte/nesd)
+
 A NES Emulator written in Dart and Flutter.
 Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
 If you sponsor an iOS device and the Apple developer account fee, I'll add iOS support ;) 
