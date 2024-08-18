@@ -10,6 +10,8 @@ import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/cpu/instruction.dart' as instr show BRK;
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
@@ -26,8 +28,9 @@ enum IrqSource {
 }
 
 class CPU {
-  CPU(this.bus, {this.debug = false});
+  CPU({required this.eventBus, required this.bus, this.debug = false});
 
+  final EventBus eventBus;
   final Bus bus;
   final bool debug;
 

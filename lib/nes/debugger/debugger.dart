@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,6 +14,7 @@ part 'debugger.g.dart';
 Debugger debugger(DebuggerRef ref) {
   final nes = ref.watch(nesStateProvider);
   final notifier = ref.watch(debuggerNotifierProvider.notifier);
+  final disassembler = ref.watch(disassemblerProvider);
 
   if (nes == null) {
     return DummyDebugger();
@@ -19,7 +22,12 @@ Debugger debugger(DebuggerRef ref) {
 
   final subscription = ref.listen(debuggerNotifierProvider, (_, __) {});
 
-  final debugger = Debugger(nes: nes, notifier: notifier);
+  final debugger = Debugger(
+    eventBus: ref.watch(eventBusProvider),
+    nes: nes,
+    notifier: notifier,
+    disassembler: disassembler,
+  );
 
   ref
     ..onDispose(debugger.dispose)
@@ -30,12 +38,15 @@ Debugger debugger(DebuggerRef ref) {
 
 class Debugger {
   Debugger({
+    required this.eventBus,
     required this.nes,
+    required this.disassembler,
     required this.notifier,
-  }) : disassembler = Disassembler(cpu: nes.cpu) {
-    _subscription = nes.eventStream.listen(_handleEvent);
+  }) {
+    _subscription = eventBus.stream.listen(_handleEvent);
   }
 
+  final EventBus eventBus;
   final NES nes;
   final Disassembler disassembler;
   final DebuggerNotifier notifier;
@@ -74,7 +85,7 @@ class Debugger {
 
   void _handleEvent(NesEvent event) {
     switch (event) {
-      case StepNesEvent():
+      case DebuggerNesEvent():
       case SuspendNesEvent():
         notifier.debuggerState = notifier.debuggerState.copyWith(
           enabled: true,
@@ -155,4 +166,7 @@ class DummyDebugger implements Debugger {
   bool hasBreakpoint(int address) {
     throw UnimplementedError();
   }
+
+  @override
+  EventBus get eventBus => throw UnimplementedError();
 }

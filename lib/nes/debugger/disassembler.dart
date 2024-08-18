@@ -1,8 +1,26 @@
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'disassembler.g.dart';
 
 typedef Disassembly = List<DisassemblyLine>;
+
+@riverpod
+Disassembler disassembler(DisassemblerRef ref) {
+  final nes = ref.watch(nesStateProvider);
+
+  if (nes == null) {
+    return DummyDisassembler();
+  }
+
+  return Disassembler(
+    eventBus: ref.watch(eventBusProvider),
+    cpu: nes.cpu,
+  );
+}
 
 class DisassemblerSearchNode {
   const DisassemblerSearchNode(
@@ -18,8 +36,18 @@ class DisassemblerSearchNode {
 
 class Disassembler {
   Disassembler({
+    required this.eventBus,
     required this.cpu,
-  }) : debugCpu = CPU(cpu.bus, debug: true)..state = cpu.state {
+  }) {
+    final bus = Bus(cpu.bus.cartridge)
+      ..ppu = cpu.bus.ppu
+      ..apu = cpu.bus.apu;
+
+    debugCpu = CPU(eventBus: eventBus, bus: bus, debug: true)
+      ..state = cpu.state;
+
+    bus.cpu = debugCpu;
+
     _search([
       DisassemblerSearchNode(debugCpu.read16(resetVector)),
       DisassemblerSearchNode(debugCpu.read16(nmiVector)),
@@ -27,8 +55,9 @@ class Disassembler {
     ]);
   }
 
+  final EventBus eventBus;
   final CPU cpu;
-  final CPU debugCpu;
+  late final CPU debugCpu;
 
   final Map<int, DisassemblyLine> lines = {};
 

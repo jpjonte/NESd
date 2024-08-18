@@ -6,7 +6,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -39,9 +40,10 @@ class DisplayWidget extends HookConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final nes = ref.watch(nesStateProvider);
     final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
+    final eventBus = ref.watch(eventBusProvider);
 
     useStream(
-      nes?.eventStream
+      eventBus.stream
           .where((event) => event is FrameNesEvent || event is SuspendNesEvent),
     );
 

@@ -9,6 +9,8 @@ import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/save_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
@@ -29,19 +31,16 @@ class NesState extends _$NesState {
 
   NES? get nes => state;
 
-  Stream<NesEvent> run(Cartridge cartridge) {
-    final newNes = NES(cartridge);
+  void run({required Cartridge cartridge, required EventBus eventBus}) {
+    final newNes = NES(cartridge: cartridge, eventBus: eventBus);
 
     state = newNes;
 
     newNes.run();
-
-    return newNes.eventStream;
   }
 
   void stop() {
     state?.stop();
-    state?.dispose();
     state = null;
   }
 }
@@ -49,6 +48,7 @@ class NesState extends _$NesState {
 @riverpod
 NesController nesController(NesControllerRef ref) {
   final controller = NesController(
+    eventBus: ref.watch(eventBusProvider),
     nesState: ref.watch(nesStateProvider.notifier),
     audioOutput: ref.watch(audioOutputProvider),
     router: ref.read(routerProvider),
@@ -77,6 +77,7 @@ NesController nesController(NesControllerRef ref) {
 
 class NesController {
   NesController({
+    required this.eventBus,
     required this.nesState,
     required this.audioOutput,
     required this.router,
@@ -93,7 +94,18 @@ class NesController {
     );
 
     router.addListener(_updateRoute);
+
+    _nesEventSubscription = eventBus.stream.listen(_handleNesEvent)
+      ..onError(
+        // ignore: avoid_types_on_closure_parameters
+        (Object error, StackTrace stackTrace) {
+          toaster.send(Toast.error(error.toString()));
+          nesState.stop();
+        },
+      );
   }
+
+  final EventBus eventBus;
 
   final NesState nesState;
 
@@ -203,16 +215,7 @@ class NesController {
     try {
       final cartridge = await loadCartridge(path);
 
-      _nesEventSubscription?.cancel();
-
-      _nesEventSubscription = nesState.run(cartridge).listen(_handleNesEvent)
-        ..onError(
-          // ignore: avoid_types_on_closure_parameters
-          (Object error, StackTrace stackTrace) {
-            toaster.send(Toast.error(error.toString()));
-            nesState.stop();
-          },
-        );
+      nesState.run(eventBus: eventBus, cartridge: cartridge);
 
       settingsController.addRecentRomPath(path);
 
@@ -235,6 +238,7 @@ class NesController {
     audioOutput.dispose();
     _lifecycleListener.dispose();
     router.removeListener(_updateRoute);
+    _nesEventSubscription?.cancel();
   }
 
   void _appSuspended() {

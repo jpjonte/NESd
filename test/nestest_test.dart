@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/nes.dart';
 
 void main() {
@@ -12,7 +13,7 @@ void main() {
 
     final cartridge = Cartridge.fromFile(path, file.readAsBytesSync());
 
-    final nes = NES(cartridge)
+    final nes = NES(cartridge: cartridge, eventBus: EventBus())
       ..reset()
       ..cpu.PC = 0xc000
       ..cpu.cycles = 7

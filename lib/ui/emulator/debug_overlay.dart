@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
-import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 class DebugOverlay extends HookConsumerWidget {
@@ -11,83 +11,82 @@ class DebugOverlay extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nes = ref.watch(nesStateProvider);
+    final eventBus = ref.watch(eventBusProvider);
 
     final lastEvent = useRef(DateTime.now());
 
-    return StreamBuilder(
-      stream: nes?.eventStream
+    final snapshot = useStream(
+      eventBus.stream
           .where((event) => event is FrameNesEvent)
           .cast<FrameNesEvent>(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+    );
 
-        final event = snapshot.data;
+    if (snapshot.hasError) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    }
 
-        if (event == null) {
-          return const SizedBox();
-        }
+    final event = snapshot.data;
 
-        final frameTime = event.frameTime.inMicroseconds / 1000.0;
-        final fps = 1000 / frameTime;
-        final sleepBudget = event.sleepBudget.inMicroseconds / 1000.0;
-        final eventTime =
-            DateTime.now().difference(lastEvent.value).inMicroseconds / 1000;
-        final eps = 1000 / eventTime;
+    if (event == null) {
+      return const SizedBox();
+    }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          lastEvent.value = DateTime.now();
-        });
+    final frameTime = event.frameTime.inMicroseconds / 1000.0;
+    final fps = 1000 / frameTime;
+    final sleepBudget = event.sleepBudget.inMicroseconds / 1000.0;
+    final eventTime =
+        DateTime.now().difference(lastEvent.value).inMicroseconds / 1000;
+    final eps = 1000 / eventTime;
 
-        return Align(
-          alignment: Alignment.topRight,
-          child: IntrinsicHeight(
-            child: Container(
-              width: 200,
-              padding: const EdgeInsets.all(8),
-              color: Colors.black.withOpacity(0.5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  KeyValue('Event Time', eventTime.toStringAsFixed(3)),
-                  KeyValue('Frame Time', frameTime.toStringAsFixed(3)),
-                  KeyValue(
-                    'FPS',
-                    fps.toStringAsFixed(1),
-                    color: switch (fps) {
-                      < 30 => nesdRed,
-                      < 45 => Colors.orange,
-                      < 60 => Colors.yellow,
-                      _ => null,
-                    },
-                  ),
-                  KeyValue(
-                    'Events per second',
-                    eps.toStringAsFixed(1),
-                    color: switch (eps) {
-                      < 30 => nesdRed,
-                      < 45 => Colors.orange,
-                      < 60 => Colors.yellow,
-                      _ => null,
-                    },
-                  ),
-                  KeyValue(
-                    'Sleep Budget',
-                    sleepBudget.toStringAsFixed(3),
-                    color: switch (sleepBudget) {
-                      < -16 => nesdRed,
-                      < 0 => Colors.orange,
-                      _ => null,
-                    },
-                  ),
-                ],
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      lastEvent.value = DateTime.now();
+    });
+
+    return Align(
+      alignment: Alignment.topRight,
+      child: IntrinsicHeight(
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.all(8),
+          color: Colors.black.withOpacity(0.5),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              KeyValue('Event Time', eventTime.toStringAsFixed(3)),
+              KeyValue('Frame Time', frameTime.toStringAsFixed(3)),
+              KeyValue(
+                'FPS',
+                fps.toStringAsFixed(1),
+                color: switch (fps) {
+                  < 30 => nesdRed,
+                  < 45 => Colors.orange,
+                  < 60 => Colors.yellow,
+                  _ => null,
+                },
               ),
-            ),
+              KeyValue(
+                'Events per second',
+                eps.toStringAsFixed(1),
+                color: switch (eps) {
+                  < 30 => nesdRed,
+                  < 45 => Colors.orange,
+                  < 60 => Colors.yellow,
+                  _ => null,
+                },
+              ),
+              KeyValue(
+                'Sleep Budget',
+                sleepBudget.toStringAsFixed(3),
+                color: switch (sleepBudget) {
+                  < -16 => nesdRed,
+                  < 0 => Colors.orange,
+                  _ => null,
+                },
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

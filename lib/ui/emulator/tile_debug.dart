@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/event/event_bus.dart';
+import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
@@ -44,12 +46,13 @@ class TileDebugWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nes = ref.read(nesStateProvider);
+    final eventBus = ref.watch(eventBusProvider);
 
     final stream = useStream(
-      nes?.eventStream.where(
+      eventBus.stream.where(
         (event) =>
             event is FrameNesEvent ||
-            event is StepNesEvent ||
+            event is DebuggerNesEvent ||
             event is SuspendNesEvent,
       ),
     );
