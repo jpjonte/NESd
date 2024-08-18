@@ -8,10 +8,12 @@ class DisassemblerSearchNode {
   const DisassemblerSearchNode(
     this.pc, {
     this.entrypoint = false,
+    this.depth = 0,
   });
 
   final int pc;
   final bool entrypoint;
+  final int depth;
 }
 
 class Disassembler {
@@ -103,7 +105,7 @@ class Disassembler {
       if (op.instruction != JMP &&
           op.instruction != RTS &&
           op.instruction != RTI) {
-        children.add(DisassemblerSearchNode(next));
+        children.add(DisassemblerSearchNode(next, depth: current.depth + 1));
       }
 
       if (op.instruction.type == InstructionType.branch ||
@@ -112,12 +114,15 @@ class Disassembler {
           DisassemblerSearchNode(
             address,
             entrypoint: op.instruction == JSR || op.instruction == BRK,
+            depth: current.depth + 1,
           ),
         );
       }
 
       for (final child in children) {
-        if (!visited.contains(child.pc) && child.pc <= 0xffff) {
+        if (child.depth < 100 &&
+            !visited.contains(child.pc) &&
+            child.pc <= 0xffff) {
           queue.add(child);
         }
       }
