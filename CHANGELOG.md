@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2024-08-18
+
 ### Added
 
 - A hover overlay to the tile debug view
@@ -16,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - current register values
   - step into, step over, step out, run to address
   - breakpoints
+- An execution log
+  - Records instructions as they are executed
+  - Can be saved to a file
 
 ### Changed
 
@@ -27,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed an issue where the last opened directory was not saved
 - Fixed file picker not correctly detecting directories on Android
 - Fixed a bug in memory reads performed by the CPU
+- Fixed graphical glitches on level start in Super Mario Bros. 3
+- Fixed not all parts of nightly releases being updated
 
 ## [0.3.0] - 2024-07-28
 
