@@ -141,6 +141,7 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*
