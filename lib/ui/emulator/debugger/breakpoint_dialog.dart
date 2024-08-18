@@ -104,6 +104,15 @@ class AddBreakpointWidget extends HookConsumerWidget {
 
     final controller = useTextEditingController();
 
+    void submit() {
+      final address = int.tryParse(controller.text, radix: 16);
+
+      if (address != null) {
+        debugger.addBreakpoint(Breakpoint(address));
+        controller.clear();
+      }
+    }
+
     return Row(
       children: [
         Expanded(
@@ -122,6 +131,7 @@ class AddBreakpointWidget extends HookConsumerWidget {
 
               controller.text = text.toUpperCase();
             },
+            onSubmitted: (_) => submit(),
             decoration: const InputDecoration(
               labelText: 'Address',
               hintText: '0000',
@@ -130,14 +140,7 @@ class AddBreakpointWidget extends HookConsumerWidget {
         ),
         IconButton(
           icon: const Icon(Icons.add),
-          onPressed: () {
-            final address = int.tryParse(controller.text, radix: 16);
-
-            if (address != null) {
-              debugger.addBreakpoint(Breakpoint(address));
-              controller.clear();
-            }
-          },
+          onPressed: submit,
         ),
       ],
     );
