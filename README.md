@@ -1,7 +1,10 @@
 # NESd
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/jpjonte/nesd/ci.yaml)
-![GitHub Release](https://img.shields.io/github/v/release/jpjonte/nesd)
+<p align="center">
+<img src="https://img.shields.io/github/actions/workflow/status/jpjonte/nesd/ci.yaml" alt="CI status" />
+<img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fjpjonte.github.io%2FNESd%2Fcoverage%2Fmain.json" alt="Coverage" />
+<img src="https://img.shields.io/github/v/release/jpjonte/nesd" alt="Release" />
+</p>
 
 A NES Emulator written in Dart and Flutter.
 Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
