@@ -1,5 +1,4 @@
 import 'package:nesd/extension/bit_extension.dart';
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
@@ -8,18 +7,18 @@ class AxROM extends Mapper {
 
   int prgBank = 0;
 
-  int chrBank = 0;
+  int vramBank = 0;
 
   @override
   AXROMState get state => AXROMState(
         prgBank: prgBank,
-        chrBank: chrBank,
+        vramBank: vramBank,
       );
 
   @override
   set state(covariant AXROMState state) {
     prgBank = state.prgBank;
-    chrBank = state.chrBank;
+    vramBank = state.vramBank;
   }
 
   @override
@@ -28,90 +27,22 @@ class AxROM extends Mapper {
   @override
   void reset() {
     prgBank = 0;
-    chrBank = 0;
+    vramBank = 0;
   }
 
   @override
-  int read(Bus bus, int address, {bool debug = false}) {
-    if (address < 0x2000) {
-      return cartridge.chr[_chrAddress(address)];
-    }
-
-    if (address < 0x3f00) {
-      return bus.ppu.ram[_nametableAddress(address)];
-    }
-
-    if (address < 0x6000) {
-      return 0;
-    }
-
-    if (address < 0x8000) {
-      return cartridge.sram[address & 0x1fff];
-    }
-
-    if (address <= 0xffff) {
-      return cartridge.prgRom[_prgAddress(address)];
-    }
-
-    return 0;
+  void writePrg(int address, int value) {
+    prgBank = value & 0x07;
+    vramBank = value.bit(4);
   }
 
   @override
-  void write(Bus bus, int address, int value) {
-    if (address < 0x2000) {
-      _writeChr(address, value);
-
-      return;
-    }
-
-    if (address < 0x3f00) {
-      _writePpuRam(bus, address, value);
-
-      return;
-    }
-
-    if (address < 0x6000) {
-      return;
-    }
-
-    if (address < 0x8000) {
-      _writeCartridgeSram(address, value);
-
-      return;
-    }
-
-    if (address <= 0xffff) {
-      prgBank = value & 0x07;
-      chrBank = value.bit(4);
-    }
+  int nametableAddress(int address) {
+    return vramBank << 10 | address & 0x3ff;
   }
 
-  void _writeChr(int address, int value) {
-    if (cartridge.chrRomSize > 0) {
-      // no CHR RAM -> not writable
-      return;
-    }
-
-    cartridge.chr[_chrAddress(address)] = value;
-  }
-
-  void _writePpuRam(Bus bus, int address, int value) {
-    bus.ppu.ram[_nametableAddress(address)] = value;
-  }
-
-  void _writeCartridgeSram(int address, int value) {
-    cartridge.sram[address & 0x1fff] = value;
-  }
-
-  int _chrAddress(int address) {
-    return address % cartridge.chr.length;
-  }
-
-  int _nametableAddress(int address) {
-    return chrBank << 10 | address & 0x3ff;
-  }
-
-  int _prgAddress(int address) {
+  @override
+  int prgAddress(int address) {
     return prgBank << 15 | address & 0x7fff;
   }
 }

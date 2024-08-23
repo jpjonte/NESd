@@ -5,7 +5,7 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
-enum NametableLayout { horizontal, vertical, four, single }
+enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
 enum RomFormat { iNes, nes20 }
 
@@ -182,7 +182,7 @@ class Cartridge {
   }
 
   int read(Bus bus, int address, {bool debug = false}) {
-    return mapper.read(bus, address, debug: debug);
+    return mapper.read(address, debug: debug);
   }
 
   void write(Bus bus, int address, int value) {

@@ -1,5 +1,4 @@
 import 'package:nesd/extension/bit_extension.dart';
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
@@ -75,6 +74,8 @@ class MMC3 extends Mapper {
     _irqReload = state.irqReload;
     _irqEnabled = state.irqEnabled;
     _a12LowStart = state.a12LowStart;
+
+    _updateMirroring();
   }
 
   @override
@@ -94,7 +95,8 @@ class MMC3 extends Mapper {
       NametableLayout.vertical => 1,
       NametableLayout.horizontal => 0,
       NametableLayout.four => 0,
-      NametableLayout.single => 1,
+      NametableLayout.singleUpper => 1,
+      NametableLayout.singleLower => 1,
     };
 
     _mirroring = 0;
@@ -106,60 +108,8 @@ class MMC3 extends Mapper {
     _irqEnabled = false;
 
     _a12LowStart = 0;
-  }
 
-  @override
-  int read(Bus bus, int address, {bool debug = false}) {
-    if (address < 0x2000) {
-      return cartridge.chr[_chrAddress(address)];
-    }
-
-    if (address < 0x3f00) {
-      return bus.ppu.ram[_nametableAddress(address)];
-    }
-
-    if (address < 0x6000) {
-      return 0;
-    }
-
-    if (address < 0x8000) {
-      return cartridge.sram[address & 0x1fff];
-    }
-
-    if (address <= 0xffff) {
-      return cartridge.prgRom[_prgAddress(address)];
-    }
-
-    return 0;
-  }
-
-  @override
-  void write(Bus bus, int address, int value) {
-    if (address < 0x2000) {
-      _writeChr(address, value);
-
-      return;
-    }
-
-    if (address < 0x3f00) {
-      _writePpuRam(address, value);
-
-      return;
-    }
-
-    if (address < 0x6000) {
-      return;
-    }
-
-    if (address < 0x8000) {
-      _writeCartridgeSram(address, value);
-
-      return;
-    }
-
-    if (address <= 0xffff) {
-      _writeRegister(address, value);
-    }
+    _updateMirroring();
   }
 
   @override
@@ -181,24 +131,8 @@ class MMC3 extends Mapper {
     _irqReload = false;
   }
 
-  void _writeChr(int address, int value) {
-    if (cartridge.chrRomSize > 0) {
-      // no CHR RAM -> not writable
-      return;
-    }
-
-    cartridge.chr[_chrAddress(address)] = value;
-  }
-
-  void _writePpuRam(int address, int value) {
-    bus.ppu.ram[_nametableAddress(address)] = value;
-  }
-
-  void _writeCartridgeSram(int address, int value) {
-    cartridge.sram[address & 0x1fff] = value;
-  }
-
-  void _writeRegister(int address, int value) {
+  @override
+  void writePrg(int address, int value) {
     switch (address & 0xe001) {
       // bank select (0x8000 - 0x9ffe, even)
       case 0x8000:
@@ -228,6 +162,7 @@ class MMC3 extends Mapper {
       // Mirroring (0xa000 - 0xbffe, even)
       case 0xa000:
         _mirroring = value & 0x1;
+        _updateMirroring();
       // PRG RAM protect (0xa001 - 0xbfff, odd)
       case 0xa001:
       // not implemented for compatibility with MMC6
@@ -248,7 +183,8 @@ class MMC3 extends Mapper {
     }
   }
 
-  int _chrAddress(int address) {
+  @override
+  int chrAddress(int address) {
     return switch (_chrBankMode) {
       0 => switch (address >> 10) {
           // 0x0000 - 0x07ff -> r0 (2k)
@@ -284,23 +220,8 @@ class MMC3 extends Mapper {
     };
   }
 
-  int _nametableAddress(int address) {
-    final masked = address & 0x0fff;
-
-    return switch (_mirroring) {
-      0 => switch (masked) {
-          < 0x0400 => masked,
-          < 0x0800 => masked,
-          < 0x0c00 => masked - 0x800,
-          < 0x1000 => masked - 0x800,
-          _ => 0,
-        }, // address & 0x7ff, // vertical
-      1 => (address & 0x7ff).setBit(10, address.bit(11)), // horizontal
-      _ => 0,
-    };
-  }
-
-  int _prgAddress(int address) {
+  @override
+  int prgAddress(int address) {
     return switch (_prgBankMode) {
       0 => switch (address & 0xe000) {
           // 0x8000 - 0x9fff -> r6
@@ -325,6 +246,14 @@ class MMC3 extends Mapper {
           _ => 0,
         },
       _ => 0,
+    };
+  }
+
+  void _updateMirroring() {
+    nametableLayout = switch (_mirroring) {
+      0 => NametableLayout.horizontal,
+      1 => NametableLayout.vertical,
+      _ => nametableLayout,
     };
   }
 
