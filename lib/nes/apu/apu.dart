@@ -88,8 +88,10 @@ class APU {
           .setBit(2, triangle.status)
           .setBit(3, noise.status)
           .setBit(4, dmc.status)
-          .setBit(6,
-              _frameCounter.getStatus(disableSideEffects: disableSideEffects))
+          .setBit(
+            6,
+            _frameCounter.getStatus(disableSideEffects: disableSideEffects),
+          )
           .setBit(7, dmc.interruptStatus);
 
       return status;

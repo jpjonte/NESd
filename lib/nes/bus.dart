@@ -67,8 +67,11 @@ class Bus {
       return 0;
     }
 
-    return cartridge.read(this, address,
-        disableSideEffects: disableSideEffects);
+    return cartridge.read(
+      this,
+      address,
+      disableSideEffects: disableSideEffects,
+    );
   }
 
   int cpuRead16(

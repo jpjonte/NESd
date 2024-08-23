@@ -9,47 +9,6 @@
 
 part of 'router.dart';
 
-abstract class _$Router extends RootStackRouter {
-  // ignore: unused_element
-  _$Router({super.navigatorKey});
-
-  @override
-  final Map<String, PageFactory> pagesMap = {
-    FilePickerRoute.name: (routeData) {
-      final args = routeData.argsAs<FilePickerRouteArgs>();
-      return AutoRoutePage<FileSystemFile?>(
-        routeData: routeData,
-        child: FilePickerScreen(
-          title: args.title,
-          initialDirectory: args.initialDirectory,
-          type: args.type,
-          allowedExtensions: args.allowedExtensions,
-          onChangeDirectory: args.onChangeDirectory,
-          key: args.key,
-        ),
-      );
-    },
-    MainRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const MainScreen(),
-      );
-    },
-    MenuRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const MenuScreen(),
-      );
-    },
-    SettingsRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SettingsScreen(),
-      );
-    },
-  };
-}
-
 /// generated route for
 /// [FilePickerScreen]
 class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
@@ -76,8 +35,20 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
 
   static const String name = 'FilePickerRoute';
 
-  static const PageInfo<FilePickerRouteArgs> page =
-      PageInfo<FilePickerRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<FilePickerRouteArgs>();
+      return FilePickerScreen(
+        title: args.title,
+        initialDirectory: args.initialDirectory,
+        type: args.type,
+        allowedExtensions: args.allowedExtensions,
+        onChangeDirectory: args.onChangeDirectory,
+        key: args.key,
+      );
+    },
+  );
 }
 
 class FilePickerRouteArgs {
@@ -119,7 +90,12 @@ class MainRoute extends PageRouteInfo<void> {
 
   static const String name = 'MainRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MainScreen();
+    },
+  );
 }
 
 /// generated route for
@@ -133,7 +109,12 @@ class MenuRoute extends PageRouteInfo<void> {
 
   static const String name = 'MenuRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MenuScreen();
+    },
+  );
 }
 
 /// generated route for
@@ -147,5 +128,10 @@ class SettingsRoute extends PageRouteInfo<void> {
 
   static const String name = 'SettingsRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SettingsScreen();
+    },
+  );
 }

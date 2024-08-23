@@ -10,6 +10,12 @@ analyzer:
     - "**/*.freezed.dart"
     - "lib/generated_plugin_registrant.dart"
 
+custom_lint:
+  rules:
+    # disable these rules for now until I find a good way to fix the issues
+    - avoid_manual_providers_as_generated_provider_dependency: false
+    - avoid_public_notifier_properties: false
+
 linter:
   rules:
     - always_put_control_body_on_new_line

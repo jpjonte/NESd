@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   archive: ^3.6.1
-  auto_route: ^8.2.0
+  auto_route: ^9.2.2
   binarize: ^1.5.0
   build_runner: ^2.4.10
   file_picker: ^8.0.3
@@ -45,7 +45,7 @@ dependencies:
   url_launcher: ^6.3.0
 
 dev_dependencies:
-  auto_route_generator: ^8.0.0
+  auto_route_generator: ^9.0.0
   custom_lint: ^0.6.4
   flutter_test:
     sdk: flutter

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/emulator/main_screen.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/menu/menu_screen.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 
@@ -14,7 +13,7 @@ part 'router.gr.dart';
 final routerProvider = ChangeNotifierProvider((ref) => Router());
 
 @AutoRouterConfig(replaceInRouteName: 'Screen,Route')
-class Router extends _$Router {
+class Router extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
         AutoRoute(page: MainRoute.page, path: '/', initial: true),

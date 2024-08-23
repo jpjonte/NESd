@@ -19,7 +19,7 @@ enum FilePickerType {
   any,
 }
 
-@RoutePage<FileSystemFile?>()
+@RoutePage()
 class FilePickerScreen extends HookConsumerWidget {
   const FilePickerScreen({
     required this.title,

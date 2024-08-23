@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Cleaned up code for all mappers
+- Upgraded all dependencies
 
 ## [0.4.0] - 2024-08-18
 
