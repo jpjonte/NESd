@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Cleaned up code for all mappers
 - Upgraded all dependencies
 
+### Removed
+
+- Removed event time and events per second from the debug overlay
+
 ## [0.4.0] - 2024-08-18
 
 ### Added

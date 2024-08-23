@@ -1,46 +1,100 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/nesd_theme.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class DebugOverlay extends HookConsumerWidget {
+part 'debug_overlay.freezed.dart';
+part 'debug_overlay.g.dart';
+
+@freezed
+class DebugOverlayState with _$DebugOverlayState {
+  const factory DebugOverlayState({
+    @Default(0) double frameTime,
+    @Default(0) double fps,
+    @Default(0) double sleepBudget,
+  }) = _DebugOverlayState;
+}
+
+@riverpod
+class DebugOverlayNotifier extends _$DebugOverlayNotifier {
+  @override
+  DebugOverlayState build() {
+    return const DebugOverlayState();
+  }
+
+  DebugOverlayState get overlayState => state;
+
+  set overlayState(DebugOverlayState state) {
+    this.state = state;
+  }
+}
+
+@riverpod
+DebugOverlayController debugOverlayController(DebugOverlayControllerRef ref) {
+  final controller = DebugOverlayController(
+    eventBus: ref.watch(eventBusProvider),
+    notifier: ref.watch(debugOverlayNotifierProvider.notifier),
+  );
+
+  ref.onDispose(controller.dispose);
+
+  return controller;
+}
+
+class DebugOverlayController {
+  DebugOverlayController({
+    required this.eventBus,
+    required this.notifier,
+  }) {
+    _subscription = eventBus.stream
+        .where((event) => event is FrameNesEvent)
+        .cast<FrameNesEvent>()
+        .listen(_handleEvent);
+  }
+
+  final EventBus eventBus;
+  final DebugOverlayNotifier notifier;
+
+  late final StreamSubscription<FrameNesEvent> _subscription;
+
+  void dispose() {
+    _subscription.cancel();
+  }
+
+  void _handleEvent(FrameNesEvent event) {
+    final frameTime = event.frameTime.inMicroseconds / 1000.0;
+    final fps = 1000 / frameTime;
+    final sleepBudget = event.sleepBudget.inMicroseconds / 1000.0;
+
+    notifier.overlayState = notifier.overlayState.copyWith(
+      frameTime: frameTime,
+      fps: fps,
+      sleepBudget: sleepBudget,
+    );
+  }
+}
+
+class DebugOverlay extends ConsumerWidget {
   const DebugOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final eventBus = ref.watch(eventBusProvider);
+    final state = ref.watch(debugOverlayNotifierProvider);
 
-    final lastEvent = useRef(DateTime.now());
+    ref.watch(debugOverlayControllerProvider);
 
-    final snapshot = useStream(
-      eventBus.stream
-          .where((event) => event is FrameNesEvent)
-          .cast<FrameNesEvent>(),
-    );
-
-    if (snapshot.hasError) {
-      return Center(child: Text('Error: ${snapshot.error}'));
-    }
-
-    final event = snapshot.data;
-
-    if (event == null) {
-      return const SizedBox();
-    }
-
-    final frameTime = event.frameTime.inMicroseconds / 1000.0;
-    final fps = 1000 / frameTime;
-    final sleepBudget = event.sleepBudget.inMicroseconds / 1000.0;
-    final eventTime =
-        DateTime.now().difference(lastEvent.value).inMicroseconds / 1000;
-    final eps = 1000 / eventTime;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      lastEvent.value = DateTime.now();
-    });
+    final color = switch (state.fps) {
+      < 30 => nesdRed,
+      < 45 => Colors.orange,
+      < 60 => Colors.yellow,
+      _ => null,
+    };
 
     return Align(
       alignment: Alignment.topRight,
@@ -52,32 +106,20 @@ class DebugOverlay extends HookConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              KeyValue('Event Time', eventTime.toStringAsFixed(3)),
-              KeyValue('Frame Time', frameTime.toStringAsFixed(3)),
               KeyValue(
-                'FPS',
-                fps.toStringAsFixed(1),
-                color: switch (fps) {
-                  < 30 => nesdRed,
-                  < 45 => Colors.orange,
-                  < 60 => Colors.yellow,
-                  _ => null,
-                },
+                'Frame Time',
+                state.frameTime.toStringAsFixed(3),
+                color: color,
               ),
               KeyValue(
-                'Events per second',
-                eps.toStringAsFixed(1),
-                color: switch (eps) {
-                  < 30 => nesdRed,
-                  < 45 => Colors.orange,
-                  < 60 => Colors.yellow,
-                  _ => null,
-                },
+                'FPS',
+                state.fps.toStringAsFixed(1),
+                color: color,
               ),
               KeyValue(
                 'Sleep Budget',
-                sleepBudget.toStringAsFixed(3),
-                color: switch (sleepBudget) {
+                state.sleepBudget.toStringAsFixed(3),
+                color: switch (state.sleepBudget) {
                   < -16 => nesdRed,
                   < 0 => Colors.orange,
                   _ => null,
