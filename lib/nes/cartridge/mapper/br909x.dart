@@ -7,6 +7,12 @@ class BR909x extends Mapper {
   int prgBank = 0;
 
   @override
+  int prgBankSize = 0x4000;
+
+  @override
+  int chrBankSize = 0x2000;
+
+  @override
   String name = 'BR909x';
 
   @override
@@ -15,26 +21,26 @@ class BR909x extends Mapper {
   @override
   set state(covariant SinglePrgBankState state) {
     prgBank = state.prgBank;
+
+    _updatePrgPages();
   }
 
   @override
   void reset() {
     prgBank = 0;
+
+    _updatePrgPages();
   }
 
   @override
   void writePrg(int address, int value) {
     prgBank = value & 0x0f;
+
+    _updatePrgPages();
   }
 
-  @override
-  int prgAddress(int address) {
-    return switch (address) {
-          >= 0x8000 && <= 0xbfff => prgBank * 0x4000 | address & 0x3fff,
-          >= 0xc000 && <= 0xffff =>
-            (cartridge.prgRom.length - 0x4000) | address & 0x3fff,
-          _ => 0,
-        } %
-        cartridge.prgRom.length;
+  void _updatePrgPages() {
+    setPrgPage(0, prgBank);
+    setPrgPage(1, -1);
   }
 }

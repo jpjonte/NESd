@@ -15,4 +15,18 @@ class NROM extends Mapper {
   set state(MapperState state) {
     // No-op
   }
+
+  @override
+  int prgBankSize = 0x4000;
+
+  @override
+  int chrBankSize = 0x2000;
+
+  @override
+  void reset() {
+    setPrgPage(0, 0);
+    setPrgPage(1, -1);
+
+    setChrPage(0, 0);
+  }
 }

@@ -10,30 +10,37 @@ class UNROM extends Mapper {
   String name = 'UNROM';
 
   @override
+  int prgBankSize = 0x4000;
+
+  @override
+  int chrBankSize = 0x2000;
+
+  @override
   SinglePrgBankState get state => SinglePrgBankState(id: 2, prgBank: prgBank);
 
   @override
   set state(covariant SinglePrgBankState state) {
     prgBank = state.prgBank;
+
+    _updatePrgPages();
   }
 
   @override
   void reset() {
     prgBank = 0;
-  }
 
-  @override
-  int readPrgRom(int address) {
-    if (address < 0xc000) {
-      return cartridge.prgRom[((prgBank & 0xf) << 14) | (address & 0x3fff)];
-    }
-
-    return cartridge
-        .prgRom[(cartridge.prgRomSize - 0x4000) | (address & 0x3fff)];
+    _updatePrgPages();
   }
 
   @override
   void writePrg(int address, int value) {
     prgBank = value & 0x0f;
+
+    _updatePrgPages();
+  }
+
+  void _updatePrgPages() {
+    setPrgPage(0, prgBank);
+    setPrgPage(1, -1);
   }
 }

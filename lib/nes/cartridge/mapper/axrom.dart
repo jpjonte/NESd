@@ -1,4 +1,5 @@
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 
@@ -10,6 +11,12 @@ class AxROM extends Mapper {
   int vramBank = 0;
 
   @override
+  int prgBankSize = 0x8000;
+
+  @override
+  int chrBankSize = 0x2000;
+
+  @override
   AXROMState get state => AXROMState(
         prgBank: prgBank,
         vramBank: vramBank,
@@ -19,6 +26,8 @@ class AxROM extends Mapper {
   set state(covariant AXROMState state) {
     prgBank = state.prgBank;
     vramBank = state.vramBank;
+
+    _updateState();
   }
 
   @override
@@ -28,21 +37,32 @@ class AxROM extends Mapper {
   void reset() {
     prgBank = 0;
     vramBank = 0;
+
+    _updateState();
   }
 
   @override
   void writePrg(int address, int value) {
     prgBank = value & 0x07;
     vramBank = value.bit(4);
+
+    _updateState();
   }
 
-  @override
-  int nametableAddress(int address) {
-    return vramBank << 10 | address & 0x3ff;
+  void _updateState() {
+    _updatePrgPages();
+    _updateMirroring();
   }
 
-  @override
-  int prgAddress(int address) {
-    return prgBank << 15 | address & 0x7fff;
+  void _updatePrgPages() {
+    setPrgPage(0, prgBank);
+  }
+
+  void _updateMirroring() {
+    if (vramBank == 0) {
+      nametableLayout = NametableLayout.singleLower;
+    } else {
+      nametableLayout = NametableLayout.singleUpper;
+    }
   }
 }

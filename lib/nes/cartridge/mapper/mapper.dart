@@ -48,6 +48,20 @@ abstract class Mapper {
 
   String get name;
 
+  int get prgBankSize => 0x4000;
+
+  late final List<int> _prgBankToPrgPage = List.filled(_totalPrgBanks, 0);
+
+  late final int _totalPrgBanks = 0x8000 ~/ prgBankSize;
+  late final int _totalPrgPages = cartridge.prgRomSize ~/ prgBankSize;
+
+  int get chrBankSize => 0x2000;
+
+  late final List<int> _chrBankToChrPage = List.filled(_totalChrBanks, 0);
+
+  late final int _totalChrBanks = 0x2000 ~/ chrBankSize;
+  late final int _totalChrPages = cartridge.chrRomSize ~/ chrBankSize;
+
   void reset() {}
 
   int read(int address, {bool disableSideEffects = false}) {
@@ -89,7 +103,12 @@ abstract class Mapper {
   int readPrgRom(int address) => cartridge.prgRom[prgAddress(address)];
 
   int chrAddress(int address) {
-    return address % cartridge.chr.length;
+    final bank = _chrBankForAddress(address);
+    final page = _chrPageForBank(bank);
+
+    final mappedAddress = (page * chrBankSize) | (address & (chrBankSize - 1));
+
+    return mappedAddress % cartridge.chr.length;
   }
 
   int nametableAddress(int address) {
@@ -103,7 +122,13 @@ abstract class Mapper {
   }
 
   int prgAddress(int address) {
-    return address % cartridge.prgRomSize;
+    final bank = _prgBankForAddress(address);
+    final page = _prgPageForBank(bank);
+
+    final mappedAddress =
+        (page * prgBankSize) | ((address - 0x8000) & (prgBankSize - 1));
+
+    return mappedAddress % cartridge.prgRom.length;
   }
 
   void write(Bus bus, int address, int value) {
@@ -154,4 +179,28 @@ abstract class Mapper {
   void writePrg(int address, int value) {}
 
   void updatePpuAddress(int address) {}
+
+  void setPrgPage(int bank, int page) {
+    _prgBankToPrgPage[bank] = page % _totalPrgPages;
+  }
+
+  void setChrPage(int bank, int page) {
+    _chrBankToChrPage[bank] = page % _totalChrPages;
+  }
+
+  int _prgPageForBank(int bank) {
+    return _prgBankToPrgPage[bank % _totalPrgBanks];
+  }
+
+  int _prgBankForAddress(int address) {
+    return (address - 0x8000) ~/ prgBankSize;
+  }
+
+  int _chrBankForAddress(int address) {
+    return address ~/ chrBankSize;
+  }
+
+  int _chrPageForBank(int bank) {
+    return _chrBankToChrPage[bank % _totalChrBanks];
+  }
 }

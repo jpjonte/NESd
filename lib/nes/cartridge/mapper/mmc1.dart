@@ -9,41 +9,45 @@ class MMC1 extends Mapper {
   @override
   String name = 'MMC1';
 
-  int shift = 0x10;
+  @override
+  int prgBankSize = 0x4000;
 
-  int control = 0x0c;
+  @override
+  int chrBankSize = 0x1000;
 
-  int get controlMirroring => control & 0x3;
-  int get controlPrgMode => (control >> 2) & 0x3;
-  int get controlChrMode => control.bit(4);
+  int _shift = 0x10;
 
-  int chrBank0 = 0;
+  int _control = 0x0c;
 
-  int chrBank1 = 1;
+  int get _controlMirroring => _control & 0x3;
+  int get _controlPrgMode => (_control >> 2) & 0x3;
+  int get _controlChrMode => _control.bit(4);
 
-  int prgBank = 0;
+  int _chrBank0 = 0;
+  int _chrBank1 = 1;
 
-  int get prgBankValue => prgBank & 0xf;
-  int get prgBankRam => (prgBank >> 4) & 0x1;
+  int _prgBank = 0;
+
+  int get _prgBankValue => _prgBank & 0xf;
 
   @override
   MMC1State get state => MMC1State(
-        shift: shift,
-        control: control,
-        chrBank0: chrBank0,
-        chrBank1: chrBank1,
-        prgBank: prgBank,
+        shift: _shift,
+        control: _control,
+        chrBank0: _chrBank0,
+        chrBank1: _chrBank1,
+        prgBank: _prgBank,
       );
 
   @override
   set state(covariant MMC1State state) {
-    shift = state.shift;
-    control = state.control;
-    chrBank0 = state.chrBank0;
-    chrBank1 = state.chrBank1;
-    prgBank = state.prgBank;
+    _shift = state.shift;
+    _control = state.control;
+    _chrBank0 = state.chrBank0;
+    _chrBank1 = state.chrBank1;
+    _prgBank = state.prgBank;
 
-    _updateMirroring();
+    _updateState();
   }
 
   @override
@@ -56,92 +60,89 @@ class MMC1 extends Mapper {
       NametableLayout.singleLower => 0,
     };
 
-    shift = 0x10;
-    control = 0x0c | mirroring;
-    chrBank0 = 0;
-    chrBank1 = 1;
-    prgBank = 0;
+    _shift = 0x10;
+    _control = 0x0c | mirroring;
+    _chrBank0 = 0;
+    _chrBank1 = 1;
+    _prgBank = 0;
 
-    _updateMirroring();
+    _updateState();
   }
 
   @override
   void writePrg(int address, int value) {
     // TODO ignore consecutive cycle writes
     if (value.bit(7) == 1) {
-      shift = 0x10;
-      control = control | 0xc;
+      _shift = 0x10;
+      _control = _control | 0xc;
 
-      _updateMirroring();
+      _updateState();
 
       return;
     }
 
-    if (shift.bit(0) == 1) {
+    if (_shift.bit(0) == 1) {
       final register = (address >> 13) & 0x3;
-      final registerValue = value.bit(0) << 4 | ((shift >> 1) & 0xf);
+      final registerValue = value.bit(0) << 4 | ((_shift >> 1) & 0xf);
 
-      shift = 0x10;
+      _shift = 0x10;
 
       switch (register) {
         case 0:
-          control = registerValue;
-          _updateMirroring();
+          _control = registerValue;
+          _updateState();
         case 1:
-          chrBank0 = registerValue;
+          _chrBank0 = registerValue;
+          _updateChrPages();
         case 2:
-          chrBank1 = registerValue;
+          _chrBank1 = registerValue;
+          _updateChrPages();
         case 3:
-          prgBank = registerValue;
+          _prgBank = registerValue;
+          _updatePrgPages();
       }
 
       return;
     }
 
-    shift >>= 1;
-    shift = shift.setBit(4, value.bit(0));
+    _shift >>= 1;
+    _shift = _shift.setBit(4, value.bit(0));
   }
 
-  @override
-  int chrAddress(int address) {
-    return switch (controlChrMode) {
-          0 => ((chrBank0 & 0x1e) << 12) | (address & 0x1fff),
-          1 => switch (address.bit(12)) {
-              0 => (chrBank0 << 12) | (address & 0xfff),
-              1 => (chrBank1 << 12) | (address & 0xfff),
-              _ => 0,
-            },
-          _ => 0,
-        } %
-        cartridge.chr.length;
+  void _updateState() {
+    _updatePrgPages();
+    _updateChrPages();
+    _updateMirroring();
   }
 
-  @override
-  int prgAddress(int address) {
-    return switch (controlPrgMode) {
-          // switchable 32k bank
-          0 || 1 => ((prgBankValue & 0xe) << 14) | (address & 0x7fff),
-          2 => switch (address.bit(14)) {
-              // fixed first bank at 0x8000
-              0 => address & 0x3fff,
-              // switchable 16k bank at 0xc000
-              1 => ((prgBankValue & 0xf) << 14) | (address & 0x3fff),
-              _ => 0,
-            },
-          3 => switch (address.bit(14)) {
-              // switchable 16k bank at 0x9000
-              0 => ((prgBankValue & 0xf) << 14) | (address & 0x3fff),
-              // fixed last bank at 0xc000
-              1 => (cartridge.prgRomSize - 0x4000) | (address & 0x3fff),
-              _ => 0,
-            },
-          _ => 0,
-        } %
-        cartridge.prgRomSize;
+  void _updatePrgPages() {
+    switch (_controlPrgMode) {
+      case 0: // switchable 32k bank
+      case 1:
+        setPrgPage(0, _prgBankValue & 0xe);
+        setPrgPage(1, _prgBankValue | 0x1);
+      case 2:
+        setPrgPage(0, 0); // fixed first bank at 0x8000
+        setPrgPage(1, _prgBankValue & 0xf); // switchable 16k bank at 0xc000
+      case 3:
+        setPrgPage(0, _prgBankValue & 0xf); // switchable 16k bank at 0x9000
+        setPrgPage(1, -1); // fixed last bank at 0xc000
+    }
+  }
+
+  void _updateChrPages() {
+    switch (_controlChrMode) {
+      case 0:
+        setChrPage(0, _chrBank0 & 0x1e);
+        setChrPage(1, _chrBank0 | 1);
+      case 1:
+        setChrPage(0, _chrBank0);
+        setChrPage(1, _chrBank1);
+    }
   }
 
   void _updateMirroring() {
-    nametableLayout = switch (controlMirroring) {
+    nametableLayout = switch (_controlMirroring) {
       0 => NametableLayout.singleLower,
       1 => NametableLayout.singleUpper,
       2 => NametableLayout.horizontal,
