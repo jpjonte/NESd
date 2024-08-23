@@ -181,8 +181,8 @@ class Cartridge {
     mapper.reset();
   }
 
-  int read(Bus bus, int address, {bool debug = false}) {
-    return mapper.read(address, debug: debug);
+  int read(Bus bus, int address, {bool disableSideEffects = false}) {
+    return mapper.read(address, disableSideEffects: disableSideEffects);
   }
 
   void write(Bus bus, int address, int value) {

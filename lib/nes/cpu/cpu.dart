@@ -28,11 +28,15 @@ enum IrqSource {
 }
 
 class CPU {
-  CPU({required this.eventBus, required this.bus, this.debug = false});
+  CPU({
+    required this.eventBus,
+    required this.bus,
+    this.disableSideEffects = false,
+  });
 
   final EventBus eventBus;
   final Bus bus;
-  final bool debug;
+  final bool disableSideEffects;
 
   bool executionLogEnabled = false;
 
@@ -136,12 +140,13 @@ class CPU {
     ram.setAll(0, state.ram);
   }
 
-  int read(int address) => bus.cpuRead(address, debug: debug);
+  int read(int address) =>
+      bus.cpuRead(address, disableSideEffects: disableSideEffects);
 
   int read16(int address, {bool wrap = false}) => bus.cpuRead16(
         address,
         wrap: wrap,
-        debug: debug,
+        disableSideEffects: disableSideEffects,
       );
 
   void write(int address, int value) => bus.cpuWrite(address, value);

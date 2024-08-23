@@ -48,7 +48,7 @@ class Disassembler {
       ..ppu = cpu.bus.ppu
       ..apu = cpu.bus.apu;
 
-    debugCpu = CPU(eventBus: eventBus, bus: bus, debug: true)
+    debugCpu = CPU(eventBus: eventBus, bus: bus, disableSideEffects: true)
       ..state = cpu.state;
 
     bus.cpu = debugCpu;

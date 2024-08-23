@@ -50,7 +50,7 @@ abstract class Mapper {
 
   void reset() {}
 
-  int read(int address, {bool debug = false}) {
+  int read(int address, {bool disableSideEffects = false}) {
     if (address < 0x2000) {
       return readChr(address);
     }

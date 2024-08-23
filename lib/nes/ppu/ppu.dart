@@ -350,11 +350,11 @@ class PPU {
   void _updateBusAddress(int address) =>
       bus.cartridge.mapper.updatePpuAddress(address);
 
-  int readRegister(int address, {bool debug = false}) {
+  int readRegister(int address, {bool disableSideEffects = false}) {
     return switch (address) {
-      0x2002 => _readPPUSTATUS(debug: debug),
+      0x2002 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
       0x2004 => _readOAMDATA(),
-      0x2007 => _readPPUDATA(debug: debug),
+      0x2007 => _readPPUDATA(disableSideEffects: disableSideEffects),
       _ => 0,
     };
   }
@@ -461,10 +461,10 @@ class PPU {
     }
   }
 
-  int _readPPUSTATUS({bool debug = false}) {
+  int _readPPUSTATUS({bool disableSideEffects = false}) {
     final value = PPUSTATUS;
 
-    if (!debug) {
+    if (!disableSideEffects) {
       PPUSTATUS_V = 0;
       w = 0;
 
@@ -478,11 +478,11 @@ class PPU {
     return oam[OAMADDR];
   }
 
-  int _readPPUDATA({bool debug = false}) {
+  int _readPPUDATA({bool disableSideEffects = false}) {
     // return buffer from last read
     var value = PPUDATA;
 
-    if (!debug) {
+    if (!disableSideEffects) {
       PPUDATA = read(v);
     }
 
@@ -491,7 +491,7 @@ class PPU {
       value = PPUDATA;
     }
 
-    if (!debug) {
+    if (!disableSideEffects) {
       v += PPUCTRL_I == 0 ? 1 : 32;
     }
 

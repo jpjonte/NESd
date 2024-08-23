@@ -38,10 +38,10 @@ class FrameCounter {
     interruptInhibit = false;
   }
 
-  int getStatus({bool debug = false}) {
+  int getStatus({bool disableSideEffects = false}) {
     final value = interrupt ? 1 : 0;
 
-    if (!debug) {
+    if (!disableSideEffects) {
       // TODO
       // If an interrupt flag was set at the same moment of the read,
       // it will read back as 1 but it will not be cleared.

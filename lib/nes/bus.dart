@@ -33,7 +33,7 @@ class Bus {
   final _controllerStatus = [0, 0];
   final _controllerShift = [0, 0];
 
-  int cpuRead(int address, {bool debug = false}) {
+  int cpuRead(int address, {bool disableSideEffects = false}) {
     if (address == addressA) {
       return cpu.A;
     }
@@ -45,35 +45,43 @@ class Bus {
     }
 
     if (address < 0x4000) {
-      return ppu.readRegister(0x2000 | (address & 0x07), debug: debug);
+      return ppu.readRegister(
+        0x2000 | (address & 0x07),
+        disableSideEffects: disableSideEffects,
+      );
     }
 
     if (address == 0x4015) {
-      return apu.readRegister(address, debug: debug);
+      return apu.readRegister(address, disableSideEffects: disableSideEffects);
     }
 
     if (address == 0x4016) {
-      return _readController(0, debug: debug);
+      return _readController(0, disableSideEffects: disableSideEffects);
     }
 
     if (address == 0x4017) {
-      return _readController(1, debug: debug);
+      return _readController(1, disableSideEffects: disableSideEffects);
     }
 
     if (address < 0x4020) {
       return 0;
     }
 
-    return cartridge.read(this, address, debug: debug);
+    return cartridge.read(this, address,
+        disableSideEffects: disableSideEffects);
   }
 
-  int cpuRead16(int address, {bool wrap = false, bool debug = false}) {
-    final low = cpuRead(address, debug: debug);
+  int cpuRead16(
+    int address, {
+    bool wrap = false,
+    bool disableSideEffects = false,
+  }) {
+    final low = cpuRead(address, disableSideEffects: disableSideEffects);
 
     final highAddress =
         wrap ? (address & 0xff00 | ((address + 1) & 0xff)) : address + 1;
 
-    final high = cpuRead(highAddress, debug: debug);
+    final high = cpuRead(highAddress, disableSideEffects: disableSideEffects);
 
     return low | (high << 8);
   }
@@ -182,12 +190,12 @@ class Bus {
     cpu.triggerDmcDma();
   }
 
-  int _readController(int controller, {bool debug = false}) {
+  int _readController(int controller, {bool disableSideEffects = false}) {
     final value = _controllerShift[controller] < 8
         ? (_controllerStatus[controller] >> _controllerShift[controller]) & 1
         : 1;
 
-    if (!_inputStrobe && !debug) {
+    if (!_inputStrobe && !disableSideEffects) {
       _controllerShift[controller]++;
     }
 
