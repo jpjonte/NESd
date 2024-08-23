@@ -78,7 +78,7 @@ class MainScreen extends HookConsumerWidget {
                           if (settings.showTiles) const TileDebugWidget(),
                           if (cartridge != null && settings.showCartridgeInfo)
                             CartridgeInfoWidget(cartridge: cartridge),
-                          const DebuggerWidget(),
+                          if (settings.showDebugger) const DebuggerWidget(),
                         ],
                       ),
                     ),
