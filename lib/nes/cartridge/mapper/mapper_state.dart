@@ -3,6 +3,7 @@ import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mmc2_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/single_prg_bank_state.dart';
@@ -18,6 +19,7 @@ abstract class MapperState {
       3 => CNROMState.fromByteData(data, offset),
       4 => MMC3State.fromByteData(data, offset),
       7 => AXROMState.fromByteData(data, offset),
+      9 => MMC2State.fromByteData(data, offset),
       71 => SinglePrgBankState.fromByteData(71, data, offset),
       _ => throw UnsupportedMapper(id),
     };

@@ -33,6 +33,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - CNROM (3)
 - MMC3 (4)
 - AxROM (7)
+- MMC2 (9)
 - BR909x (71)
 
 ## Screenshots
@@ -47,4 +48,5 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 <img src="docs/smb.png" width="400" />
 <img src="docs/zelda.png" width="400" />
 <img src="docs/kirby.png" width="400" />
+<img src="docs/punch_out.png" width="400" />
 <img src="docs/debugging.png" width="800" />
