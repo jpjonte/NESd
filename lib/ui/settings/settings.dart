@@ -279,6 +279,10 @@ class SettingsController extends _$SettingsController {
     );
   }
 
+  void resetBindings() {
+    _update(state.copyWith(bindings: defaultBindings));
+  }
+
   List<TouchInputConfig> get narrowTouchInputConfig =>
       state.narrowTouchInputConfig;
 

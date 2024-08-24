@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Added a setting to toggle the debugger
 - Added support for the MMC2 mapper
+- Added support for the greyscale and color emphasis bits in the PPU
+- Added a button to reset control bindings to default
 
 ### Changed
 

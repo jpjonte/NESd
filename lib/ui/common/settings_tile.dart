@@ -95,3 +95,28 @@ class SwitchSettingsTile extends StatelessWidget {
     );
   }
 }
+
+class IconButtonSettingsTile extends StatelessWidget {
+  const IconButtonSettingsTile({
+    required this.title,
+    required this.icon,
+    required this.onPressed,
+    super.key,
+  });
+
+  final Widget title;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsTile(
+      title: title,
+      onTap: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: Icon(icon, size: 32),
+      ),
+    );
+  }
+}

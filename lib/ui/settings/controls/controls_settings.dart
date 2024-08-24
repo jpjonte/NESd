@@ -7,6 +7,7 @@ import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/controls/reset_bindings_button.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
@@ -24,6 +25,7 @@ class ControlsSettings extends StatelessWidget {
       child: Column(
         children: [
           const ShowTouchControlsSwitch(),
+          const ResetBindingsButton(),
           const ProfileSelectionHeader(),
           Expanded(
             child: ListView(
