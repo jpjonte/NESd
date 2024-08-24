@@ -147,18 +147,18 @@ class PPU {
   int get PPUMASK_M => PPUMASK.bit(2); // show sprites in leftmost 8 pixels
   int get PPUMASK_b => PPUMASK.bit(3); // show background
   int get PPUMASK_s => PPUMASK.bit(4); // show sprites
-  int get PPUMASK_R => PPUMASK.bit(5); // emphasize red
-  int get PPUMASK_G => PPUMASK.bit(6); // emphasize green
-  int get PPUMASK_B => PPUMASK.bit(7); // emphasize blue
+  int get PPUMASK_ER => PPUMASK.bit(5); // emphasize red
+  int get PPUMASK_EG => PPUMASK.bit(6); // emphasize green
+  int get PPUMASK_EB => PPUMASK.bit(7); // emphasize blue
 
   set PPUMASK_Gr(int value) => PPUMASK = PPUMASK.setBit(0, value);
   set PPUMASK_m(int value) => PPUMASK = PPUMASK.setBit(1, value);
   set PPUMASK_M(int value) => PPUMASK = PPUMASK.setBit(2, value);
   set PPUMASK_b(int value) => PPUMASK = PPUMASK.setBit(3, value);
   set PPUMASK_s(int value) => PPUMASK = PPUMASK.setBit(4, value);
-  set PPUMASK_R(int value) => PPUMASK = PPUMASK.setBit(5, value);
-  set PPUMASK_G(int value) => PPUMASK = PPUMASK.setBit(6, value);
-  set PPUMASK_B(int value) => PPUMASK = PPUMASK.setBit(7, value);
+  set PPUMASK_ER(int value) => PPUMASK = PPUMASK.setBit(5, value);
+  set PPUMASK_EG(int value) => PPUMASK = PPUMASK.setBit(6, value);
+  set PPUMASK_EB(int value) => PPUMASK = PPUMASK.setBit(7, value);
 
   int get PPUSTATUS_O => PPUSTATUS.bit(5); // sprite overflow
   int get PPUSTATUS_S => PPUSTATUS.bit(6); // sprite 0 hit
@@ -606,9 +606,28 @@ class PPU {
 
     final paletteColor = read(0x3F00 | color, updateBusAddress: false);
 
-    final systemColor = systemPalette[paletteColor & 0x3f];
+    final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
-    frameBuffer.setPixel(currentX, scanline, systemColor);
+    final rgbColor = systemPalette[paletteColor & greyMask];
+
+    final emphasizedColor = _applyEmphasis(rgbColor);
+
+    frameBuffer.setPixel(currentX, scanline, emphasizedColor);
+  }
+
+  int _applyEmphasis(int color) {
+    final red = color & 0xff;
+    final green = (color >> 8) & 0xff;
+    final blue = (color >> 16) & 0xff;
+
+    // TODO implement an accurate algorithm
+    final resultRed = (PPUMASK_EG == 1 || PPUMASK_EB == 1) ? 2 * red ~/ 3 : red;
+    final resultGreen =
+        (PPUMASK_ER == 1 || PPUMASK_EB == 1) ? 2 * green ~/ 3 : green;
+    final resultBlue =
+        (PPUMASK_ER == 1 || PPUMASK_EG == 1) ? 2 * blue ~/ 3 : blue;
+
+    return (resultBlue << 16) | (resultGreen << 8) | resultRed;
   }
 
   int _getPixelColor() {
