@@ -173,8 +173,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: ci/release/extract_changelog_nightly.sh
-      - run: echo "${{ steps.env.outputs.changes }}"
+      - id: env
+        run: ci/release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -199,8 +199,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: ci/release/extract_changelog.sh
-      - run: echo "${{ steps.env.outputs.changes }}"
+      - id: env
+        run: ci/release/extract_changelog.sh
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
