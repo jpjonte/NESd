@@ -57,14 +57,14 @@ abstract class Mapper {
   late final List<int> _prgBankToPrgPage = List.filled(_totalPrgBanks, 0);
 
   late final int _totalPrgBanks = 0x8000 ~/ prgBankSize;
-  late final int _totalPrgPages = cartridge.prgRomSize ~/ prgBankSize;
+  late final int _totalPrgPages = cartridge.prgRom.length ~/ prgBankSize;
 
   int get chrBankSize => 0x2000;
 
   late final List<int> _chrBankToChrPage = List.filled(_totalChrBanks, 0);
 
   late final int _totalChrBanks = 0x2000 ~/ chrBankSize;
-  late final int _totalChrPages = cartridge.chrRomSize ~/ chrBankSize;
+  late final int _totalChrPages = cartridge.chr.length ~/ chrBankSize;
 
   void reset() {}
 

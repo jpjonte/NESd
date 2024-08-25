@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Cleaned up code for all mappers
 - Upgraded all dependencies
+- NESd now remembers breakpoints set for each ROM
+- Breakpoints can now be disabled and enabled by long-pressing the line in the disassembly or ticking the checkbox in the breakpoint list
+- Breakpoints can be set to be removed after being hit
 
 ### Removed
 

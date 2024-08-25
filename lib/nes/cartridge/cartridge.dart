@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:nesd/exception/invalid_rom_header.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
@@ -30,6 +31,7 @@ class Cartridge {
     required this.romFormat,
     required this.prgRamSize,
     required this.tvSystem,
+    required this.hash,
   }) {
     mapper.cartridge = this;
   }
@@ -55,6 +57,7 @@ class Cartridge {
       romFormat: _parseRomFormat(rom),
       prgRamSize: _parsePrgRamSize(rom),
       tvSystem: _parseTvSystem(rom),
+      hash: sha1.convert(rom).toString(),
     );
   }
 
@@ -73,6 +76,7 @@ class Cartridge {
   final RomFormat romFormat;
   final int prgRamSize;
   final TvSystem tvSystem;
+  final String hash;
 
   final Uint8List sram = Uint8List(0x2000);
 

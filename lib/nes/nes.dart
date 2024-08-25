@@ -9,23 +9,12 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
+import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/util/wait.dart';
-
-class Breakpoint {
-  const Breakpoint(
-    this.address, {
-    this.hidden = false,
-    this.removeOnHit = false,
-  });
-
-  final int address;
-  final bool hidden;
-  final bool removeOnHit;
-}
 
 class NES {
   NES({required Cartridge cartridge, required this.eventBus})
@@ -79,6 +68,12 @@ class NES {
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
+  }
+
+  void setBreakpoints(List<Breakpoint> breakpoints) {
+    _breakpoints
+      ..clear()
+      ..addAll(breakpoints);
   }
 
   void addBreakpoint(Breakpoint breakpoint) {
@@ -275,14 +270,19 @@ class NES {
     }
 
     if (_breakpoints.isNotEmpty) {
-      final breakpoint =
-          _breakpoints.where((b) => b.address == cpu.PC).firstOrNull;
+      final breakpoint = _breakpoints
+          .where((b) => b.enabled && b.address == cpu.PC)
+          .firstOrNull;
 
       if (breakpoint != null) {
         pause();
 
         if (breakpoint.removeOnHit) {
           _breakpoints.remove(breakpoint);
+        }
+
+        if (breakpoint.disableOnHit) {
+          breakpoint.enabled = false;
         }
       }
     }

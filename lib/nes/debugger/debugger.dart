@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger.g.dart';
@@ -27,6 +30,7 @@ Debugger debugger(DebuggerRef ref) {
     nes: nes,
     notifier: notifier,
     disassembler: disassembler,
+    settingsController: ref.watch(settingsControllerProvider.notifier),
   );
 
   ref
@@ -42,14 +46,27 @@ class Debugger {
     required this.nes,
     required this.disassembler,
     required this.notifier,
+    required this.settingsController,
   }) {
     _subscription = eventBus.stream.listen(_handleEvent);
+
+    final breakpoints =
+        settingsController.breakpoints[nes.bus.cartridge.hash] ?? [];
+
+    nes.setBreakpoints(breakpoints);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifier.debuggerState = DebuggerState(
+        breakpoints: breakpoints,
+      );
+    });
   }
 
   final EventBus eventBus;
   final NES nes;
   final Disassembler disassembler;
   final DebuggerNotifier notifier;
+  final SettingsController settingsController;
 
   late final StreamSubscription<NesEvent> _subscription;
 
@@ -63,6 +80,10 @@ class Debugger {
     _updateBreakpoints();
   }
 
+  void updateBreakpoint(Breakpoint breakpoint) {
+    _updateBreakpoints();
+  }
+
   void removeBreakpoint(Breakpoint breakpoint) {
     nes.removeBreakpoint(breakpoint.address);
 
@@ -70,15 +91,31 @@ class Debugger {
   }
 
   bool hasBreakpoint(int address) {
-    return nes.breakpoints.any((e) => e.address == address && !e.hidden);
+    return nes.breakpoints.any(
+      (breakpoint) => breakpoint.address == address && !breakpoint.hidden,
+    );
   }
 
-  void toggleBreakpoint(int address) {
+  void toggleBreakpointExists(int address) {
     if (hasBreakpoint(address)) {
       nes.removeBreakpoint(address);
     } else {
       nes.addBreakpoint(Breakpoint(address));
     }
+
+    _updateBreakpoints();
+  }
+
+  void toggleBreakpointEnabled(int address) {
+    if (!hasBreakpoint(address)) {
+      return;
+    }
+
+    final breakpoint = nes.breakpoints.firstWhere(
+      (b) => b.address == address && !b.hidden,
+    );
+
+    breakpoint.enabled = !breakpoint.enabled;
 
     _updateBreakpoints();
   }
@@ -126,6 +163,8 @@ class Debugger {
     notifier.debuggerState = notifier.debuggerState.copyWith(
       breakpoints: nes.breakpoints,
     );
+
+    settingsController.setBreakpoints(nes.bus.cartridge.hash, nes.breakpoints);
   }
 }
 
@@ -155,7 +194,7 @@ class DummyDebugger implements Debugger {
   void removeBreakpoint(Breakpoint breakpoint) {}
 
   @override
-  void toggleBreakpoint(int address) {}
+  void toggleBreakpointExists(int address) {}
 
   @override
   void _handleEvent(NesEvent event) {}
@@ -170,4 +209,13 @@ class DummyDebugger implements Debugger {
 
   @override
   EventBus get eventBus => throw UnimplementedError();
+
+  @override
+  SettingsController get settingsController => throw UnimplementedError();
+
+  @override
+  void toggleBreakpointEnabled(int address) {}
+
+  @override
+  void updateBreakpoint(Breakpoint breakpoint) {}
 }

@@ -42,6 +42,8 @@ mixin _$Settings {
   @JsonKey(fromJson: wideTouchInputConfigsFromJson)
   List<TouchInputConfig> get wideTouchInputConfig =>
       throw _privateConstructorUsedError;
+  Map<String, List<Breakpoint>> get breakpoints =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this Settings to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -77,7 +79,8 @@ abstract class $SettingsCopyWith<$Res> {
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       List<TouchInputConfig> narrowTouchInputConfig,
       @JsonKey(fromJson: wideTouchInputConfigsFromJson)
-      List<TouchInputConfig> wideTouchInputConfig});
+      List<TouchInputConfig> wideTouchInputConfig,
+      Map<String, List<Breakpoint>> breakpoints});
 }
 
 /// @nodoc
@@ -111,6 +114,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? showTouchControls = null,
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
+    Object? breakpoints = null,
   }) {
     return _then(_value.copyWith(
       volume: null == volume
@@ -177,6 +181,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.wideTouchInputConfig
           : wideTouchInputConfig // ignore: cast_nullable_to_non_nullable
               as List<TouchInputConfig>,
+      breakpoints: null == breakpoints
+          ? _value.breakpoints
+          : breakpoints // ignore: cast_nullable_to_non_nullable
+              as Map<String, List<Breakpoint>>,
     ) as $Val);
   }
 }
@@ -208,7 +216,8 @@ abstract class _$$SettingsImplCopyWith<$Res>
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       List<TouchInputConfig> narrowTouchInputConfig,
       @JsonKey(fromJson: wideTouchInputConfigsFromJson)
-      List<TouchInputConfig> wideTouchInputConfig});
+      List<TouchInputConfig> wideTouchInputConfig,
+      Map<String, List<Breakpoint>> breakpoints});
 }
 
 /// @nodoc
@@ -240,6 +249,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? showTouchControls = null,
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
+    Object? breakpoints = null,
   }) {
     return _then(_$SettingsImpl(
       volume: null == volume
@@ -306,6 +316,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value._wideTouchInputConfig
           : wideTouchInputConfig // ignore: cast_nullable_to_non_nullable
               as List<TouchInputConfig>,
+      breakpoints: null == breakpoints
+          ? _value._breakpoints
+          : breakpoints // ignore: cast_nullable_to_non_nullable
+              as Map<String, List<Breakpoint>>,
     ));
   }
 }
@@ -332,11 +346,13 @@ class _$SettingsImpl implements _Settings {
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       final List<TouchInputConfig> narrowTouchInputConfig = const [],
       @JsonKey(fromJson: wideTouchInputConfigsFromJson)
-      final List<TouchInputConfig> wideTouchInputConfig = const []})
+      final List<TouchInputConfig> wideTouchInputConfig = const [],
+      final Map<String, List<Breakpoint>> breakpoints = const {}})
       : _bindings = bindings,
         _recentRomPaths = recentRomPaths,
         _narrowTouchInputConfig = narrowTouchInputConfig,
-        _wideTouchInputConfig = wideTouchInputConfig;
+        _wideTouchInputConfig = wideTouchInputConfig,
+        _breakpoints = breakpoints;
 
   factory _$SettingsImpl.fromJson(Map<String, dynamic> json) =>
       _$$SettingsImplFromJson(json);
@@ -415,9 +431,18 @@ class _$SettingsImpl implements _Settings {
     return EqualUnmodifiableListView(_wideTouchInputConfig);
   }
 
+  final Map<String, List<Breakpoint>> _breakpoints;
+  @override
+  @JsonKey()
+  Map<String, List<Breakpoint>> get breakpoints {
+    if (_breakpoints is EqualUnmodifiableMapView) return _breakpoints;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_breakpoints);
+  }
+
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
   }
 
   @override
@@ -452,7 +477,9 @@ class _$SettingsImpl implements _Settings {
             const DeepCollectionEquality().equals(
                 other._narrowTouchInputConfig, _narrowTouchInputConfig) &&
             const DeepCollectionEquality()
-                .equals(other._wideTouchInputConfig, _wideTouchInputConfig));
+                .equals(other._wideTouchInputConfig, _wideTouchInputConfig) &&
+            const DeepCollectionEquality()
+                .equals(other._breakpoints, _breakpoints));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -474,7 +501,8 @@ class _$SettingsImpl implements _Settings {
       const DeepCollectionEquality().hash(_recentRomPaths),
       showTouchControls,
       const DeepCollectionEquality().hash(_narrowTouchInputConfig),
-      const DeepCollectionEquality().hash(_wideTouchInputConfig));
+      const DeepCollectionEquality().hash(_wideTouchInputConfig),
+      const DeepCollectionEquality().hash(_breakpoints));
 
   /// Create a copy of Settings
   /// with the given fields replaced by the non-null parameter values.
@@ -512,7 +540,8 @@ abstract class _Settings implements Settings {
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       final List<TouchInputConfig> narrowTouchInputConfig,
       @JsonKey(fromJson: wideTouchInputConfigsFromJson)
-      final List<TouchInputConfig> wideTouchInputConfig}) = _$SettingsImpl;
+      final List<TouchInputConfig> wideTouchInputConfig,
+      final Map<String, List<Breakpoint>> breakpoints}) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
       _$SettingsImpl.fromJson;
@@ -552,6 +581,8 @@ abstract class _Settings implements Settings {
   @override
   @JsonKey(fromJson: wideTouchInputConfigsFromJson)
   List<TouchInputConfig> get wideTouchInputConfig;
+  @override
+  Map<String, List<Breakpoint>> get breakpoints;
 
   /// Create a copy of Settings
   /// with the given fields replaced by the non-null parameter values.
