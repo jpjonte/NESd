@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -118,6 +119,7 @@ class Settings with _$Settings {
     @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> wideTouchInputConfig,
+    @Default({}) Map<String, List<Breakpoint>> breakpoints,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -294,6 +296,23 @@ class SettingsController extends _$SettingsController {
 
   set wideTouchInputConfig(List<TouchInputConfig> wideTouchInputConfig) {
     _update(state.copyWith(wideTouchInputConfig: wideTouchInputConfig));
+  }
+
+  Map<String, List<Breakpoint>> get breakpoints => state.breakpoints;
+
+  set breakpoints(Map<String, List<Breakpoint>> breakpoints) {
+    _update(state.copyWith(breakpoints: breakpoints));
+  }
+
+  void setBreakpoints(String hash, List<Breakpoint> breakpoints) {
+    _update(
+      state.copyWith(
+        breakpoints: {
+          ...state.breakpoints,
+          hash: breakpoints,
+        },
+      ),
+    );
   }
 
   void _update(Settings settings) {

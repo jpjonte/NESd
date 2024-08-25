@@ -1,8 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
-import 'package:nesd/nes/nes.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger_state.freezed.dart';

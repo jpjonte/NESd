@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Cleaned up code for all mappers
 - Upgraded all dependencies
+- NESd now remembers breakpoints set for each ROM
 
 ### Removed
 

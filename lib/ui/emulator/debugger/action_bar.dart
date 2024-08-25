@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_material_design_icons/flutter_material_design_icons.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
-import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/debugger/address_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/breakpoint_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
