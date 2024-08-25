@@ -68,41 +68,56 @@ class BreakpointRow extends ConsumerWidget {
     return Column(
       children: [
         Row(
-      children: [
-        Checkbox(
-          value: breakpoint.enabled,
-          onChanged: (_) =>
-              debugger.toggleBreakpointEnabled(breakpoint.address),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          breakpoint.address.toHex(width: 4),
-          style: monoStyle.copyWith(
-            fontSize: 15,
-            color: breakpoint.enabled ? null : Colors.grey,
-          ),
-        ),
-        const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.gps_fixed),
-          tooltip: 'Go to address',
-          onPressed: () {
-            final pcOffset = calculateAddressScrollOffset(
-              state,
-              breakpoint.address,
-            );
+          children: [
+            Checkbox(
+              value: breakpoint.enabled,
+              onChanged: (_) =>
+                  debugger.toggleBreakpointEnabled(breakpoint.address),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              breakpoint.address.toHex(width: 4),
+              style: monoStyle.copyWith(
+                fontSize: 15,
+                color: breakpoint.enabled ? null : Colors.grey,
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.gps_fixed),
+              tooltip: 'Go to address',
+              onPressed: () {
+                final pcOffset = calculateAddressScrollOffset(
+                  state,
+                  breakpoint.address,
+                );
 
-            jumpTo(scrollController, pcOffset);
+                jumpTo(scrollController, pcOffset);
 
-            Navigator.of(context).pop();
-          },
+                Navigator.of(context).pop();
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: 'Remove breakpoint',
+              onPressed: () => debugger.removeBreakpoint(breakpoint),
+            ),
+          ],
         ),
-        IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: 'Remove breakpoint',
-          onPressed: () => debugger.removeBreakpoint(breakpoint),
-        ),
-      ],
+        Row(
+          children: [
+            const SizedBox(width: 32),
+            Checkbox(
+              value: breakpoint.disableOnHit,
+              onChanged: (_) {
+                breakpoint.disableOnHit = !breakpoint.disableOnHit;
+
+                debugger.updateBreakpoint(breakpoint);
+              },
+            ),
+            const SizedBox(width: 4),
+            const Text('Disable on hit', style: TextStyle(fontSize: 15)),
+          ],
         ),
         Row(
           children: [

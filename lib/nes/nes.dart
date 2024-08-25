@@ -280,6 +280,10 @@ class NES {
         if (breakpoint.removeOnHit) {
           _breakpoints.remove(breakpoint);
         }
+
+        if (breakpoint.disableOnHit) {
+          breakpoint.enabled = false;
+        }
       }
     }
   }
