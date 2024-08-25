@@ -270,8 +270,9 @@ class NES {
     }
 
     if (_breakpoints.isNotEmpty) {
-      final breakpoint =
-          _breakpoints.where((b) => b.address == cpu.PC).firstOrNull;
+      final breakpoint = _breakpoints
+          .where((b) => b.enabled && b.address == cpu.PC)
+          .firstOrNull;
 
       if (breakpoint != null) {
         pause();

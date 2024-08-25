@@ -92,12 +92,26 @@ class Debugger {
     );
   }
 
-  void toggleBreakpoint(int address) {
+  void toggleBreakpointExists(int address) {
     if (hasBreakpoint(address)) {
       nes.removeBreakpoint(address);
     } else {
       nes.addBreakpoint(Breakpoint(address));
     }
+
+    _updateBreakpoints();
+  }
+
+  void toggleBreakpointEnabled(int address) {
+    if (!hasBreakpoint(address)) {
+      return;
+    }
+
+    final breakpoint = nes.breakpoints.firstWhere(
+      (b) => b.address == address && !b.hidden,
+    );
+
+    breakpoint.enabled = !breakpoint.enabled;
 
     _updateBreakpoints();
   }
@@ -176,7 +190,7 @@ class DummyDebugger implements Debugger {
   void removeBreakpoint(Breakpoint breakpoint) {}
 
   @override
-  void toggleBreakpoint(int address) {}
+  void toggleBreakpointExists(int address) {}
 
   @override
   void _handleEvent(NesEvent event) {}
@@ -194,4 +208,7 @@ class DummyDebugger implements Debugger {
 
   @override
   SettingsController get settingsController => throw UnimplementedError();
+
+  @override
+  void toggleBreakpointEnabled(int address) {}
 }

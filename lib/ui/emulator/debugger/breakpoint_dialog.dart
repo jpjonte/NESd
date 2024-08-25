@@ -23,17 +23,20 @@ class BreakpointDialog extends ConsumerWidget {
 
     return AlertDialog(
       title: const Text('Breakpoints'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final breakpoint in debuggerState.breakpoints)
-            if (!breakpoint.hidden)
-              BreakpointRow(
-                breakpoint: breakpoint,
-                scrollController: scrollController,
-              ),
-          const AddBreakpointWidget(),
-        ],
+      content: SizedBox(
+        width: 300,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final breakpoint in debuggerState.breakpoints)
+              if (!breakpoint.hidden)
+                BreakpointRow(
+                  breakpoint: breakpoint,
+                  scrollController: scrollController,
+                ),
+            const AddBreakpointWidget(),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -64,6 +67,12 @@ class BreakpointRow extends ConsumerWidget {
 
     return Row(
       children: [
+        Checkbox(
+          value: breakpoint.enabled,
+          onChanged: (_) =>
+              debugger.toggleBreakpointEnabled(breakpoint.address),
+        ),
+        const SizedBox(width: 8),
         Text(
           breakpoint.address.toHex(width: 4),
           style: monoStyle.copyWith(fontSize: 15),

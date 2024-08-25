@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/extension/iterable_extension.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
@@ -32,8 +33,9 @@ class DisassemblyList extends ConsumerWidget {
           line: line,
           highlight: line.address == state.PC,
           breakpoint: state.breakpoints
-              .any((e) => e.address == line.address && !e.hidden),
-          onTap: () => debugger.toggleBreakpoint(line.address),
+              .firstWhereOrNull((b) => b.address == line.address && !b.hidden),
+          onTap: () => debugger.toggleBreakpointExists(line.address),
+          onLongPress: () => debugger.toggleBreakpointEnabled(line.address),
         );
       },
     );
@@ -44,15 +46,17 @@ class DisassemblyRow extends StatelessWidget {
   const DisassemblyRow({
     required this.line,
     this.onTap,
-    this.breakpoint = false,
+    this.onLongPress,
+    this.breakpoint,
     this.highlight = false,
     super.key,
   });
 
   final DisassemblyLine line;
   final bool highlight;
-  final bool breakpoint;
+  final Breakpoint? breakpoint;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +73,7 @@ class DisassemblyRow extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         height: debuggerRowHeight,
         decoration: BoxDecoration(
@@ -87,7 +92,7 @@ class DisassemblyRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            BreakpointDot(enabled: breakpoint),
+            BreakpointDot(breakpoint),
             const SizedBox(width: 12),
             SizedBox(
               width: 40,
@@ -120,25 +125,28 @@ class DisassemblyRow extends StatelessWidget {
 }
 
 class BreakpointDot extends StatelessWidget {
-  const BreakpointDot({
-    required this.enabled,
+  const BreakpointDot(
+    this.breakpoint, {
     super.key,
   });
 
-  final bool enabled;
+  final Breakpoint? breakpoint;
 
   @override
   Widget build(BuildContext context) {
+    final breakpoint = this.breakpoint;
+
     return SizedBox(
       width: debuggerRowHeight,
-      child: enabled
+      child: breakpoint != null
           ? Center(
               child: Container(
                 width: 10,
                 height: 10,
-                decoration: const BoxDecoration(
-                  color: nesdRed,
+                decoration: BoxDecoration(
+                  color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
                   shape: BoxShape.circle,
+                  border: Border.all(color: nesdRed),
                 ),
               ),
             )
