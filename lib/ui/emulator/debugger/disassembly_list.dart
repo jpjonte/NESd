@@ -141,12 +141,12 @@ class BreakpointDot extends StatelessWidget {
       child: breakpoint != null
           ? Center(
               child: Container(
-                width: 10,
-                height: 10,
+                width: 13,
+                height: 13,
                 decoration: BoxDecoration(
                   color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
                   shape: BoxShape.circle,
-                  border: Border.all(color: nesdRed),
+                  border: Border.all(color: nesdRed, width: 2),
                 ),
               ),
             )

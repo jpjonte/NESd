@@ -65,7 +65,9 @@ class BreakpointRow extends ConsumerWidget {
     final debugger = ref.watch(debuggerProvider);
     final state = ref.watch(debuggerNotifierProvider);
 
-    return Row(
+    return Column(
+      children: [
+        Row(
       children: [
         Checkbox(
           value: breakpoint.enabled,
@@ -75,7 +77,10 @@ class BreakpointRow extends ConsumerWidget {
         const SizedBox(width: 8),
         Text(
           breakpoint.address.toHex(width: 4),
-          style: monoStyle.copyWith(fontSize: 15),
+          style: monoStyle.copyWith(
+            fontSize: 15,
+            color: breakpoint.enabled ? null : Colors.grey,
+          ),
         ),
         const Spacer(),
         IconButton(
@@ -96,6 +101,23 @@ class BreakpointRow extends ConsumerWidget {
           icon: const Icon(Icons.close),
           tooltip: 'Remove breakpoint',
           onPressed: () => debugger.removeBreakpoint(breakpoint),
+        ),
+      ],
+        ),
+        Row(
+          children: [
+            const SizedBox(width: 32),
+            Checkbox(
+              value: breakpoint.removeOnHit,
+              onChanged: (_) {
+                breakpoint.removeOnHit = !breakpoint.removeOnHit;
+
+                debugger.updateBreakpoint(breakpoint);
+              },
+            ),
+            const SizedBox(width: 4),
+            const Text('Remove on hit', style: TextStyle(fontSize: 15)),
+          ],
         ),
       ],
     );

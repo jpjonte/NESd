@@ -80,6 +80,10 @@ class Debugger {
     _updateBreakpoints();
   }
 
+  void updateBreakpoint(Breakpoint breakpoint) {
+    _updateBreakpoints();
+  }
+
   void removeBreakpoint(Breakpoint breakpoint) {
     nes.removeBreakpoint(breakpoint.address);
 
@@ -211,4 +215,7 @@ class DummyDebugger implements Debugger {
 
   @override
   void toggleBreakpointEnabled(int address) {}
+
+  @override
+  void updateBreakpoint(Breakpoint breakpoint) {}
 }
