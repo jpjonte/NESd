@@ -35,6 +35,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - AxROM (7)
 - MMC2 (9)
 - BR909x (71)
+- Namco108 (206)
 
 ## Screenshots
 
