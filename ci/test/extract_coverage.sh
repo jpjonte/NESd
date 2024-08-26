@@ -23,7 +23,7 @@ fi
 json=$(cat <<EOF
 {
   "label": "coverage",
-  "message": "$lines_coverage %",
+  "message": "$lines_coverage%",
   "color": "$color"
 }
 EOF
