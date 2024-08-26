@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - The stack can now be viewed in the debugger by hovering over the stack pointer
+- Added support for the GxROM mapper
 
 ## [0.5.0] - 2024-08-26
 

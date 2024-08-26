@@ -2,6 +2,7 @@ import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/gxrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc2_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
@@ -21,6 +22,7 @@ abstract class MapperState {
       4 => MMC3State.fromByteData(data, offset),
       7 => AXROMState.fromByteData(data, offset),
       9 => MMC2State.fromByteData(data, offset),
+      66 => GxROMState.fromByteData(data, offset),
       71 => SinglePrgBankState.fromByteData(71, data, offset),
       206 => Namco108State.fromByteData(data, offset),
       _ => throw UnsupportedMapper(id),
