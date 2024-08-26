@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- The stack can now be viewed in the debugger by hovering over the stack pointer
+
 ## [0.5.0] - 2024-08-26
 
 ### Added
@@ -20,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Upgraded all dependencies
 - NESd now remembers breakpoints set for each ROM
 - Breakpoints can now be disabled and enabled by long-pressing the line in the disassembly or ticking the checkbox in the breakpoint list
-- Breakpoints can be set to be removed after being hit
+- Breakpoints can be set to be disabled or removed after being hit
 
 ### Removed
 

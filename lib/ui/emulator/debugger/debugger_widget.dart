@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/extension/hex_extension.dart';
 import 'package:nesd/extension/num_extension.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/emulator/debugger/action_bar.dart';
@@ -37,6 +38,8 @@ class DebuggerWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
 
+    final state = ref.watch(debuggerNotifierProvider);
+
     ref.listen(debuggerNotifierProvider, (old, state) {
       if (old?.PC == state.PC) {
         return;
@@ -70,16 +73,64 @@ class DebuggerWidget extends HookConsumerWidget {
       child: DividerTheme(
         data: Theme.of(context).dividerTheme.copyWith(color: nesdRed[700]),
         child: Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              ActionBar(scrollController: scrollController),
-              const StatusBar(),
-              Expanded(
-                child: DisassemblyList(scrollController: scrollController),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ActionBar(scrollController: scrollController),
+                  const StatusBar(),
+                  Expanded(
+                    child: DisassemblyList(scrollController: scrollController),
+                  ),
+                ],
               ),
+              if (state.showStack)
+                Positioned(
+                  left: 175,
+                  top: 100,
+                  child: StackTooltip(stack: state.stack),
+                ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class StackTooltip extends StatelessWidget {
+  const StackTooltip({
+    required this.stack,
+    super.key,
+  });
+
+  final List<int> stack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      width: 60,
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(200),
+        border: Border.all(color: Colors.white),
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+      ),
+      child: DefaultTextStyle(
+        style: monoStyle,
+        child: Column(
+          children: [
+            for (final item in stack) Text('0x${item.toHex()}'),
+            if (stack.isEmpty)
+              const Text(
+                'Empty',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+          ],
         ),
       ),
     );

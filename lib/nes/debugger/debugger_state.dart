@@ -26,6 +26,7 @@ class DebuggerState with _$DebuggerState {
     @Default(false) bool B,
     @Default(false) bool V,
     @Default(false) bool N,
+    @Default([]) List<int> stack,
     @Default([]) List<Breakpoint> breakpoints,
     @Default(false) bool canStepOut,
     @Default(0) int scanline,
@@ -37,6 +38,7 @@ class DebuggerState with _$DebuggerState {
     @Default(false) bool sprite0Hit,
     @Default(false) bool vBlank,
     @Default(false) bool executionLogOpen,
+    @Default(false) bool showStack,
   }) = _DebuggerState;
 }
 

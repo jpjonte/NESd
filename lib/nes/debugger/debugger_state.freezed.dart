@@ -31,6 +31,7 @@ mixin _$DebuggerState {
   bool get B => throw _privateConstructorUsedError;
   bool get V => throw _privateConstructorUsedError;
   bool get N => throw _privateConstructorUsedError;
+  List<int> get stack => throw _privateConstructorUsedError;
   List<Breakpoint> get breakpoints => throw _privateConstructorUsedError;
   bool get canStepOut => throw _privateConstructorUsedError;
   int get scanline => throw _privateConstructorUsedError;
@@ -42,6 +43,7 @@ mixin _$DebuggerState {
   bool get sprite0Hit => throw _privateConstructorUsedError;
   bool get vBlank => throw _privateConstructorUsedError;
   bool get executionLogOpen => throw _privateConstructorUsedError;
+  bool get showStack => throw _privateConstructorUsedError;
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.
@@ -72,6 +74,7 @@ abstract class $DebuggerStateCopyWith<$Res> {
       bool B,
       bool V,
       bool N,
+      List<int> stack,
       List<Breakpoint> breakpoints,
       bool canStepOut,
       int scanline,
@@ -82,7 +85,8 @@ abstract class $DebuggerStateCopyWith<$Res> {
       bool spriteOverflow,
       bool sprite0Hit,
       bool vBlank,
-      bool executionLogOpen});
+      bool executionLogOpen,
+      bool showStack});
 }
 
 /// @nodoc
@@ -115,6 +119,7 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
     Object? B = null,
     Object? V = null,
     Object? N = null,
+    Object? stack = null,
     Object? breakpoints = null,
     Object? canStepOut = null,
     Object? scanline = null,
@@ -126,6 +131,7 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
     Object? sprite0Hit = null,
     Object? vBlank = null,
     Object? executionLogOpen = null,
+    Object? showStack = null,
   }) {
     return _then(_value.copyWith(
       enabled: null == enabled
@@ -188,6 +194,10 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
           ? _value.N
           : N // ignore: cast_nullable_to_non_nullable
               as bool,
+      stack: null == stack
+          ? _value.stack
+          : stack // ignore: cast_nullable_to_non_nullable
+              as List<int>,
       breakpoints: null == breakpoints
           ? _value.breakpoints
           : breakpoints // ignore: cast_nullable_to_non_nullable
@@ -232,6 +242,10 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
           ? _value.executionLogOpen
           : executionLogOpen // ignore: cast_nullable_to_non_nullable
               as bool,
+      showStack: null == showStack
+          ? _value.showStack
+          : showStack // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -260,6 +274,7 @@ abstract class _$$DebuggerStateImplCopyWith<$Res>
       bool B,
       bool V,
       bool N,
+      List<int> stack,
       List<Breakpoint> breakpoints,
       bool canStepOut,
       int scanline,
@@ -270,7 +285,8 @@ abstract class _$$DebuggerStateImplCopyWith<$Res>
       bool spriteOverflow,
       bool sprite0Hit,
       bool vBlank,
-      bool executionLogOpen});
+      bool executionLogOpen,
+      bool showStack});
 }
 
 /// @nodoc
@@ -301,6 +317,7 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     Object? B = null,
     Object? V = null,
     Object? N = null,
+    Object? stack = null,
     Object? breakpoints = null,
     Object? canStepOut = null,
     Object? scanline = null,
@@ -312,6 +329,7 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     Object? sprite0Hit = null,
     Object? vBlank = null,
     Object? executionLogOpen = null,
+    Object? showStack = null,
   }) {
     return _then(_$DebuggerStateImpl(
       enabled: null == enabled
@@ -374,6 +392,10 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
           ? _value.N
           : N // ignore: cast_nullable_to_non_nullable
               as bool,
+      stack: null == stack
+          ? _value._stack
+          : stack // ignore: cast_nullable_to_non_nullable
+              as List<int>,
       breakpoints: null == breakpoints
           ? _value._breakpoints
           : breakpoints // ignore: cast_nullable_to_non_nullable
@@ -418,6 +440,10 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
           ? _value.executionLogOpen
           : executionLogOpen // ignore: cast_nullable_to_non_nullable
               as bool,
+      showStack: null == showStack
+          ? _value.showStack
+          : showStack // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -441,6 +467,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
       this.B = false,
       this.V = false,
       this.N = false,
+      final List<int> stack = const [],
       final List<Breakpoint> breakpoints = const [],
       this.canStepOut = false,
       this.scanline = 0,
@@ -451,8 +478,10 @@ class _$DebuggerStateImpl implements _DebuggerState {
       this.spriteOverflow = false,
       this.sprite0Hit = false,
       this.vBlank = false,
-      this.executionLogOpen = false})
+      this.executionLogOpen = false,
+      this.showStack = false})
       : _disassembly = disassembly,
+        _stack = stack,
         _breakpoints = breakpoints;
 
   @override
@@ -506,6 +535,15 @@ class _$DebuggerStateImpl implements _DebuggerState {
   @override
   @JsonKey()
   final bool N;
+  final List<int> _stack;
+  @override
+  @JsonKey()
+  List<int> get stack {
+    if (_stack is EqualUnmodifiableListView) return _stack;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_stack);
+  }
+
   final List<Breakpoint> _breakpoints;
   @override
   @JsonKey()
@@ -545,10 +583,13 @@ class _$DebuggerStateImpl implements _DebuggerState {
   @override
   @JsonKey()
   final bool executionLogOpen;
+  @override
+  @JsonKey()
+  final bool showStack;
 
   @override
   String toString() {
-    return 'DebuggerState(enabled: $enabled, disassembly: $disassembly, PC: $PC, A: $A, X: $X, Y: $Y, SP: $SP, P: $P, C: $C, Z: $Z, I: $I, D: $D, B: $B, V: $V, N: $N, breakpoints: $breakpoints, canStepOut: $canStepOut, scanline: $scanline, cycle: $cycle, v: $v, t: $t, x: $x, spriteOverflow: $spriteOverflow, sprite0Hit: $sprite0Hit, vBlank: $vBlank, executionLogOpen: $executionLogOpen)';
+    return 'DebuggerState(enabled: $enabled, disassembly: $disassembly, PC: $PC, A: $A, X: $X, Y: $Y, SP: $SP, P: $P, C: $C, Z: $Z, I: $I, D: $D, B: $B, V: $V, N: $N, stack: $stack, breakpoints: $breakpoints, canStepOut: $canStepOut, scanline: $scanline, cycle: $cycle, v: $v, t: $t, x: $x, spriteOverflow: $spriteOverflow, sprite0Hit: $sprite0Hit, vBlank: $vBlank, executionLogOpen: $executionLogOpen, showStack: $showStack)';
   }
 
   @override
@@ -572,6 +613,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
             (identical(other.B, B) || other.B == B) &&
             (identical(other.V, V) || other.V == V) &&
             (identical(other.N, N) || other.N == N) &&
+            const DeepCollectionEquality().equals(other._stack, _stack) &&
             const DeepCollectionEquality()
                 .equals(other._breakpoints, _breakpoints) &&
             (identical(other.canStepOut, canStepOut) ||
@@ -588,7 +630,9 @@ class _$DebuggerStateImpl implements _DebuggerState {
                 other.sprite0Hit == sprite0Hit) &&
             (identical(other.vBlank, vBlank) || other.vBlank == vBlank) &&
             (identical(other.executionLogOpen, executionLogOpen) ||
-                other.executionLogOpen == executionLogOpen));
+                other.executionLogOpen == executionLogOpen) &&
+            (identical(other.showStack, showStack) ||
+                other.showStack == showStack));
   }
 
   @override
@@ -609,6 +653,7 @@ class _$DebuggerStateImpl implements _DebuggerState {
         B,
         V,
         N,
+        const DeepCollectionEquality().hash(_stack),
         const DeepCollectionEquality().hash(_breakpoints),
         canStepOut,
         scanline,
@@ -619,7 +664,8 @@ class _$DebuggerStateImpl implements _DebuggerState {
         spriteOverflow,
         sprite0Hit,
         vBlank,
-        executionLogOpen
+        executionLogOpen,
+        showStack
       ]);
 
   /// Create a copy of DebuggerState
@@ -648,6 +694,7 @@ abstract class _DebuggerState implements DebuggerState {
       final bool B,
       final bool V,
       final bool N,
+      final List<int> stack,
       final List<Breakpoint> breakpoints,
       final bool canStepOut,
       final int scanline,
@@ -658,7 +705,8 @@ abstract class _DebuggerState implements DebuggerState {
       final bool spriteOverflow,
       final bool sprite0Hit,
       final bool vBlank,
-      final bool executionLogOpen}) = _$DebuggerStateImpl;
+      final bool executionLogOpen,
+      final bool showStack}) = _$DebuggerStateImpl;
 
   @override
   bool get enabled;
@@ -691,6 +739,8 @@ abstract class _DebuggerState implements DebuggerState {
   @override
   bool get N;
   @override
+  List<int> get stack;
+  @override
   List<Breakpoint> get breakpoints;
   @override
   bool get canStepOut;
@@ -712,6 +762,8 @@ abstract class _DebuggerState implements DebuggerState {
   bool get vBlank;
   @override
   bool get executionLogOpen;
+  @override
+  bool get showStack;
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.

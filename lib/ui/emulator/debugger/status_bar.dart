@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/nesd_theme.dart';
@@ -15,6 +16,7 @@ class StatusBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(debuggerNotifierProvider);
+    final debugger = ref.watch(debuggerProvider);
 
     return Container(
       height: 90,
@@ -30,7 +32,12 @@ class StatusBar extends ConsumerWidget {
                 StatusBarItem('A', Text(state.A.toHex())),
                 StatusBarItem('X', Text(state.X.toHex())),
                 StatusBarItem('Y', Text(state.Y.toHex())),
-                StatusBarItem('SP', Text(state.SP.toHex())),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  onEnter: (_) => debugger.showStack(),
+                  onExit: (_) => debugger.hideStack(),
+                  child: StatusBarItem('SP', Text(state.SP.toHex())),
+                ),
                 StatusBarItem('C', BoolIcon(value: state.C)),
                 StatusBarItem('Z', BoolIcon(value: state.Z)),
                 StatusBarItem('I', BoolIcon(value: state.I)),

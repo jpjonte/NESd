@@ -289,6 +289,7 @@ class TileTooltip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(200),
         border: Border.all(color: Colors.white),
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
       child: DefaultTextStyle(
         style: const TextStyle(

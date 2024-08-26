@@ -79,7 +79,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'9edba8fed15c6acf45292600bd7fccfc30a3ecb8';
+    r'75f2117a37dbae6d37478a473adb1e6f66183917';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

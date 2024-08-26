@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -120,10 +122,31 @@ class Debugger {
     _updateBreakpoints();
   }
 
+  void showStack() {
+    notifier.debuggerState = notifier.debuggerState.copyWith(
+      showStack: !notifier.debuggerState.showStack,
+    );
+  }
+
+  void hideStack() {
+    notifier.debuggerState = notifier.debuggerState.copyWith(
+      showStack: false,
+    );
+  }
+
   void _handleEvent(NesEvent event) {
     switch (event) {
       case DebuggerNesEvent():
       case SuspendNesEvent():
+        final stack = <int>[];
+
+        var SP = nes.cpu.SP;
+
+        while (SP < 0xff) {
+          SP++;
+          stack.add(nes.cpu.read(0x100 + SP));
+        }
+
         notifier.debuggerState = notifier.debuggerState.copyWith(
           enabled: true,
           disassembly: disassembler.update(),
@@ -140,6 +163,7 @@ class Debugger {
           B: nes.cpu.B == 1,
           V: nes.cpu.V == 1,
           N: nes.cpu.N == 1,
+          stack: stack,
           breakpoints: nes.breakpoints,
           canStepOut: nes.cpu.callStack.isNotEmpty,
           scanline: nes.ppu.scanline,
@@ -218,4 +242,10 @@ class DummyDebugger implements Debugger {
 
   @override
   void updateBreakpoint(Breakpoint breakpoint) {}
+
+  @override
+  void hideStack() {}
+
+  @override
+  void showStack() {}
 }
