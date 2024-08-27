@@ -16,9 +16,23 @@ final routerProvider = ChangeNotifierProvider((ref) => Router());
 class Router extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
-        AutoRoute(page: MainRoute.page, path: '/', initial: true),
+        CustomRoute(
+          page: MainRoute.page,
+          path: '/',
+          initial: true,
+          transitionsBuilder: TransitionsBuilders.noTransition,
+          durationInMilliseconds: 0,
+          reverseDurationInMilliseconds: 0,
+        ),
         AutoRoute(page: SettingsRoute.page, path: '/settings'),
         AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
-        AutoRoute(page: MenuRoute.page, path: '/menu'),
+        CustomRoute(
+          page: MenuRoute.page,
+          path: '/menu',
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+          durationInMilliseconds: 200,
+          reverseDurationInMilliseconds: 200,
+          opaque: false,
+        ),
       ];
 }

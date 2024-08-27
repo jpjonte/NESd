@@ -15,6 +15,7 @@ class MenuScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: Colors.black.withAlpha(200),
       appBar: AppBar(
         title: Text(
           'NESd',
