@@ -35,6 +35,7 @@ mixin _$Settings {
       throw _privateConstructorUsedError;
   String? get lastRomPath => throw _privateConstructorUsedError;
   List<String> get recentRomPaths => throw _privateConstructorUsedError;
+  List<RomInfo> get recentRoms => throw _privateConstructorUsedError;
   bool get showTouchControls => throw _privateConstructorUsedError;
   @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
   List<TouchInputConfig> get narrowTouchInputConfig =>
@@ -75,6 +76,7 @@ abstract class $SettingsCopyWith<$Res> {
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
       List<String> recentRomPaths,
+      List<RomInfo> recentRoms,
       bool showTouchControls,
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       List<TouchInputConfig> narrowTouchInputConfig,
@@ -111,6 +113,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
+    Object? recentRoms = null,
     Object? showTouchControls = null,
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
@@ -169,6 +172,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.recentRomPaths
           : recentRomPaths // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      recentRoms: null == recentRoms
+          ? _value.recentRoms
+          : recentRoms // ignore: cast_nullable_to_non_nullable
+              as List<RomInfo>,
       showTouchControls: null == showTouchControls
           ? _value.showTouchControls
           : showTouchControls // ignore: cast_nullable_to_non_nullable
@@ -212,6 +219,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
       List<String> recentRomPaths,
+      List<RomInfo> recentRoms,
       bool showTouchControls,
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       List<TouchInputConfig> narrowTouchInputConfig,
@@ -246,6 +254,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
+    Object? recentRoms = null,
     Object? showTouchControls = null,
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
@@ -304,6 +313,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value._recentRomPaths
           : recentRomPaths // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      recentRoms: null == recentRoms
+          ? _value._recentRoms
+          : recentRoms // ignore: cast_nullable_to_non_nullable
+              as List<RomInfo>,
       showTouchControls: null == showTouchControls
           ? _value.showTouchControls
           : showTouchControls // ignore: cast_nullable_to_non_nullable
@@ -342,6 +355,7 @@ class _$SettingsImpl implements _Settings {
       final Map<NesAction, List<InputCombination?>> bindings = const {},
       this.lastRomPath = null,
       final List<String> recentRomPaths = const [],
+      final List<RomInfo> recentRoms = const [],
       this.showTouchControls = false,
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       final List<TouchInputConfig> narrowTouchInputConfig = const [],
@@ -350,6 +364,7 @@ class _$SettingsImpl implements _Settings {
       final Map<String, List<Breakpoint>> breakpoints = const {}})
       : _bindings = bindings,
         _recentRomPaths = recentRomPaths,
+        _recentRoms = recentRoms,
         _narrowTouchInputConfig = narrowTouchInputConfig,
         _wideTouchInputConfig = wideTouchInputConfig,
         _breakpoints = breakpoints;
@@ -408,6 +423,15 @@ class _$SettingsImpl implements _Settings {
     return EqualUnmodifiableListView(_recentRomPaths);
   }
 
+  final List<RomInfo> _recentRoms;
+  @override
+  @JsonKey()
+  List<RomInfo> get recentRoms {
+    if (_recentRoms is EqualUnmodifiableListView) return _recentRoms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recentRoms);
+  }
+
   @override
   @JsonKey()
   final bool showTouchControls;
@@ -442,7 +466,7 @@ class _$SettingsImpl implements _Settings {
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, recentRoms: $recentRoms, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
   }
 
   @override
@@ -472,6 +496,8 @@ class _$SettingsImpl implements _Settings {
                 other.lastRomPath == lastRomPath) &&
             const DeepCollectionEquality()
                 .equals(other._recentRomPaths, _recentRomPaths) &&
+            const DeepCollectionEquality()
+                .equals(other._recentRoms, _recentRoms) &&
             (identical(other.showTouchControls, showTouchControls) ||
                 other.showTouchControls == showTouchControls) &&
             const DeepCollectionEquality().equals(
@@ -499,6 +525,7 @@ class _$SettingsImpl implements _Settings {
       const DeepCollectionEquality().hash(_bindings),
       lastRomPath,
       const DeepCollectionEquality().hash(_recentRomPaths),
+      const DeepCollectionEquality().hash(_recentRoms),
       showTouchControls,
       const DeepCollectionEquality().hash(_narrowTouchInputConfig),
       const DeepCollectionEquality().hash(_wideTouchInputConfig),
@@ -536,6 +563,7 @@ abstract class _Settings implements Settings {
       final Map<NesAction, List<InputCombination?>> bindings,
       final String? lastRomPath,
       final List<String> recentRomPaths,
+      final List<RomInfo> recentRoms,
       final bool showTouchControls,
       @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
       final List<TouchInputConfig> narrowTouchInputConfig,
@@ -573,6 +601,8 @@ abstract class _Settings implements Settings {
   String? get lastRomPath;
   @override
   List<String> get recentRomPaths;
+  @override
+  List<RomInfo> get recentRoms;
   @override
   bool get showTouchControls;
   @override

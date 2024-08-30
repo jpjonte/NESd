@@ -12,7 +12,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/emulator/save_manager.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -54,7 +54,7 @@ NesController nesController(NesControllerRef ref) {
     router: ref.read(routerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
     toaster: ref.watch(toasterProvider),
-    saveManager: ref.watch(saveManagerProvider),
+    romManager: ref.watch(romManagerProvider),
     fileSystem: ref.read(fileSystemProvider),
   );
 
@@ -83,7 +83,7 @@ class NesController {
     required this.router,
     required this.settingsController,
     required this.toaster,
-    required this.saveManager,
+    required this.romManager,
     required this.fileSystem,
   }) {
     _lifecycleListener = AppLifecycleListener(
@@ -117,7 +117,7 @@ class NesController {
 
   final Toaster toaster;
 
-  final SaveManager saveManager;
+  final RomManager romManager;
 
   final FileSystem fileSystem;
 
@@ -175,12 +175,11 @@ class NesController {
     _load();
   }
 
-  void save() => _save();
-
   void runUntilFrame() => nes?.runUntilFrame();
 
   void stop() {
-    nes?.stop();
+    _save();
+    _saveThumbnail();
     nesState.stop();
   }
 
@@ -217,7 +216,7 @@ class NesController {
 
       nesState.run(eventBus: eventBus, cartridge: cartridge);
 
-      settingsController.addRecentRomPath(path);
+      settingsController.addRecentRom(cartridge.romInfo);
 
       _load();
     } on Exception catch (e) {
@@ -271,18 +270,24 @@ class NesController {
             return;
           }
 
-          saveManager.saveState(nes, 0);
+          if (nes case final nes?) {
+            romManager.saveState(nes, 0);
+          }
         },
       );
     }
   }
 
   void _save() {
-    saveManager.save(nes);
+    if (nes case final nes?) {
+      romManager.save(nes);
+    }
   }
 
   void _load() {
-    saveManager.load(nes);
+    if (nes case final nes?) {
+      romManager.load(nes);
+    }
   }
 
   Uint8List _loadZip(String path, Uint8List data) {
@@ -315,6 +320,12 @@ class NesController {
       suspend();
 
       lifeCycleListenerEnabled = false;
+    }
+  }
+
+  void _saveThumbnail() {
+    if (nes case final nes?) {
+      romManager.saveThumbnail(nes);
     }
   }
 }

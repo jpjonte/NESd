@@ -12,6 +12,7 @@ dependencies:
   auto_route: ^9.2.2
   binarize: ^1.5.0
   build_runner: ^2.4.10
+  collection: ^1.18.0
   crypto: ^3.0.5
   file_picker: ^8.0.3
   flutter:
@@ -27,6 +28,7 @@ dependencies:
       ref: feature/nesd
       path: packages/gamepads
   hooks_riverpod: ^2.5.1
+  image: ^4.2.0
   json_annotation: ^4.9.0
   mp_audio_stream:
     git:

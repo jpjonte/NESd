@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 class FocusOnHover extends HookWidget {
   const FocusOnHover({
     required this.child,
+    this.cursor,
     this.focusNode,
     this.onKeyEvent,
     this.onFocusChange,
@@ -11,6 +12,7 @@ class FocusOnHover extends HookWidget {
   });
 
   final Widget child;
+  final MouseCursor? cursor;
   final FocusNode? focusNode;
   final FocusOnKeyEventCallback? onKeyEvent;
   final ValueChanged<bool>? onFocusChange;
@@ -25,6 +27,7 @@ class FocusOnHover extends HookWidget {
       skipTraversal: true,
       onFocusChange: onFocusChange,
       child: MouseRegion(
+        cursor: cursor ?? MouseCursor.defer,
         onHover: (_) {
           if (!focusNode.hasFocus) {
             focusNode.descendants

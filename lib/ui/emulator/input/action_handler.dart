@@ -6,7 +6,7 @@ import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/emulator/save_manager.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -45,7 +45,7 @@ ActionHandler actionHandler(ActionHandlerRef ref) {
     nes: ref.watch(nesStateProvider),
     nesController: ref.watch(nesControllerProvider),
     router: ref.read(routerProvider),
-    saveManager: ref.watch(saveManagerProvider),
+    romManager: ref.watch(romManagerProvider),
     audioOutput: ref.watch(audioOutputProvider),
     actionStream: actionStream.stream,
   );
@@ -60,7 +60,7 @@ class ActionHandler {
     required this.nes,
     required this.nesController,
     required this.router,
-    required this.saveManager,
+    required this.romManager,
     required this.audioOutput,
     required Stream<NesActionEvent> actionStream,
   }) {
@@ -72,7 +72,7 @@ class ActionHandler {
   final NES? nes;
   final NesController nesController;
   final Router router;
-  final SaveManager saveManager;
+  final RomManager romManager;
   final AudioOutput audioOutput;
 
   late final StreamSubscription<NesActionEvent> _actionSubscription;
@@ -185,11 +185,15 @@ class ActionHandler {
   }
 
   void _saveState(int slot) {
-    saveManager.saveState(nes, slot);
+    if (nes case final nes?) {
+      romManager.saveState(nes, slot);
+    }
   }
 
   void _loadState(int slot) {
-    saveManager.loadState(nes, slot);
+    if (nes case final nes?) {
+      romManager.loadState(nes, slot);
+    }
   }
 
   void _updateRoute() {

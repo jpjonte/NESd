@@ -41,18 +41,15 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 ## Screenshots
 
 ## Android
-<div style="display: grid; grid-template-columns: repeat(2, auto); gap: 20px;">
-  <img src="docs/android_kirby.png" style="width: 100%; grid-column: span 2" />
-  <img src="docs/android_smb.png" style="width: 45%" />
-  <img src="docs/android_menu.png" style="width: 45%" />
-</div>
+<img src="docs/android_kirby.png" style="width: 100%;" />
+<p>
+  <img src="docs/android_smb.png" style="width: 49%" />
+  <img src="docs/android_menu.png" style="width: 49%" />
+</p>
 
 ## macOS
 
-<div style="display: grid; grid-template-columns: repeat(2, auto); gap: 10px;">
-  <img src="docs/smb.png" style="width: 45%" />
-  <img src="docs/zelda.png" style="width: 45%" />
-  <img src="docs/kirby.png" style="width: 45%" />
-  <img src="docs/punch_out.png" style="width: 45%" />
-  <img src="docs/debugging.png" style="width: 100%; grid-column: span 2" />
-</div>
+<img src="docs/smb.png" style="width: 49%" /> <img src="docs/zelda.png" style="width: 49%" />
+<img src="docs/kirby.png" style="width: 49%" /> <img src="docs/punch_out.png" style="width: 49%" />
+<img src="docs/list.png" style="width: 100%;" />
+<img src="docs/debugging.png" style="width: 100%;" />

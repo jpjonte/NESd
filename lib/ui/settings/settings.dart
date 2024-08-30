@@ -5,9 +5,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,6 +114,7 @@ class Settings with _$Settings {
     Map<NesAction, List<InputCombination?>> bindings,
     @Default(null) String? lastRomPath,
     @Default([]) List<String> recentRomPaths,
+    @Default([]) List<RomInfo> recentRoms,
     @Default(false) bool showTouchControls,
     @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
     @Default([])
@@ -205,22 +208,25 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(lastRomPath: lastRomPath));
   }
 
-  List<String> get recentRomPaths => state.recentRomPaths;
+  List<RomInfo> get recentRoms => state.recentRoms;
 
-  void addRecentRomPath(String path) {
-    final recent = state.recentRomPaths.toList();
+  void addRecentRom(RomInfo rom) {
+    final recent = state.recentRoms.toList()
+      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
+      ..insert(0, rom);
 
-    if (recent.contains(path)) {
-      recent.remove(path);
-    }
-
-    recent.insert(0, path);
-
-    _update(state.copyWith(recentRomPaths: recent.take(5).toList()));
+    _update(state.copyWith(recentRoms: recent.toList()));
   }
 
-  void clearRecentRomPaths() {
-    _update(state.copyWith(recentRomPaths: []));
+  void clearRecentRoms() {
+    _update(state.copyWith(recentRoms: []));
+  }
+
+  void removeRecentRom(RomInfo rom) {
+    final recent = state.recentRoms.toList()
+      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
+
+    _update(state.copyWith(recentRoms: recent.toList()));
   }
 
   bool get showTouchControls => state.showTouchControls;
@@ -333,9 +339,23 @@ class SettingsController extends _$SettingsController {
 
     final loaded = Settings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 
+    final recentRoms = _migrateRecentRoms(loaded.recentRomPaths);
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
       bindings: loaded.bindings.isNotEmpty ? loaded.bindings : defaultBindings,
+      recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
+  }
+
+  List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {
+    return [
+      for (final path in recentRomPaths)
+        RomInfo(
+          name: p.basename(path),
+          path: path,
+          hash: '',
+        ),
+    ];
   }
 }

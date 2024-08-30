@@ -5,6 +5,8 @@ import 'package:nesd/exception/invalid_rom_header.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:path/path.dart' as p;
 
 enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
@@ -95,6 +97,12 @@ class Cartridge {
     sram.setAll(0, state.sram);
     mapper.state = state.mapperState;
   }
+
+  RomInfo get romInfo => RomInfo(
+        name: p.basename(file),
+        path: file,
+        hash: hash,
+      );
 
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;

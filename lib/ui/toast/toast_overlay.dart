@@ -49,8 +49,15 @@ class ToastWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeData = Theme.of(context);
     final textStyle = themeData.textTheme.bodyLarge!.copyWith(
+      fontSize: 18,
       fontWeight: FontWeight.bold,
     );
+
+    final color = switch (toast.type) {
+      ToastType.info => Colors.blue[800]!,
+      ToastType.warning => Colors.orange[800]!,
+      ToastType.error => nesdRed[600]!,
+    };
 
     final outlineColor = switch (toast.type) {
       ToastType.info => Colors.blue[100]!,
@@ -64,17 +71,11 @@ class ToastWidget extends ConsumerWidget {
         onTap: () => ref.read(toasterProvider).dismiss(toast),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          height: 24,
-          child: OutlineText(
+          child: StrokeText(
             toast.message,
-            outlineColor: outlineColor,
-            blurRadius: 0.5,
+            strokeColor: outlineColor,
             style: textStyle.copyWith(
-              color: switch (toast.type) {
-                ToastType.info => Colors.blue[700],
-                ToastType.warning => Colors.orange[800],
-                ToastType.error => nesdRed[600],
-              },
+              color: color,
             ),
           ),
         ),
