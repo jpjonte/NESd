@@ -27,6 +27,10 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      recentRoms: (json['recentRoms'] as List<dynamic>?)
+              ?.map((e) => RomInfo.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       showTouchControls: json['showTouchControls'] as bool? ?? false,
       narrowTouchInputConfig: json['narrowTouchInputConfig'] == null
           ? const []
@@ -59,6 +63,7 @@ Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
       'bindings': bindingsToJson(instance.bindings),
       'lastRomPath': instance.lastRomPath,
       'recentRomPaths': instance.recentRomPaths,
+      'recentRoms': instance.recentRoms,
       'showTouchControls': instance.showTouchControls,
       'narrowTouchInputConfig': instance.narrowTouchInputConfig,
       'wideTouchInputConfig': instance.wideTouchInputConfig,
@@ -79,7 +84,7 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'75f2117a37dbae6d37478a473adb1e6f66183917';
+    r'8213af0e25fb5b3ad6cb0d623d91d09dad124e06';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

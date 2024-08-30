@@ -52,7 +52,10 @@ class MenuScreen extends HookConsumerWidget {
               ),
               const NesdVerticalDivider(),
               NesdButton(
-                onPressed: () => quit(),
+                onPressed: () {
+                  ref.read(nesControllerProvider).stop();
+                  quit();
+                },
                 child: const Text('Quit NESd'),
               ),
             ],

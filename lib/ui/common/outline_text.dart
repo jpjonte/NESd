@@ -1,34 +1,50 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
-class OutlineText extends StatelessWidget {
-  const OutlineText(
+class StrokeText extends StatelessWidget {
+  const StrokeText(
     this.text, {
     this.style,
-    this.blurRadius = 0.9,
-    this.intensity = 8,
-    this.outlineColor = Colors.black,
+    this.textAlign,
+    this.overflow,
+    this.strokeWidth = 0.75,
+    this.strokeColor = Colors.black,
   });
 
   final String text;
   final TextStyle? style;
-  final double blurRadius;
-  final Color outlineColor;
-  final int intensity;
+  final TextAlign? textAlign;
+  final TextOverflow? overflow;
+  final double strokeWidth;
+  final Color strokeColor;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: (style ?? const TextStyle()).copyWith(
-        // ugly hack for outlined text
-        shadows: [
-          for (var i = 0; i < intensity; i++)
-            Shadow(
-              color: outlineColor,
-              blurRadius: blurRadius,
-            ),
-        ],
-      ),
+    return Stack(
+      children: [
+        Text(
+          text,
+          textAlign: textAlign,
+          overflow: overflow,
+          style: (style ?? const TextStyle()).copyWith(
+            foreground: Paint()
+              ..imageFilter = ImageFilter.dilate(
+                radiusX: strokeWidth,
+                radiusY: strokeWidth,
+              )
+              ..filterQuality = FilterQuality.high
+              ..isAntiAlias = true
+              ..color = strokeColor,
+          ),
+        ),
+        Text(
+          text,
+          textAlign: textAlign,
+          overflow: overflow,
+          style: style,
+        ),
+      ],
     );
   }
 }

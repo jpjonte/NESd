@@ -20,7 +20,7 @@ final actionStreamProvider = AutoDisposeProvider<ActionStream>.internal(
 );
 
 typedef ActionStreamRef = AutoDisposeProviderRef<ActionStream>;
-String _$actionHandlerHash() => r'8cb7778871d138f1c032f9c766e0b2208cad5404';
+String _$actionHandlerHash() => r'be93aae9232fcaaa29e1359aaa64194d077ca995';
 
 /// See also [actionHandler].
 @ProviderFor(actionHandler)
