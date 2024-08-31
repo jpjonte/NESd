@@ -109,6 +109,7 @@ class Settings with _$Settings {
     @Default(Scaling.autoInteger) Scaling scaling,
     @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
+    @Default(false) bool autoLoad,
     @Default({})
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
     Map<NesAction, List<InputCombination?>> bindings,
@@ -200,6 +201,12 @@ class SettingsController extends _$SettingsController {
 
   set autoSaveInterval(int autoSaveInterval) {
     _update(state.copyWith(autoSaveInterval: max(1, autoSaveInterval)));
+  }
+
+  bool get autoLoad => state.autoLoad;
+
+  set autoLoad(bool value) {
+    _update(state.copyWith(autoLoad: value));
   }
 
   String? get lastRomPath => state.lastRomPath;

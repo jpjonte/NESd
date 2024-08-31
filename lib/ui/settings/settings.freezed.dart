@@ -30,6 +30,7 @@ mixin _$Settings {
   Scaling get scaling => throw _privateConstructorUsedError;
   bool get autoSave => throw _privateConstructorUsedError;
   int? get autoSaveInterval => throw _privateConstructorUsedError;
+  bool get autoLoad => throw _privateConstructorUsedError;
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
   Map<NesAction, List<InputCombination?>> get bindings =>
       throw _privateConstructorUsedError;
@@ -72,6 +73,7 @@ abstract class $SettingsCopyWith<$Res> {
       Scaling scaling,
       bool autoSave,
       int? autoSaveInterval,
+      bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
@@ -110,6 +112,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? scaling = null,
     Object? autoSave = null,
     Object? autoSaveInterval = freezed,
+    Object? autoLoad = null,
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
@@ -160,6 +163,10 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
+      autoLoad: null == autoLoad
+          ? _value.autoLoad
+          : autoLoad // ignore: cast_nullable_to_non_nullable
+              as bool,
       bindings: null == bindings
           ? _value.bindings
           : bindings // ignore: cast_nullable_to_non_nullable
@@ -215,6 +222,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
       Scaling scaling,
       bool autoSave,
       int? autoSaveInterval,
+      bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       Map<NesAction, List<InputCombination?>> bindings,
       String? lastRomPath,
@@ -251,6 +259,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? scaling = null,
     Object? autoSave = null,
     Object? autoSaveInterval = freezed,
+    Object? autoLoad = null,
     Object? bindings = null,
     Object? lastRomPath = freezed,
     Object? recentRomPaths = null,
@@ -301,6 +310,10 @@ class __$$SettingsImplCopyWithImpl<$Res>
           ? _value.autoSaveInterval
           : autoSaveInterval // ignore: cast_nullable_to_non_nullable
               as int?,
+      autoLoad: null == autoLoad
+          ? _value.autoLoad
+          : autoLoad // ignore: cast_nullable_to_non_nullable
+              as bool,
       bindings: null == bindings
           ? _value._bindings
           : bindings // ignore: cast_nullable_to_non_nullable
@@ -351,6 +364,7 @@ class _$SettingsImpl implements _Settings {
       this.scaling = Scaling.autoInteger,
       this.autoSave = true,
       this.autoSaveInterval = 1,
+      this.autoLoad = false,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings = const {},
       this.lastRomPath = null,
@@ -402,6 +416,9 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final int? autoSaveInterval;
+  @override
+  @JsonKey()
+  final bool autoLoad;
   final Map<NesAction, List<InputCombination?>> _bindings;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
@@ -466,7 +483,7 @@ class _$SettingsImpl implements _Settings {
 
   @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, recentRoms: $recentRoms, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, autoLoad: $autoLoad, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, recentRoms: $recentRoms, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
   }
 
   @override
@@ -491,6 +508,8 @@ class _$SettingsImpl implements _Settings {
                 other.autoSave == autoSave) &&
             (identical(other.autoSaveInterval, autoSaveInterval) ||
                 other.autoSaveInterval == autoSaveInterval) &&
+            (identical(other.autoLoad, autoLoad) ||
+                other.autoLoad == autoLoad) &&
             const DeepCollectionEquality().equals(other._bindings, _bindings) &&
             (identical(other.lastRomPath, lastRomPath) ||
                 other.lastRomPath == lastRomPath) &&
@@ -510,26 +529,28 @@ class _$SettingsImpl implements _Settings {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      volume,
-      stretch,
-      showBorder,
-      showTiles,
-      showCartridgeInfo,
-      showDebugOverlay,
-      showDebugger,
-      scaling,
-      autoSave,
-      autoSaveInterval,
-      const DeepCollectionEquality().hash(_bindings),
-      lastRomPath,
-      const DeepCollectionEquality().hash(_recentRomPaths),
-      const DeepCollectionEquality().hash(_recentRoms),
-      showTouchControls,
-      const DeepCollectionEquality().hash(_narrowTouchInputConfig),
-      const DeepCollectionEquality().hash(_wideTouchInputConfig),
-      const DeepCollectionEquality().hash(_breakpoints));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        volume,
+        stretch,
+        showBorder,
+        showTiles,
+        showCartridgeInfo,
+        showDebugOverlay,
+        showDebugger,
+        scaling,
+        autoSave,
+        autoSaveInterval,
+        autoLoad,
+        const DeepCollectionEquality().hash(_bindings),
+        lastRomPath,
+        const DeepCollectionEquality().hash(_recentRomPaths),
+        const DeepCollectionEquality().hash(_recentRoms),
+        showTouchControls,
+        const DeepCollectionEquality().hash(_narrowTouchInputConfig),
+        const DeepCollectionEquality().hash(_wideTouchInputConfig),
+        const DeepCollectionEquality().hash(_breakpoints)
+      ]);
 
   /// Create a copy of Settings
   /// with the given fields replaced by the non-null parameter values.
@@ -559,6 +580,7 @@ abstract class _Settings implements Settings {
       final Scaling scaling,
       final bool autoSave,
       final int? autoSaveInterval,
+      final bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
       final Map<NesAction, List<InputCombination?>> bindings,
       final String? lastRomPath,
@@ -594,6 +616,8 @@ abstract class _Settings implements Settings {
   bool get autoSave;
   @override
   int? get autoSaveInterval;
+  @override
+  bool get autoLoad;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
   Map<NesAction, List<InputCombination?>> get bindings;

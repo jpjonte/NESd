@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added support for the greyscale and color emphasis bits in the PPU
 - Added a button to reset control bindings to default
 - Added support for the Namco108 mapper
+- Added an option to automatically load the latest save state when a ROM is loaded
 
 ### Changed
 

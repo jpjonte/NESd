@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nesd/ui/settings/general/auto_load_switch.dart';
 import 'package:nesd/ui/settings/general/auto_save_interval.dart';
 import 'package:nesd/ui/settings/general/auto_save_switch.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
@@ -14,6 +15,7 @@ class GeneralSettings extends StatelessWidget {
         children: const [
           AutoSaveSwitch(),
           AutoSaveInterval(),
+          AutoLoadSwitch(),
         ],
       ),
     );

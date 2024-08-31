@@ -117,8 +117,6 @@ class NES {
   }
 
   Future<void> run() async {
-    reset();
-
     on = true;
     running = true;
     paused = false;
