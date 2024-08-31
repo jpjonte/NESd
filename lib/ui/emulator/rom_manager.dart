@@ -1,10 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
-import 'package:nesd/nes/cartridge/cartridge.dart';
-import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/toast/toaster.dart';
+import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,7 +14,6 @@ String applicationSupportPath(ApplicationSupportPathRef ref) => '';
 
 @riverpod
 RomManager romManager(RomManagerRef ref) => RomManager(
-      toaster: ref.watch(toasterProvider),
       baseDirectory: ref.watch(applicationSupportPathProvider),
     );
 
@@ -47,65 +45,68 @@ class RomInfo {
   }
 
   @override
-  int get hashCode => name.hashCode ^ hash.hashCode;
+  int get hashCode => Object.hash(name, hash);
 }
 
 class RomManager {
   static const directoryName = 'NESd';
 
-  RomManager({required this.toaster, required this.baseDirectory}) {
+  RomManager({required this.baseDirectory}) {
     _initializeDirectories();
     _migrateFiles();
   }
 
-  final Toaster toaster;
-
   final String baseDirectory;
 
-  void save(NES nes) {
-    final data = nes.save();
-    final saveFile = _getSaveFile(nes.bus.cartridge);
+  void save(RomInfo romInfo, Uint8List data) {
+    _getSaveFile(romInfo).writeAsBytesSync(data);
+  }
 
-    if (data != null) {
-      saveFile.writeAsBytesSync(data);
+  Uint8List? load(RomInfo romInfo) {
+    final saveFile = _getSaveFile(romInfo);
 
-      toaster.send(Toast.info('SRAM saved'));
+    if (!saveFile.existsSync()) {
+      return null;
     }
+
+    return saveFile.readAsBytesSync();
   }
 
-  void load(NES nes) {
-    final saveFile = _getSaveFile(nes.bus.cartridge);
+  void saveState(RomInfo romInfo, int slot, Uint8List data) {
+    _getSaveStateFile(romInfo, slot).writeAsBytesSync(data);
+  }
 
-    if (saveFile.existsSync()) {
-      nes.load(saveFile.readAsBytesSync());
+  Uint8List? loadState(RomInfo romInfo, int slot) {
+    final saveStateFile = _getSaveStateFile(romInfo, slot);
 
-      toaster.send(Toast.info('SRAM save loaded'));
+    if (!saveStateFile.existsSync()) {
+      return null;
     }
+
+    return saveStateFile.readAsBytesSync();
   }
 
-  void saveState(NES nes, int slot) {
-    final data = nes.serialize();
+  Uint8List? loadLatestState(RomInfo romInfo) {
+    final files = <File>[];
 
-    _getSaveStateFile(nes.bus.cartridge, slot).writeAsBytesSync(data);
+    for (var slot = 0; slot < 10; slot++) {
+      final stateFile = _getSaveStateFile(romInfo, slot);
 
-    toaster.send(Toast.info('Saved state to slot $slot'));
-  }
-
-  void loadState(NES nes, int slot) {
-    final saveStateFile = _getSaveStateFile(nes.bus.cartridge, slot);
-
-    if (saveStateFile.existsSync()) {
-      nes.deserialize(saveStateFile.readAsBytesSync());
-
-      toaster.send(Toast.info('State loaded from slot $slot'));
-    } else {
-      toaster.send(Toast.warning('No save state found in slot $slot'));
+      if (stateFile.existsSync()) {
+        files.add(stateFile);
+      }
     }
+
+    if (files.isEmpty) {
+      return null;
+    }
+
+    files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+    return files.first.readAsBytesSync();
   }
 
-  void saveThumbnail(NES nes) {
-    final frameBuffer = nes.ppu.frameBuffer;
-
+  void saveThumbnail(RomInfo romInfo, FrameBuffer frameBuffer) {
     final image = img.Image.fromBytes(
       width: frameBuffer.width,
       height: frameBuffer.height,
@@ -115,7 +116,7 @@ class RomManager {
 
     final png = img.encodePng(image);
 
-    getThumbnailFile(nes.bus.cartridge.romInfo).writeAsBytesSync(png);
+    getThumbnailFile(romInfo).writeAsBytesSync(png);
   }
 
   File getThumbnailFile(RomInfo romInfo) {
@@ -150,14 +151,14 @@ class RomManager {
     }
   }
 
-  File _getSaveFile(Cartridge cartridge) {
-    final filename = _getFilename('saves', cartridge.romInfo, '.sav');
+  File _getSaveFile(RomInfo romInfo) {
+    final filename = _getFilename('saves', romInfo, '.sav');
 
     return File(filename);
   }
 
-  File _getSaveStateFile(Cartridge cartridge, int slot) {
-    final filename = _getFilename('states', cartridge.romInfo, '.$slot.state');
+  File _getSaveStateFile(RomInfo romInfo, int slot) {
+    final filename = _getFilename('states', romInfo, '.$slot.state');
 
     return File(filename);
   }

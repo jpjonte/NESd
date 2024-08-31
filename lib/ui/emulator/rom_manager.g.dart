@@ -38,7 +38,7 @@ final applicationSupportPathProvider = AutoDisposeProvider<String>.internal(
 );
 
 typedef ApplicationSupportPathRef = AutoDisposeProviderRef<String>;
-String _$romManagerHash() => r'7fa7c6b5fd2654c4aeef6232a9f59f6dc9a7ab58';
+String _$romManagerHash() => r'a8fd07919db858601e7b6440f777e30079960398';
 
 /// See also [romManager].
 @ProviderFor(romManager)

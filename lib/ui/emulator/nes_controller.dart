@@ -31,9 +31,7 @@ class NesState extends _$NesState {
 
   NES? get nes => state;
 
-  void run({required Cartridge cartridge, required EventBus eventBus}) {
-    final newNes = NES(cartridge: cartridge, eventBus: eventBus);
-
+  void run(NES newNes) {
     state = newNes;
 
     newNes.run();
@@ -214,7 +212,16 @@ class NesController {
     try {
       final cartridge = await loadCartridge(path);
 
-      nesState.run(eventBus: eventBus, cartridge: cartridge);
+      final newNes = NES(cartridge: cartridge, eventBus: eventBus)..reset();
+
+      _handleAutoLoad(newNes);
+
+      nesState.run(newNes);
+
+      setAutoSave(
+        enabled: settingsController.autoSave,
+        interval: settingsController.autoSaveInterval,
+      );
 
       settingsController.addRecentRom(cartridge.romInfo);
 
@@ -223,6 +230,30 @@ class NesController {
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       resume();
+    }
+  }
+
+  void saveState(int slot) {
+    if (nes case final nes?) {
+      final data = nes.serialize();
+
+      romManager.saveState(nes.bus.cartridge.romInfo, slot, data);
+
+      toaster.send(Toast.info('Saved state to slot $slot'));
+    }
+  }
+
+  void loadState(int slot) {
+    if (nes case final nes?) {
+      final saveState = romManager.loadState(nes.bus.cartridge.romInfo, slot);
+
+      if (saveState == null) {
+        toaster.send(Toast.warning('No save state found in slot $slot'));
+      } else {
+        nes.deserialize(saveState);
+
+        toaster.send(Toast.info('State loaded from slot $slot'));
+      }
     }
   }
 
@@ -261,32 +292,32 @@ class NesController {
     if (enabled && interval != null) {
       _autoSaveTimer = Timer.periodic(
         Duration(minutes: interval),
-        (_) {
-          if (nes == null) {
-            return;
-          }
-
-          if (!nes!.running) {
-            return;
-          }
-
-          if (nes case final nes?) {
-            romManager.saveState(nes, 0);
-          }
-        },
+        (_) => _autoSave(),
       );
     }
   }
 
   void _save() {
     if (nes case final nes?) {
-      romManager.save(nes);
+      final data = nes.save();
+
+      if (data != null) {
+        romManager.save(nes.bus.cartridge.romInfo, data);
+
+        toaster.send(Toast.info('SRAM saved'));
+      }
     }
   }
 
   void _load() {
     if (nes case final nes?) {
-      romManager.load(nes);
+      final data = romManager.load(nes.bus.cartridge.romInfo);
+
+      if (data != null) {
+        nes.load(data);
+
+        toaster.send(Toast.info('SRAM save loaded'));
+      }
     }
   }
 
@@ -325,7 +356,33 @@ class NesController {
 
   void _saveThumbnail() {
     if (nes case final nes?) {
-      romManager.saveThumbnail(nes);
+      romManager.saveThumbnail(nes.bus.cartridge.romInfo, nes.ppu.frameBuffer);
+    }
+  }
+
+  void _handleAutoLoad(NES newNes) {
+    if (!settingsController.autoLoad) {
+      return;
+    }
+
+    final data = romManager.loadLatestState(newNes.bus.cartridge.romInfo);
+
+    if (data != null) {
+      newNes.deserialize(data);
+
+      toaster.send(Toast.info('Loaded latest save state'));
+    }
+  }
+
+  void _autoSave() {
+    if (nes case final nes?) {
+      if (nes.running) {
+        final data = nes.serialize();
+
+        romManager.saveState(nes.bus.cartridge.romInfo, 0, data);
+
+        toaster.send(Toast.info('Saved state to slot 0'));
+      }
     }
   }
 }
