@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added support for the GxROM mapper
 - Added thumbnails to the list of recent ROMs
 - Added page navigation to the list of recent ROMs
+- Added an overview page for the save states of a ROM (can be accessed from the pause menu or by long pressing the preview in the recent ROMs list)
+
+### Changed
+
+- Replaced the save state file format with a more robust, future-proof format
+- Save states in the old format can be loaded for the next two releases
 
 ## [0.5.0] - 2024-08-26
 

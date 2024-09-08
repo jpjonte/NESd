@@ -1,4 +1,5 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/apu/unit/envelope_unit_state.dart';
 import 'package:nesd/nes/apu/unit/length_counter_unit_state.dart';
 import 'package:nesd/nes/apu/unit/sweep_unit_state.dart';
@@ -16,6 +17,30 @@ class PulseChannelState {
     required this.lengthCounterState,
     required this.sweepState,
   });
+
+  factory PulseChannelState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => PulseChannelState._version0(reader),
+      _ => throw InvalidSerializationVersion('PulseChannelState', version),
+    };
+  }
+
+  factory PulseChannelState._version0(PayloadReader reader) {
+    return PulseChannelState(
+      enabled: reader.get(boolean),
+      duty: reader.get(uint8),
+      constantVolume: reader.get(boolean),
+      volume: reader.get(uint8),
+      dutyIndex: reader.get(uint8),
+      timer: reader.get(uint16),
+      timerPeriod: reader.get(uint16),
+      envelopeState: EnvelopeUnitState.deserialize(reader),
+      lengthCounterState: LengthCounterUnitState.deserialize(reader),
+      sweepState: SweepUnitState.deserialize(reader),
+    );
+  }
 
   const PulseChannelState.dummy()
       : this(
@@ -49,11 +74,28 @@ class PulseChannelState {
   final LengthCounterUnitState lengthCounterState;
 
   final SweepUnitState sweepState;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(boolean, enabled)
+      ..set(uint8, duty)
+      ..set(boolean, constantVolume)
+      ..set(uint8, volume)
+      ..set(uint8, dutyIndex)
+      ..set(uint16, timer)
+      ..set(uint16, timerPeriod);
+
+    envelopeState.serialize(writer);
+    lengthCounterState.serialize(writer);
+    sweepState.serialize(writer);
+  }
 }
 
-class _PulseChannelStateContract extends BinaryContract<PulseChannelState>
+class _LegacyPulseChannelStateContract extends BinaryContract<PulseChannelState>
     implements PulseChannelState {
-  const _PulseChannelStateContract() : super(const PulseChannelState.dummy());
+  const _LegacyPulseChannelStateContract()
+      : super(const PulseChannelState.dummy());
 
   @override
   PulseChannelState order(PulseChannelState contract) {
@@ -94,21 +136,24 @@ class _PulseChannelStateContract extends BinaryContract<PulseChannelState>
 
   @override
   EnvelopeUnitState get envelopeState => type(
-        envelopeUnitStateContract,
+        legacyEnvelopeUnitStateContract,
         (o) => o.envelopeState,
       );
 
   @override
   LengthCounterUnitState get lengthCounterState => type(
-        lengthCounterUnitStateContract,
+        legacyLengthCounterUnitStateContract,
         (o) => o.lengthCounterState,
       );
 
   @override
   SweepUnitState get sweepState => type(
-        sweepUnitStateContract,
+        legacySweepUnitStateContract,
         (o) => o.sweepState,
       );
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-const pulseChannelStateContract = _PulseChannelStateContract();
+const legacyPulseChannelStateContract = _LegacyPulseChannelStateContract();

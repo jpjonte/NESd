@@ -84,19 +84,6 @@ class NES {
     _breakpoints.removeWhere((b) => b.address == address);
   }
 
-  Uint8List serialize() {
-    final writer = Payload.write()..set(nesStateContract, state);
-
-    return binarize(writer);
-  }
-
-  void deserialize(Uint8List bytes) {
-    final reader = Payload.read(bytes);
-    final state = reader.get(nesStateContract);
-
-    this.state = state;
-  }
-
   Uint8List? save() => bus.cartridge.save();
 
   void load(Uint8List save) => bus.cartridge.load(save);

@@ -12,6 +12,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/router.dart';
@@ -131,6 +132,8 @@ class NesController {
   StreamSubscription<NesEvent>? _nesEventSubscription;
 
   Future<Cartridge> loadCartridge(String path) async {
+    final loaded = nes != null;
+
     nes?.stop();
 
     final data = await fileSystem.read(path);
@@ -143,8 +146,10 @@ class NesController {
 
     final cartridge = Cartridge.fromFile(path, rom);
 
-    // give the loop a chance to end
-    await Future.delayed(const Duration(milliseconds: 500));
+    if (loaded) {
+      // give the existing loop a chance to end
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
 
     _save();
 
@@ -206,7 +211,7 @@ class NesController {
     await loadRom(path);
   }
 
-  Future<void> loadRom(String path) async {
+  Future<void> loadRom(String path, {NESState? state}) async {
     suspend();
 
     try {
@@ -214,7 +219,11 @@ class NesController {
 
       final newNes = NES(cartridge: cartridge, eventBus: eventBus)..reset();
 
-      _handleAutoLoad(newNes);
+      final newState = state ?? _handleAutoLoad(newNes);
+
+      if (newState != null) {
+        newNes.state = newState;
+      }
 
       nesState.run(newNes);
 
@@ -235,7 +244,7 @@ class NesController {
 
   void saveState(int slot) {
     if (nes case final nes?) {
-      final data = nes.serialize();
+      final data = nes.state.serialize();
 
       romManager.saveState(nes.bus.cartridge.romInfo, slot, data);
 
@@ -250,7 +259,7 @@ class NesController {
       if (saveState == null) {
         toaster.send(Toast.warning('No save state found in slot $slot'));
       } else {
-        nes.deserialize(saveState);
+        nes.state = NESState.fromBytes(saveState);
 
         toaster.send(Toast.info('State loaded from slot $slot'));
       }
@@ -360,24 +369,26 @@ class NesController {
     }
   }
 
-  void _handleAutoLoad(NES newNes) {
+  NESState? _handleAutoLoad(NES newNes) {
     if (!settingsController.autoLoad) {
-      return;
+      return null;
     }
 
     final data = romManager.loadLatestState(newNes.bus.cartridge.romInfo);
 
-    if (data != null) {
-      newNes.deserialize(data);
-
-      toaster.send(Toast.info('Loaded latest save state'));
+    if (data == null) {
+      return null;
     }
+
+    toaster.send(Toast.info('Loaded latest save state'));
+
+    return NESState.fromBytes(data);
   }
 
   void _autoSave() {
     if (nes case final nes?) {
       if (nes.running) {
-        final data = nes.serialize();
+        final data = nes.state.serialize();
 
         romManager.saveState(nes.bus.cartridge.romInfo, 0, data);
 

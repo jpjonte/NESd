@@ -1,6 +1,8 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
+import 'package:nesd/payload_types/uint8_list.dart';
 
 class CartridgeState {
   const CartridgeState({
@@ -9,6 +11,24 @@ class CartridgeState {
     required this.mapperId,
     required this.mapperState,
   });
+
+  factory CartridgeState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => CartridgeState._version0(reader),
+      _ => throw InvalidSerializationVersion('CartridgeState', version),
+    };
+  }
+
+  factory CartridgeState._version0(PayloadReader reader) {
+    return CartridgeState(
+      chr: reader.get(uint8List),
+      sram: reader.get(uint8List),
+      mapperId: reader.get(uint8),
+      mapperState: MapperState.deserialize(reader),
+    );
+  }
 
   CartridgeState.dummy()
       : this(
@@ -25,11 +45,21 @@ class CartridgeState {
   final int mapperId;
 
   final MapperState mapperState;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8List, chr)
+      ..set(uint8List, sram)
+      ..set(uint8, mapperId);
+
+    mapperState.serialize(writer);
+  }
 }
 
-class _CartridgeStateContract extends BinaryContract<CartridgeState>
+class _LegacyCartridgeStateContract extends BinaryContract<CartridgeState>
     implements CartridgeState {
-  _CartridgeStateContract() : super(CartridgeState.dummy());
+  _LegacyCartridgeStateContract() : super(CartridgeState.dummy());
 
   @override
   CartridgeState order(CartridgeState contract) {
@@ -51,7 +81,11 @@ class _CartridgeStateContract extends BinaryContract<CartridgeState>
   int get mapperId => type(uint8, (o) => o.mapperId);
 
   @override
-  MapperState get mapperState => type(mapperStateType, (o) => o.mapperState);
+  MapperState get mapperState =>
+      type(legacyMapperStateType, (o) => o.mapperState);
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-final cartridgeStateContract = _CartridgeStateContract();
+final legacyCartridgeStateContract = _LegacyCartridgeStateContract();

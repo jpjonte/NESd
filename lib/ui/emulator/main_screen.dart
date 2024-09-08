@@ -12,6 +12,7 @@ import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -48,7 +49,9 @@ class MainScreen extends HookConsumerWidget {
     ref
       ..watch(actionHandlerProvider)
       ..watch(gamepadInputHandlerProvider)
-      ..watch(toasterProvider);
+      ..watch(toasterProvider)
+      ..watch(nesControllerProvider)
+      ..watch(romManagerProvider);
 
     final cartridge = nes?.bus.cartridge;
 

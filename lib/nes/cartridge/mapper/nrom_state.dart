@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class NROMState extends MapperState {
@@ -7,9 +5,4 @@ class NROMState extends MapperState {
 
   @override
   int get byteLength => 0;
-
-  @override
-  void toByteData(ByteData data, int offset) {
-    // No-op
-  }
 }

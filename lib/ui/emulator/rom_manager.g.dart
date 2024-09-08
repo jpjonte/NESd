@@ -10,12 +10,14 @@ RomInfo _$RomInfoFromJson(Map<String, dynamic> json) => RomInfo(
       name: json['name'] as String,
       path: json['path'] as String,
       hash: json['hash'] as String,
+      slot: (json['slot'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
       'name': instance.name,
       'path': instance.path,
       'hash': instance.hash,
+      'slot': instance.slot,
     };
 
 // **************************************************************************

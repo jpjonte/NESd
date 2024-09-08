@@ -1,10 +1,28 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/payload_types/uint8_list.dart';
 
 class FrameBuffer {
   FrameBuffer({
     required this.width,
     required this.height,
   }) : pixels = Uint8List(height * width * 4);
+
+  factory FrameBuffer.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => FrameBuffer._version0(reader),
+      _ => throw InvalidSerializationVersion('FrameBuffer', version),
+    };
+  }
+
+  factory FrameBuffer._version0(PayloadReader reader) {
+    return FrameBuffer(
+      width: reader.get(uint32),
+      height: reader.get(uint32),
+    )..setPixels(reader.get(uint8List));
+  }
 
   final int width;
   final int height;
@@ -22,17 +40,19 @@ class FrameBuffer {
   void setPixels(Uint8List pixels) {
     this.pixels.setAll(0, pixels);
   }
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint32, width)
+      ..set(uint32, height)
+      ..set(uint8List, pixels);
+  }
 }
 
-class _FrameBufferContract extends BinaryContract<FrameBuffer>
+class _LegacyFrameBufferContract extends BinaryContract<FrameBuffer>
     implements FrameBuffer {
-  _FrameBufferContract()
-      : super(
-          FrameBuffer(
-            width: 0,
-            height: 0,
-          ),
-        );
+  _LegacyFrameBufferContract() : super(FrameBuffer(width: 0, height: 0));
 
   @override
   FrameBuffer order(FrameBuffer contract) {
@@ -55,6 +75,9 @@ class _FrameBufferContract extends BinaryContract<FrameBuffer>
 
   @override
   void setPixels(Uint8List pixels) {}
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-final frameBufferContract = _FrameBufferContract();
+final legacyFrameBufferContract = _LegacyFrameBufferContract();

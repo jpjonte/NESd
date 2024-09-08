@@ -118,6 +118,52 @@ class MenuRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [SaveStatesScreen]
+class SaveStatesRoute extends PageRouteInfo<SaveStatesRouteArgs> {
+  SaveStatesRoute({
+    required RomInfo romInfo,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+          SaveStatesRoute.name,
+          args: SaveStatesRouteArgs(
+            romInfo: romInfo,
+            key: key,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'SaveStatesRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SaveStatesRouteArgs>();
+      return SaveStatesScreen(
+        romInfo: args.romInfo,
+        key: args.key,
+      );
+    },
+  );
+}
+
+class SaveStatesRouteArgs {
+  const SaveStatesRouteArgs({
+    required this.romInfo,
+    this.key,
+  });
+
+  final RomInfo romInfo;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'SaveStatesRouteArgs{romInfo: $romInfo, key: $key}';
+  }
+}
+
+/// generated route for
 /// [SettingsScreen]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})

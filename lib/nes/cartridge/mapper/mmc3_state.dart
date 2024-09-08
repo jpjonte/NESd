@@ -1,5 +1,5 @@
-import 'dart:typed_data';
-
+import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class MMC3State extends MapperState {
@@ -24,7 +24,38 @@ class MMC3State extends MapperState {
     super.id = 4,
   });
 
-  factory MMC3State.fromByteData(ByteData data, int offset) {
+  factory MMC3State.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => MMC3State._version0(reader),
+      _ => throw InvalidSerializationVersion('MMC3', version),
+    };
+  }
+
+  factory MMC3State._version0(PayloadReader reader) {
+    return MMC3State(
+      register: reader.get(uint8),
+      r0: reader.get(uint8),
+      r1: reader.get(uint8),
+      r2: reader.get(uint8),
+      r3: reader.get(uint8),
+      r4: reader.get(uint8),
+      r5: reader.get(uint8),
+      r6: reader.get(uint8),
+      r7: reader.get(uint8),
+      prgBankMode: reader.get(uint8),
+      chrBankMode: reader.get(uint8),
+      mirroring: reader.get(uint8),
+      irqCounter: reader.get(uint8),
+      irqLatch: reader.get(uint8),
+      irqReload: reader.get(boolean),
+      irqEnabled: reader.get(boolean),
+      a12LowStart: reader.get(uint64),
+    );
+  }
+
+  factory MMC3State.legacyFromByteData(ByteData data, int offset) {
     return MMC3State(
       register: data.getUint8(offset),
       r0: data.getUint8(offset + 1),
@@ -74,24 +105,27 @@ class MMC3State extends MapperState {
   int get byteLength => 24;
 
   @override
-  void toByteData(ByteData data, int offset) {
-    data
-      ..setUint8(offset, register)
-      ..setUint8(offset + 1, r0)
-      ..setUint8(offset + 2, r1)
-      ..setUint8(offset + 3, r2)
-      ..setUint8(offset + 4, r3)
-      ..setUint8(offset + 5, r4)
-      ..setUint8(offset + 6, r5)
-      ..setUint8(offset + 7, r6)
-      ..setUint8(offset + 8, r7)
-      ..setUint8(offset + 9, prgBankMode)
-      ..setUint8(offset + 10, chrBankMode)
-      ..setUint8(offset + 11, mirroring)
-      ..setUint8(offset + 12, irqCounter)
-      ..setUint8(offset + 13, irqLatch)
-      ..setUint8(offset + 14, irqReload ? 1 : 0)
-      ..setUint8(offset + 15, irqEnabled ? 1 : 0)
-      ..setUint64(offset + 16, a12LowStart);
+  void serialize(PayloadWriter writer) {
+    super.serialize(writer);
+
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, register)
+      ..set(uint8, r0)
+      ..set(uint8, r1)
+      ..set(uint8, r2)
+      ..set(uint8, r3)
+      ..set(uint8, r4)
+      ..set(uint8, r5)
+      ..set(uint8, r6)
+      ..set(uint8, r7)
+      ..set(uint8, prgBankMode)
+      ..set(uint8, chrBankMode)
+      ..set(uint8, mirroring)
+      ..set(uint8, irqCounter)
+      ..set(uint8, irqLatch)
+      ..set(boolean, irqReload)
+      ..set(boolean, irqEnabled)
+      ..set(uint64, a12LowStart);
   }
 }
