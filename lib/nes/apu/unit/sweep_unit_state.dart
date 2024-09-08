@@ -1,4 +1,5 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class SweepUnitState {
   const SweepUnitState({
@@ -10,6 +11,27 @@ class SweepUnitState {
     required this.negate,
     required this.reload,
   });
+
+  factory SweepUnitState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => SweepUnitState._version0(reader),
+      _ => throw InvalidSerializationVersion('SweepUnitState', version),
+    };
+  }
+
+  factory SweepUnitState._version0(PayloadReader reader) {
+    return SweepUnitState(
+      enabled: reader.get(boolean),
+      muting: reader.get(boolean),
+      value: reader.get(uint8),
+      period: reader.get(uint8),
+      shift: reader.get(uint8),
+      negate: reader.get(boolean),
+      reload: reader.get(boolean),
+    );
+  }
 
   const SweepUnitState.dummy()
       : enabled = false,
@@ -29,11 +51,23 @@ class SweepUnitState {
 
   final bool negate;
   final bool reload;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(boolean, enabled)
+      ..set(boolean, muting)
+      ..set(uint8, value)
+      ..set(uint8, period)
+      ..set(uint8, shift)
+      ..set(boolean, negate)
+      ..set(boolean, reload);
+  }
 }
 
-class _SweepUnitStateContract extends BinaryContract<SweepUnitState>
+class _LegacySweepUnitStateContract extends BinaryContract<SweepUnitState>
     implements SweepUnitState {
-  const _SweepUnitStateContract() : super(const SweepUnitState.dummy());
+  const _LegacySweepUnitStateContract() : super(const SweepUnitState.dummy());
 
   @override
   SweepUnitState order(SweepUnitState contract) {
@@ -68,6 +102,9 @@ class _SweepUnitStateContract extends BinaryContract<SweepUnitState>
 
   @override
   bool get reload => type(boolean, (o) => o.reload);
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-const sweepUnitStateContract = _SweepUnitStateContract();
+const legacySweepUnitStateContract = _LegacySweepUnitStateContract();

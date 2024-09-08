@@ -1,4 +1,5 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/apu/unit/envelope_unit_state.dart';
 import 'package:nesd/nes/apu/unit/length_counter_unit_state.dart';
 
@@ -15,6 +16,30 @@ class NoiseChannelState {
     required this.envelopeState,
     required this.lengthCounterState,
   });
+
+  factory NoiseChannelState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => NoiseChannelState._version0(reader),
+      _ => throw InvalidSerializationVersion('NoiseChannelState', version),
+    };
+  }
+
+  factory NoiseChannelState._version0(PayloadReader reader) {
+    return NoiseChannelState(
+      enabled: reader.get(boolean),
+      constantVolume: reader.get(boolean),
+      volume: reader.get(uint8),
+      period: reader.get(uint8),
+      timerPeriod: reader.get(uint8),
+      timer: reader.get(uint8),
+      shiftRegister: reader.get(uint8),
+      mode: reader.get(boolean),
+      envelopeState: EnvelopeUnitState.deserialize(reader),
+      lengthCounterState: LengthCounterUnitState.deserialize(reader),
+    );
+  }
 
   const NoiseChannelState.dummy()
       : this(
@@ -46,11 +71,28 @@ class NoiseChannelState {
 
   final EnvelopeUnitState envelopeState;
   final LengthCounterUnitState lengthCounterState;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(boolean, enabled)
+      ..set(boolean, constantVolume)
+      ..set(uint8, volume)
+      ..set(uint8, period)
+      ..set(uint8, timerPeriod)
+      ..set(uint8, timer)
+      ..set(uint8, shiftRegister)
+      ..set(boolean, mode);
+
+    envelopeState.serialize(writer);
+    lengthCounterState.serialize(writer);
+  }
 }
 
-class _NoiseChannelStateContract extends BinaryContract<NoiseChannelState>
+class _LegacyNoiseChannelStateContract extends BinaryContract<NoiseChannelState>
     implements NoiseChannelState {
-  const _NoiseChannelStateContract() : super(const NoiseChannelState.dummy());
+  const _LegacyNoiseChannelStateContract()
+      : super(const NoiseChannelState.dummy());
 
   @override
   NoiseChannelState order(NoiseChannelState contract) {
@@ -94,15 +136,18 @@ class _NoiseChannelStateContract extends BinaryContract<NoiseChannelState>
 
   @override
   EnvelopeUnitState get envelopeState => type(
-        envelopeUnitStateContract,
+        legacyEnvelopeUnitStateContract,
         (o) => o.envelopeState,
       );
 
   @override
   LengthCounterUnitState get lengthCounterState => type(
-        lengthCounterUnitStateContract,
+        legacyLengthCounterUnitStateContract,
         (o) => o.lengthCounterState,
       );
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-const noiseChannelStateContract = _NoiseChannelStateContract();
+const legacyNoiseChannelStateContract = _LegacyNoiseChannelStateContract();

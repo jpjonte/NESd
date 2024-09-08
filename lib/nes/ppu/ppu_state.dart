@@ -1,8 +1,10 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
+import 'package:nesd/payload_types/uint8_list.dart';
 
 class PPUState {
   PPUState({
@@ -43,6 +45,56 @@ class PPUState {
     required this.sprite0OnCurrentLine,
     required this.spriteOutputs,
   });
+
+  factory PPUState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => PPUState.version0(reader),
+      _ => throw InvalidSerializationVersion('PPUState', version),
+    };
+  }
+
+  factory PPUState.version0(PayloadReader reader) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List),
+      oam: reader.get(uint8List),
+      secondaryOam: reader.get(uint8List),
+      palette: reader.get(uint8List),
+      frameBuffer: FrameBuffer.deserialize(reader),
+      cycles: reader.get(uint64),
+      cycle: reader.get(uint8),
+      scanline: reader.get(uint8),
+      frames: reader.get(uint8),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHighShift: reader.get(uint8),
+      patternTableLowShift: reader.get(uint8),
+      attributeTableLatch: reader.get(uint8),
+      attributeTableHighShift: reader.get(uint8),
+      attributeTableLowShift: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamAddress: reader.get(uint8),
+      oamBuffer: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+    );
+  }
 
   PPUState.dummy()
       : PPUCTRL = 0,
@@ -132,10 +184,56 @@ class PPUState {
   final bool sprite0OnCurrentLine;
 
   final List<SpriteOutputState> spriteOutputs;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, PPUCTRL)
+      ..set(uint8, PPUMASK)
+      ..set(uint8, PPUSTATUS)
+      ..set(uint8, OAMADDR)
+      ..set(uint8, OAMDATA)
+      ..set(uint8, PPUSCROLL)
+      ..set(uint8, PPUDATA)
+      ..set(uint16, v)
+      ..set(uint16, t)
+      ..set(uint8, x)
+      ..set(uint8, w)
+      ..set(uint8List, ram)
+      ..set(uint8List, oam)
+      ..set(uint8List, secondaryOam)
+      ..set(uint8List, palette);
+
+    frameBuffer.serialize(writer);
+
+    writer
+      ..set(uint64, cycles)
+      ..set(uint8, cycle)
+      ..set(uint8, scanline)
+      ..set(uint8, frames)
+      ..set(uint8, nametableLatch)
+      ..set(uint8, patternTableHighLatch)
+      ..set(uint8, patternTableLowLatch)
+      ..set(uint8, patternTableHighShift)
+      ..set(uint8, patternTableLowShift)
+      ..set(uint8, attributeTableLatch)
+      ..set(uint8, attributeTableHighShift)
+      ..set(uint8, attributeTableLowShift)
+      ..set(uint8, attribute)
+      ..set(uint8, oamAddress)
+      ..set(uint8, oamBuffer)
+      ..set(uint8, spriteCount)
+      ..set(uint8, secondarySpriteCount)
+      ..set(boolean, sprite0OnNextLine)
+      ..set(boolean, sprite0OnCurrentLine);
+
+    SpriteOutputState.serializeList(writer, spriteOutputs);
+  }
 }
 
-class _PPUStateContract extends BinaryContract<PPUState> implements PPUState {
-  _PPUStateContract() : super(PPUState.dummy());
+class _LegacyPPUStateContract extends BinaryContract<PPUState>
+    implements PPUState {
+  _LegacyPPUStateContract() : super(PPUState.dummy());
 
   @override
   PPUState order(PPUState contract) {
@@ -230,7 +328,7 @@ class _PPUStateContract extends BinaryContract<PPUState> implements PPUState {
 
   @override
   FrameBuffer get frameBuffer => type(
-        frameBufferContract,
+        legacyFrameBufferContract,
         (o) => o.frameBuffer,
       );
 
@@ -299,9 +397,12 @@ class _PPUStateContract extends BinaryContract<PPUState> implements PPUState {
 
   @override
   List<SpriteOutputState> get spriteOutputs => type(
-        list(spriteOutputStateContract),
+        list(legacySpriteOutputStateContract),
         (o) => o.spriteOutputs,
       );
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-final ppuStateContract = _PPUStateContract();
+final legacyPpuStateContract = _LegacyPPUStateContract();

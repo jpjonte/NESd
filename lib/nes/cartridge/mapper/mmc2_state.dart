@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
@@ -14,7 +13,27 @@ class MMC2State extends MapperState {
     super.id = 9,
   });
 
-  factory MMC2State.fromByteData(ByteData data, int offset) {
+  factory MMC2State.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => MMC2State._version0(reader),
+      _ => throw InvalidSerializationVersion('MMC2', version),
+    };
+  }
+
+  factory MMC2State._version0(PayloadReader reader) {
+    return MMC2State(
+      prgBank: reader.get(uint8),
+      chrBank0: [reader.get(uint8), reader.get(uint8)],
+      chrBank1: [reader.get(uint8), reader.get(uint8)],
+      chrLatch0: reader.get(uint8),
+      chrLatch1: reader.get(uint8),
+      mirroring: reader.get(uint8),
+    );
+  }
+
+  factory MMC2State.legacyFromByteData(ByteData data, int offset) {
     final version = data.getUint8(offset);
 
     return switch (version) {
@@ -48,16 +67,18 @@ class MMC2State extends MapperState {
   int get byteLength => 9;
 
   @override
-  void toByteData(ByteData data, int offset) {
-    data
-      ..setUint8(offset, 0)
-      ..setUint8(offset + 1, prgBank)
-      ..setUint8(offset + 2, chrBank0[0])
-      ..setUint8(offset + 3, chrBank0[1])
-      ..setUint8(offset + 4, chrBank1[0])
-      ..setUint8(offset + 5, chrBank1[1])
-      ..setUint8(offset + 6, chrLatch0)
-      ..setUint8(offset + 7, chrLatch1)
-      ..setUint8(offset + 8, mirroring);
+  void serialize(PayloadWriter writer) {
+    super.serialize(writer);
+
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, prgBank)
+      ..set(uint8, chrBank0[0])
+      ..set(uint8, chrBank0[1])
+      ..set(uint8, chrBank1[0])
+      ..set(uint8, chrBank1[1])
+      ..set(uint8, chrLatch0)
+      ..set(uint8, chrLatch1)
+      ..set(uint8, mirroring);
   }
 }

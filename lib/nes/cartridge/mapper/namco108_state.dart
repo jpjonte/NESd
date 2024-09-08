@@ -16,7 +16,30 @@ class Namco108State extends MapperState {
     super.id = 206,
   });
 
-  factory Namco108State.fromByteData(ByteData data, int offset) {
+  factory Namco108State.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => Namco108State._version0(reader),
+      _ => throw InvalidSerializationVersion('Namco108', version),
+    };
+  }
+
+  factory Namco108State._version0(PayloadReader reader) {
+    return Namco108State(
+      register: reader.get(uint8),
+      r0: reader.get(uint8),
+      r1: reader.get(uint8),
+      r2: reader.get(uint8),
+      r3: reader.get(uint8),
+      r4: reader.get(uint8),
+      r5: reader.get(uint8),
+      r6: reader.get(uint8),
+      r7: reader.get(uint8),
+    );
+  }
+
+  factory Namco108State.legacyFromByteData(ByteData data, int offset) {
     final version = data.getUint8(offset);
 
     return switch (version) {
@@ -54,17 +77,19 @@ class Namco108State extends MapperState {
   int get byteLength => 10;
 
   @override
-  void toByteData(ByteData data, int offset) {
-    data
-      ..setUint8(offset, 0) // version
-      ..setUint8(offset + 1, register)
-      ..setUint8(offset + 2, r0)
-      ..setUint8(offset + 3, r1)
-      ..setUint8(offset + 4, r2)
-      ..setUint8(offset + 5, r3)
-      ..setUint8(offset + 6, r4)
-      ..setUint8(offset + 7, r5)
-      ..setUint8(offset + 8, r6)
-      ..setUint8(offset + 9, r7);
+  void serialize(PayloadWriter writer) {
+    super.serialize(writer);
+
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, register)
+      ..set(uint8, r0)
+      ..set(uint8, r1)
+      ..set(uint8, r2)
+      ..set(uint8, r3)
+      ..set(uint8, r4)
+      ..set(uint8, r5)
+      ..set(uint8, r6)
+      ..set(uint8, r7);
   }
 }

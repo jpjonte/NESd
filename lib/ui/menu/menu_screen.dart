@@ -38,6 +38,21 @@ class MenuScreen extends HookConsumerWidget {
               ),
               const NesdVerticalDivider(),
               NesdButton(
+                autofocus: true,
+                onPressed: () => ref.read(routerProvider).navigate(
+                      SaveStatesRoute(
+                        romInfo: ref
+                            .read(nesControllerProvider)
+                            .nes!
+                            .bus
+                            .cartridge
+                            .romInfo,
+                      ),
+                    ),
+                child: const Text('Save States'),
+              ),
+              const NesdVerticalDivider(),
+              NesdButton(
                 onPressed: () =>
                     ref.read(routerProvider).push(const SettingsRoute()),
                 child: const Text('Settings'),

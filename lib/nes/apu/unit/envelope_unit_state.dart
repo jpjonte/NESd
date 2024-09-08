@@ -1,4 +1,5 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class EnvelopeUnitState {
   const EnvelopeUnitState({
@@ -8,6 +9,25 @@ class EnvelopeUnitState {
     required this.start,
     required this.loop,
   });
+
+  factory EnvelopeUnitState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => EnvelopeUnitState._version0(reader),
+      _ => throw InvalidSerializationVersion('EnvelopeUnitState', version),
+    };
+  }
+
+  factory EnvelopeUnitState._version0(PayloadReader reader) {
+    return EnvelopeUnitState(
+      volume: reader.get(uint8),
+      period: reader.get(uint8),
+      timer: reader.get(uint8),
+      start: reader.get(boolean),
+      loop: reader.get(boolean),
+    );
+  }
 
   const EnvelopeUnitState.dummy()
       : volume = 0,
@@ -21,14 +41,22 @@ class EnvelopeUnitState {
   final int timer;
   final bool start;
   final bool loop;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, volume)
+      ..set(uint8, period)
+      ..set(uint8, timer)
+      ..set(boolean, start)
+      ..set(boolean, loop);
+  }
 }
 
-class _EnvelopeUnitStateContract extends BinaryContract<EnvelopeUnitState>
+class _LegacyEnvelopeUnitStateContract extends BinaryContract<EnvelopeUnitState>
     implements EnvelopeUnitState {
-  const _EnvelopeUnitStateContract()
-      : super(
-          const EnvelopeUnitState.dummy(),
-        );
+  const _LegacyEnvelopeUnitStateContract()
+      : super(const EnvelopeUnitState.dummy());
 
   @override
   EnvelopeUnitState order(EnvelopeUnitState contract) {
@@ -55,6 +83,9 @@ class _EnvelopeUnitStateContract extends BinaryContract<EnvelopeUnitState>
 
   @override
   bool get loop => type(boolean, (o) => o.loop);
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-const envelopeUnitStateContract = _EnvelopeUnitStateContract();
+const legacyEnvelopeUnitStateContract = _LegacyEnvelopeUnitStateContract();

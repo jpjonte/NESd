@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
@@ -10,7 +9,23 @@ class GxROMState extends MapperState {
     super.id = 66,
   });
 
-  factory GxROMState.fromByteData(ByteData data, int offset) {
+  factory GxROMState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => GxROMState._version0(reader),
+      _ => throw InvalidSerializationVersion('GxROM', version),
+    };
+  }
+
+  factory GxROMState._version0(PayloadReader reader) {
+    return GxROMState(
+      prgBank: reader.get(uint8),
+      chrBank: reader.get(uint8),
+    );
+  }
+
+  factory GxROMState.legacyFromByteData(ByteData data, int offset) {
     final version = data.getUint8(offset);
 
     return switch (version) {
@@ -33,10 +48,12 @@ class GxROMState extends MapperState {
   int get byteLength => 3;
 
   @override
-  void toByteData(ByteData data, int offset) {
-    data
-      ..setUint8(offset, 0) // version
-      ..setUint8(offset + 1, prgBank)
-      ..setUint8(offset + 2, chrBank);
+  void serialize(PayloadWriter writer) {
+    super.serialize(writer);
+
+    writer
+      ..set(uint8, 0) // version
+      ..set(uint8, prgBank)
+      ..set(uint8, chrBank);
   }
 }

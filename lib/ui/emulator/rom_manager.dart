@@ -1,9 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
+import 'package:intl/intl.dart';
+import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,11 +29,13 @@ class RomInfo {
     required this.name,
     required this.path,
     required this.hash,
+    this.slot,
   });
 
   final String name;
   final String path;
   final String hash;
+  final int? slot;
 
   factory RomInfo.fromJson(Map<String, dynamic> json) =>
       _$RomInfoFromJson(json);
@@ -123,6 +130,61 @@ class RomManager {
     final filename = _getFilename('thumbnails', romInfo, '.png');
 
     return File(filename);
+  }
+
+  Future<RomTileData> getRomTileData(RomInfo romInfo) async {
+    return RomTileData(
+      romInfo: romInfo,
+      title: p.basenameWithoutExtension(romInfo.name),
+      thumbnail: await _getLastThumbnail(romInfo),
+    );
+  }
+
+  Future<RomTileData?> getRomTileDataForSlot(RomInfo romInfo, int slot) async {
+    final saveStateFile = _getSaveStateFile(romInfo, slot);
+
+    if (!saveStateFile.existsSync()) {
+      return null;
+    }
+
+    final data = saveStateFile.readAsBytesSync();
+
+    final state = NESState.fromBytes(data);
+
+    final lastModified = saveStateFile.lastModifiedSync();
+
+    return RomTileData(
+      romInfo: romInfo,
+      title: 'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
+      thumbnail: await _getStateThumbnail(state),
+      state: state,
+    );
+  }
+
+  Future<ui.Image> _getStateThumbnail(NESState state) async {
+    final frameBuffer = state.ppuState.frameBuffer;
+
+    return convertFrameBufferToImage(frameBuffer);
+  }
+
+  Future<ui.Image?> _getLastThumbnail(RomInfo romInfo) async {
+    final thumbnailFile = getThumbnailFile(romInfo);
+
+    if (!thumbnailFile.existsSync()) {
+      return null;
+    }
+
+    final bytes = thumbnailFile.readAsBytesSync();
+
+    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+
+    final descriptor = await ui.ImageDescriptor.encoded(buffer);
+
+    final codec = await descriptor.instantiateCodec();
+
+    final frameInfo = await codec.getNextFrame();
+
+    return frameInfo.image;
   }
 
   void _initializeDirectories() {

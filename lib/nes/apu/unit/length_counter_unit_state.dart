@@ -1,10 +1,27 @@
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class LengthCounterUnitState {
   const LengthCounterUnitState({
     required this.halt,
     required this.value,
   });
+
+  factory LengthCounterUnitState.deserialize(PayloadReader reader) {
+    final version = reader.get(uint8);
+
+    return switch (version) {
+      0 => LengthCounterUnitState._version0(reader),
+      _ => throw InvalidSerializationVersion('LengthCounterUnitState', version),
+    };
+  }
+
+  factory LengthCounterUnitState._version0(PayloadReader reader) {
+    return LengthCounterUnitState(
+      halt: reader.get(boolean),
+      value: reader.get(uint8),
+    );
+  }
 
   const LengthCounterUnitState.dummy()
       : halt = false,
@@ -13,12 +30,19 @@ class LengthCounterUnitState {
   final bool halt;
 
   final int value;
+
+  void serialize(PayloadWriter writer) {
+    writer
+      ..set(uint8, 0) // version
+      ..set(boolean, halt)
+      ..set(uint8, value);
+  }
 }
 
-class _LengthCounterUnitStateContract
+class _LegacyLengthCounterUnitStateContract
     extends BinaryContract<LengthCounterUnitState>
     implements LengthCounterUnitState {
-  const _LengthCounterUnitStateContract()
+  const _LegacyLengthCounterUnitStateContract()
       : super(const LengthCounterUnitState.dummy());
 
   @override
@@ -34,6 +58,10 @@ class _LengthCounterUnitStateContract
 
   @override
   int get value => type(uint8, (o) => o.value);
+
+  @override
+  void serialize(PayloadWriter writer) => throw UnimplementedError();
 }
 
-const lengthCounterUnitStateContract = _LengthCounterUnitStateContract();
+const legacyLengthCounterUnitStateContract =
+    _LegacyLengthCounterUnitStateContract();

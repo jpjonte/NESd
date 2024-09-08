@@ -29,6 +29,7 @@ dependencies:
       path: packages/gamepads
   hooks_riverpod: ^2.5.1
   image: ^4.2.0
+  intl: ^0.19.0
   json_annotation: ^4.9.0
   mp_audio_stream:
     git:

@@ -52,4 +52,5 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 <img src="docs/smb.png" style="width: 49%" /> <img src="docs/zelda.png" style="width: 49%" />
 <img src="docs/kirby.png" style="width: 49%" /> <img src="docs/punch_out.png" style="width: 49%" />
 <img src="docs/list.png" style="width: 100%;" />
+<img src="docs/save_states.png" style="width: 100%;" />
 <img src="docs/debugging.png" style="width: 100%;" />
