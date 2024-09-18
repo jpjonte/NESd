@@ -106,7 +106,7 @@ class RomList extends HookConsumerWidget {
 
         final count = columnCount * rowCount;
 
-        final pages = (roms.length / count).ceil();
+        final pages = count > 0 ? (roms.length / count).ceil() : 1;
 
         final romPaths = roms.skip(page.value * count).take(count).toList();
 

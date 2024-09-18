@@ -31,19 +31,21 @@ class MainMenu extends ConsumerWidget {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: ListView(
-            children: [
-              const RecentRomList(),
-              if (settings.recentRomPaths.isNotEmpty)
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const RecentRomList(),
+                if (settings.recentRomPaths.isNotEmpty)
+                  const NesdVerticalDivider(),
+                const OpenRomButton(),
                 const NesdVerticalDivider(),
-              const OpenRomButton(),
-              const NesdVerticalDivider(),
-              const SettingsButton(),
-              const NesdVerticalDivider(),
-              const AboutButton(),
-              const NesdVerticalDivider(),
-              const QuitButton(),
-            ],
+                const SettingsButton(),
+                const NesdVerticalDivider(),
+                const AboutButton(),
+                const NesdVerticalDivider(),
+                const QuitButton(),
+              ],
+            ),
           ),
         ),
       ),

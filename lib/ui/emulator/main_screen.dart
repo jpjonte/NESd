@@ -73,7 +73,9 @@ class MainScreen extends HookConsumerWidget {
               return Row(
                 children: [
                   const Expanded(child: EmulatorWidget()),
-                  if (settings.showTiles || settings.showCartridgeInfo)
+                  if (settings.showTiles ||
+                      settings.showCartridgeInfo ||
+                      settings.showDebugger)
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 512),
                       child: Column(

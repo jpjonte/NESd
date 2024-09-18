@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
@@ -9,7 +9,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/router.dart';
 
 @RoutePage()
-class MenuScreen extends HookConsumerWidget {
+class MenuScreen extends ConsumerWidget {
   const MenuScreen({super.key});
 
   @override
@@ -27,53 +27,74 @@ class MenuScreen extends HookConsumerWidget {
       ),
       body: Center(
         child: NesdMenuWrapper(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              NesdButton(
-                autofocus: true,
-                onPressed: () =>
-                    ref.read(routerProvider).navigate(const MainRoute()),
-                child: const Text('Resume'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                autofocus: true,
-                onPressed: () => ref.read(routerProvider).navigate(
-                      SaveStatesRoute(
-                        romInfo: ref
-                            .read(nesControllerProvider)
-                            .nes!
-                            .bus
-                            .cartridge
-                            .romInfo,
-                      ),
-                    ),
-                child: const Text('Save States'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () =>
-                    ref.read(routerProvider).push(const SettingsRoute()),
-                child: const Text('Settings'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () {
-                  ref.read(nesControllerProvider).stop();
-                  ref.read(routerProvider).navigate(const MainRoute());
-                },
-                child: const Text('Quit Game'),
-              ),
-              const NesdVerticalDivider(),
-              NesdButton(
-                onPressed: () {
-                  ref.read(nesControllerProvider).stop();
-                  quit();
-                },
-                child: const Text('Quit NESd'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Center(
+                  child: NesdButton(
+                    autofocus: true,
+                    onPressed: () =>
+                        ref.read(routerProvider).navigate(const MainRoute()),
+                    child: const Text('Resume'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    autofocus: true,
+                    onPressed: () => ref.read(routerProvider).navigate(
+                          SaveStatesRoute(
+                            romInfo: ref
+                                .read(nesControllerProvider)
+                                .nes!
+                                .bus
+                                .cartridge
+                                .romInfo,
+                          ),
+                        ),
+                    child: const Text('Save States'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    onPressed: () {
+                      ref.read(nesControllerProvider).reset();
+                      ref.read(routerProvider).navigate(const MainRoute());
+                    },
+                    child: const Text('Reset Game'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    onPressed: () {
+                      ref.read(nesControllerProvider).stop();
+                      ref.read(routerProvider).navigate(const MainRoute());
+                    },
+                    child: const Text('Quit Game'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    onPressed: () =>
+                        ref.read(routerProvider).push(const SettingsRoute()),
+                    child: const Text('Settings'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    onPressed: () {
+                      ref.read(nesControllerProvider).stop();
+                      quit();
+                    },
+                    child: const Text('Quit NESd'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

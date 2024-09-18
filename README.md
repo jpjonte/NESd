@@ -19,7 +19,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - Customizable controls with multiple bindings per action
 - Gamepad support
 - Load ROMs from file or ZIP archive
-- Touch screen controls
+- Customizable touch screen controls
 - Debug overlay
 - Debugging tools
   - Debugger

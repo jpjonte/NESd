@@ -34,7 +34,19 @@ final filledButtonTheme = FilledButtonThemeData(
     overlayColor: WidgetStateProperty.resolveWith((states) {
       return nesdRed[500];
     }),
-    backgroundColor: WidgetStateProperty.all(nesdRed[800]),
+    backgroundColor: WidgetStateProperty.resolveWith(
+      (states) {
+        if (states.contains(WidgetState.disabled)) {
+          return Colors.grey[900];
+        }
+
+        if (states.contains(WidgetState.pressed)) {
+          return nesdRed[600];
+        }
+
+        return nesdRed[800];
+      },
+    ),
     foregroundColor: WidgetStateProperty.all(Colors.white),
     shape: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.focused)) {
@@ -80,7 +92,7 @@ final nesdThemeLight = ThemeData(
 );
 
 final dialogThemeDark = DialogTheme(
-  backgroundColor: const Color(0xFF1a1a1a),
+  backgroundColor: nesdRed[900],
   shadowColor: nesdRed[600],
   elevation: 4,
 );

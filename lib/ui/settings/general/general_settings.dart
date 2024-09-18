@@ -9,14 +9,16 @@ class GeneralSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsTab(
+    return const SettingsTab(
       index: 0,
-      child: ListView(
-        children: const [
-          AutoSaveSwitch(),
-          AutoSaveInterval(),
-          AutoLoadSwitch(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            AutoSaveSwitch(),
+            AutoSaveInterval(),
+            AutoLoadSwitch(),
+          ],
+        ),
       ),
     );
   }

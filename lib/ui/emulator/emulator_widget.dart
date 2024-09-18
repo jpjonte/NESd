@@ -14,9 +14,9 @@ class EmulatorWidget extends ConsumerWidget {
 
     return Stack(
       children: [
-        const DisplayWidget(),
+        const FrameBufferStreamBuilder(),
         if (settings.showDebugOverlay) const DebugOverlay(),
-        if (settings.showTouchControls) const TouchControls(),
+        if (settings.showTouchControls) const TouchControlsBuilder(),
       ],
     );
   }

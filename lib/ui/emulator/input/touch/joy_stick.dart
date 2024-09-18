@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class JoyStick extends HookConsumerWidget {
@@ -19,7 +20,11 @@ class JoyStick extends HookConsumerWidget {
     final position = useState(Alignment.center);
     final active = useState(false);
 
-    void handleEdge(double previous, double current, NesAction action) {
+    void handleEdge(double previous, double current, NesAction? action) {
+      if (action == null) {
+        return;
+      }
+
       final inside = current > config.deadZone;
 
       if (previous <= config.deadZone != inside) {
@@ -49,8 +54,10 @@ class JoyStick extends HookConsumerWidget {
       handleEdge(previous.y, position.value.y, config.downAction);
     }
 
-    return Align(
+    return AlignTouchControl(
       alignment: Alignment(config.x, config.y),
+      width: config.size,
+      height: config.size,
       child: GestureDetector(
         onPanStart: (details) {
           active.value = true;
@@ -61,11 +68,21 @@ class JoyStick extends HookConsumerWidget {
           active.value = false;
           position.value = Alignment.center;
 
-          actionStream
-            ..add((action: config.upAction, value: 0.0))
-            ..add((action: config.downAction, value: 0.0))
-            ..add((action: config.leftAction, value: 0.0))
-            ..add((action: config.rightAction, value: 0.0));
+          if (config.upAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.downAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.leftAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.rightAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
         },
         child: Container(
           width: config.size,

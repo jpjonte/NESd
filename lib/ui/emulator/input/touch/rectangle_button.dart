@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_button.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
@@ -12,8 +13,10 @@ class RectangleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
+    return AlignTouchControl(
       alignment: Alignment(config.x, config.y),
+      width: config.width,
+      height: config.height,
       child: TouchButton(
         width: config.width,
         height: config.height,

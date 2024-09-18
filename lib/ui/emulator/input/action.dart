@@ -13,11 +13,15 @@ sealed class NesAction {
     required this.code,
   });
 
-  factory NesAction.fromCode(String code) {
+  static NesAction? fromCode(String? code) {
+    if (code == null) {
+      return null;
+    }
+
     return allActions.firstWhere((action) => action.code == code);
   }
 
-  static String toJson(NesAction action) => action.code;
+  static String? toJson(NesAction? action) => action?.code;
 
   final String title;
   final String code;
