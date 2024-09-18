@@ -9,6 +9,7 @@ import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/controls/reset_bindings_button.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
+import 'package:nesd/ui/settings/controls/touch_editor_button.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,19 +23,16 @@ class ControlsSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsTab(
       index: 3,
-      child: Column(
-        children: [
-          const ShowTouchControlsSwitch(),
-          const ResetBindingsButton(),
-          const ProfileSelectionHeader(),
-          Expanded(
-            child: ListView(
-              children: [
-                for (final action in allActions) BindingTile(action: action),
-              ],
-            ),
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            const ShowTouchControlsSwitch(),
+            const ResetBindingsButton(),
+            const TouchEditorButton(),
+            const ProfileSelectionHeader(),
+            for (final action in allActions) BindingTile(action: action),
+          ],
+        ),
       ),
     );
   }

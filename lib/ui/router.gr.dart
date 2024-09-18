@@ -181,3 +181,22 @@ class SettingsRoute extends PageRouteInfo<void> {
     },
   );
 }
+
+/// generated route for
+/// [TouchEditorScreen]
+class TouchEditorRoute extends PageRouteInfo<void> {
+  const TouchEditorRoute({List<PageRouteInfo>? children})
+      : super(
+          TouchEditorRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'TouchEditorRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const TouchEditorScreen();
+    },
+  );
+}

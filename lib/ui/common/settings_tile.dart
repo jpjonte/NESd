@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nesd/ui/common/nesd_button.dart';
 
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
@@ -116,6 +117,31 @@ class IconButtonSettingsTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(right: 16),
         child: Icon(icon, size: 32),
+      ),
+    );
+  }
+}
+
+class ButtonSettingsTile extends StatelessWidget {
+  const ButtonSettingsTile({
+    required this.title,
+    required this.onPressed,
+    super.key,
+  });
+
+  final Widget title;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsTile(
+      onTap: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: NesdButton(
+          onPressed: onPressed,
+          child: title,
+        ),
       ),
     );
   }

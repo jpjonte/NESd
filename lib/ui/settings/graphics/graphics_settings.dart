@@ -9,14 +9,16 @@ class GraphicsSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsTab(
+    return const SettingsTab(
       index: 1,
-      child: ListView(
-        children: const [
-          StretchSwitch(),
-          BorderSwitch(),
-          ScalingDropdown(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            StretchSwitch(),
+            BorderSwitch(),
+            ScalingDropdown(),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,6 @@
-# NESd
+<p align="center">
+  <img src="assets/logo.png" width="50%" />
+</p>
 
 <p align="center">
 <img src="https://img.shields.io/github/actions/workflow/status/jpjonte/nesd/ci.yaml" alt="CI status" />
@@ -19,7 +21,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - Customizable controls with multiple bindings per action
 - Gamepad support
 - Load ROMs from file or ZIP archive
-- Touch screen controls
+- Customizable touch screen controls
 - Debug overlay
 - Debugging tools
   - Debugger

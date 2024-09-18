@@ -5,24 +5,33 @@ class NesdButton extends StatelessWidget {
   const NesdButton({
     required this.child,
     this.autofocus = false,
+    this.icon,
     this.onPressed,
     super.key,
   });
 
   final Widget child;
-  final VoidCallback? onPressed;
   final bool autofocus;
+  final Icon? icon;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return FocusOnHover(
       child: SizedBox(
         width: 200,
-        child: FilledButton(
-          autofocus: autofocus,
-          onPressed: onPressed,
-          child: child,
-        ),
+        child: icon != null
+            ? FilledButton.icon(
+                autofocus: autofocus,
+                onPressed: onPressed,
+                icon: icon,
+                label: child,
+              )
+            : FilledButton(
+                autofocus: autofocus,
+                onPressed: onPressed,
+                child: child,
+              ),
       ),
     );
   }

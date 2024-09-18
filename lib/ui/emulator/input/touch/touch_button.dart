@@ -11,15 +11,15 @@ class TouchButton extends HookConsumerWidget {
     required this.width,
     required this.height,
     required this.label,
-    required this.action,
     required this.decorationBuilder,
+    this.action,
     super.key,
   });
 
   final double width;
   final double height;
   final String label;
-  final NesAction action;
+  final NesAction? action;
   final Decoration Function(Color) decorationBuilder;
 
   @override
@@ -30,7 +30,9 @@ class TouchButton extends HookConsumerWidget {
     void up() {
       active.value = false;
 
-      actionStream.add((action: action, value: 0.0));
+      if (action case final action?) {
+        actionStream.add((action: action, value: 0.0));
+      }
     }
 
     final color =
@@ -40,7 +42,9 @@ class TouchButton extends HookConsumerWidget {
       onTapDown: (_) {
         active.value = true;
 
-        actionStream.add((action: action, value: 1.0));
+        if (action case final action?) {
+          actionStream.add((action: action, value: 1.0));
+        }
       },
       onTapCancel: up,
       onTapUp: (_) => up(),

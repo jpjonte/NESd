@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class DPad extends HookConsumerWidget {
@@ -51,11 +52,15 @@ class DPad extends HookConsumerWidget {
     );
 
     void handleEdge(
-      NesAction action,
+      NesAction? action,
       Rect rect,
       Offset previous,
       Offset current,
     ) {
+      if (action == null) {
+        return;
+      }
+
       if (rect.contains(previous) != rect.contains(current)) {
         actionStream.add(
           (action: action, value: rect.contains(current) ? 1.0 : 0.0),
@@ -76,19 +81,31 @@ class DPad extends HookConsumerWidget {
 
     final borderRadius = Radius.circular(config.size * config.deadZone / 4);
 
-    return Align(
+    return AlignTouchControl(
       alignment: Alignment(config.x, config.y),
+      width: config.size,
+      height: config.size,
       child: GestureDetector(
         onPanStart: (details) => updatePosition(details.localPosition),
         onPanUpdate: (details) => updatePosition(details.localPosition),
         onPanEnd: (_) {
           position.value = Offset.zero;
 
-          actionStream
-            ..add((action: config.upAction, value: 0.0))
-            ..add((action: config.downAction, value: 0.0))
-            ..add((action: config.leftAction, value: 0.0))
-            ..add((action: config.rightAction, value: 0.0));
+          if (config.upAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.downAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.leftAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
+
+          if (config.rightAction case final action?) {
+            actionStream.add((action: action, value: 0.0));
+          }
         },
         child: SizedBox(
           width: config.size,

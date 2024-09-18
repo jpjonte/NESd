@@ -32,24 +32,23 @@ Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
   return frame.image;
 }
 
-class DisplayWidget extends HookConsumerWidget {
-  const DisplayWidget({super.key});
+class FrameBufferStreamBuilder extends HookConsumerWidget {
+  const FrameBufferStreamBuilder({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsControllerProvider);
-    final nes = ref.watch(nesStateProvider);
     final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
     final eventBus = ref.watch(eventBusProvider);
+    final nes = ref.watch(nesStateProvider);
+
+    if (nes == null) {
+      return const SizedBox();
+    }
 
     useStream(
       eventBus.stream
           .where((event) => event is FrameNesEvent || event is SuspendNesEvent),
     );
-
-    if (nes == null) {
-      return const SizedBox();
-    }
 
     return Focus(
       autofocus: true,
@@ -57,71 +56,118 @@ class DisplayWidget extends HookConsumerWidget {
           keyboardInputHandler.handleKeyEvent(event)
               ? KeyEventResult.handled
               : KeyEventResult.ignored,
-      child: Stack(
-        children: [
-          FutureBuilder(
-            future: convertFrameBufferToImage(nes.ppu.frameBuffer),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
+      child: DisplayWidget(
+        paused: nes.paused,
+        fastForward: nes.fastForward,
+        frameBuffer: nes.ppu.frameBuffer,
+      ),
+    );
+  }
+}
 
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+class DisplayWidget extends ConsumerWidget {
+  const DisplayWidget({
+    required this.frameBuffer,
+    this.paused = false,
+    this.fastForward = false,
+    super.key,
+  });
 
-              final image = snapshot.data;
+  final FrameBuffer frameBuffer;
 
-              if (image == null) {
-                return const Center(child: Text('Failed to load image'));
-              }
+  final bool paused;
+  final bool fastForward;
 
-              final widthScale = settings.stretch ? 8 / 7 : 1.0;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Stack(
+      children: [
+        FutureBuilder(
+          future: convertFrameBufferToImage(frameBuffer),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-              return LayoutBuilder(
-                builder: (_, constraints) {
-                  final scale = _calculateScale(
-                    settings,
-                    Size(constraints.maxWidth, constraints.maxHeight),
-                    image,
-                  );
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                  final narrow = constraints.maxWidth < constraints.maxHeight;
+            final image = snapshot.data;
 
-                  return ConstrainedBox(
-                    constraints: constraints,
-                    child: ClipRect(
-                      child: CustomPaint(
-                        painter: EmulatorPainter(
-                          image: image,
-                          paused: !nes.running,
-                          fastForward: nes.fastForward,
-                          scale: scale,
-                          widthScale: widthScale,
-                          showBorder: settings.showBorder,
-                          anchorAtTop: settings.showTouchControls && narrow,
-                        ),
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () =>
-                    AutoRouter.of(context).navigate(const MenuRoute()),
-              ),
+            if (image == null) {
+              return const Center(child: Text('Failed to load image'));
+            }
+
+            return DisplayBuilder(
+              paused: paused,
+              fastForward: fastForward,
+              image: image,
+            );
+          },
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () =>
+                  AutoRouter.of(context).navigate(const MenuRoute()),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+}
+
+class DisplayBuilder extends ConsumerWidget {
+  const DisplayBuilder({
+    required this.image,
+    this.paused = false,
+    this.fastForward = false,
+    super.key,
+  });
+
+  final bool paused;
+  final bool fastForward;
+
+  final ui.Image image;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsControllerProvider);
+    final widthScale = settings.stretch ? 8 / 7 : 1.0;
+
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final scale = _calculateScale(
+          settings,
+          Size(constraints.maxWidth, constraints.maxHeight),
+          image,
+        );
+
+        final narrow = constraints.maxWidth < constraints.maxHeight;
+
+        return ConstrainedBox(
+          constraints: constraints,
+          child: ClipRect(
+            child: CustomPaint(
+              painter: EmulatorPainter(
+                image: image,
+                paused: paused,
+                fastForward: fastForward,
+                scale: scale,
+                widthScale: widthScale,
+                showBorder: settings.showBorder,
+                anchorAtTop: settings.showTouchControls && narrow,
+              ),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -220,7 +266,7 @@ class EmulatorPainter extends CustomPainter {
 
     final center = Offset(
       size.width / 2,
-      anchorAtTop ? height / 2 + 150 : size.height / 2,
+      anchorAtTop ? size.height / 4 : size.height / 2,
     );
 
     final topLeft =

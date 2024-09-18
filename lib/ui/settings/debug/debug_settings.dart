@@ -10,15 +10,17 @@ class DebugSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsTab(
+    return const SettingsTab(
       index: 4,
-      child: ListView(
-        children: const [
-          DebugTileSwitch(),
-          CartridgeSwitch(),
-          DebugOverlaySwitch(),
-          DebuggerSwitch(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            DebugTileSwitch(),
+            CartridgeSwitch(),
+            DebugOverlaySwitch(),
+            DebuggerSwitch(),
+          ],
+        ),
       ),
     );
   }

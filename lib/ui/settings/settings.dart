@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/ui/emulator/input/action.dart';
@@ -30,6 +31,11 @@ BindingMap bindingsFromJson(
   for (final MapEntry(key: code, :value) in json.entries) {
     try {
       final action = NesAction.fromCode(code);
+
+      if (action == null) {
+        continue;
+      }
+
       final inputs = inputsFromJson(value);
 
       bindings[action] = inputs;
@@ -73,7 +79,7 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
 
 List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
-    return defaultNarrowConfig;
+    return defaultPortraitConfig;
   }
 
   return touchInputConfigsFromJson(json);
@@ -81,7 +87,7 @@ List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
 
 List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
-    return defaultWideConfig;
+    return defaultLandscapeConfig;
   }
 
   return touchInputConfigsFromJson(json);
@@ -298,17 +304,111 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(bindings: defaultBindings));
   }
 
-  List<TouchInputConfig> get narrowTouchInputConfig =>
-      state.narrowTouchInputConfig;
-
-  set narrowTouchInputConfig(List<TouchInputConfig> narrowTouchInputConfig) {
-    _update(state.copyWith(narrowTouchInputConfig: narrowTouchInputConfig));
+  List<TouchInputConfig> touchInputConfigsForOrientation(
+    Orientation orientation,
+  ) {
+    return switch (orientation) {
+      Orientation.portrait => portraitTouchInputConfig,
+      Orientation.landscape => landscapeTouchInputConfig,
+    };
   }
 
-  List<TouchInputConfig> get wideTouchInputConfig => state.wideTouchInputConfig;
+  TouchInputConfig touchInputConfigForOrientation(
+    Orientation orientation,
+    int index,
+  ) {
+    return touchInputConfigsForOrientation(orientation)[index];
+  }
 
-  set wideTouchInputConfig(List<TouchInputConfig> wideTouchInputConfig) {
-    _update(state.copyWith(wideTouchInputConfig: wideTouchInputConfig));
+  (int, TouchInputConfig)? touchInputConfigAtPosition(
+    Orientation orientation,
+    Size viewport,
+    Offset position,
+  ) {
+    final configs = touchInputConfigsForOrientation(orientation);
+
+    for (var i = 0; i < configs.length; i++) {
+      final config = configs[i];
+
+      if (config.boundingBox(viewport).contains(position)) {
+        return (i, config);
+      }
+    }
+
+    return null;
+  }
+
+  void updateTouchInputConfigs(
+    Orientation orientation,
+    List<TouchInputConfig> configs,
+  ) {
+    switch (orientation) {
+      case Orientation.portrait:
+        portraitTouchInputConfig = configs;
+      case Orientation.landscape:
+        landscapeTouchInputConfig = configs;
+    }
+  }
+
+  void setTouchInputConfig(
+    Orientation orientation,
+    int index,
+    TouchInputConfig config,
+  ) {
+    final newConfigs = List.of(touchInputConfigsForOrientation(orientation));
+
+    newConfigs[index] = config;
+
+    updateTouchInputConfigs(orientation, newConfigs);
+  }
+
+  void addTouchInputConfig(
+    Orientation orientation,
+    TouchInputConfig config,
+  ) {
+    updateTouchInputConfigs(orientation, [
+      ...touchInputConfigsForOrientation(orientation),
+      config,
+    ]);
+  }
+
+  void removeTouchInputConfig(
+    Orientation orientation,
+    int index,
+  ) {
+    updateTouchInputConfigs(
+      orientation,
+      List.of(touchInputConfigsForOrientation(orientation))..removeAt(index),
+    );
+  }
+
+  List<TouchInputConfig> get portraitTouchInputConfig =>
+      state.narrowTouchInputConfig;
+
+  set portraitTouchInputConfig(
+    List<TouchInputConfig> portraitTouchInputConfig,
+  ) {
+    _update(state.copyWith(narrowTouchInputConfig: portraitTouchInputConfig));
+  }
+
+  List<TouchInputConfig> get landscapeTouchInputConfig =>
+      state.wideTouchInputConfig;
+
+  set landscapeTouchInputConfig(
+    List<TouchInputConfig> landscapeTouchInputConfig,
+  ) {
+    _update(state.copyWith(wideTouchInputConfig: landscapeTouchInputConfig));
+  }
+
+  Future<void> resetTouchInputConfigs(Orientation orientation) async {
+    _update(
+      switch (orientation) {
+        Orientation.portrait =>
+          state.copyWith(narrowTouchInputConfig: defaultPortraitConfig),
+        Orientation.landscape =>
+          state.copyWith(wideTouchInputConfig: defaultLandscapeConfig),
+      },
+    );
   }
 
   Map<String, List<Breakpoint>> get breakpoints => state.breakpoints;
