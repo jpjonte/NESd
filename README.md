@@ -1,4 +1,6 @@
-# NESd
+<p align="center">
+  <img src="assets/logo.png" width="50%" />
+</p>
 
 <p align="center">
 <img src="https://img.shields.io/github/actions/workflow/status/jpjonte/nesd/ci.yaml" alt="CI status" />
