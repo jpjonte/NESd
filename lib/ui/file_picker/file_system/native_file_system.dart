@@ -15,7 +15,7 @@ class NativeFileSystem extends FileSystem {
             path: e.path,
             type: switch (e) {
               File() => FileSystemFileType.file,
-              Directory() => FileSystemFileType.directory,
+              Directory() || Link() => FileSystemFileType.directory,
               _ => throw UnimplementedError(),
             },
           ),
