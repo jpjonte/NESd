@@ -9,6 +9,7 @@ import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
@@ -38,13 +39,30 @@ class FilePickerScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filesystem = ref.watch(fileSystemProvider);
+    final nativeFilesystem = ref.watch(fileSystemProvider);
     final settingsController = ref.watch(settingsControllerProvider.notifier);
 
     final directory = useState(Directory(initialDirectory));
 
+    final isZip = p.extension(directory.value.path) == '.zip';
+
+    final zipSnapshot =
+        useFuture(isZip ? nativeFilesystem.read(directory.value.path) : null);
+
+    if (isZip && !zipSnapshot.hasData) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final filesystem = isZip
+        ? ZipFileSystem(path: directory.value.path, zipData: zipSnapshot.data!)
+        : nativeFilesystem;
+
     final future = useMemoized(
-      () => _getFiles(filesystem, directory, settingsController),
+      () => _getFiles(
+        filesystem,
+        isZip ? ValueNotifier(Directory('')) : directory,
+        settingsController,
+      ),
       [directory.value],
     );
 
@@ -67,6 +85,16 @@ class FilePickerScreen extends HookConsumerWidget {
     }
 
     final files = filesValue.data!;
+
+    if (isZip && files.length == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final file = files.first;
+
+        if (file.type == FileSystemFileType.file) {
+          context.router.maybePop(file);
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -138,6 +166,8 @@ class FilePickerScreen extends HookConsumerWidget {
                       final isDirectory =
                           file.type == FileSystemFileType.directory;
 
+                      final fileIsZip = p.extension(file.path) == '.zip';
+
                       final enabled = isDirectory ||
                           allowedExtensions.isEmpty ||
                           allowedExtensions.contains(p.extension(file.path));
@@ -154,11 +184,12 @@ class FilePickerScreen extends HookConsumerWidget {
                           ),
                           enabled: enabled,
                           title: Text(p.basename(file.path)),
-                          onTap: () {
-                            // TODO directory selection mode
+                          onTap: () async {
                             if (isDirectory) {
                               directory.value = Directory(file.path);
                               onChangeDirectory?.call(Directory(file.path));
+                            } else if (fileIsZip) {
+                              directory.value = Directory(file.path);
                             } else {
                               context.router.maybePop(file);
                             }
