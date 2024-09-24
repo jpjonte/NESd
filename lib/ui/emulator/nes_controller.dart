@@ -15,6 +15,7 @@ import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -136,7 +137,7 @@ class NesController {
 
     nes?.stop();
 
-    final data = await fileSystem.read(path);
+    final data = await _readFile(path);
 
     final rom = switch (p.extension(path)) {
       '.nes' => data,
@@ -154,6 +155,17 @@ class NesController {
     _save();
 
     return cartridge;
+  }
+
+  Future<Uint8List> _readFile(String path) async {
+    final data = await switch (path.contains(':') && path.contains('.zip')) {
+      true => ZipFileSystem(
+          path: path.split(':').first,
+          zipData: await fileSystem.read(path.split(':').first),
+        ).read(path.split(':').last),
+      false => fileSystem.read(path),
+    };
+    return data;
   }
 
   void suspend() => nes?.suspend();
@@ -331,8 +343,7 @@ class NesController {
   }
 
   Uint8List _loadZip(String path, Uint8List data) {
-    final inputStream = InputStream(data);
-    final archive = ZipDecoder().decodeBuffer(inputStream);
+    final archive = ZipDecoder().decodeBytes(data);
 
     final roms = archive.files
         .where((file) => p.extension(file.name) == '.nes')
