@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.7.0] - 2024-11-01
 
 ### Added
 
 - Added an editor for the touch controls
   - Controls can be added, moved, resized, and removed
   - Controls can be assigned any action
+- Added a file picker for ZIPs that contain multiple ROMs
 
 ## [0.6.0] - 2024-09-08
 
