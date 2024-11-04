@@ -19,6 +19,8 @@ final actionStreamProvider = AutoDisposeProvider<ActionStream>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef ActionStreamRef = AutoDisposeProviderRef<ActionStream>;
 String _$actionHandlerHash() => r'be93aae9232fcaaa29e1359aaa64194d077ca995';
 
@@ -34,6 +36,8 @@ final actionHandlerProvider = AutoDisposeProvider<ActionHandler>.internal(
   allTransitiveDependencies: null,
 );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef ActionHandlerRef = AutoDisposeProviderRef<ActionHandler>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
