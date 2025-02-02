@@ -45,9 +45,11 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
-    final romsSnapshot = useFuture(
-      _getRomTileDataForRoms(romManager, recentRoms),
+    final future = useMemoized(
+      () => _getRomTileDataForRoms(romManager, recentRoms),
     );
+
+    final romsSnapshot = useFuture(future);
 
     if (romsSnapshot.hasError) {
       return const Center(child: Text('Error loading ROMs'));
