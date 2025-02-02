@@ -88,101 +88,107 @@ class FilePickerScreen extends HookConsumerWidget {
               ),
             ),
           ),
-          body: NesdMenuWrapper(
-            child: FocusChild(
-              autofocus: true,
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      final result = await filesystem.chooseDirectory(path);
+          body: Center(
+            child: NesdMenuWrapper(
+              child: FocusChild(
+                autofocus: true,
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        final result = await filesystem.chooseDirectory(path);
 
-                      if (result != null) {
-                        final newDirectory = Directory(result);
+                        if (result != null) {
+                          final newDirectory = Directory(result);
 
-                        controller.go(result);
+                          controller.go(result);
 
-                        onChangeDirectory?.call(newDirectory);
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Center(
-                        child: Text(
-                          path,
-                          style: TextStyle(
-                            fontSize:
-                                Theme.of(context).textTheme.bodyLarge?.fontSize,
-                            fontWeight: FontWeight.bold,
+                          onChangeDirectory?.call(newDirectory);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Center(
+                          child: Text(
+                            path,
+                            style: TextStyle(
+                              fontSize: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.fontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.separated(
-                      itemBuilder: (context, index) {
-                        if (index == 0) {
+                    Expanded(
+                      child: ListView.separated(
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return FocusOnHover(
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.drive_folder_upload_rounded,
+                                  color: nesdRed[500],
+                                ),
+                                title: const Text('Up a directory'),
+                                onTap: () {
+                                  final parentDirectory =
+                                      Directory(path).parent;
+
+                                  controller.go(parentDirectory.path);
+
+                                  onChangeDirectory?.call(parentDirectory);
+                                },
+                              ),
+                            );
+                          }
+
+                          final file = files[index - 1];
+
+                          final isDirectory =
+                              file.type == FileSystemFileType.directory;
+
+                          final fileIsZip = p.extension(file.path) == '.zip';
+
+                          final enabled = isDirectory ||
+                              allowedExtensions.isEmpty ||
+                              allowedExtensions
+                                  .contains(p.extension(file.path));
+
                           return FocusOnHover(
                             child: ListTile(
                               leading: Icon(
-                                Icons.drive_folder_upload_rounded,
+                                isDirectory
+                                    ? Icons.folder
+                                    : enabled
+                                        ? Icons.videogame_asset
+                                        : null,
                                 color: nesdRed[500],
                               ),
-                              title: const Text('Up a directory'),
-                              onTap: () {
-                                final parentDirectory = Directory(path).parent;
+                              enabled: enabled,
+                              title: Text(p.basename(file.path)),
+                              onTap: () async {
+                                if (isDirectory) {
+                                  controller.go(file.path);
 
-                                controller.go(parentDirectory.path);
-
-                                onChangeDirectory?.call(parentDirectory);
+                                  onChangeDirectory?.call(Directory(file.path));
+                                } else if (fileIsZip) {
+                                  controller.go(file.path);
+                                } else {
+                                  context.router.maybePop(file);
+                                }
                               },
                             ),
                           );
-                        }
-
-                        final file = files[index - 1];
-
-                        final isDirectory =
-                            file.type == FileSystemFileType.directory;
-
-                        final fileIsZip = p.extension(file.path) == '.zip';
-
-                        final enabled = isDirectory ||
-                            allowedExtensions.isEmpty ||
-                            allowedExtensions.contains(p.extension(file.path));
-
-                        return FocusOnHover(
-                          child: ListTile(
-                            leading: Icon(
-                              isDirectory
-                                  ? Icons.folder
-                                  : enabled
-                                      ? Icons.videogame_asset
-                                      : null,
-                              color: nesdRed[500],
-                            ),
-                            enabled: enabled,
-                            title: Text(p.basename(file.path)),
-                            onTap: () async {
-                              if (isDirectory) {
-                                controller.go(file.path);
-
-                                onChangeDirectory?.call(Directory(file.path));
-                              } else if (fileIsZip) {
-                                controller.go(file.path);
-                              } else {
-                                context.router.maybePop(file);
-                              }
-                            },
-                          ),
-                        );
-                      },
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemCount: files.length + 1,
+                        },
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemCount: files.length + 1,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
