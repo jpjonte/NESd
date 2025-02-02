@@ -436,7 +436,9 @@ class PPU {
     if (lineVblank && cycle == 1) {
       PPUSTATUS_V = 1;
 
-      // trigger nmi if PPUCTRL.V is set
+      spriteCount = 0;
+      secondarySpriteCount = 0;
+
       if (PPUCTRL_V == 1) {
         bus.triggerNmi();
       }
