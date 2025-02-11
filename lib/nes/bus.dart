@@ -173,25 +173,15 @@ class Bus {
     _controllerStatus[0] &= ~(1 << button.index);
   }
 
-  void triggerIrq(IrqSource source) {
-    cpu.triggerIrq(source);
-  }
+  void triggerIrq(IrqSource source) => cpu.triggerIrq(source);
 
-  void clearIrq(IrqSource source) {
-    cpu.clearIrq(source);
-  }
+  void clearIrq(IrqSource source) => cpu.clearIrq(source);
 
-  void triggerNmi() {
-    cpu.triggerNmi();
-  }
+  void triggerNmi() => cpu.triggerNmi();
 
-  void clearNmi() {
-    cpu.clearNmi();
-  }
+  void clearNmi() => cpu.clearNmi();
 
-  void triggerDmcDma() {
-    cpu.triggerDmcDma();
-  }
+  void triggerDmcDma() => cpu.triggerDmcDma();
 
   int _readController(int controller, {bool disableSideEffects = false}) {
     final value = _controllerShift[controller] < 8

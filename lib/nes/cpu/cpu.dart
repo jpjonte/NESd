@@ -274,7 +274,6 @@ class CPU {
 
       _handleIrq(nmiVector);
     } else if (_previousDoIrq) {
-      _irq = 0;
       _handleIrq(irqVector);
     }
   }
@@ -344,11 +343,11 @@ class CPU {
   }
 
   void triggerIrq(IrqSource source) {
-    _irq = _irq.setBit(source.bit, 1);
+    _irq = _irq | (1 << source.bit);
   }
 
   void clearIrq(IrqSource source) {
-    _irq = _irq.setBit(source.bit, 0);
+    _irq = _irq & ~(1 << source.bit);
   }
 
   void triggerNmi() {
