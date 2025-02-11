@@ -947,6 +947,7 @@ class PPU {
 
       return;
     }
+    // from here on, secondarySpriteCount must >= 8
 
     if (scanline >= y && scanline < y + spriteSize) {
       PPUSTATUS_O = 1; // set overflow flag
@@ -974,13 +975,6 @@ class PPU {
     final sprite = subcycle ~/ 8;
     final offset = subcycle % 8;
 
-    if (sprite > spriteCount) {
-      _fetchPatternTableLow();
-      _fetchPatternTableHigh();
-
-      return;
-    }
-
     switch (offset) {
       case 0:
         readPpuMemory(_nametableAddress());
@@ -991,32 +985,35 @@ class PPU {
       case 3:
         _spriteOutputs[sprite].x = secondaryOam[sprite * 4 + 3];
       case 4:
-        final bigSprites = PPUCTRL_H == 1;
-
-        final tileIndex = secondaryOam[sprite * 4 + 1];
-        final attribute = _spriteOutputs[sprite].attribute;
-        final flipV = attribute.bit(7) == 1;
-
-        final y = secondaryOam[sprite * 4];
-        final yOffset = scanline - y;
-        final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
-
-        final isBigSpriteSecondTile = yOffset < 8;
-        final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
-        final tile =
-            bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
-
-        final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
-        final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
-
-        final lowAddress =
-            patternTable << 12 | tile << 4 | fineY + addressOffset;
-        final highAddress =
-            patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
-
-        _spriteOutputs[sprite].patternLow = read(lowAddress);
-        _spriteOutputs[sprite].patternHigh = read(highAddress);
+        _loadSprite(sprite);
     }
+  }
+
+  void _loadSprite(int sprite) {
+    final bigSprites = PPUCTRL_H == 1;
+
+    final tileIndex = secondaryOam[sprite * 4 + 1];
+    final attribute = _spriteOutputs[sprite].attribute;
+    final flipV = attribute.bit(7) == 1;
+
+    final y = secondaryOam[sprite * 4];
+    final yOffset = scanline - y;
+    final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
+
+    final isBigSpriteSecondTile = yOffset < 8;
+    final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
+    final tile =
+        bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
+
+    final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
+    final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
+
+    final lowAddress = patternTable << 12 | tile << 4 | fineY + addressOffset;
+    final highAddress =
+        patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
+
+    _spriteOutputs[sprite].patternLow = readPpuMemory(lowAddress);
+    _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
   }
 
   void _handleSprite0() {
