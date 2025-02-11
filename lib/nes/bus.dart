@@ -212,24 +212,12 @@ class Bus {
   }
 
   int _paletteAddress(int address) {
-    address &= 0x1f;
-
-    if (address == 0x10) {
-      address = 0x00;
-    }
-
-    if (address == 0x14) {
-      address = 0x04;
-    }
-
-    if (address == 0x18) {
-      address = 0x08;
-    }
-
-    if (address == 0x1c) {
-      address = 0x0c;
-    }
-
-    return address;
+    return switch (address & 0x1f) {
+      0x10 => 0x00,
+      0x14 => 0x04,
+      0x18 => 0x08,
+      0x1c => 0x0c,
+      _ => address & 0x1f,
+    };
   }
 }
