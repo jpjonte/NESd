@@ -331,7 +331,7 @@ class PPU {
     palette.fillRange(0, palette.length, 0);
   }
 
-  int read(int address, {bool updateBusAddress = true}) {
+  int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
@@ -339,7 +339,7 @@ class PPU {
     return bus.ppuRead(address);
   }
 
-  void write(int address, int value, {bool updateBusAddress = true}) {
+  void writePpuMemory(int address, int value, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
@@ -403,6 +403,8 @@ class PPU {
   void step() {
     _handleRendering();
 
+    _handleGarbageFetches();
+
     _handleOAMADDRReset();
 
     _handleVBlank();
@@ -430,6 +432,14 @@ class PPU {
     _copyHorizontalBits();
 
     _copyVerticalBits();
+  }
+
+  void _handleGarbageFetches() {
+    if (scanline <= 239 || scanline == 261) {
+      if (cycle == 337 || cycle == 339) {
+        readPpuMemory(_nametableAddress());
+      }
+    }
   }
 
   void _handleVBlank() {
@@ -485,7 +495,7 @@ class PPU {
     var value = PPUDATA;
 
     if (!disableSideEffects) {
-      PPUDATA = read(v);
+      PPUDATA = readPpuMemory(v);
     }
 
     // always return current palette data
@@ -549,7 +559,7 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    write(v, value);
+    writePpuMemory(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
   }
@@ -560,8 +570,8 @@ class PPU {
     }
 
     if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
-      _updateBusAddress(0x2000 | v_nametable << 10 | v_coarseScroll);
-    } else if (scanline == 241) {
+      _updateBusAddress(_nametableAddress());
+    } else if (lineVblank) {
       _updateBusAddress(v & 0x3fff);
     }
   }
@@ -610,7 +620,7 @@ class PPU {
 
     final color = _getPixelColor();
 
-    final paletteColor = read(0x3F00 | color, updateBusAddress: false);
+    final paletteColor = readPpuMemory(0x3F00 | color, updateBusAddress: false);
 
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
@@ -758,18 +768,15 @@ class PPU {
   }
 
   void _fetchNametable() {
-    final address = 0x2000 | v_nametable << 10 | v_coarseScroll;
-
-    nametableLatch = read(address);
+    nametableLatch = readPpuMemory(_nametableAddress());
   }
 
-  void _fetchAttributeTable() {
-    final address = 0x23c0 |
-        (v_nametable << 10) |
-        ((v_coarseY & 0x1C) << 1) | // we select the attribute table
-        ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
+  int _nametableAddress() => 0x2000 | v_nametable << 10 | v_coarseScroll;
 
-    final value = read(address);
+  void _fetchAttributeTable() {
+    final address = _attributeAddress();
+
+    final value = readPpuMemory(address);
 
     // attribute table byte layout: DDCCBBAA
     // quadrants A, B, C, D = Top Left, Top Right, Bottom Left, Bottom Right
@@ -781,6 +788,14 @@ class PPU {
     final quadrantShift = ((v_coarseY & 0x2) << 1) | (v_coarseX & 0x2);
 
     attributeTableLatch = (value >> quadrantShift) & 0x03;
+  }
+
+  int _attributeAddress() {
+    final address = 0x23c0 |
+        (v_nametable << 10) |
+        ((v_coarseY & 0x1C) << 1) | // we select the attribute table
+        ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
+    return address;
   }
 
   void _fetch() {
@@ -811,13 +826,13 @@ class PPU {
   void _fetchPatternTableLow() {
     final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY;
 
-    patternTableLowLatch = read(address);
+    patternTableLowLatch = readPpuMemory(address);
   }
 
   void _fetchPatternTableHigh() {
     final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY + 8;
 
-    patternTableHighLatch = read(address);
+    patternTableHighLatch = readPpuMemory(address);
   }
 
   void _incrementX() {
@@ -967,7 +982,11 @@ class PPU {
     }
 
     switch (offset) {
+      case 0:
+        readPpuMemory(_nametableAddress());
       case 2:
+        readPpuMemory(_attributeAddress());
+
         _spriteOutputs[sprite].attribute = secondaryOam[sprite * 4 + 2];
       case 3:
         _spriteOutputs[sprite].x = secondaryOam[sprite * 4 + 3];
