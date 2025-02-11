@@ -7,6 +7,7 @@ import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'disassembler.g.dart';
@@ -14,7 +15,7 @@ part 'disassembler.g.dart';
 typedef Disassembly = List<DisassemblyLine>;
 
 @riverpod
-Disassembler disassembler(DisassemblerRef ref) {
+Disassembler disassembler(Ref ref) {
   final nes = ref.watch(nesStateProvider);
 
   if (nes == null) {
@@ -54,9 +55,9 @@ class Disassembler {
     bus.cpu = debugCpu;
 
     _search([
-      DisassemblerSearchNode(debugCpu.read16(resetVector)),
-      DisassemblerSearchNode(debugCpu.read16(nmiVector)),
-      DisassemblerSearchNode(debugCpu.read16(irqVector)),
+      DisassemblerSearchNode(debugCpu.read16(resetVector), entrypoint: true),
+      DisassemblerSearchNode(debugCpu.read16(nmiVector), entrypoint: true),
+      DisassemblerSearchNode(debugCpu.read16(irqVector), entrypoint: true),
     ]);
   }
 
@@ -123,8 +124,11 @@ class Disassembler {
       operands: operands,
       disassembledOperands: disassembledOperands,
       readAddress: readAddress,
-      sectionStart: isEntrypoint,
-      sectionEnd: op.instruction == RTS || op.instruction == RTI,
+      sectionStart: isEntrypoint || lines[address]?.sectionStart == true,
+      sectionEnd: op.instruction == RTS ||
+          op.instruction == RTI ||
+          op.instruction == JMP ||
+          lines[address]?.sectionEnd == true,
     );
 
     lines[address] = line;
@@ -197,8 +201,6 @@ class Disassembler {
 
       final pc = current.pc;
 
-      visited.add(pc);
-
       final line = disassembleLine(pc, isEntrypoint: current.entrypoint);
 
       if (line == null) {
@@ -219,11 +221,14 @@ class Disassembler {
       }
 
       if (op.instruction.type == InstructionType.branch ||
-          op.instruction.type == InstructionType.jump) {
+          op.instruction.type == InstructionType.jump ||
+          op.instruction == BRK) {
         children.add(
           DisassemblerSearchNode(
             line.readAddress,
-            entrypoint: op.instruction == JSR || op.instruction == BRK,
+            entrypoint: op.instruction == JSR ||
+                op.instruction == BRK ||
+                op.instruction == JMP,
             depth: current.depth + 1,
           ),
         );
@@ -233,6 +238,7 @@ class Disassembler {
         if (child.depth < 100 &&
             !visited.contains(child.pc) &&
             child.pc <= 0xffff) {
+          visited.add(child.pc);
           queue.add(child);
         }
       }

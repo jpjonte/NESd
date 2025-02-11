@@ -6,7 +6,7 @@ part of 'disassembler.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$disassemblerHash() => r'6805e9d0c3db4f3fb6342f4b45259af62b729f0a';
+String _$disassemblerHash() => r'dec2c9cdb8a4677501ff52faed12866bda9b858d';
 
 /// See also [disassembler].
 @ProviderFor(disassembler)

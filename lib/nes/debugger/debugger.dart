@@ -11,12 +11,13 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger.g.dart';
 
 @riverpod
-Debugger debugger(DebuggerRef ref) {
+Debugger debugger(Ref ref) {
   final nes = ref.watch(nesStateProvider);
   final notifier = ref.watch(debuggerNotifierProvider.notifier);
   final disassembler = ref.watch(disassemblerProvider);
@@ -55,7 +56,7 @@ class Debugger {
     final breakpoints =
         settingsController.breakpoints[nes.bus.cartridge.hash] ?? [];
 
-    nes.setBreakpoints(breakpoints);
+    nes.breakpoints = breakpoints;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       notifier.debuggerState = DebuggerState(

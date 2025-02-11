@@ -51,6 +51,20 @@ class NES {
 
   List<Breakpoint> get breakpoints => _breakpoints;
 
+  set breakpoints(List<Breakpoint> breakpoints) {
+    _breakpoints
+      ..clear()
+      ..addAll(breakpoints);
+  }
+
+  void addBreakpoint(Breakpoint breakpoint) {
+    _breakpoints.add(breakpoint);
+  }
+
+  void removeBreakpoint(int address) {
+    _breakpoints.removeWhere((b) => b.address == address);
+  }
+
   NESState get state => NESState(
         cpuState: cpu.state,
         ppuState: ppu.state,
@@ -68,20 +82,6 @@ class NES {
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
-  }
-
-  void setBreakpoints(List<Breakpoint> breakpoints) {
-    _breakpoints
-      ..clear()
-      ..addAll(breakpoints);
-  }
-
-  void addBreakpoint(Breakpoint breakpoint) {
-    _breakpoints.add(breakpoint);
-  }
-
-  void removeBreakpoint(int address) {
-    _breakpoints.removeWhere((b) => b.address == address);
   }
 
   Uint8List? save() => bus.cartridge.save();
