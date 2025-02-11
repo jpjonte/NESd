@@ -575,6 +575,8 @@ class PPU {
       cycle = 0;
       frames++;
 
+      frameBuffer.clear();
+
       return;
     }
 
@@ -585,6 +587,8 @@ class PPU {
       if (scanline > 261) {
         scanline = 0;
         frames++;
+
+        frameBuffer.clear();
       }
     }
   }

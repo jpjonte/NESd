@@ -48,6 +48,10 @@ class FrameBuffer {
       ..set(uint32, height)
       ..set(uint8List, pixels);
   }
+
+  void clear() {
+    pixels.fillRange(0, pixels.length, 0);
+  }
 }
 
 class _LegacyFrameBufferContract extends BinaryContract<FrameBuffer>
@@ -78,6 +82,9 @@ class _LegacyFrameBufferContract extends BinaryContract<FrameBuffer>
 
   @override
   void serialize(PayloadWriter writer) => throw UnimplementedError();
+
+  @override
+  void clear() {}
 }
 
 final legacyFrameBufferContract = _LegacyFrameBufferContract();

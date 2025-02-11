@@ -46,8 +46,12 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
     }
 
     useStream(
-      eventBus.stream
-          .where((event) => event is FrameNesEvent || event is SuspendNesEvent),
+      eventBus.stream.where(
+        (event) =>
+            event is FrameNesEvent ||
+            event is SuspendNesEvent ||
+            event is DebuggerNesEvent,
+      ),
     );
 
     return Focus(
