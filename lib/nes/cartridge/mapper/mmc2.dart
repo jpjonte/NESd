@@ -9,10 +9,10 @@ class MMC2 extends Mapper {
   String name = 'MMC2';
 
   @override
-  int prgBankSize = 0x2000;
+  int prgRomPageSize = 0x2000;
 
   @override
-  int chrBankSize = 0x1000;
+  int chrPageSize = 0x1000;
 
   int _prgBank = 0;
 
@@ -56,6 +56,8 @@ class MMC2 extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     _prgBank = 0;
 
     _chrBank0[0] = 0;
@@ -97,7 +99,9 @@ class MMC2 extends Mapper {
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
     switch (address & 0xf000) {
       case 0xa000:
         _prgBank = value & 0xf;
@@ -127,22 +131,22 @@ class MMC2 extends Mapper {
   }
 
   void _updatePrgPages() {
-    setPrgPage(0, _prgBank);
-    setPrgPage(1, -3);
-    setPrgPage(2, -2);
-    setPrgPage(3, -1);
+    mapCpu(0x8000, 0x9fff, _prgBank);
+    mapCpu(0xa000, 0xbfff, -3);
+    mapCpu(0xc000, 0xdfff, -2);
+    mapCpu(0xe000, 0xffff, -1);
   }
 
   void _updateChrPages() {
-    setChrPage(0, _chrBank0[_chrLatch0]);
-    setChrPage(1, _chrBank1[_chrLatch1]);
+    mapPpu(0x0000, 0x0fff, _chrBank0[_chrLatch0]);
+    mapPpu(0x1000, 0x1fff, _chrBank1[_chrLatch1]);
   }
 
   void _updateMirroring() {
     nametableLayout = switch (_mirroring) {
       0 => NametableLayout.horizontal,
       1 => NametableLayout.vertical,
-      _ => nametableLayout,
+      _ => NametableLayout.horizontal,
     };
   }
 }

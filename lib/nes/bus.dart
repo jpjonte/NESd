@@ -67,8 +67,7 @@ class Bus {
       return 0;
     }
 
-    return cartridge.read(
-      this,
+    return cartridge.cpuRead(
       address,
       disableSideEffects: disableSideEffects,
     );
@@ -138,14 +137,14 @@ class Bus {
       return;
     }
 
-    cartridge.write(this, address, value);
+    cartridge.cpuWrite(address, value);
   }
 
-  int ppuRead(int address) {
+  int ppuRead(int address, {bool disableSideEffects = false}) {
     address = address & 0x3fff;
 
     if (address < 0x3f00) {
-      return cartridge.read(this, address);
+      return cartridge.ppuRead(address, disableSideEffects: disableSideEffects);
     }
 
     return ppu.palette[_paletteAddress(address)];
@@ -153,7 +152,7 @@ class Bus {
 
   void ppuWrite(int address, int value) {
     if (address < 0x3f00) {
-      cartridge.write(this, address, value);
+      cartridge.ppuWrite(address, value);
 
       return;
     }

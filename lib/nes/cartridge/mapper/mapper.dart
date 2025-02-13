@@ -1,5 +1,6 @@
+import 'dart:typed_data';
+
 import 'package:nesd/exception/unsupported_mapper.dart';
-import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom.dart';
@@ -13,6 +14,54 @@ import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
 import 'package:nesd/nes/cartridge/mapper/namco108.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
+
+enum CpuMemoryType {
+  prgRom,
+  prgRam,
+}
+
+enum PpuMemoryType {
+  chrRom,
+  chrRam,
+  nametable,
+}
+
+enum MemoryAccess {
+  none(0),
+  read(1),
+  write(2),
+  readWrite(3);
+
+  const MemoryAccess(this.value);
+
+  final int value;
+
+  bool supports(MemoryAccess other) {
+    return value & other.value > 0;
+  }
+}
+
+const _cpuBlockAddressWidth = 10;
+const _cpuBlockSize = 1 << _cpuBlockAddressWidth;
+const _cpuBlockMask = _cpuBlockSize - 1;
+const _cpuBlockCount = 0x10000 ~/ _cpuBlockSize;
+
+const _ppuBlockAddressWidth = 10;
+const _ppuBlockSize = 1 << _ppuBlockAddressWidth;
+const _ppuBlockMask = _ppuBlockSize - 1;
+const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
+
+class MemoryMapping {
+  MemoryMapping({
+    required this.source,
+    this.access = MemoryAccess.read,
+  });
+
+  Uint8List source;
+  MemoryAccess access;
+
+  bool supports(MemoryAccess other) => access.supports(other);
+}
 
 abstract class Mapper {
   Mapper(this.id);
@@ -37,16 +86,46 @@ abstract class Mapper {
 
   late final Bus bus;
 
-  late final Cartridge _cartridge;
+  late final Cartridge cartridge;
 
-  Cartridge get cartridge => _cartridge;
-
-  set cartridge(Cartridge cartridge) {
-    _cartridge = cartridge;
-    nametableLayout = cartridge.nametableLayout;
+  // ignore: avoid_setters_without_getters
+  set nametableLayout(NametableLayout layout) {
+    switch (layout) {
+      case NametableLayout.vertical:
+        setNametables(0, 0, 1, 1);
+      case NametableLayout.horizontal:
+        setNametables(0, 1, 0, 1);
+      case NametableLayout.singleLower:
+        setNametables(0, 0, 0, 0);
+      case NametableLayout.singleUpper:
+        setNametables(1, 1, 1, 1);
+      case NametableLayout.four:
+        setNametables(0, 1, 2, 3);
+    }
   }
 
-  late NametableLayout nametableLayout;
+  void setNametables(
+    int nametable0,
+    int nametable1,
+    int nametable2,
+    int nametable3,
+  ) {
+    setNametable(0, nametable0);
+    setNametable(1, nametable1);
+    setNametable(2, nametable2);
+    setNametable(3, nametable3);
+  }
+
+  void setNametable(int index, int page) {
+    final offset = index * 0x400;
+
+    mapPpu(
+      0x2000 + offset,
+      0x23ff + offset,
+      page,
+      type: PpuMemoryType.nametable,
+    );
+  }
 
   MapperState get state;
 
@@ -54,159 +133,206 @@ abstract class Mapper {
 
   String get name;
 
-  int get prgBankSize => 0x4000;
+  int get prgRomPageSize => 0x4000;
 
-  late final List<int> _prgBankToPrgPage = List.filled(_totalPrgBanks, 0);
+  int get prgRamPageSize => 0x2000;
 
-  late final int _totalPrgBanks = 0x8000 ~/ prgBankSize;
-  late final int _totalPrgPages = cartridge.prgRom.length ~/ prgBankSize;
+  late final List<MemoryMapping?> _cpuMapping = List.filled(
+    _cpuBlockCount,
+    null,
+  );
 
-  int get chrBankSize => 0x2000;
+  int get chrPageSize => 0x2000;
 
-  late final List<int> _chrBankToChrPage = List.filled(_totalChrBanks, 0);
+  late final List<MemoryMapping?> _ppuMapping = List.filled(
+    _ppuBlockCount,
+    null,
+  );
 
-  late final int _totalChrBanks = 0x2000 ~/ chrBankSize;
-  late final int _totalChrPages = cartridge.chr.length ~/ chrBankSize;
+  void reset() {
+    nametableLayout = cartridge.nametableLayout;
 
-  void reset() {}
+    mapCpu(0x6000, 0x7fff, 0, type: CpuMemoryType.prgRam);
 
-  int read(int address, {bool disableSideEffects = false}) {
-    if (address < 0x2000) {
-      return readChr(address);
-    }
+    mapPpu(0x0000, 0x1fff, 0);
+  }
 
-    if (address < 0x3f00) {
-      return readPpuRam(address);
-    }
+  void step() {}
 
-    if (address < 0x6000) {
+  int cpuRead(int address, {bool disableSideEffects = false}) {
+    final mapping = _mapCpuAddress(address);
+
+    if (mapping == null) {
       return 0;
     }
 
-    if (address < 0x8000) {
-      return readSram(address);
-    }
+    if (mapping.supports(MemoryAccess.read)) {
+      final source = mapping.source;
+      final offset = address & _cpuBlockMask;
 
-    if (address <= 0xffff) {
-      return readPrgRom(address);
+      return source[offset % source.length];
     }
 
     return 0;
   }
 
-  int readChr(int address) {
-    if (cartridge.chr.isEmpty) {
-      return 0;
-    }
-
-    return cartridge.chr[chrAddress(address)];
-  }
-
-  int readPpuRam(int address) => bus.ppu.ram[nametableAddress(address)];
-
-  int readSram(int address) => cartridge.sram[address & 0x1fff];
-
-  int readPrgRom(int address) => cartridge.prgRom[prgAddress(address)];
-
-  int chrAddress(int address) {
-    final bank = _chrBankForAddress(address);
-    final page = _chrPageForBank(bank);
-
-    final mappedAddress = (page * chrBankSize) | (address & (chrBankSize - 1));
-
-    return mappedAddress % cartridge.chr.length;
-  }
-
-  int nametableAddress(int address) {
-    return switch (nametableLayout) {
-      NametableLayout.vertical => (address & 0x7ff).setBit(10, address.bit(11)),
-      NametableLayout.horizontal => address & 0x7ff,
-      NametableLayout.four => address & 0xfff,
-      NametableLayout.singleUpper => address & 0x3ff,
-      NametableLayout.singleLower => 0x400 + address & 0x3ff,
-    };
-  }
-
-  int prgAddress(int address) {
-    final bank = _prgBankForAddress(address);
-    final page = _prgPageForBank(bank);
-
-    final mappedAddress =
-        (page * prgBankSize) | ((address - 0x8000) & (prgBankSize - 1));
-
-    return mappedAddress % cartridge.prgRom.length;
-  }
-
-  void write(Bus bus, int address, int value) {
-    if (address < 0x2000) {
-      writeChr(address, value);
-
-      return;
-    }
-
+  int ppuRead(int address, {bool disableSideEffects = false}) {
     if (address < 0x3f00) {
-      writePpuRam(address, value);
+      final mapping = _mapPpuAddress(address);
 
+      if (mapping == null) {
+        return 0;
+      }
+
+      if (mapping.supports(MemoryAccess.read)) {
+        final source = mapping.source;
+        final offset = address & _ppuBlockMask;
+
+        return source[offset % source.length];
+      }
+    }
+
+    return 0;
+  }
+
+  MemoryMapping? _mapPpuAddress(int address) {
+    return _ppuMapping[address >> _ppuBlockAddressWidth];
+  }
+
+  MemoryMapping? _mapCpuAddress(int address) {
+    return _cpuMapping[address >> _cpuBlockAddressWidth];
+  }
+
+  void cpuWrite(int address, int value) {
+    final mapping = _mapCpuAddress(address);
+
+    if (mapping == null) {
       return;
     }
 
-    if (address < 0x6000) {
+    if (mapping.supports(MemoryAccess.write)) {
+      mapping.source[address & _cpuBlockMask] = value;
+    }
+  }
+
+  void ppuWrite(int address, int value) {
+    final mapping = _mapPpuAddress(address);
+
+    if (mapping == null) {
       return;
     }
 
-    if (address < 0x8000) {
-      writeCartridgeSram(address, value);
-
-      return;
-    }
-
-    if (address <= 0xffff) {
-      writePrg(address, value);
+    if (mapping.supports(MemoryAccess.write)) {
+      mapping.source[address & _ppuBlockMask] = value;
     }
   }
-
-  void writeChr(int address, int value) {
-    if (cartridge.chrRomSize > 0) {
-      // no CHR RAM -> not writable
-      return;
-    }
-
-    cartridge.chr[chrAddress(address)] = value;
-  }
-
-  void writePpuRam(int address, int value) {
-    bus.ppu.ram[nametableAddress(address)] = value;
-  }
-
-  void writeCartridgeSram(int address, int value) {
-    cartridge.sram[address & 0x1fff] = value;
-  }
-
-  void writePrg(int address, int value) {}
 
   void updatePpuAddress(int address) {}
 
-  void setPrgPage(int bank, int page) {
-    _prgBankToPrgPage[bank] = page % _totalPrgPages;
+  void mapCpu(
+    int fromAddress,
+    int toAddress,
+    int page, {
+    int? pageSize,
+    Uint8List? source,
+    CpuMemoryType? type,
+    MemoryAccess? access,
+  }) {
+    final resolvedType = type ?? CpuMemoryType.prgRom;
+
+    final resolvedSource = source ??
+        switch (resolvedType) {
+          CpuMemoryType.prgRom => cartridge.prgRom,
+          CpuMemoryType.prgRam => cartridge.sram,
+        };
+
+    final resolvedPageSize = pageSize ??
+        switch (resolvedType) {
+          CpuMemoryType.prgRom => prgRomPageSize,
+          CpuMemoryType.prgRam => prgRamPageSize,
+        };
+
+    final resolvedAccess = access ??
+        switch (resolvedType) {
+          CpuMemoryType.prgRom => MemoryAccess.read,
+          CpuMemoryType.prgRam => MemoryAccess.readWrite,
+        };
+
+    for (var address = fromAddress;
+        address <= toAddress;
+        address += _cpuBlockSize) {
+      final block = address >> _cpuBlockAddressWidth;
+      final addressDiff = address - fromAddress;
+      final offset =
+          (page * resolvedPageSize + addressDiff) % resolvedSource.length;
+
+      _cpuMapping[block] = resolvedSource.isNotEmpty
+          ? MemoryMapping(
+              source: Uint8List.sublistView(
+                resolvedSource,
+                offset,
+                offset + _cpuBlockSize,
+              ),
+              access: resolvedAccess,
+            )
+          : null;
+    }
   }
 
-  void setChrPage(int bank, int page) {
-    _chrBankToChrPage[bank] = page % _totalChrPages;
-  }
+  void mapPpu(
+    int fromAddress,
+    int toAddress,
+    int page, {
+    int? pageSize,
+    Uint8List? source,
+    PpuMemoryType? type,
+    MemoryAccess? access,
+  }) {
+    final resolvedType = type ??
+        switch (cartridge.chrRomSize) {
+          0 => PpuMemoryType.chrRam,
+          _ => PpuMemoryType.chrRom,
+        };
 
-  int _prgPageForBank(int bank) {
-    return _prgBankToPrgPage[bank % _totalPrgBanks];
-  }
+    final resolvedSource = source ??
+        switch (resolvedType) {
+          PpuMemoryType.chrRom => cartridge.chr,
+          PpuMemoryType.chrRam => cartridge.chr,
+          PpuMemoryType.nametable => bus.ppu.ram,
+        };
 
-  int _prgBankForAddress(int address) {
-    return (address - 0x8000) ~/ prgBankSize;
-  }
+    final resolvedPageSize = pageSize ??
+        switch (resolvedType) {
+          PpuMemoryType.chrRom => chrPageSize,
+          PpuMemoryType.chrRam => chrPageSize,
+          PpuMemoryType.nametable => 0x400,
+        };
 
-  int _chrBankForAddress(int address) {
-    return address ~/ chrBankSize;
-  }
+    final resolvedAccess = access ??
+        switch (resolvedType) {
+          PpuMemoryType.chrRom => MemoryAccess.read,
+          PpuMemoryType.chrRam => MemoryAccess.readWrite,
+          PpuMemoryType.nametable => MemoryAccess.readWrite,
+        };
 
-  int _chrPageForBank(int bank) {
-    return _chrBankToChrPage[bank % _totalChrBanks];
+    for (var address = fromAddress;
+        address <= toAddress;
+        address += _ppuBlockSize) {
+      final block = address >> _ppuBlockAddressWidth;
+      final addressDiff = address - fromAddress;
+      final offset =
+          (page * resolvedPageSize + addressDiff) % resolvedSource.length;
+
+      _ppuMapping[block] = resolvedSource.isNotEmpty
+          ? MemoryMapping(
+              source: Uint8List.sublistView(
+                resolvedSource,
+                offset,
+                offset + _ppuBlockSize,
+              ),
+              access: resolvedAccess,
+            )
+          : null;
+    }
   }
 }

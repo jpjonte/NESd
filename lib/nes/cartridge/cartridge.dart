@@ -197,8 +197,20 @@ class Cartridge {
     return mapper.read(address, disableSideEffects: disableSideEffects);
   }
 
-  void write(Bus bus, int address, int value) {
-    mapper.write(bus, address, value);
+  int cpuRead(int address, {bool disableSideEffects = false}) {
+    return mapper.cpuRead(address, disableSideEffects: disableSideEffects);
+  }
+
+  int ppuRead(int address, {bool disableSideEffects = false}) {
+    return mapper.ppuRead(address, disableSideEffects: disableSideEffects);
+  }
+
+  void cpuWrite(int address, int value) {
+    mapper.cpuWrite(address, value);
+  }
+
+  void ppuWrite(int address, int value) {
+    mapper.ppuWrite(address, value);
   }
 
   Uint8List? save() {

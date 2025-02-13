@@ -17,16 +17,18 @@ class NROM extends Mapper {
   }
 
   @override
-  int prgBankSize = 0x4000;
+  int prgRomPageSize = 0x4000;
 
   @override
-  int chrBankSize = 0x2000;
+  int chrPageSize = 0x2000;
 
   @override
   void reset() {
-    setPrgPage(0, 0);
-    setPrgPage(1, -1);
+    super.reset();
 
-    setChrPage(0, 0);
+    mapCpu(0x8000, 0xbfff, 0);
+    mapCpu(0xc000, 0xffff, -1);
+
+    mapPpu(0x0000, 0x1fff, 0);
   }
 }

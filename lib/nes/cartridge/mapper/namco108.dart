@@ -8,10 +8,10 @@ class Namco108 extends Mapper {
   String name = 'Namco 108';
 
   @override
-  int prgBankSize = 0x2000;
+  int prgRomPageSize = 0x2000;
 
   @override
-  int chrBankSize = 0x0400;
+  int chrPageSize = 0x0400;
 
   int _register = 0;
 
@@ -54,6 +54,8 @@ class Namco108 extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     _register = 0;
     _r0 = 0;
     _r1 = 0;
@@ -68,7 +70,9 @@ class Namco108 extends Mapper {
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
     switch (address & 0x9001) {
       case 0x8000:
       case 0x9000:
@@ -110,20 +114,20 @@ class Namco108 extends Mapper {
   }
 
   void _updatePrgPages() {
-    setPrgPage(0, _r6);
-    setPrgPage(1, _r7);
-    setPrgPage(2, -2);
-    setPrgPage(3, -1);
+    mapCpu(0x8000, 0x9fff, _r6);
+    mapCpu(0xa000, 0xbfff, _r7);
+    mapCpu(0xc000, 0xdfff, -2);
+    mapCpu(0xe000, 0xffff, -1);
   }
 
   void _updateChrPages() {
-    setChrPage(0, _r0);
-    setChrPage(1, _r0 + 1);
-    setChrPage(2, _r1);
-    setChrPage(3, _r1 + 1);
-    setChrPage(4, _r2);
-    setChrPage(5, _r3);
-    setChrPage(6, _r4);
-    setChrPage(7, _r5);
+    mapPpu(0x0000, 0x03ff, _r0);
+    mapPpu(0x0400, 0x07ff, _r0 + 1);
+    mapPpu(0x0800, 0x0bff, _r1);
+    mapPpu(0x0c00, 0x0fff, _r1 + 1);
+    mapPpu(0x1000, 0x13ff, _r2);
+    mapPpu(0x1400, 0x17ff, _r3);
+    mapPpu(0x1800, 0x1bff, _r4);
+    mapPpu(0x1c00, 0x1fff, _r5);
   }
 }

@@ -10,10 +10,10 @@ class UNROM extends Mapper {
   String name = 'UNROM';
 
   @override
-  int prgBankSize = 0x4000;
+  int prgRomPageSize = 0x4000;
 
   @override
-  int chrBankSize = 0x2000;
+  int chrPageSize = 0x2000;
 
   @override
   SinglePrgBankState get state => SinglePrgBankState(id: 2, prgBank: prgBank);
@@ -27,20 +27,28 @@ class UNROM extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     prgBank = 0;
 
     _updatePrgPages();
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
+    if (address < 0x8000) {
+      return;
+    }
+
     prgBank = value & 0x0f;
 
     _updatePrgPages();
   }
 
   void _updatePrgPages() {
-    setPrgPage(0, prgBank);
-    setPrgPage(1, -1);
+    mapCpu(0x8000, 0xbfff, prgBank);
+    mapCpu(0xc000, 0xffff, -1);
   }
 }

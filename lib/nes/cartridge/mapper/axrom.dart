@@ -11,10 +11,10 @@ class AxROM extends Mapper {
   int vramBank = 0;
 
   @override
-  int prgBankSize = 0x8000;
+  int prgRomPageSize = 0x8000;
 
   @override
-  int chrBankSize = 0x2000;
+  int chrPageSize = 0x2000;
 
   @override
   AXROMState get state => AXROMState(
@@ -35,6 +35,8 @@ class AxROM extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     prgBank = 0;
     vramBank = 0;
 
@@ -42,7 +44,13 @@ class AxROM extends Mapper {
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
+    if (address < 0x8000) {
+      return;
+    }
+
     prgBank = value & 0x07;
     vramBank = value.bit(4);
 
@@ -55,7 +63,7 @@ class AxROM extends Mapper {
   }
 
   void _updatePrgPages() {
-    setPrgPage(0, prgBank);
+    mapCpu(0x8000, 0xffff, prgBank);
   }
 
   void _updateMirroring() {
