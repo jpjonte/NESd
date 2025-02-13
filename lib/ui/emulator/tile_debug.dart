@@ -106,15 +106,27 @@ class TileDebugWidget extends HookConsumerWidget {
 
       for (var ty = 0; ty < 30; ty++) {
         for (var tx = 0; tx < 32; tx++) {
-          final nametableByte = nes.bus.ppuRead(getNametableAddress(n, ty, tx));
-          final attributeByte = nes.bus.ppuRead(getAttributeAddress(n, ty, tx));
+          final nametableByte = nes.bus.ppuRead(
+            getNametableAddress(n, ty, tx),
+            disableSideEffects: true,
+          );
+          final attributeByte = nes.bus.ppuRead(
+            getAttributeAddress(n, ty, tx),
+            disableSideEffects: true,
+          );
           final palette = getPalette(attributeByte, n, ty, tx);
 
           final chrAddress = getChrAddress(patternTableIndex, nametableByte);
 
           for (var py = 0; py < 8; py++) {
-            final patternTableLowByte = nes.bus.ppuRead(chrAddress + py);
-            final patternTableHighByte = nes.bus.ppuRead(chrAddress + py + 8);
+            final patternTableLowByte = nes.bus.ppuRead(
+              chrAddress + py,
+              disableSideEffects: true,
+            );
+            final patternTableHighByte = nes.bus.ppuRead(
+              chrAddress + py + 8,
+              disableSideEffects: true,
+            );
 
             for (var px = 0; px < 8; px++) {
               final patternHigh = (patternTableHighByte >> (7 - px)) & 0x1;
@@ -128,7 +140,10 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final paletteAddress = 0x3f00 | index;
 
-              final systemPaletteIndex = nes.bus.ppuRead(paletteAddress);
+              final systemPaletteIndex = nes.bus.ppuRead(
+                paletteAddress,
+                disableSideEffects: true,
+              );
 
               final color = systemPalette[systemPaletteIndex & 0x3f];
 
@@ -272,9 +287,15 @@ class TileTooltip extends StatelessWidget {
 
     final address = 0x2000 + 0x400 * n + 32 * ty + tx;
 
-    final nametableByte = nes.bus.ppuRead(getNametableAddress(n, ty, tx));
+    final nametableByte = nes.bus.ppuRead(
+      getNametableAddress(n, ty, tx),
+      disableSideEffects: true,
+    );
     final attributeAddress = getAttributeAddress(n, ty, tx);
-    final attribute = nes.bus.ppuRead(attributeAddress);
+    final attribute = nes.bus.ppuRead(
+      attributeAddress,
+      disableSideEffects: true,
+    );
     final palette = getPalette(attribute, n, ty, tx);
 
     final patternTableIndex = nes.ppu.PPUCTRL_B;
