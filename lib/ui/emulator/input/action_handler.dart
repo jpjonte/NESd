@@ -16,7 +16,7 @@ part 'action_handler.g.dart';
 typedef InputActionEvent = ({InputAction action, double value});
 
 @riverpod
-ActionStream actionStream(ActionStreamRef ref) {
+ActionStream actionStream(Ref ref) {
   final stream = ActionStream();
 
   ref.onDispose(stream.dispose);
@@ -39,7 +39,7 @@ class ActionStream {
 }
 
 @riverpod
-ActionHandler actionHandler(ActionHandlerRef ref) {
+ActionHandler actionHandler(Ref ref) {
   final actionStream = ref.watch(actionStreamProvider);
 
   final handler = ActionHandler(

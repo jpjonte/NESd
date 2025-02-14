@@ -7,7 +7,7 @@ part of 'file_picker_controller.dart';
 // **************************************************************************
 
 String _$filePickerControllerHash() =>
-    r'91913448dee2c3934ab0b1c3a6bc451d556546b0';
+    r'880d195db75c7137c7bf48453fd1a812e416c59e';
 
 /// See also [filePickerController].
 @ProviderFor(filePickerController)

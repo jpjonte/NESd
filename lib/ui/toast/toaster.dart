@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'toaster.g.dart';
 
 @riverpod
-Toaster toaster(ToasterRef ref) {
+Toaster toaster(Ref ref) {
   final toaster = Toaster(
     state: ref.watch(toastStateProvider.notifier),
   );

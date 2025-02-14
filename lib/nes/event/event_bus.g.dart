@@ -6,7 +6,7 @@ part of 'event_bus.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$eventBusHash() => r'b4798ce33124c4d31e2b75621a4937498345720e';
+String _$eventBusHash() => r'cd86b01c7c650bfe197fb00aa7b9c43b204872a0';
 
 /// See also [eventBus].
 @ProviderFor(eventBus)

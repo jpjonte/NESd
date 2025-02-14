@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:gamepads/gamepads.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_mapper.g.dart';
 
 @riverpod
-GamepadInputMapper gamepadInputMapper(GamepadInputMapperRef ref) {
+GamepadInputMapper gamepadInputMapper(Ref ref) {
   final inputMapper = GamepadInputMapper();
 
   ref.onDispose(inputMapper.dispose);

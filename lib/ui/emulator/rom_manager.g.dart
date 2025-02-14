@@ -25,7 +25,7 @@ Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
 // **************************************************************************
 
 String _$applicationSupportPathHash() =>
-    r'57adfe5da464c78e9b10a4f871396987c5f7237c';
+    r'd9da2d8890a3ca61b212204a35e0820482a1f82f';
 
 /// See also [applicationSupportPath].
 @ProviderFor(applicationSupportPath)
@@ -42,7 +42,7 @@ final applicationSupportPathProvider = AutoDisposeProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ApplicationSupportPathRef = AutoDisposeProviderRef<String>;
-String _$romManagerHash() => r'a8fd07919db858601e7b6440f777e30079960398';
+String _$romManagerHash() => r'fcd257ebb821ceba2bf526c57ecf36c4689b306a';
 
 /// See also [romManager].
 @ProviderFor(romManager)

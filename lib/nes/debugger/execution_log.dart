@@ -11,12 +11,13 @@ import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'execution_log.g.dart';
 
 @riverpod
-ExecutionLog executionLog(ExecutionLogRef ref) {
+ExecutionLog executionLog(Ref ref) {
   final executionLog = ExecutionLog(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(executionLogNotifierProvider.notifier),

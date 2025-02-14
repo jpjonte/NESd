@@ -20,6 +20,7 @@ import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -46,7 +47,7 @@ class NesState extends _$NesState {
 }
 
 @riverpod
-NesController nesController(NesControllerRef ref) {
+NesController nesController(Ref ref) {
   final controller = NesController(
     eventBus: ref.watch(eventBusProvider),
     nesState: ref.watch(nesStateProvider.notifier),

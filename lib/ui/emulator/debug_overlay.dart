@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
@@ -36,7 +36,7 @@ class DebugOverlayNotifier extends _$DebugOverlayNotifier {
 }
 
 @riverpod
-DebugOverlayController debugOverlayController(DebugOverlayControllerRef ref) {
+DebugOverlayController debugOverlayController(Ref ref) {
   final controller = DebugOverlayController(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(debugOverlayNotifierProvider.notifier),

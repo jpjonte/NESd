@@ -39,7 +39,7 @@ class ControlsSettings extends StatelessWidget {
 }
 
 @riverpod
-int maxIndex(MaxIndexRef ref) {
+int maxIndex(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((s) => s.bindings),
   );

@@ -12,6 +12,7 @@ import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'binder_controller.g.dart';
@@ -144,7 +145,7 @@ class BinderController {
 }
 
 @riverpod
-BinderController binderController(BinderControllerRef ref, NesAction action) {
+BinderController binderController(Ref ref, InputAction action) {
   final controller = BinderController(
     action: action,
     profileIndex: ref.watch(profileIndexProvider),

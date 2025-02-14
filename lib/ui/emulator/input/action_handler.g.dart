@@ -6,7 +6,7 @@ part of 'action_handler.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$actionStreamHash() => r'79cbb0bc96213a811e743b125a53b12457750641';
+String _$actionStreamHash() => r'639cbedd5a9e63c4d1539f80b28dde3f51eb3c45';
 
 /// See also [actionStream].
 @ProviderFor(actionStream)
@@ -22,7 +22,7 @@ final actionStreamProvider = AutoDisposeProvider<ActionStream>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ActionStreamRef = AutoDisposeProviderRef<ActionStream>;
-String _$actionHandlerHash() => r'be93aae9232fcaaa29e1359aaa64194d077ca995';
+String _$actionHandlerHash() => r'172d9bb7400aeee456e3e86d8eddd3b34025b35d';
 
 /// See also [actionHandler].
 @ProviderFor(actionHandler)

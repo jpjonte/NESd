@@ -7,7 +7,7 @@ part of 'debug_overlay.dart';
 // **************************************************************************
 
 String _$debugOverlayControllerHash() =>
-    r'05fcdcb58929c3fd4af7c85f50a19c0e8b25e73d';
+    r'bf7efd2b466b6386729e1880da6b189711d7d7d6';
 
 /// See also [debugOverlayController].
 @ProviderFor(debugOverlayController)
