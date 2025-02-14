@@ -6,7 +6,7 @@ part of 'binder_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$binderStateHash() => r'88eeaee2f651483d321eae975f64c813262fd17f';
+String _$binderStateHash() => r'a554693d24e13e283d69801854c9a334421f13fb';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,10 +31,10 @@ class _SystemHash {
 
 abstract class _$BinderState extends BuildlessAutoDisposeNotifier<
     ({bool editing, InputCombination? input})> {
-  late final NesAction action;
+  late final InputAction action;
 
   ({bool editing, InputCombination? input}) build(
-    NesAction action,
+    InputAction action,
   );
 }
 
@@ -50,7 +50,7 @@ class BinderStateFamily
 
   /// See also [BinderState].
   BinderStateProvider call(
-    NesAction action,
+    InputAction action,
   ) {
     return BinderStateProvider(
       action,
@@ -86,7 +86,7 @@ class BinderStateProvider extends AutoDisposeNotifierProviderImpl<BinderState,
     ({bool editing, InputCombination? input})> {
   /// See also [BinderState].
   BinderStateProvider(
-    NesAction action,
+    InputAction action,
   ) : this._internal(
           () => BinderState()..action = action,
           from: binderStateProvider,
@@ -111,7 +111,7 @@ class BinderStateProvider extends AutoDisposeNotifierProviderImpl<BinderState,
     required this.action,
   }) : super.internal();
 
-  final NesAction action;
+  final InputAction action;
 
   @override
   ({bool editing, InputCombination? input}) runNotifierBuild(
@@ -163,7 +163,7 @@ class BinderStateProvider extends AutoDisposeNotifierProviderImpl<BinderState,
 mixin BinderStateRef on AutoDisposeNotifierProviderRef<
     ({bool editing, InputCombination? input})> {
   /// The parameter `action` of this provider.
-  NesAction get action;
+  InputAction get action;
 }
 
 class _BinderStateProviderElement extends AutoDisposeNotifierProviderElement<
@@ -172,7 +172,7 @@ class _BinderStateProviderElement extends AutoDisposeNotifierProviderElement<
   _BinderStateProviderElement(super.provider);
 
   @override
-  NesAction get action => (origin as BinderStateProvider).action;
+  InputAction get action => (origin as BinderStateProvider).action;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

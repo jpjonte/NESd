@@ -78,3 +78,12 @@ linter:
     - unnecessary_statements
     - unnecessary_string_escapes
     - unnecessary_string_interpolations
+
+dart_code_metrics:
+  extends:
+    - recommended
+  rules:
+    - no-boolean-literal-compare
+    - no-empty-block: false
+    - prefer-enums-by-name
+    - prefer-match-file-name: false

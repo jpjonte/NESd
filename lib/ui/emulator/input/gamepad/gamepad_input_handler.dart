@@ -1,25 +1,26 @@
 import 'dart:async';
 
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_handler.g.dart';
 
-typedef PriorityAction = ({int priority, NesAction action});
+typedef PriorityAction = ({int priority, InputAction action});
 typedef GamepadMap
-    = Map<({String gamepadId, Set<GamepadInput> state}), NesAction>;
+    = Map<({String gamepadId, Set<GamepadInput> state}), InputAction>;
 
 const _inputOnThreshold = 0.2;
 const _inputOffThreshold = 0.1;
 
 @riverpod
-GamepadInputHandler gamepadInputHandler(GamepadInputHandlerRef ref) {
+GamepadInputHandler gamepadInputHandler(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((settings) => settings.bindings),
   );

@@ -1,13 +1,13 @@
-part of '../action.dart';
+part of '../input_action.dart';
 
-class TogglePauseAction extends NesAction {
+class TogglePauseAction extends InputAction {
   const TogglePauseAction({
     required super.title,
     required super.code,
   });
 }
 
-class PauseAction extends NesAction {
+class PauseAction extends InputAction {
   const PauseAction({
     required this.paused,
     required super.title,
@@ -17,28 +17,28 @@ class PauseAction extends NesAction {
   final bool paused;
 }
 
-class StopAction extends NesAction {
+class StopAction extends InputAction {
   const StopAction({
     required super.title,
     required super.code,
   });
 }
 
-class ToggleFastForward extends NesAction {
+class ToggleFastForward extends InputAction {
   const ToggleFastForward({
     required super.title,
     required super.code,
   });
 }
 
-class DecreaseVolume extends NesAction {
+class DecreaseVolume extends InputAction {
   const DecreaseVolume({
     required super.title,
     required super.code,
   });
 }
 
-class IncreaseVolume extends NesAction {
+class IncreaseVolume extends InputAction {
   const IncreaseVolume({
     required super.title,
     required super.code,

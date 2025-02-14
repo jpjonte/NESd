@@ -55,11 +55,11 @@ class MMC1 extends Mapper {
     super.reset();
 
     final mirroring = switch (cartridge.nametableLayout) {
-      NametableLayout.vertical => 3,
-      NametableLayout.horizontal => 2,
-      NametableLayout.four => 0,
-      NametableLayout.singleUpper => 0,
       NametableLayout.singleLower => 0,
+      NametableLayout.singleUpper => 1,
+      NametableLayout.horizontal => 2,
+      NametableLayout.vertical => 3,
+      _ => 0,
     };
 
     _shift = 0x10;

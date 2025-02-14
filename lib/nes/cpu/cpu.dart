@@ -9,6 +9,7 @@ import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/cpu/instruction.dart' as instr show BRK;
 import 'package:nesd/nes/cpu/instruction.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
@@ -16,16 +17,6 @@ import 'package:nesd/nes/event/nes_event.dart';
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
 const irqVector = 0xfffe;
-
-enum IrqSource {
-  apuFrameCounter(1),
-  apuDmc(2),
-  mapper(4);
-
-  const IrqSource(this.bit);
-
-  final int bit;
-}
 
 class CPU {
   CPU({

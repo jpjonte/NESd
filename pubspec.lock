@@ -262,6 +262,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0+6.7.0"
+  dart_code_metrics_presets:
+    dependency: "direct dev"
+    description:
+      name: dart_code_metrics_presets
+      sha256: "7afd64eee0ce9b33a6aaeb1f6c9eb3a25e79354b900db338e3c03b50587e0b44"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.20.0"
   dart_style:
     dependency: transitive
     description:

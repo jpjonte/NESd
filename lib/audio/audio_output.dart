@@ -4,13 +4,14 @@ import 'dart:typed_data';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_buffer.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'audio_output.g.dart';
 
 @riverpod
-AudioOutput audioOutput(AudioOutputRef ref) {
-  final audioOutput = AudioOutput();
+AudioOutput audioOutput(Ref ref) {
+  final audioOutput = AudioOutput(audioStream: getAudioStream());
 
   ref.onDispose(audioOutput.dispose);
 
@@ -26,11 +27,11 @@ AudioOutput audioOutput(AudioOutputRef ref) {
 }
 
 class AudioOutput {
-  AudioOutput() {
+  AudioOutput({required this.audioStream}) {
     _init();
   }
 
-  late final _audioStream = getAudioStream();
+  final AudioStream audioStream;
 
   final _audioBuffer = AudioBuffer(2400); // 50 ms
 
@@ -45,7 +46,7 @@ class AudioOutput {
   }
 
   void reset() {
-    _audioStream.uninit();
+    audioStream.uninit();
 
     _audioBuffer.clear();
 
@@ -55,7 +56,7 @@ class AudioOutput {
   }
 
   void dispose() {
-    _audioStream.uninit();
+    audioStream.uninit();
   }
 
   void processSamples(Float32List samples) {
@@ -68,7 +69,7 @@ class AudioOutput {
   }
 
   void _init() {
-    _audioStream
+    audioStream
       ..init(
         bufferMilliSec: 50,
         waitingBufferMilliSec: 20,
@@ -78,8 +79,8 @@ class AudioOutput {
   }
 
   void _flushSamples() {
-    final bufferedSize = _audioStream.getBufferFilledSize();
-    final bufferSize = _audioStream.getBufferSize();
+    final bufferedSize = audioStream.getBufferFilledSize();
+    final bufferSize = audioStream.getBufferSize();
     final remainingBufferSize = bufferSize - bufferedSize;
     final preBufferedSize = _audioBuffer.current;
     final preBufferSize = _audioBuffer.size;
@@ -110,6 +111,6 @@ class AudioOutput {
 
     final samples = _audioBuffer.read(flushSize);
 
-    _audioStream.push(samples);
+    audioStream.push(samples);
   }
 }

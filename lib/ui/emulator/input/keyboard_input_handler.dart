@@ -1,17 +1,18 @@
 import 'package:flutter/services.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'keyboard_input_handler.g.dart';
 
-typedef PriorityAction = ({int priority, NesAction action});
-typedef KeyMap = Map<Set<LogicalKeyboardKey>, NesAction>;
+typedef PriorityAction = ({int priority, InputAction action});
+typedef KeyMap = Map<Set<LogicalKeyboardKey>, InputAction>;
 
 @riverpod
-KeyboardInputHandler keyboardInputHandler(KeyboardInputHandlerRef ref) {
+KeyboardInputHandler keyboardInputHandler(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((settings) => settings.bindings),
   );

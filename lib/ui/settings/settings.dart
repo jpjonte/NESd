@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -17,20 +17,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
-typedef BindingMap = Map<NesAction, List<InputCombination?>>;
+typedef BindingMap = Map<InputAction, List<InputCombination?>>;
 
-BindingMap bindingsFromJson(
-  dynamic json,
-) {
+// ignore: avoid-dynamic
+BindingMap bindingsFromJson(dynamic json) {
   if (json is! Map<String, dynamic>) {
     return defaultBindings;
   }
 
-  final bindings = <NesAction, List<InputCombination?>>{};
+  final bindings = <InputAction, List<InputCombination?>>{};
 
   for (final MapEntry(key: code, :value) in json.entries) {
     try {
-      final action = NesAction.fromCode(code);
+      final action = InputAction.fromCode(code);
 
       if (action == null) {
         continue;
@@ -48,6 +47,7 @@ BindingMap bindingsFromJson(
   return bindings;
 }
 
+// ignore: avoid-dynamic
 List<InputCombination?> inputsFromJson(dynamic value) {
   if (value is! List) {
     return [
@@ -77,6 +77,7 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   };
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultPortraitConfig;
@@ -85,6 +86,7 @@ List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultLandscapeConfig;
@@ -93,6 +95,7 @@ List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
   return json
       .map(
@@ -118,7 +121,7 @@ class Settings with _$Settings {
     @Default(false) bool autoLoad,
     @Default({})
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-    Map<NesAction, List<InputCombination?>> bindings,
+    Map<InputAction, List<InputCombination?>> bindings,
     @Default(null) String? lastRomPath,
     @Default([]) List<String> recentRomPaths,
     @Default([]) List<RomInfo> recentRoms,
@@ -254,7 +257,7 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(bindings: bindings));
   }
 
-  void updateBinding(NesAction action, int index, InputCombination input) {
+  void updateBinding(InputAction action, int index, InputCombination input) {
     final bindings = state.bindings[action] ?? <InputCombination?>[];
 
     if (index < bindings.length) {
@@ -278,7 +281,7 @@ class SettingsController extends _$SettingsController {
     );
   }
 
-  void clearBinding(NesAction action, int index) {
+  void clearBinding(InputAction action, int index) {
     final bindings = state.bindings[action] ?? [];
 
     if (index < bindings.length - 1) {

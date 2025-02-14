@@ -3,7 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binder.dart';
 import 'package:nesd/ui/settings/controls/binder_controller.dart';
@@ -16,7 +16,7 @@ class BindingTile extends HookConsumerWidget {
     super.key,
   });
 
-  final NesAction action;
+  final InputAction action;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

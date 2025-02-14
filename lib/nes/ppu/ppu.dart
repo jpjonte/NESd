@@ -795,6 +795,7 @@ class PPU {
         (v_nametable << 10) |
         ((v_coarseY & 0x1C) << 1) | // we select the attribute table
         ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
+
     return address;
   }
 

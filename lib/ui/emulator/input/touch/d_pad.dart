@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
@@ -52,7 +52,7 @@ class DPad extends HookConsumerWidget {
     );
 
     void handleEdge(
-      NesAction? action,
+      InputAction? action,
       Rect rect,
       Offset previous,
       Offset current,

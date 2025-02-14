@@ -7,13 +7,13 @@ part 'action/save_state.dart';
 part 'action/state.dart';
 part 'action/ui.dart';
 
-sealed class NesAction {
-  const NesAction({
+sealed class InputAction {
+  const InputAction({
     required this.title,
     required this.code,
   });
 
-  static NesAction? fromCode(String? code) {
+  static InputAction? fromCode(String? code) {
     if (code == null) {
       return null;
     }
@@ -21,7 +21,7 @@ sealed class NesAction {
     return allActions.firstWhere((action) => action.code == code);
   }
 
-  static String? toJson(NesAction? action) => action?.code;
+  static String? toJson(InputAction? action) => action?.code;
 
   final String title;
   final String code;

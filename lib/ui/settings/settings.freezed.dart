@@ -32,7 +32,7 @@ mixin _$Settings {
   int? get autoSaveInterval => throw _privateConstructorUsedError;
   bool get autoLoad => throw _privateConstructorUsedError;
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, List<InputCombination?>> get bindings =>
+  Map<InputAction, List<InputCombination?>> get bindings =>
       throw _privateConstructorUsedError;
   String? get lastRomPath => throw _privateConstructorUsedError;
   List<String> get recentRomPaths => throw _privateConstructorUsedError;
@@ -75,7 +75,7 @@ abstract class $SettingsCopyWith<$Res> {
       int? autoSaveInterval,
       bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, List<InputCombination?>> bindings,
+      Map<InputAction, List<InputCombination?>> bindings,
       String? lastRomPath,
       List<String> recentRomPaths,
       List<RomInfo> recentRoms,
@@ -170,7 +170,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
       bindings: null == bindings
           ? _value.bindings
           : bindings // ignore: cast_nullable_to_non_nullable
-              as Map<NesAction, List<InputCombination?>>,
+              as Map<InputAction, List<InputCombination?>>,
       lastRomPath: freezed == lastRomPath
           ? _value.lastRomPath
           : lastRomPath // ignore: cast_nullable_to_non_nullable
@@ -224,7 +224,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
       int? autoSaveInterval,
       bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      Map<NesAction, List<InputCombination?>> bindings,
+      Map<InputAction, List<InputCombination?>> bindings,
       String? lastRomPath,
       List<String> recentRomPaths,
       List<RomInfo> recentRoms,
@@ -317,7 +317,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
       bindings: null == bindings
           ? _value._bindings
           : bindings // ignore: cast_nullable_to_non_nullable
-              as Map<NesAction, List<InputCombination?>>,
+              as Map<InputAction, List<InputCombination?>>,
       lastRomPath: freezed == lastRomPath
           ? _value.lastRomPath
           : lastRomPath // ignore: cast_nullable_to_non_nullable
@@ -366,7 +366,7 @@ class _$SettingsImpl implements _Settings {
       this.autoSaveInterval = 1,
       this.autoLoad = false,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, List<InputCombination?>> bindings = const {},
+      final Map<InputAction, List<InputCombination?>> bindings = const {},
       this.lastRomPath = null,
       final List<String> recentRomPaths = const [],
       final List<RomInfo> recentRoms = const [],
@@ -419,10 +419,10 @@ class _$SettingsImpl implements _Settings {
   @override
   @JsonKey()
   final bool autoLoad;
-  final Map<NesAction, List<InputCombination?>> _bindings;
+  final Map<InputAction, List<InputCombination?>> _bindings;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, List<InputCombination?>> get bindings {
+  Map<InputAction, List<InputCombination?>> get bindings {
     if (_bindings is EqualUnmodifiableMapView) return _bindings;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableMapView(_bindings);
@@ -582,7 +582,7 @@ abstract class _Settings implements Settings {
       final int? autoSaveInterval,
       final bool autoLoad,
       @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-      final Map<NesAction, List<InputCombination?>> bindings,
+      final Map<InputAction, List<InputCombination?>> bindings,
       final String? lastRomPath,
       final List<String> recentRomPaths,
       final List<RomInfo> recentRoms,
@@ -620,7 +620,7 @@ abstract class _Settings implements Settings {
   bool get autoLoad;
   @override
   @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-  Map<NesAction, List<InputCombination?>> get bindings;
+  Map<InputAction, List<InputCombination?>> get bindings;
   @override
   String? get lastRomPath;
   @override

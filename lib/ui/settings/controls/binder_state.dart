@@ -1,4 +1,4 @@
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -9,8 +9,9 @@ part 'binder_state.g.dart';
 @riverpod
 class BinderState extends _$BinderState {
   @override
-  ({bool editing, InputCombination? input}) build(NesAction action) {
+  ({bool editing, InputCombination? input}) build(InputAction action) {
     final profileIndex = ref.watch(profileIndexProvider);
+
     return (
       editing: false,
       input: ref.watch(

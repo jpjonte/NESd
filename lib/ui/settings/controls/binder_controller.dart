@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nesd/extension/iterable_extension.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
@@ -29,7 +29,7 @@ class BinderController {
     _subscription = gamepadInputMapper.stream.listen(_handleGamepadEvent);
   }
 
-  final NesAction action;
+  final InputAction action;
   final int profileIndex;
   final SettingsController settingsController;
   final BinderState state;

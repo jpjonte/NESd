@@ -40,8 +40,8 @@ mixin _$TouchInputConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)
@@ -49,22 +49,22 @@ mixin _$TouchInputConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)
         circleButton,
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)
@@ -72,14 +72,14 @@ mixin _$TouchInputConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)
         dPad,
@@ -90,8 +90,8 @@ mixin _$TouchInputConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -99,22 +99,22 @@ mixin _$TouchInputConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -122,14 +122,14 @@ mixin _$TouchInputConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -140,8 +140,8 @@ mixin _$TouchInputConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -149,22 +149,22 @@ mixin _$TouchInputConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -172,14 +172,14 @@ mixin _$TouchInputConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -274,8 +274,8 @@ abstract class _$$RectangleButtonConfigImplCopyWith<$Res>
   $Res call(
       {double x,
       double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? action,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? action,
       double width,
       double height,
       String label});
@@ -313,7 +313,7 @@ class __$$RectangleButtonConfigImplCopyWithImpl<$Res>
       action: freezed == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       width: null == width
           ? _value.width
           : width // ignore: cast_nullable_to_non_nullable
@@ -336,7 +336,7 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
   const _$RectangleButtonConfigImpl(
       {required this.x,
       required this.y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.action,
       this.width = 60,
       this.height = 60,
@@ -353,8 +353,8 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
   @override
   final double y;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? action;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? action;
   @override
   @JsonKey()
   final double width;
@@ -406,8 +406,8 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)
@@ -415,22 +415,22 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)
         circleButton,
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)
@@ -438,14 +438,14 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)
         dPad,
@@ -459,8 +459,8 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -468,22 +468,22 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -491,14 +491,14 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -512,8 +512,8 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -521,22 +521,22 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -544,14 +544,14 @@ class _$RectangleButtonConfigImpl extends RectangleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -612,8 +612,8 @@ abstract class RectangleButtonConfig extends TouchInputConfig {
   const factory RectangleButtonConfig(
       {required final double x,
       required final double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? action,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? action,
       final double width,
       final double height,
       final String label}) = _$RectangleButtonConfigImpl;
@@ -626,8 +626,8 @@ abstract class RectangleButtonConfig extends TouchInputConfig {
   double get x;
   @override
   double get y;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get action;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get action;
   double get width;
   double get height;
   String get label;
@@ -651,8 +651,8 @@ abstract class _$$CircleButtonConfigImplCopyWith<$Res>
   $Res call(
       {double x,
       double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? action,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? action,
       double size,
       String label});
 }
@@ -688,7 +688,7 @@ class __$$CircleButtonConfigImplCopyWithImpl<$Res>
       action: freezed == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       size: null == size
           ? _value.size
           : size // ignore: cast_nullable_to_non_nullable
@@ -707,7 +707,7 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
   const _$CircleButtonConfigImpl(
       {required this.x,
       required this.y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.action,
       this.size = 75,
       this.label = '',
@@ -723,8 +723,8 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
   @override
   final double y;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? action;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? action;
   @override
   @JsonKey()
   final double size;
@@ -771,8 +771,8 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)
@@ -780,22 +780,22 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)
         circleButton,
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)
@@ -803,14 +803,14 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)
         dPad,
@@ -824,8 +824,8 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -833,22 +833,22 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -856,14 +856,14 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -877,8 +877,8 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -886,22 +886,22 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -909,14 +909,14 @@ class _$CircleButtonConfigImpl extends CircleButtonConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -977,8 +977,8 @@ abstract class CircleButtonConfig extends TouchInputConfig {
   const factory CircleButtonConfig(
       {required final double x,
       required final double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? action,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? action,
       final double size,
       final String label}) = _$CircleButtonConfigImpl;
   const CircleButtonConfig._() : super._();
@@ -990,8 +990,8 @@ abstract class CircleButtonConfig extends TouchInputConfig {
   double get x;
   @override
   double get y;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get action;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get action;
   double get size;
   String get label;
 
@@ -1014,14 +1014,14 @@ abstract class _$$JoyStickConfigImplCopyWith<$Res>
   $Res call(
       {double x,
       double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? rightAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? upAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? downAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? leftAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? rightAction,
       double size,
       double innerSize,
       double deadZone});
@@ -1062,19 +1062,19 @@ class __$$JoyStickConfigImplCopyWithImpl<$Res>
       upAction: freezed == upAction
           ? _value.upAction
           : upAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       downAction: freezed == downAction
           ? _value.downAction
           : downAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       leftAction: freezed == leftAction
           ? _value.leftAction
           : leftAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       rightAction: freezed == rightAction
           ? _value.rightAction
           : rightAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       size: null == size
           ? _value.size
           : size // ignore: cast_nullable_to_non_nullable
@@ -1097,13 +1097,13 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
   const _$JoyStickConfigImpl(
       {required this.x,
       required this.y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.rightAction,
       this.size = 150,
       this.innerSize = 60,
@@ -1120,17 +1120,17 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
   @override
   final double y;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? upAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? upAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? downAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? downAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? leftAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? leftAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? rightAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? rightAction;
   @override
   @JsonKey()
   final double size;
@@ -1191,8 +1191,8 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)
@@ -1200,22 +1200,22 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)
         circleButton,
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)
@@ -1223,14 +1223,14 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)
         dPad,
@@ -1245,8 +1245,8 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -1254,22 +1254,22 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -1277,14 +1277,14 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -1299,8 +1299,8 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -1308,22 +1308,22 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -1331,14 +1331,14 @@ class _$JoyStickConfigImpl extends JoyStickConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -1400,14 +1400,14 @@ abstract class JoyStickConfig extends TouchInputConfig {
   const factory JoyStickConfig(
       {required final double x,
       required final double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? rightAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? upAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? downAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? leftAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? rightAction,
       final double size,
       final double innerSize,
       final double deadZone}) = _$JoyStickConfigImpl;
@@ -1420,14 +1420,14 @@ abstract class JoyStickConfig extends TouchInputConfig {
   double get x;
   @override
   double get y;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get upAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get downAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get leftAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get rightAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get upAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get downAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get leftAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get rightAction;
   double get size;
   double get innerSize;
   double get deadZone;
@@ -1451,14 +1451,14 @@ abstract class _$$DPadConfigImplCopyWith<$Res>
   $Res call(
       {double x,
       double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      NesAction? rightAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? upAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? downAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? leftAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      InputAction? rightAction,
       double size,
       double deadZone});
 }
@@ -1497,19 +1497,19 @@ class __$$DPadConfigImplCopyWithImpl<$Res>
       upAction: freezed == upAction
           ? _value.upAction
           : upAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       downAction: freezed == downAction
           ? _value.downAction
           : downAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       leftAction: freezed == leftAction
           ? _value.leftAction
           : leftAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       rightAction: freezed == rightAction
           ? _value.rightAction
           : rightAction // ignore: cast_nullable_to_non_nullable
-              as NesAction?,
+              as InputAction?,
       size: null == size
           ? _value.size
           : size // ignore: cast_nullable_to_non_nullable
@@ -1528,13 +1528,13 @@ class _$DPadConfigImpl extends DPadConfig {
   const _$DPadConfigImpl(
       {required this.x,
       required this.y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
       this.rightAction,
       this.size = 150,
       this.deadZone = 0.25,
@@ -1550,17 +1550,17 @@ class _$DPadConfigImpl extends DPadConfig {
   @override
   final double y;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? upAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? upAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? downAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? downAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? leftAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? leftAction;
   @override
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  final NesAction? rightAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  final InputAction? rightAction;
   @override
   @JsonKey()
   final double size;
@@ -1615,8 +1615,8 @@ class _$DPadConfigImpl extends DPadConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)
@@ -1624,22 +1624,22 @@ class _$DPadConfigImpl extends DPadConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)
         circleButton,
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)
@@ -1647,14 +1647,14 @@ class _$DPadConfigImpl extends DPadConfig {
     required TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)
         dPad,
@@ -1669,8 +1669,8 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -1678,22 +1678,22 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -1701,14 +1701,14 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult? Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -1723,8 +1723,8 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double width,
             double height,
             String label)?
@@ -1732,22 +1732,22 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? action,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? action,
             double size,
             String label)?
         circleButton,
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double innerSize,
             double deadZone)?
@@ -1755,14 +1755,14 @@ class _$DPadConfigImpl extends DPadConfig {
     TResult Function(
             double x,
             double y,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? upAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? downAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? leftAction,
-            @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-            NesAction? rightAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? upAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? downAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? leftAction,
+            @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+            InputAction? rightAction,
             double size,
             double deadZone)?
         dPad,
@@ -1824,14 +1824,14 @@ abstract class DPadConfig extends TouchInputConfig {
   const factory DPadConfig(
       {required final double x,
       required final double y,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? upAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? downAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? leftAction,
-      @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-      final NesAction? rightAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? upAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? downAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? leftAction,
+      @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+      final InputAction? rightAction,
       final double size,
       final double deadZone}) = _$DPadConfigImpl;
   const DPadConfig._() : super._();
@@ -1843,14 +1843,14 @@ abstract class DPadConfig extends TouchInputConfig {
   double get x;
   @override
   double get y;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get upAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get downAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get leftAction;
-  @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-  NesAction? get rightAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get upAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get downAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get leftAction;
+  @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+  InputAction? get rightAction;
   double get size;
   double get deadZone;
 

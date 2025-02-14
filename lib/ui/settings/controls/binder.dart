@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/controls/binder_controller.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
@@ -11,7 +11,7 @@ class Binder extends ConsumerWidget {
     super.key,
   });
 
-  final NesAction action;
+  final InputAction action;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

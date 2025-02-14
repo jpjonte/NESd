@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 
 part 'input_combination.freezed.dart';
@@ -141,6 +141,7 @@ final defaultBindings = {
   ],
 };
 
+// ignore: avoid-dynamic
 Set<LogicalKeyboardKey> keysFromJson(List<dynamic> json) {
   final keys = json.cast<int>();
 

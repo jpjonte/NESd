@@ -124,6 +124,7 @@ class MainScreen extends HookConsumerWidget {
         ),
       ],
     );
+
     return mainMenu;
   }
 

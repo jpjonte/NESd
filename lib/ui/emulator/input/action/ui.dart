@@ -1,69 +1,69 @@
-part of '../action.dart';
+part of '../input_action.dart';
 
-class OpenMenu extends NesAction {
+class OpenMenu extends InputAction {
   const OpenMenu({
     required super.title,
     required super.code,
   });
 }
 
-class PreviousInput extends NesAction {
+class PreviousInput extends InputAction {
   const PreviousInput({
     required super.title,
     required super.code,
   });
 }
 
-class NextInput extends NesAction {
+class NextInput extends InputAction {
   const NextInput({
     required super.title,
     required super.code,
   });
 }
 
-class Confirm extends NesAction {
+class Confirm extends InputAction {
   const Confirm({
     required super.title,
     required super.code,
   });
 }
 
-class SecondaryAction extends NesAction {
+class SecondaryAction extends InputAction {
   const SecondaryAction({
     required super.title,
     required super.code,
   });
 }
 
-class Cancel extends NesAction {
+class Cancel extends InputAction {
   const Cancel({
     required super.title,
     required super.code,
   });
 }
 
-class PreviousTab extends NesAction {
+class PreviousTab extends InputAction {
   const PreviousTab({
     required super.title,
     required super.code,
   });
 }
 
-class NextTab extends NesAction {
+class NextTab extends InputAction {
   const NextTab({
     required super.title,
     required super.code,
   });
 }
 
-class MenuDecrease extends NesAction {
+class MenuDecrease extends InputAction {
   const MenuDecrease({
     required super.title,
     required super.code,
   });
 }
 
-class MenuIncrease extends NesAction {
+class MenuIncrease extends InputAction {
   const MenuIncrease({
     required super.title,
     required super.code,

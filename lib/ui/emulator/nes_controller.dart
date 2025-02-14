@@ -165,6 +165,7 @@ class NesController {
         ).read(path.split(':').last),
       false => fileSystem.read(path),
     };
+
     return data;
   }
 

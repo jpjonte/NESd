@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 part 'touch_input_config.freezed.dart';
 part 'touch_input_config.g.dart';
@@ -28,8 +28,8 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.rectangleButton({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? action,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? action,
     @Default(60) double width,
     @Default(60) double height,
     @Default('') String label,
@@ -38,8 +38,8 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.circleButton({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? action,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? action,
     @Default(75) double size,
     @Default('') String label,
   }) = CircleButtonConfig;
@@ -47,14 +47,14 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.joyStick({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? upAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? downAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? leftAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? rightAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? upAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? downAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? leftAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? rightAction,
     @Default(150) double size,
     @Default(60) double innerSize,
     @Default(0.25) double deadZone,
@@ -63,14 +63,14 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.dPad({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? upAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? downAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? leftAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? rightAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? upAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? downAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? leftAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? rightAction,
     @Default(150) double size,
     @Default(0.25) double deadZone,
   }) = DPadConfig;

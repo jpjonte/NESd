@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:nesd/exception/invalid_rom_header.dart';
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -107,6 +106,7 @@ class Cartridge {
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
     final prgRomSize = rom[4] * 0x4000;
+
     return rom.sublist(16 + trainerSize, 16 + trainerSize + prgRomSize);
   }
 

@@ -2,7 +2,7 @@ import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
-import 'package:nesd/nes/cpu/cpu.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 
 class MMC3 extends Mapper {
   MMC3() : super(4);

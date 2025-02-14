@@ -1,6 +1,6 @@
-part of '../action.dart';
+part of '../input_action.dart';
 
-class SaveState extends NesAction {
+class SaveState extends InputAction {
   const SaveState(
     this.slot, {
     required super.title,

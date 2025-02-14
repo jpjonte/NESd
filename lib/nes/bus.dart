@@ -3,6 +3,7 @@
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 
 const addressNone = -1;
