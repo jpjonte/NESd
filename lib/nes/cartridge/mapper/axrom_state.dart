@@ -9,13 +9,6 @@ class AXROMState extends MapperState {
     super.id = 7,
   });
 
-  factory AXROMState.legacyFromByteData(ByteData data, int offset) {
-    return AXROMState(
-      prgBank: data.getUint8(offset),
-      vramBank: data.getUint8(offset + 1),
-    );
-  }
-
   factory AXROMState.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
 

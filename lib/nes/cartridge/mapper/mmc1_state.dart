@@ -31,16 +31,6 @@ class MMC1State extends MapperState {
     );
   }
 
-  factory MMC1State.legacyFromByteData(ByteData data, int offset) {
-    return MMC1State(
-      shift: data.getUint8(offset),
-      control: data.getUint8(offset + 1),
-      chrBank0: data.getUint8(offset + 2),
-      chrBank1: data.getUint8(offset + 3),
-      prgBank: data.getUint8(offset + 4),
-    );
-  }
-
   final int shift;
 
   final int control;

@@ -1,7 +1,6 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
-import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nesd/payload_types/uint8_list.dart';
 
 class CartridgeState {
@@ -30,14 +29,6 @@ class CartridgeState {
     );
   }
 
-  CartridgeState.dummy()
-      : this(
-          chr: Uint8List(1),
-          sram: Uint8List(1),
-          mapperId: 0,
-          mapperState: const NROMState(),
-        );
-
   final Uint8List chr;
 
   final Uint8List sram;
@@ -56,36 +47,3 @@ class CartridgeState {
     mapperState.serialize(writer);
   }
 }
-
-class _LegacyCartridgeStateContract extends BinaryContract<CartridgeState>
-    implements CartridgeState {
-  _LegacyCartridgeStateContract() : super(CartridgeState.dummy());
-
-  @override
-  CartridgeState order(CartridgeState contract) {
-    return CartridgeState(
-      chr: contract.chr,
-      sram: contract.sram,
-      mapperId: contract.mapperId,
-      mapperState: contract.mapperState,
-    );
-  }
-
-  @override
-  Uint8List get chr => Uint8List.fromList(type(list(uint8), (o) => o.chr));
-
-  @override
-  Uint8List get sram => Uint8List.fromList(type(list(uint8), (o) => o.sram));
-
-  @override
-  int get mapperId => type(uint8, (o) => o.mapperId);
-
-  @override
-  MapperState get mapperState =>
-      type(legacyMapperStateType, (o) => o.mapperState);
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-final legacyCartridgeStateContract = _LegacyCartridgeStateContract();

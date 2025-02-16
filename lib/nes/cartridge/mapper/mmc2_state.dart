@@ -33,26 +33,6 @@ class MMC2State extends MapperState {
     );
   }
 
-  factory MMC2State.legacyFromByteData(ByteData data, int offset) {
-    final version = data.getUint8(offset);
-
-    return switch (version) {
-      0 => MMC2State.version0(data, offset + 1),
-      _ => throw InvalidSerializationVersion('MMC2', version),
-    };
-  }
-
-  factory MMC2State.version0(ByteData data, int offset) {
-    return MMC2State(
-      prgBank: data.getUint8(offset),
-      chrBank0: [data.getUint8(offset + 1), data.getUint8(offset + 2)],
-      chrBank1: [data.getUint8(offset + 3), data.getUint8(offset + 4)],
-      chrLatch0: data.getUint8(offset + 5),
-      chrLatch1: data.getUint8(offset + 6),
-      mirroring: data.getUint8(offset + 7),
-    );
-  }
-
   final int prgBank;
 
   final List<int> chrBank0;

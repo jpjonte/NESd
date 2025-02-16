@@ -19,12 +19,7 @@ class NESState {
   });
 
   factory NESState.fromBytes(Uint8List bytes) {
-    try {
-      return NESState.deserialize(Payload.read(bytes));
-    } on InvalidSaveStateHeader {
-      // fallback to old serialization
-      return Payload.read(bytes).get(legacyNesStateContract);
-    }
+    return NESState.deserialize(Payload.read(bytes));
   }
 
   factory NESState.deserialize(PayloadReader reader) {
@@ -64,15 +59,6 @@ class NESState {
     );
   }
 
-  NESState.dummy()
-      : this(
-          cpuState: CPUState.dummy(),
-          ppuState: PPUState.dummy(),
-          apuState: APUState.dummy(),
-          cartridgeState: CartridgeState.dummy(),
-          cycles: 0,
-        );
-
   final CPUState cpuState;
 
   final PPUState ppuState;
@@ -101,42 +87,3 @@ class NESState {
     return binarize(writer);
   }
 }
-
-class _LegacyNESStateContract extends BinaryContract<NESState>
-    implements NESState {
-  _LegacyNESStateContract() : super(NESState.dummy());
-
-  @override
-  NESState order(NESState contract) {
-    return NESState(
-      cpuState: contract.cpuState,
-      ppuState: contract.ppuState,
-      apuState: contract.apuState,
-      cartridgeState: contract.cartridgeState,
-      cycles: contract.cycles,
-    );
-  }
-
-  @override
-  CPUState get cpuState => type(legacyCpuStateContract, (o) => o.cpuState);
-
-  @override
-  PPUState get ppuState => type(legacyPpuStateContract, (o) => o.ppuState);
-
-  @override
-  APUState get apuState => type(legacyApuStateContract, (o) => o.apuState);
-
-  @override
-  CartridgeState get cartridgeState => type(
-        legacyCartridgeStateContract,
-        (o) => o.cartridgeState,
-      );
-
-  @override
-  int get cycles => type(uint64, (o) => o.cycles);
-
-  @override
-  Uint8List serialize() => throw UnimplementedError();
-}
-
-final legacyNesStateContract = _LegacyNESStateContract();

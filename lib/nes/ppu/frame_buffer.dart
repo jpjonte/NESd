@@ -53,38 +53,3 @@ class FrameBuffer {
     pixels.fillRange(0, pixels.length, 0);
   }
 }
-
-class _LegacyFrameBufferContract extends BinaryContract<FrameBuffer>
-    implements FrameBuffer {
-  _LegacyFrameBufferContract() : super(FrameBuffer(width: 0, height: 0));
-
-  @override
-  FrameBuffer order(FrameBuffer contract) {
-    return FrameBuffer(width: contract.width, height: contract.height);
-  }
-
-  @override
-  int get width => type(uint32, (o) => o.width);
-
-  @override
-  int get height => type(uint32, (o) => o.height);
-
-  @override
-  Uint8List get pixels => Uint8List.fromList(
-        type(list(uint8), (o) => o.pixels),
-      );
-
-  @override
-  void setPixel(int x, int y, int color) {}
-
-  @override
-  void setPixels(Uint8List pixels) {}
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-
-  @override
-  void clear() {}
-}
-
-final legacyFrameBufferContract = _LegacyFrameBufferContract();
