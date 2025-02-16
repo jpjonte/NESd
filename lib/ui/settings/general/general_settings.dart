@@ -13,11 +13,7 @@ class GeneralSettings extends StatelessWidget {
       index: 0,
       child: SingleChildScrollView(
         child: Column(
-          children: [
-            AutoSaveSwitch(),
-            AutoSaveInterval(),
-            AutoLoadSwitch(),
-          ],
+          children: [AutoSaveSwitch(), AutoSaveInterval(), AutoLoadSwitch()],
         ),
       ),
     );

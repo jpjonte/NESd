@@ -30,9 +30,7 @@ double calculateAddressScrollOffset(DebuggerState state, int address) {
 const monoStyle = TextStyle(fontFamily: 'Ubuntu Mono');
 
 class DebuggerWidget extends HookConsumerWidget {
-  const DebuggerWidget({
-    super.key,
-  });
+  const DebuggerWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,10 +98,7 @@ class DebuggerWidget extends HookConsumerWidget {
 }
 
 class StackTooltip extends StatelessWidget {
-  const StackTooltip({
-    required this.stack,
-    super.key,
-  });
+  const StackTooltip({required this.stack, super.key});
 
   final List<int> stack;
 

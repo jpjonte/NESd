@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 
+// making the parameter `focused` a named parameter would be overkill
 // ignore: avoid_positional_boolean_parameters
 typedef FocusedBuilder = Widget Function(BuildContext context, bool focused);
 

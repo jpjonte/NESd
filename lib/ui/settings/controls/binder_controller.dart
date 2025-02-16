@@ -83,10 +83,7 @@ class BinderController {
 
     if (event is KeyDownEvent) {
       state.input = updatedBinding.copyWith(
-        keys: {
-          ...updatedBinding.keys,
-          event.logicalKey,
-        },
+        keys: {...updatedBinding.keys, event.logicalKey},
       );
 
       return KeyEventResult.handled;
@@ -106,7 +103,8 @@ class BinderController {
       return;
     }
 
-    final updatedBinding = state.input ??
+    final updatedBinding =
+        state.input ??
         InputCombination.gamepad(
           gamepadId: event.gamepadId,
           gamepadName: event.gamepadName,
@@ -152,8 +150,9 @@ BinderController binderController(Ref ref, InputAction action) {
     settingsController: ref.watch(settingsControllerProvider.notifier),
     state: ref.watch(binderStateProvider(action).notifier),
     inputs: ref.watch(
-      settingsControllerProvider
-          .select((settings) => settings.bindings[action] ?? []),
+      settingsControllerProvider.select(
+        (settings) => settings.bindings[action] ?? [],
+      ),
     ),
     actionHandler: ref.watch(actionHandlerProvider),
     gamepadInputMapper: ref.watch(gamepadInputMapperProvider),

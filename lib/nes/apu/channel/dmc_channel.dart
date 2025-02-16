@@ -50,24 +50,24 @@ class DMCChannel {
   bool startDma = false;
 
   DMCChannelState get state => DMCChannelState(
-        enabled: enabled,
-        irqEnabled: irqEnabled,
-        interrupt: interrupt,
-        loop: loop,
-        silence: silence,
-        buffer: buffer,
-        rate: rate,
-        bitsRemaining: bitsRemaining,
-        shiftRegister: shiftRegister,
-        timer: timer,
-        level: level,
-        sampleAddress: sampleAddress,
-        sampleLength: sampleLength,
-        address: address,
-        currentLength: length,
-        sampleLoaded: sampleLoaded,
-        startDma: startDma,
-      );
+    enabled: enabled,
+    irqEnabled: irqEnabled,
+    interrupt: interrupt,
+    loop: loop,
+    silence: silence,
+    buffer: buffer,
+    rate: rate,
+    bitsRemaining: bitsRemaining,
+    shiftRegister: shiftRegister,
+    timer: timer,
+    level: level,
+    sampleAddress: sampleAddress,
+    sampleLength: sampleLength,
+    address: address,
+    currentLength: length,
+    sampleLoaded: sampleLoaded,
+    startDma: startDma,
+  );
 
   set state(DMCChannelState value) {
     enabled = value.enabled;

@@ -18,10 +18,7 @@ class GxROM extends Mapper {
   int _chrBank = 0;
 
   @override
-  GxROMState get state => GxROMState(
-        prgBank: _prgBank,
-        chrBank: _chrBank,
-      );
+  GxROMState get state => GxROMState(prgBank: _prgBank, chrBank: _chrBank);
 
   @override
   set state(covariant GxROMState state) {

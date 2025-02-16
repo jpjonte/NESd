@@ -12,7 +12,8 @@ part of 'debugger_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$DebuggerState {
@@ -55,38 +56,40 @@ mixin _$DebuggerState {
 /// @nodoc
 abstract class $DebuggerStateCopyWith<$Res> {
   factory $DebuggerStateCopyWith(
-          DebuggerState value, $Res Function(DebuggerState) then) =
-      _$DebuggerStateCopyWithImpl<$Res, DebuggerState>;
+    DebuggerState value,
+    $Res Function(DebuggerState) then,
+  ) = _$DebuggerStateCopyWithImpl<$Res, DebuggerState>;
   @useResult
-  $Res call(
-      {bool enabled,
-      List<DisassemblyLine> disassembly,
-      int PC,
-      int A,
-      int X,
-      int Y,
-      int SP,
-      int P,
-      bool C,
-      bool Z,
-      bool I,
-      bool D,
-      bool B,
-      bool V,
-      bool N,
-      List<int> stack,
-      List<Breakpoint> breakpoints,
-      bool canStepOut,
-      int scanline,
-      int cycle,
-      int v,
-      int t,
-      int x,
-      bool spriteOverflow,
-      bool sprite0Hit,
-      bool vBlank,
-      bool executionLogOpen,
-      bool showStack});
+  $Res call({
+    bool enabled,
+    List<DisassemblyLine> disassembly,
+    int PC,
+    int A,
+    int X,
+    int Y,
+    int SP,
+    int P,
+    bool C,
+    bool Z,
+    bool I,
+    bool D,
+    bool B,
+    bool V,
+    bool N,
+    List<int> stack,
+    List<Breakpoint> breakpoints,
+    bool canStepOut,
+    int scanline,
+    int cycle,
+    int v,
+    int t,
+    int x,
+    bool spriteOverflow,
+    bool sprite0Hit,
+    bool vBlank,
+    bool executionLogOpen,
+    bool showStack,
+  });
 }
 
 /// @nodoc
@@ -133,120 +136,151 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
     Object? executionLogOpen = null,
     Object? showStack = null,
   }) {
-    return _then(_value.copyWith(
-      enabled: null == enabled
-          ? _value.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
-              as bool,
-      disassembly: null == disassembly
-          ? _value.disassembly
-          : disassembly // ignore: cast_nullable_to_non_nullable
-              as List<DisassemblyLine>,
-      PC: null == PC
-          ? _value.PC
-          : PC // ignore: cast_nullable_to_non_nullable
-              as int,
-      A: null == A
-          ? _value.A
-          : A // ignore: cast_nullable_to_non_nullable
-              as int,
-      X: null == X
-          ? _value.X
-          : X // ignore: cast_nullable_to_non_nullable
-              as int,
-      Y: null == Y
-          ? _value.Y
-          : Y // ignore: cast_nullable_to_non_nullable
-              as int,
-      SP: null == SP
-          ? _value.SP
-          : SP // ignore: cast_nullable_to_non_nullable
-              as int,
-      P: null == P
-          ? _value.P
-          : P // ignore: cast_nullable_to_non_nullable
-              as int,
-      C: null == C
-          ? _value.C
-          : C // ignore: cast_nullable_to_non_nullable
-              as bool,
-      Z: null == Z
-          ? _value.Z
-          : Z // ignore: cast_nullable_to_non_nullable
-              as bool,
-      I: null == I
-          ? _value.I
-          : I // ignore: cast_nullable_to_non_nullable
-              as bool,
-      D: null == D
-          ? _value.D
-          : D // ignore: cast_nullable_to_non_nullable
-              as bool,
-      B: null == B
-          ? _value.B
-          : B // ignore: cast_nullable_to_non_nullable
-              as bool,
-      V: null == V
-          ? _value.V
-          : V // ignore: cast_nullable_to_non_nullable
-              as bool,
-      N: null == N
-          ? _value.N
-          : N // ignore: cast_nullable_to_non_nullable
-              as bool,
-      stack: null == stack
-          ? _value.stack
-          : stack // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      breakpoints: null == breakpoints
-          ? _value.breakpoints
-          : breakpoints // ignore: cast_nullable_to_non_nullable
-              as List<Breakpoint>,
-      canStepOut: null == canStepOut
-          ? _value.canStepOut
-          : canStepOut // ignore: cast_nullable_to_non_nullable
-              as bool,
-      scanline: null == scanline
-          ? _value.scanline
-          : scanline // ignore: cast_nullable_to_non_nullable
-              as int,
-      cycle: null == cycle
-          ? _value.cycle
-          : cycle // ignore: cast_nullable_to_non_nullable
-              as int,
-      v: null == v
-          ? _value.v
-          : v // ignore: cast_nullable_to_non_nullable
-              as int,
-      t: null == t
-          ? _value.t
-          : t // ignore: cast_nullable_to_non_nullable
-              as int,
-      x: null == x
-          ? _value.x
-          : x // ignore: cast_nullable_to_non_nullable
-              as int,
-      spriteOverflow: null == spriteOverflow
-          ? _value.spriteOverflow
-          : spriteOverflow // ignore: cast_nullable_to_non_nullable
-              as bool,
-      sprite0Hit: null == sprite0Hit
-          ? _value.sprite0Hit
-          : sprite0Hit // ignore: cast_nullable_to_non_nullable
-              as bool,
-      vBlank: null == vBlank
-          ? _value.vBlank
-          : vBlank // ignore: cast_nullable_to_non_nullable
-              as bool,
-      executionLogOpen: null == executionLogOpen
-          ? _value.executionLogOpen
-          : executionLogOpen // ignore: cast_nullable_to_non_nullable
-              as bool,
-      showStack: null == showStack
-          ? _value.showStack
-          : showStack // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            enabled:
+                null == enabled
+                    ? _value.enabled
+                    : enabled // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            disassembly:
+                null == disassembly
+                    ? _value.disassembly
+                    : disassembly // ignore: cast_nullable_to_non_nullable
+                        as List<DisassemblyLine>,
+            PC:
+                null == PC
+                    ? _value.PC
+                    : PC // ignore: cast_nullable_to_non_nullable
+                        as int,
+            A:
+                null == A
+                    ? _value.A
+                    : A // ignore: cast_nullable_to_non_nullable
+                        as int,
+            X:
+                null == X
+                    ? _value.X
+                    : X // ignore: cast_nullable_to_non_nullable
+                        as int,
+            Y:
+                null == Y
+                    ? _value.Y
+                    : Y // ignore: cast_nullable_to_non_nullable
+                        as int,
+            SP:
+                null == SP
+                    ? _value.SP
+                    : SP // ignore: cast_nullable_to_non_nullable
+                        as int,
+            P:
+                null == P
+                    ? _value.P
+                    : P // ignore: cast_nullable_to_non_nullable
+                        as int,
+            C:
+                null == C
+                    ? _value.C
+                    : C // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            Z:
+                null == Z
+                    ? _value.Z
+                    : Z // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            I:
+                null == I
+                    ? _value.I
+                    : I // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            D:
+                null == D
+                    ? _value.D
+                    : D // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            B:
+                null == B
+                    ? _value.B
+                    : B // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            V:
+                null == V
+                    ? _value.V
+                    : V // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            N:
+                null == N
+                    ? _value.N
+                    : N // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            stack:
+                null == stack
+                    ? _value.stack
+                    : stack // ignore: cast_nullable_to_non_nullable
+                        as List<int>,
+            breakpoints:
+                null == breakpoints
+                    ? _value.breakpoints
+                    : breakpoints // ignore: cast_nullable_to_non_nullable
+                        as List<Breakpoint>,
+            canStepOut:
+                null == canStepOut
+                    ? _value.canStepOut
+                    : canStepOut // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            scanline:
+                null == scanline
+                    ? _value.scanline
+                    : scanline // ignore: cast_nullable_to_non_nullable
+                        as int,
+            cycle:
+                null == cycle
+                    ? _value.cycle
+                    : cycle // ignore: cast_nullable_to_non_nullable
+                        as int,
+            v:
+                null == v
+                    ? _value.v
+                    : v // ignore: cast_nullable_to_non_nullable
+                        as int,
+            t:
+                null == t
+                    ? _value.t
+                    : t // ignore: cast_nullable_to_non_nullable
+                        as int,
+            x:
+                null == x
+                    ? _value.x
+                    : x // ignore: cast_nullable_to_non_nullable
+                        as int,
+            spriteOverflow:
+                null == spriteOverflow
+                    ? _value.spriteOverflow
+                    : spriteOverflow // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            sprite0Hit:
+                null == sprite0Hit
+                    ? _value.sprite0Hit
+                    : sprite0Hit // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            vBlank:
+                null == vBlank
+                    ? _value.vBlank
+                    : vBlank // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            executionLogOpen:
+                null == executionLogOpen
+                    ? _value.executionLogOpen
+                    : executionLogOpen // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            showStack:
+                null == showStack
+                    ? _value.showStack
+                    : showStack // ignore: cast_nullable_to_non_nullable
+                        as bool,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -254,39 +288,41 @@ class _$DebuggerStateCopyWithImpl<$Res, $Val extends DebuggerState>
 abstract class _$$DebuggerStateImplCopyWith<$Res>
     implements $DebuggerStateCopyWith<$Res> {
   factory _$$DebuggerStateImplCopyWith(
-          _$DebuggerStateImpl value, $Res Function(_$DebuggerStateImpl) then) =
-      __$$DebuggerStateImplCopyWithImpl<$Res>;
+    _$DebuggerStateImpl value,
+    $Res Function(_$DebuggerStateImpl) then,
+  ) = __$$DebuggerStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {bool enabled,
-      List<DisassemblyLine> disassembly,
-      int PC,
-      int A,
-      int X,
-      int Y,
-      int SP,
-      int P,
-      bool C,
-      bool Z,
-      bool I,
-      bool D,
-      bool B,
-      bool V,
-      bool N,
-      List<int> stack,
-      List<Breakpoint> breakpoints,
-      bool canStepOut,
-      int scanline,
-      int cycle,
-      int v,
-      int t,
-      int x,
-      bool spriteOverflow,
-      bool sprite0Hit,
-      bool vBlank,
-      bool executionLogOpen,
-      bool showStack});
+  $Res call({
+    bool enabled,
+    List<DisassemblyLine> disassembly,
+    int PC,
+    int A,
+    int X,
+    int Y,
+    int SP,
+    int P,
+    bool C,
+    bool Z,
+    bool I,
+    bool D,
+    bool B,
+    bool V,
+    bool N,
+    List<int> stack,
+    List<Breakpoint> breakpoints,
+    bool canStepOut,
+    int scanline,
+    int cycle,
+    int v,
+    int t,
+    int x,
+    bool spriteOverflow,
+    bool sprite0Hit,
+    bool vBlank,
+    bool executionLogOpen,
+    bool showStack,
+  });
 }
 
 /// @nodoc
@@ -294,8 +330,9 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     extends _$DebuggerStateCopyWithImpl<$Res, _$DebuggerStateImpl>
     implements _$$DebuggerStateImplCopyWith<$Res> {
   __$$DebuggerStateImplCopyWithImpl(
-      _$DebuggerStateImpl _value, $Res Function(_$DebuggerStateImpl) _then)
-      : super(_value, _then);
+    _$DebuggerStateImpl _value,
+    $Res Function(_$DebuggerStateImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.
@@ -331,158 +368,188 @@ class __$$DebuggerStateImplCopyWithImpl<$Res>
     Object? executionLogOpen = null,
     Object? showStack = null,
   }) {
-    return _then(_$DebuggerStateImpl(
-      enabled: null == enabled
-          ? _value.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
-              as bool,
-      disassembly: null == disassembly
-          ? _value._disassembly
-          : disassembly // ignore: cast_nullable_to_non_nullable
-              as List<DisassemblyLine>,
-      PC: null == PC
-          ? _value.PC
-          : PC // ignore: cast_nullable_to_non_nullable
-              as int,
-      A: null == A
-          ? _value.A
-          : A // ignore: cast_nullable_to_non_nullable
-              as int,
-      X: null == X
-          ? _value.X
-          : X // ignore: cast_nullable_to_non_nullable
-              as int,
-      Y: null == Y
-          ? _value.Y
-          : Y // ignore: cast_nullable_to_non_nullable
-              as int,
-      SP: null == SP
-          ? _value.SP
-          : SP // ignore: cast_nullable_to_non_nullable
-              as int,
-      P: null == P
-          ? _value.P
-          : P // ignore: cast_nullable_to_non_nullable
-              as int,
-      C: null == C
-          ? _value.C
-          : C // ignore: cast_nullable_to_non_nullable
-              as bool,
-      Z: null == Z
-          ? _value.Z
-          : Z // ignore: cast_nullable_to_non_nullable
-              as bool,
-      I: null == I
-          ? _value.I
-          : I // ignore: cast_nullable_to_non_nullable
-              as bool,
-      D: null == D
-          ? _value.D
-          : D // ignore: cast_nullable_to_non_nullable
-              as bool,
-      B: null == B
-          ? _value.B
-          : B // ignore: cast_nullable_to_non_nullable
-              as bool,
-      V: null == V
-          ? _value.V
-          : V // ignore: cast_nullable_to_non_nullable
-              as bool,
-      N: null == N
-          ? _value.N
-          : N // ignore: cast_nullable_to_non_nullable
-              as bool,
-      stack: null == stack
-          ? _value._stack
-          : stack // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      breakpoints: null == breakpoints
-          ? _value._breakpoints
-          : breakpoints // ignore: cast_nullable_to_non_nullable
-              as List<Breakpoint>,
-      canStepOut: null == canStepOut
-          ? _value.canStepOut
-          : canStepOut // ignore: cast_nullable_to_non_nullable
-              as bool,
-      scanline: null == scanline
-          ? _value.scanline
-          : scanline // ignore: cast_nullable_to_non_nullable
-              as int,
-      cycle: null == cycle
-          ? _value.cycle
-          : cycle // ignore: cast_nullable_to_non_nullable
-              as int,
-      v: null == v
-          ? _value.v
-          : v // ignore: cast_nullable_to_non_nullable
-              as int,
-      t: null == t
-          ? _value.t
-          : t // ignore: cast_nullable_to_non_nullable
-              as int,
-      x: null == x
-          ? _value.x
-          : x // ignore: cast_nullable_to_non_nullable
-              as int,
-      spriteOverflow: null == spriteOverflow
-          ? _value.spriteOverflow
-          : spriteOverflow // ignore: cast_nullable_to_non_nullable
-              as bool,
-      sprite0Hit: null == sprite0Hit
-          ? _value.sprite0Hit
-          : sprite0Hit // ignore: cast_nullable_to_non_nullable
-              as bool,
-      vBlank: null == vBlank
-          ? _value.vBlank
-          : vBlank // ignore: cast_nullable_to_non_nullable
-              as bool,
-      executionLogOpen: null == executionLogOpen
-          ? _value.executionLogOpen
-          : executionLogOpen // ignore: cast_nullable_to_non_nullable
-              as bool,
-      showStack: null == showStack
-          ? _value.showStack
-          : showStack // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
+    return _then(
+      _$DebuggerStateImpl(
+        enabled:
+            null == enabled
+                ? _value.enabled
+                : enabled // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        disassembly:
+            null == disassembly
+                ? _value._disassembly
+                : disassembly // ignore: cast_nullable_to_non_nullable
+                    as List<DisassemblyLine>,
+        PC:
+            null == PC
+                ? _value.PC
+                : PC // ignore: cast_nullable_to_non_nullable
+                    as int,
+        A:
+            null == A
+                ? _value.A
+                : A // ignore: cast_nullable_to_non_nullable
+                    as int,
+        X:
+            null == X
+                ? _value.X
+                : X // ignore: cast_nullable_to_non_nullable
+                    as int,
+        Y:
+            null == Y
+                ? _value.Y
+                : Y // ignore: cast_nullable_to_non_nullable
+                    as int,
+        SP:
+            null == SP
+                ? _value.SP
+                : SP // ignore: cast_nullable_to_non_nullable
+                    as int,
+        P:
+            null == P
+                ? _value.P
+                : P // ignore: cast_nullable_to_non_nullable
+                    as int,
+        C:
+            null == C
+                ? _value.C
+                : C // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        Z:
+            null == Z
+                ? _value.Z
+                : Z // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        I:
+            null == I
+                ? _value.I
+                : I // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        D:
+            null == D
+                ? _value.D
+                : D // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        B:
+            null == B
+                ? _value.B
+                : B // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        V:
+            null == V
+                ? _value.V
+                : V // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        N:
+            null == N
+                ? _value.N
+                : N // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        stack:
+            null == stack
+                ? _value._stack
+                : stack // ignore: cast_nullable_to_non_nullable
+                    as List<int>,
+        breakpoints:
+            null == breakpoints
+                ? _value._breakpoints
+                : breakpoints // ignore: cast_nullable_to_non_nullable
+                    as List<Breakpoint>,
+        canStepOut:
+            null == canStepOut
+                ? _value.canStepOut
+                : canStepOut // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        scanline:
+            null == scanline
+                ? _value.scanline
+                : scanline // ignore: cast_nullable_to_non_nullable
+                    as int,
+        cycle:
+            null == cycle
+                ? _value.cycle
+                : cycle // ignore: cast_nullable_to_non_nullable
+                    as int,
+        v:
+            null == v
+                ? _value.v
+                : v // ignore: cast_nullable_to_non_nullable
+                    as int,
+        t:
+            null == t
+                ? _value.t
+                : t // ignore: cast_nullable_to_non_nullable
+                    as int,
+        x:
+            null == x
+                ? _value.x
+                : x // ignore: cast_nullable_to_non_nullable
+                    as int,
+        spriteOverflow:
+            null == spriteOverflow
+                ? _value.spriteOverflow
+                : spriteOverflow // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        sprite0Hit:
+            null == sprite0Hit
+                ? _value.sprite0Hit
+                : sprite0Hit // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        vBlank:
+            null == vBlank
+                ? _value.vBlank
+                : vBlank // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        executionLogOpen:
+            null == executionLogOpen
+                ? _value.executionLogOpen
+                : executionLogOpen // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        showStack:
+            null == showStack
+                ? _value.showStack
+                : showStack // ignore: cast_nullable_to_non_nullable
+                    as bool,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$DebuggerStateImpl implements _DebuggerState {
-  const _$DebuggerStateImpl(
-      {this.enabled = false,
-      final List<DisassemblyLine> disassembly = const [],
-      this.PC = 0,
-      this.A = 0,
-      this.X = 0,
-      this.Y = 0,
-      this.SP = 0,
-      this.P = 0,
-      this.C = false,
-      this.Z = false,
-      this.I = false,
-      this.D = false,
-      this.B = false,
-      this.V = false,
-      this.N = false,
-      final List<int> stack = const [],
-      final List<Breakpoint> breakpoints = const [],
-      this.canStepOut = false,
-      this.scanline = 0,
-      this.cycle = 0,
-      this.v = 0,
-      this.t = 0,
-      this.x = 0,
-      this.spriteOverflow = false,
-      this.sprite0Hit = false,
-      this.vBlank = false,
-      this.executionLogOpen = false,
-      this.showStack = false})
-      : _disassembly = disassembly,
-        _stack = stack,
-        _breakpoints = breakpoints;
+  const _$DebuggerStateImpl({
+    this.enabled = false,
+    final List<DisassemblyLine> disassembly = const [],
+    this.PC = 0,
+    this.A = 0,
+    this.X = 0,
+    this.Y = 0,
+    this.SP = 0,
+    this.P = 0,
+    this.C = false,
+    this.Z = false,
+    this.I = false,
+    this.D = false,
+    this.B = false,
+    this.V = false,
+    this.N = false,
+    final List<int> stack = const [],
+    final List<Breakpoint> breakpoints = const [],
+    this.canStepOut = false,
+    this.scanline = 0,
+    this.cycle = 0,
+    this.v = 0,
+    this.t = 0,
+    this.x = 0,
+    this.spriteOverflow = false,
+    this.sprite0Hit = false,
+    this.vBlank = false,
+    this.executionLogOpen = false,
+    this.showStack = false,
+  }) : _disassembly = disassembly,
+       _stack = stack,
+       _breakpoints = breakpoints;
 
   @override
   @JsonKey()
@@ -598,8 +665,10 @@ class _$DebuggerStateImpl implements _DebuggerState {
         (other.runtimeType == runtimeType &&
             other is _$DebuggerStateImpl &&
             (identical(other.enabled, enabled) || other.enabled == enabled) &&
-            const DeepCollectionEquality()
-                .equals(other._disassembly, _disassembly) &&
+            const DeepCollectionEquality().equals(
+              other._disassembly,
+              _disassembly,
+            ) &&
             (identical(other.PC, PC) || other.PC == PC) &&
             (identical(other.A, A) || other.A == A) &&
             (identical(other.X, X) || other.X == X) &&
@@ -614,8 +683,10 @@ class _$DebuggerStateImpl implements _DebuggerState {
             (identical(other.V, V) || other.V == V) &&
             (identical(other.N, N) || other.N == N) &&
             const DeepCollectionEquality().equals(other._stack, _stack) &&
-            const DeepCollectionEquality()
-                .equals(other._breakpoints, _breakpoints) &&
+            const DeepCollectionEquality().equals(
+              other._breakpoints,
+              _breakpoints,
+            ) &&
             (identical(other.canStepOut, canStepOut) ||
                 other.canStepOut == canStepOut) &&
             (identical(other.scanline, scanline) ||
@@ -637,36 +708,36 @@ class _$DebuggerStateImpl implements _DebuggerState {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        enabled,
-        const DeepCollectionEquality().hash(_disassembly),
-        PC,
-        A,
-        X,
-        Y,
-        SP,
-        P,
-        C,
-        Z,
-        I,
-        D,
-        B,
-        V,
-        N,
-        const DeepCollectionEquality().hash(_stack),
-        const DeepCollectionEquality().hash(_breakpoints),
-        canStepOut,
-        scanline,
-        cycle,
-        v,
-        t,
-        x,
-        spriteOverflow,
-        sprite0Hit,
-        vBlank,
-        executionLogOpen,
-        showStack
-      ]);
+    runtimeType,
+    enabled,
+    const DeepCollectionEquality().hash(_disassembly),
+    PC,
+    A,
+    X,
+    Y,
+    SP,
+    P,
+    C,
+    Z,
+    I,
+    D,
+    B,
+    V,
+    N,
+    const DeepCollectionEquality().hash(_stack),
+    const DeepCollectionEquality().hash(_breakpoints),
+    canStepOut,
+    scanline,
+    cycle,
+    v,
+    t,
+    x,
+    spriteOverflow,
+    sprite0Hit,
+    vBlank,
+    executionLogOpen,
+    showStack,
+  ]);
 
   /// Create a copy of DebuggerState
   /// with the given fields replaced by the non-null parameter values.
@@ -678,35 +749,36 @@ class _$DebuggerStateImpl implements _DebuggerState {
 }
 
 abstract class _DebuggerState implements DebuggerState {
-  const factory _DebuggerState(
-      {final bool enabled,
-      final List<DisassemblyLine> disassembly,
-      final int PC,
-      final int A,
-      final int X,
-      final int Y,
-      final int SP,
-      final int P,
-      final bool C,
-      final bool Z,
-      final bool I,
-      final bool D,
-      final bool B,
-      final bool V,
-      final bool N,
-      final List<int> stack,
-      final List<Breakpoint> breakpoints,
-      final bool canStepOut,
-      final int scanline,
-      final int cycle,
-      final int v,
-      final int t,
-      final int x,
-      final bool spriteOverflow,
-      final bool sprite0Hit,
-      final bool vBlank,
-      final bool executionLogOpen,
-      final bool showStack}) = _$DebuggerStateImpl;
+  const factory _DebuggerState({
+    final bool enabled,
+    final List<DisassemblyLine> disassembly,
+    final int PC,
+    final int A,
+    final int X,
+    final int Y,
+    final int SP,
+    final int P,
+    final bool C,
+    final bool Z,
+    final bool I,
+    final bool D,
+    final bool B,
+    final bool V,
+    final bool N,
+    final List<int> stack,
+    final List<Breakpoint> breakpoints,
+    final bool canStepOut,
+    final int scanline,
+    final int cycle,
+    final int v,
+    final int t,
+    final int x,
+    final bool spriteOverflow,
+    final bool sprite0Hit,
+    final bool vBlank,
+    final bool executionLogOpen,
+    final bool showStack,
+  }) = _$DebuggerStateImpl;
 
   @override
   bool get enabled;

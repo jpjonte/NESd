@@ -5,10 +5,7 @@ import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
-enum SplitSide {
-  left,
-  right,
-}
+enum SplitSide { left, right }
 
 class MMC5 extends Mapper {
   MMC5() : super(5);
@@ -79,43 +76,43 @@ class MMC5 extends Mapper {
 
   @override
   MMC5State get state => MMC5State(
-        prgBankMode: _prgBankMode,
-        prgRamProtect1: _prgRamProtect1,
-        prgRamProtect2: _prgRamProtect2,
-        prgRegisters: _prgRegisters,
-        chrRegisters: _chrRegisters,
-        exram: _exram,
-        filledNametable: _filledNametable,
-        chrBankMode: _chrBankMode,
-        lastChrAddress: _lastChrAddress,
-        chrPageHigh: _chrPageHigh,
-        nametables: _nametables,
-        fillModeTile: _fillModeTile,
-        fillModeColor: _fillModeColor,
-        lastPpuAddress: _lastPpuAddress,
-        ppuIdleCountdown: _ppuIdleCountdown,
-        ppuInFrame: _ppuInFrame,
-        ppuNtReadCount: _ppuNtReadCount,
-        scanline: _scanline,
-        irqTargetScanline: _irqTargetScanline,
-        irqEnabled: _irqEnabled,
-        irqPending: _irqPending,
-        multiplicand: _multiplicand,
-        multiplier: _multiplier,
-        tileCounter: _tileCounter,
-        lastExtraChr: _lastExtraChr,
-        splitEnabled: _splitEnabled,
-        splitActive: _splitActive,
-        splitSide: _splitSide,
-        splitTile: _splitTile,
-        splitTileAddress: _splitTileAddress,
-        splitScroll: _splitScroll,
-        splitBank: _splitBank,
-        extendedRamMode: _extendedRamMode,
-        extendedAttributeOffset: _extendedAttributeOffset,
-        extendedAttributeFetchCountdown: _extendedAttributeFetchCountdown,
-        extendedAttributeChrBank: _extendedAttributeChrBank,
-      );
+    prgBankMode: _prgBankMode,
+    prgRamProtect1: _prgRamProtect1,
+    prgRamProtect2: _prgRamProtect2,
+    prgRegisters: _prgRegisters,
+    chrRegisters: _chrRegisters,
+    exram: _exram,
+    filledNametable: _filledNametable,
+    chrBankMode: _chrBankMode,
+    lastChrAddress: _lastChrAddress,
+    chrPageHigh: _chrPageHigh,
+    nametables: _nametables,
+    fillModeTile: _fillModeTile,
+    fillModeColor: _fillModeColor,
+    lastPpuAddress: _lastPpuAddress,
+    ppuIdleCountdown: _ppuIdleCountdown,
+    ppuInFrame: _ppuInFrame,
+    ppuNtReadCount: _ppuNtReadCount,
+    scanline: _scanline,
+    irqTargetScanline: _irqTargetScanline,
+    irqEnabled: _irqEnabled,
+    irqPending: _irqPending,
+    multiplicand: _multiplicand,
+    multiplier: _multiplier,
+    tileCounter: _tileCounter,
+    lastExtraChr: _lastExtraChr,
+    splitEnabled: _splitEnabled,
+    splitActive: _splitActive,
+    splitSide: _splitSide,
+    splitTile: _splitTile,
+    splitTileAddress: _splitTileAddress,
+    splitScroll: _splitScroll,
+    splitBank: _splitBank,
+    extendedRamMode: _extendedRamMode,
+    extendedAttributeOffset: _extendedAttributeOffset,
+    extendedAttributeFetchCountdown: _extendedAttributeFetchCountdown,
+    extendedAttributeChrBank: _extendedAttributeChrBank,
+  );
 
   @override
   set state(covariant MMC5State state) {
@@ -465,7 +462,8 @@ class MMC5 extends Mapper {
   }
 
   void _updateFillColor() {
-    final attribute = _fillModeColor << 6 |
+    final attribute =
+        _fillModeColor << 6 |
         _fillModeColor << 4 |
         _fillModeColor << 2 |
         _fillModeColor;
@@ -519,14 +517,14 @@ class MMC5 extends Mapper {
 
     return switch (register) {
       2 => switch (_prgBankMode) {
-          1 || 2 => value & 0x7e,
-          _ => value,
-        },
+        1 || 2 => value & 0x7e,
+        _ => value,
+      },
       4 => switch (_prgBankMode) {
-          0 => value & 0x7c,
-          1 => value & 0x7e,
-          _ => value,
-        },
+        0 => value & 0x7c,
+        1 => value & 0x7e,
+        _ => value,
+      },
       _ => value,
     };
   }
@@ -536,25 +534,27 @@ class MMC5 extends Mapper {
       0 => CpuMemoryType.prgRam,
       4 => CpuMemoryType.prgRom,
       _ => switch ((_prgRegisters[register] >> 7) & 0x1) {
-          0 => CpuMemoryType.prgRam,
-          _ => CpuMemoryType.prgRom,
-        },
+        0 => CpuMemoryType.prgRam,
+        _ => CpuMemoryType.prgRom,
+      },
     };
   }
 
   MemoryAccess _memoryAccess(CpuMemoryType memoryType) {
     return switch (memoryType) {
       CpuMemoryType.prgRom => MemoryAccess.read,
-      CpuMemoryType.prgRam => _prgRamProtect1 == 2 && _prgRamProtect2 == 1
-          ? MemoryAccess.readWrite
-          : MemoryAccess.read,
+      CpuMemoryType.prgRam =>
+        _prgRamProtect1 == 2 && _prgRamProtect2 == 1
+            ? MemoryAccess.readWrite
+            : MemoryAccess.read,
     };
   }
 
   void _updateChrMapping() {
     final bigSprites = bus.ppu.PPUCTRL_H == 1;
 
-    final extraChr = bigSprites &&
+    final extraChr =
+        bigSprites &&
         (_tileCounter < 32 || _tileCounter >= 40) &&
         (_ppuInFrame || _lastChrAddress > 0x5127);
 

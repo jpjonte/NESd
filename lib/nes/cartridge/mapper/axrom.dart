@@ -17,10 +17,7 @@ class AxROM extends Mapper {
   int chrPageSize = 0x2000;
 
   @override
-  AXROMState get state => AXROMState(
-        prgBank: prgBank,
-        vramBank: vramBank,
-      );
+  AXROMState get state => AXROMState(prgBank: prgBank, vramBank: vramBank);
 
   @override
   set state(covariant AXROMState state) {

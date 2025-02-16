@@ -14,11 +14,7 @@ import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
-enum FilePickerType {
-  file,
-  directory,
-  any,
-}
+enum FilePickerType { file, directory, any }
 
 @RoutePage()
 class FilePickerScreen extends HookConsumerWidget {
@@ -44,16 +40,13 @@ class FilePickerScreen extends HookConsumerWidget {
     final state = ref.watch(filePickerNotifierProvider);
     final controller = ref.watch(filePickerControllerProvider);
 
-    useEffect(
-      () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          controller.go(initialDirectory);
-        });
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.go(initialDirectory);
+      });
 
-        return null;
-      },
-      [initialDirectory],
-    );
+      return null;
+    }, [initialDirectory]);
 
     if (state is FilePickerData &&
         p.extension(state.path) == '.zip' &&
@@ -70,129 +63,126 @@ class FilePickerScreen extends HookConsumerWidget {
     return switch (state) {
       FilePickerLoading() => const Center(child: CircularProgressIndicator()),
       FilePickerError(message: final message) => Center(
-          child: Text(
-            message,
+        child: Text(
+          message,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      FilePickerData(path: final path, files: final files) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            title,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.error,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      FilePickerData(path: final path, files: final files) => Scaffold(
-          appBar: AppBar(
-            title: Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          body: Center(
-            child: NesdMenuWrapper(
-              child: FocusChild(
-                autofocus: true,
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap: () async {
-                        final result = await filesystem.chooseDirectory(path);
+        body: Center(
+          child: NesdMenuWrapper(
+            child: FocusChild(
+              autofocus: true,
+              child: Column(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      final result = await filesystem.chooseDirectory(path);
 
-                        if (result != null) {
-                          final newDirectory = Directory(result);
+                      if (result != null) {
+                        final newDirectory = Directory(result);
 
-                          controller.go(result);
+                        controller.go(result);
 
-                          onChangeDirectory?.call(newDirectory);
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Center(
-                          child: Text(
-                            path,
-                            style: TextStyle(
-                              fontSize: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.fontSize,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        onChangeDirectory?.call(newDirectory);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Center(
+                        child: Text(
+                          path,
+                          style: TextStyle(
+                            fontSize:
+                                Theme.of(context).textTheme.bodyLarge?.fontSize,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: ListView.separated(
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return FocusOnHover(
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.drive_folder_upload_rounded,
-                                  color: nesdRed[500],
-                                ),
-                                title: const Text('Up a directory'),
-                                onTap: () {
-                                  final parentDirectory =
-                                      Directory(path).parent;
-
-                                  controller.go(parentDirectory.path);
-
-                                  onChangeDirectory?.call(parentDirectory);
-                                },
-                              ),
-                            );
-                          }
-
-                          final file = files[index - 1];
-
-                          final isDirectory =
-                              file.type == FileSystemFileType.directory;
-
-                          final fileIsZip = p.extension(file.path) == '.zip';
-
-                          final enabled = isDirectory ||
-                              allowedExtensions.isEmpty ||
-                              allowedExtensions
-                                  .contains(p.extension(file.path));
-
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      itemBuilder: (context, index) {
+                        if (index == 0) {
                           return FocusOnHover(
                             child: ListTile(
                               leading: Icon(
-                                isDirectory
-                                    ? Icons.folder
-                                    : enabled
-                                        ? Icons.videogame_asset
-                                        : null,
+                                Icons.drive_folder_upload_rounded,
                                 color: nesdRed[500],
                               ),
-                              enabled: enabled,
-                              title: Text(p.basename(file.path)),
-                              onTap: () async {
-                                if (isDirectory) {
-                                  controller.go(file.path);
+                              title: const Text('Up a directory'),
+                              onTap: () {
+                                final parentDirectory = Directory(path).parent;
 
-                                  onChangeDirectory?.call(Directory(file.path));
-                                } else if (fileIsZip) {
-                                  controller.go(file.path);
-                                } else {
-                                  context.router.maybePop(file);
-                                }
+                                controller.go(parentDirectory.path);
+
+                                onChangeDirectory?.call(parentDirectory);
                               },
                             ),
                           );
-                        },
-                        separatorBuilder: (context, index) => const Divider(),
-                        itemCount: files.length + 1,
-                      ),
+                        }
+
+                        final file = files[index - 1];
+
+                        final isDirectory =
+                            file.type == FileSystemFileType.directory;
+
+                        final fileIsZip = p.extension(file.path) == '.zip';
+
+                        final enabled =
+                            isDirectory ||
+                            allowedExtensions.isEmpty ||
+                            allowedExtensions.contains(p.extension(file.path));
+
+                        return FocusOnHover(
+                          child: ListTile(
+                            leading: Icon(
+                              isDirectory
+                                  ? Icons.folder
+                                  : enabled
+                                  ? Icons.videogame_asset
+                                  : null,
+                              color: nesdRed[500],
+                            ),
+                            enabled: enabled,
+                            title: Text(p.basename(file.path)),
+                            onTap: () async {
+                              if (isDirectory) {
+                                controller.go(file.path);
+
+                                onChangeDirectory?.call(Directory(file.path));
+                              } else if (fileIsZip) {
+                                controller.go(file.path);
+                              } else {
+                                context.router.maybePop(file);
+                              }
+                            },
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemCount: files.length + 1,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
+      ),
     };
   }
 }

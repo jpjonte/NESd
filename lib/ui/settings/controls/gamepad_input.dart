@@ -6,11 +6,7 @@ part 'gamepad_input.g.dart';
 @JsonSerializable()
 @immutable
 class GamepadInput {
-  const GamepadInput({
-    required this.id,
-    required this.direction,
-    this.label,
-  });
+  const GamepadInput({required this.id, required this.direction, this.label});
 
   final String id;
   final String? label;

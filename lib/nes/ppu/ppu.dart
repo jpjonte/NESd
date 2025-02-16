@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:typed_data';
@@ -207,43 +208,43 @@ class PPU {
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
   PPUState get state => PPUState(
-        PPUCTRL: PPUCTRL,
-        PPUMASK: PPUMASK,
-        PPUSTATUS: PPUSTATUS,
-        OAMADDR: OAMADDR,
-        OAMDATA: OAMDATA,
-        PPUSCROLL: PPUSCROLL,
-        PPUDATA: PPUDATA,
-        v: v,
-        t: t,
-        x: x,
-        w: w,
-        ram: ram,
-        oam: oam,
-        secondaryOam: secondaryOam,
-        palette: palette,
-        frameBuffer: frameBuffer,
-        cycles: cycles,
-        cycle: cycle,
-        scanline: scanline,
-        frames: frames,
-        nametableLatch: nametableLatch,
-        patternTableHighLatch: patternTableHighLatch,
-        patternTableLowLatch: patternTableLowLatch,
-        patternTableHighShift: patternTableHighShift,
-        patternTableLowShift: patternTableLowShift,
-        attributeTableLatch: attributeTableLatch,
-        attributeTableHighShift: attributeTableHighShift,
-        attributeTableLowShift: attributeTableLowShift,
-        attribute: attribute,
-        oamAddress: oamAddress,
-        oamBuffer: oamBuffer,
-        spriteCount: spriteCount,
-        secondarySpriteCount: secondarySpriteCount,
-        sprite0OnNextLine: sprite0OnNextLine,
-        sprite0OnCurrentLine: sprite0OnCurrentLine,
-        spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
-      );
+    PPUCTRL: PPUCTRL,
+    PPUMASK: PPUMASK,
+    PPUSTATUS: PPUSTATUS,
+    OAMADDR: OAMADDR,
+    OAMDATA: OAMDATA,
+    PPUSCROLL: PPUSCROLL,
+    PPUDATA: PPUDATA,
+    v: v,
+    t: t,
+    x: x,
+    w: w,
+    ram: ram,
+    oam: oam,
+    secondaryOam: secondaryOam,
+    palette: palette,
+    frameBuffer: frameBuffer,
+    cycles: cycles,
+    cycle: cycle,
+    scanline: scanline,
+    frames: frames,
+    nametableLatch: nametableLatch,
+    patternTableHighLatch: patternTableHighLatch,
+    patternTableLowLatch: patternTableLowLatch,
+    patternTableHighShift: patternTableHighShift,
+    patternTableLowShift: patternTableLowShift,
+    attributeTableLatch: attributeTableLatch,
+    attributeTableHighShift: attributeTableHighShift,
+    attributeTableLowShift: attributeTableLowShift,
+    attribute: attribute,
+    oamAddress: oamAddress,
+    oamBuffer: oamBuffer,
+    spriteCount: spriteCount,
+    secondarySpriteCount: secondarySpriteCount,
+    sprite0OnNextLine: sprite0OnNextLine,
+    sprite0OnCurrentLine: sprite0OnCurrentLine,
+    spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
+  );
 
   set state(PPUState state) {
     PPUCTRL = state.PPUCTRL;
@@ -697,7 +698,8 @@ class PPU {
     final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
     final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
 
-    final address = paletteIndexHigh << 3 |
+    final address =
+        paletteIndexHigh << 3 |
         paletteIndexLow << 2 |
         patternHigh << 1 |
         patternLow;
@@ -791,7 +793,8 @@ class PPU {
   }
 
   int _attributeAddress() {
-    final address = 0x23c0 |
+    final address =
+        0x23c0 |
         (v_nametable << 10) |
         ((v_coarseY & 0x1C) << 1) | // we select the attribute table
         ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y

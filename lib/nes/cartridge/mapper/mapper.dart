@@ -16,16 +16,9 @@ import 'package:nesd/nes/cartridge/mapper/namco108.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 
-enum CpuMemoryType {
-  prgRom,
-  prgRam,
-}
+enum CpuMemoryType { prgRom, prgRam }
 
-enum PpuMemoryType {
-  chrRom,
-  chrRam,
-  nametable,
-}
+enum PpuMemoryType { chrRom, chrRam, nametable }
 
 enum MemoryAccess {
   none(0),
@@ -53,10 +46,7 @@ const _ppuBlockMask = _ppuBlockSize - 1;
 const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 
 class MemoryMapping {
-  MemoryMapping({
-    required this.source,
-    this.access = MemoryAccess.read,
-  });
+  MemoryMapping({required this.source, this.access = MemoryAccess.read});
 
   Uint8List source;
   MemoryAccess access;
@@ -90,6 +80,7 @@ abstract class Mapper {
 
   late final Cartridge cartridge;
 
+  // we don't need a getter
   // ignore: avoid_setters_without_getters
   set nametableLayout(NametableLayout layout) {
     switch (layout) {
@@ -242,42 +233,48 @@ abstract class Mapper {
   }) {
     final resolvedType = type ?? CpuMemoryType.prgRom;
 
-    final resolvedSource = source ??
+    final resolvedSource =
+        source ??
         switch (resolvedType) {
           CpuMemoryType.prgRom => cartridge.prgRom,
           CpuMemoryType.prgRam => cartridge.sram,
         };
 
-    final resolvedPageSize = pageSize ??
+    final resolvedPageSize =
+        pageSize ??
         switch (resolvedType) {
           CpuMemoryType.prgRom => prgRomPageSize,
           CpuMemoryType.prgRam => prgRamPageSize,
         };
 
-    final resolvedAccess = access ??
+    final resolvedAccess =
+        access ??
         switch (resolvedType) {
           CpuMemoryType.prgRom => MemoryAccess.read,
           CpuMemoryType.prgRam => MemoryAccess.readWrite,
         };
 
-    for (var address = fromAddress;
-        address <= toAddress;
-        address += _cpuBlockSize) {
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _cpuBlockSize
+    ) {
       final block = address >> _cpuBlockAddressWidth;
       final addressDiff = address - fromAddress;
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _cpuMapping[block] = resolvedSource.isNotEmpty
-          ? MemoryMapping(
-              source: Uint8List.sublistView(
-                resolvedSource,
-                offset,
-                offset + _cpuBlockSize,
-              ),
-              access: resolvedAccess,
-            )
-          : null;
+      _cpuMapping[block] =
+          resolvedSource.isNotEmpty
+              ? MemoryMapping(
+                source: Uint8List.sublistView(
+                  resolvedSource,
+                  offset,
+                  offset + _cpuBlockSize,
+                ),
+                access: resolvedAccess,
+              )
+              : null;
     }
   }
 
@@ -290,51 +287,58 @@ abstract class Mapper {
     PpuMemoryType? type,
     MemoryAccess? access,
   }) {
-    final resolvedType = type ??
+    final resolvedType =
+        type ??
         switch (cartridge.chrRomSize) {
           0 => PpuMemoryType.chrRam,
           _ => PpuMemoryType.chrRom,
         };
 
-    final resolvedSource = source ??
+    final resolvedSource =
+        source ??
         switch (resolvedType) {
           PpuMemoryType.chrRom => cartridge.chr,
           PpuMemoryType.chrRam => cartridge.chr,
           PpuMemoryType.nametable => bus.ppu.ram,
         };
 
-    final resolvedPageSize = pageSize ??
+    final resolvedPageSize =
+        pageSize ??
         switch (resolvedType) {
           PpuMemoryType.chrRom => chrPageSize,
           PpuMemoryType.chrRam => chrPageSize,
           PpuMemoryType.nametable => 0x400,
         };
 
-    final resolvedAccess = access ??
+    final resolvedAccess =
+        access ??
         switch (resolvedType) {
           PpuMemoryType.chrRom => MemoryAccess.read,
           PpuMemoryType.chrRam => MemoryAccess.readWrite,
           PpuMemoryType.nametable => MemoryAccess.readWrite,
         };
 
-    for (var address = fromAddress;
-        address <= toAddress;
-        address += _ppuBlockSize) {
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
       final block = address >> _ppuBlockAddressWidth;
       final addressDiff = address - fromAddress;
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _ppuMapping[block] = resolvedSource.isNotEmpty
-          ? MemoryMapping(
-              source: Uint8List.sublistView(
-                resolvedSource,
-                offset,
-                offset + _ppuBlockSize,
-              ),
-              access: resolvedAccess,
-            )
-          : null;
+      _ppuMapping[block] =
+          resolvedSource.isNotEmpty
+              ? MemoryMapping(
+                source: Uint8List.sublistView(
+                  resolvedSource,
+                  offset,
+                  offset + _ppuBlockSize,
+                ),
+                access: resolvedAccess,
+              )
+              : null;
     }
   }
 }

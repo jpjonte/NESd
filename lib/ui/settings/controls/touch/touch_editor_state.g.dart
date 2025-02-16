@@ -13,14 +13,15 @@ String _$touchEditorNotifierHash() =>
 @ProviderFor(TouchEditorNotifier)
 final touchEditorNotifierProvider =
     AutoDisposeNotifierProvider<TouchEditorNotifier, TouchEditorState>.internal(
-  TouchEditorNotifier.new,
-  name: r'touchEditorNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$touchEditorNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      TouchEditorNotifier.new,
+      name: r'touchEditorNotifierProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$touchEditorNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$TouchEditorNotifier = AutoDisposeNotifier<TouchEditorState>;
 String _$touchEditorMoveIndexHash() =>
@@ -30,14 +31,15 @@ String _$touchEditorMoveIndexHash() =>
 @ProviderFor(TouchEditorMoveIndex)
 final touchEditorMoveIndexProvider =
     AutoDisposeNotifierProvider<TouchEditorMoveIndex, int?>.internal(
-  TouchEditorMoveIndex.new,
-  name: r'touchEditorMoveIndexProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$touchEditorMoveIndexHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      TouchEditorMoveIndex.new,
+      name: r'touchEditorMoveIndexProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$touchEditorMoveIndexHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$TouchEditorMoveIndex = AutoDisposeNotifier<int?>;
 // ignore_for_file: type=lint

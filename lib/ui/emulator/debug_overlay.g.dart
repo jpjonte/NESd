@@ -13,31 +13,35 @@ String _$debugOverlayControllerHash() =>
 @ProviderFor(debugOverlayController)
 final debugOverlayControllerProvider =
     AutoDisposeProvider<DebugOverlayController>.internal(
-  debugOverlayController,
-  name: r'debugOverlayControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$debugOverlayControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      debugOverlayController,
+      name: r'debugOverlayControllerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$debugOverlayControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DebugOverlayControllerRef
-    = AutoDisposeProviderRef<DebugOverlayController>;
+typedef DebugOverlayControllerRef =
+    AutoDisposeProviderRef<DebugOverlayController>;
 String _$debugOverlayNotifierHash() =>
     r'6baa34aac142c2298d7490b6a5b0ba0c529fbb9d';
 
 /// See also [DebugOverlayNotifier].
 @ProviderFor(DebugOverlayNotifier)
 final debugOverlayNotifierProvider = AutoDisposeNotifierProvider<
-    DebugOverlayNotifier, DebugOverlayState>.internal(
+  DebugOverlayNotifier,
+  DebugOverlayState
+>.internal(
   DebugOverlayNotifier.new,
   name: r'debugOverlayNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$debugOverlayNotifierHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$debugOverlayNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

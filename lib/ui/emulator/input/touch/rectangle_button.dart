@@ -4,10 +4,7 @@ import 'package:nesd/ui/emulator/input/touch/touch_button.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class RectangleButton extends StatelessWidget {
-  const RectangleButton({
-    required this.config,
-    super.key,
-  });
+  const RectangleButton({required this.config, super.key});
 
   final RectangleButtonConfig config;
 
@@ -22,10 +19,11 @@ class RectangleButton extends StatelessWidget {
         height: config.height,
         label: config.label,
         action: config.action,
-        decorationBuilder: (color) => BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: color,
-        ),
+        decorationBuilder:
+            (color) => BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: color,
+            ),
       ),
     );
   }

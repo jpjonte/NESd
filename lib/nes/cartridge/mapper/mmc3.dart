@@ -42,24 +42,24 @@ class MMC3 extends Mapper {
 
   @override
   MMC3State get state => MMC3State(
-        register: _register,
-        r0: _r0,
-        r1: _r1,
-        r2: _r2,
-        r3: _r3,
-        r4: _r4,
-        r5: _r5,
-        r6: _r6,
-        r7: _r7,
-        prgBankMode: _prgBankMode,
-        chrBankMode: _chrBankMode,
-        mirroring: _mirroring,
-        irqCounter: _irqCounter,
-        irqLatch: _irqLatch,
-        irqReload: _irqReload,
-        irqEnabled: _irqEnabled,
-        a12LowStart: _a12LowStart,
-      );
+    register: _register,
+    r0: _r0,
+    r1: _r1,
+    r2: _r2,
+    r3: _r3,
+    r4: _r4,
+    r5: _r5,
+    r6: _r6,
+    r7: _r7,
+    prgBankMode: _prgBankMode,
+    chrBankMode: _chrBankMode,
+    mirroring: _mirroring,
+    irqCounter: _irqCounter,
+    irqLatch: _irqLatch,
+    irqReload: _irqReload,
+    irqEnabled: _irqEnabled,
+    a12LowStart: _a12LowStart,
+  );
 
   @override
   set state(covariant MMC3State state) {

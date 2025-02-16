@@ -27,10 +27,6 @@ class AlignTouchControl extends StatelessWidget {
     final x = center.dx + alignment.x * halfWidth;
     final y = center.dy + alignment.y * halfHeight;
 
-    return Positioned(
-      left: x - width / 2,
-      top: y - height / 2,
-      child: child,
-    );
+    return Positioned(left: x - width / 2, top: y - height / 2, child: child);
   }
 }

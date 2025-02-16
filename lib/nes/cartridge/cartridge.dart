@@ -82,11 +82,11 @@ class Cartridge {
   final Uint8List sram = Uint8List(0x10000);
 
   CartridgeState get state => CartridgeState(
-        chr: chr,
-        sram: sram,
-        mapperId: mapper.id,
-        mapperState: mapper.state,
-      );
+    chr: chr,
+    sram: sram,
+    mapperId: mapper.id,
+    mapperState: mapper.state,
+  );
 
   set state(CartridgeState state) {
     if (chrRomSize == 0) {
@@ -97,11 +97,8 @@ class Cartridge {
     mapper.state = state.mapperState;
   }
 
-  RomInfo get romInfo => RomInfo(
-        name: p.basename(file),
-        path: file,
-        hash: hash,
-      );
+  RomInfo get romInfo =>
+      RomInfo(name: p.basename(file), path: file, hash: hash);
 
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;

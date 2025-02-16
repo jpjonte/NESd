@@ -14,11 +14,7 @@ class AboutDialog extends ConsumerWidget {
     return material.AboutDialog(
       applicationVersion: packageInfo.version,
       applicationLegalese: '© 2024 John Paul Jonte',
-      applicationIcon: Image.asset(
-        'assets/logo.png',
-        width: 128,
-        height: 128,
-      ),
+      applicationIcon: Image.asset('assets/logo.png', width: 128, height: 128),
       children: [
         InkWell(
           child: const Padding(

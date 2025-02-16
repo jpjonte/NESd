@@ -29,9 +29,10 @@ String _$actionHandlerHash() => r'172d9bb7400aeee456e3e86d8eddd3b34025b35d';
 final actionHandlerProvider = AutoDisposeProvider<ActionHandler>.internal(
   actionHandler,
   name: r'actionHandlerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$actionHandlerHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$actionHandlerHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

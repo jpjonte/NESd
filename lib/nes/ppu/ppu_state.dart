@@ -1,10 +1,10 @@
+// the register names don't match dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
-import 'package:nesd/payload_types/uint8_list.dart';
 
 class PPUState {
   PPUState({
@@ -68,10 +68,10 @@ class PPUState {
       t: reader.get(uint16),
       x: reader.get(uint8),
       w: reader.get(uint8),
-      ram: reader.get(uint8List),
-      oam: reader.get(uint8List),
-      secondaryOam: reader.get(uint8List),
-      palette: reader.get(uint8List),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
       cycles: reader.get(uint64),
       cycle: reader.get(uint8),
@@ -161,10 +161,10 @@ class PPUState {
       ..set(uint16, t)
       ..set(uint8, x)
       ..set(uint8, w)
-      ..set(uint8List, ram)
-      ..set(uint8List, oam)
-      ..set(uint8List, secondaryOam)
-      ..set(uint8List, palette);
+      ..set(uint8List(lengthType: uint32), ram)
+      ..set(uint8List(lengthType: uint32), oam)
+      ..set(uint8List(lengthType: uint32), secondaryOam)
+      ..set(uint8List(lengthType: uint32), palette);
 
     frameBuffer.serialize(writer);
 

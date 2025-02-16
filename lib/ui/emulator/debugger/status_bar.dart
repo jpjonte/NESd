@@ -9,9 +9,7 @@ import 'package:nesd/ui/nesd_theme.dart';
 final registerHeaderStyle = monoStyle.copyWith(color: Colors.grey[400]);
 
 class StatusBar extends ConsumerWidget {
-  const StatusBar({
-    super.key,
-  });
+  const StatusBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,11 +75,7 @@ class StatusBar extends ConsumerWidget {
 }
 
 class StatusBarItem extends StatelessWidget {
-  const StatusBarItem(
-    this.label,
-    this.value, {
-    super.key,
-  });
+  const StatusBarItem(this.label, this.value, {super.key});
 
   final String label;
   final Widget value;
@@ -90,19 +84,13 @@ class StatusBarItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        Text(label, style: registerHeaderStyle),
-        value,
-      ],
+      children: [Text(label, style: registerHeaderStyle), value],
     );
   }
 }
 
 class BoolIcon extends StatelessWidget {
-  const BoolIcon({
-    required this.value,
-    super.key,
-  });
+  const BoolIcon({required this.value, super.key});
 
   final bool value;
 

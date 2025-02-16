@@ -21,16 +21,16 @@ class TriangleChannel {
   bool reload = false;
 
   TriangleChannelState get state => TriangleChannelState(
-        enabled: enabled,
-        control: control,
-        dutyIndex: dutyIndex,
-        linearCounterPeriod: linearCounterPeriod,
-        linearCounter: linearCounter,
-        timer: timer,
-        timerPeriod: timerPeriod,
-        reload: reload,
-        lengthCounterState: lengthCounter.state,
-      );
+    enabled: enabled,
+    control: control,
+    dutyIndex: dutyIndex,
+    linearCounterPeriod: linearCounterPeriod,
+    linearCounter: linearCounter,
+    timer: timer,
+    timerPeriod: timerPeriod,
+    reload: reload,
+    lengthCounterState: lengthCounter.state,
+  );
 
   set state(TriangleChannelState state) {
     enabled = state.enabled;

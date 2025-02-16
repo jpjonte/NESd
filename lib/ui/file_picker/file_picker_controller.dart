@@ -15,6 +15,7 @@ class FilePickerNotifier extends _$FilePickerNotifier {
     return FilePickerLoading();
   }
 
+  // can't use a setter to change the state from outside
   // ignore: use_setters_to_change_properties
   void update(FilePickerState state) {
     this.state = state;
@@ -81,23 +82,24 @@ class FilePickerController {
       returnPath = resultPath;
     }
 
-    final children = allFiles
-        .where((file) => !p.basename(file.path).startsWith('.'))
-        .toList()
-      ..sort((a, b) {
-        final aType = a.type;
-        final bType = b.type;
+    final children =
+        allFiles
+            .where((file) => !p.basename(file.path).startsWith('.'))
+            .toList()
+          ..sort((a, b) {
+            final aType = a.type;
+            final bType = b.type;
 
-        if (aType == FileSystemFileType.directory &&
-            bType != FileSystemFileType.directory) {
-          return -1;
-        } else if (aType != FileSystemFileType.directory &&
-            bType == FileSystemFileType.directory) {
-          return 1;
-        }
+            if (aType == FileSystemFileType.directory &&
+                bType != FileSystemFileType.directory) {
+              return -1;
+            } else if (aType != FileSystemFileType.directory &&
+                bType == FileSystemFileType.directory) {
+              return 1;
+            }
 
-        return a.path.compareTo(b.path);
-      });
+            return a.path.compareTo(b.path);
+          });
 
     notifier.update(FilePickerData(path: returnPath, files: children));
   }

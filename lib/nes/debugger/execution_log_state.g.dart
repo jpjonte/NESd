@@ -12,12 +12,15 @@ String _$executionLogNotifierHash() =>
 /// See also [ExecutionLogNotifier].
 @ProviderFor(ExecutionLogNotifier)
 final executionLogNotifierProvider = AutoDisposeNotifierProvider<
-    ExecutionLogNotifier, ExecutionLogState>.internal(
+  ExecutionLogNotifier,
+  ExecutionLogState
+>.internal(
   ExecutionLogNotifier.new,
   name: r'executionLogNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$executionLogNotifierHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$executionLogNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

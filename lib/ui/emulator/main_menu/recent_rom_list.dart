@@ -32,9 +32,7 @@ class RomTileData {
 }
 
 class RecentRomList extends HookConsumerWidget {
-  const RecentRomList({
-    super.key,
-  });
+  const RecentRomList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -118,12 +116,13 @@ class RomList extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * gameTileHeight,
-              child: page.value > 0
-                  ? InkWell(
-                      onTap: () => page.value--,
-                      child: const Icon(Icons.arrow_back_ios),
-                    )
-                  : const SizedBox(),
+              child:
+                  page.value > 0
+                      ? InkWell(
+                        onTap: () => page.value--,
+                        child: const Icon(Icons.arrow_back_ios),
+                      )
+                      : const SizedBox(),
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -136,9 +135,14 @@ class RomList extends HookConsumerWidget {
                         RomTile(
                           romTileData: romTileData,
                           onPressed: () => onPressed(romTileData),
-                          onLongPress: () => ref.read(routerProvider).navigate(
-                                SaveStatesRoute(romInfo: romTileData.romInfo),
-                              ),
+                          onLongPress:
+                              () => ref
+                                  .read(routerProvider)
+                                  .navigate(
+                                    SaveStatesRoute(
+                                      romInfo: romTileData.romInfo,
+                                    ),
+                                  ),
                         ),
                     ],
                   ),
@@ -147,12 +151,13 @@ class RomList extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * gameTileHeight,
-              child: page.value < pages - 1
-                  ? InkWell(
-                      onTap: () => page.value++,
-                      child: const Icon(Icons.arrow_forward_ios),
-                    )
-                  : const SizedBox(),
+              child:
+                  page.value < pages - 1
+                      ? InkWell(
+                        onTap: () => page.value++,
+                        child: const Icon(Icons.arrow_forward_ios),
+                      )
+                      : const SizedBox(),
             ),
           ],
         );
@@ -178,63 +183,64 @@ class RomTile extends ConsumerWidget {
     return CustomButton(
       onPressed: onPressed,
       onLongPress: onLongPress,
-      builder: (_, active) => SizedBox(
-        width: gameTileWidth,
-        height: gameTileHeight,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Stack(
-            children: [
-              Container(
-                width: 256,
-                height: 240,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: active ? nesdRed : Colors.grey[600]!,
-                    width: 2,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: RawImage(
+      builder:
+          (_, active) => SizedBox(
+            width: gameTileWidth,
+            height: gameTileHeight,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Stack(
+                children: [
+                  Container(
                     width: 256,
                     height: 240,
-                    filterQuality: FilterQuality.none,
-                    image: romTileData.thumbnail,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: active ? nesdRed : Colors.grey[600]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: RawImage(
+                        width: 256,
+                        height: 240,
+                        filterQuality: FilterQuality.none,
+                        image: romTileData.thumbnail,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(2),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(6),
-                  ),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      height: 36,
-                      width: double.infinity,
-                      color: Colors.black.withAlpha(150),
-                      padding: const EdgeInsets.all(8),
-                      child: Center(
-                        child: StrokeText(
-                          romTileData.title,
-                          style: const TextStyle(fontSize: 15),
-                          strokeWidth: 2,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
+                  Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(6),
+                      ),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          height: 36,
+                          width: double.infinity,
+                          color: Colors.black.withAlpha(150),
+                          padding: const EdgeInsets.all(8),
+                          child: Center(
+                            child: StrokeText(
+                              romTileData.title,
+                              style: const TextStyle(fontSize: 15),
+                              strokeWidth: 2,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 }

@@ -7,9 +7,7 @@ part 'toaster.g.dart';
 
 @riverpod
 Toaster toaster(Ref ref) {
-  final toaster = Toaster(
-    state: ref.watch(toastStateProvider.notifier),
-  );
+  final toaster = Toaster(state: ref.watch(toastStateProvider.notifier));
 
   ref.onDispose(toaster.dispose);
 
@@ -89,11 +87,7 @@ class ToastState extends _$ToastState {
   }
 }
 
-enum ToastType {
-  info,
-  warning,
-  error,
-}
+enum ToastType { info, warning, error }
 
 class Toast {
   Toast({required this.type, required this.message});

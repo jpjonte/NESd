@@ -6,10 +6,7 @@ import 'package:nesd/ui/settings/controls/touch/forms/form_row.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
 
 class RectangleButtonForm extends ConsumerWidget {
-  const RectangleButtonForm({
-    required this.config,
-    super.key,
-  });
+  const RectangleButtonForm({required this.config, super.key});
 
   final RectangleButtonConfig config;
 
@@ -25,27 +22,27 @@ class RectangleButtonForm extends ConsumerWidget {
           min: 20,
           max: 400,
           value: config.width,
-          onChanged: (value) =>
-              controller.update(config.copyWith(width: value)),
+          onChanged:
+              (value) => controller.update(config.copyWith(width: value)),
         ),
         SliderRow(
           label: 'Height',
           min: 20,
           max: 400,
           value: config.height,
-          onChanged: (value) =>
-              controller.update(config.copyWith(height: value)),
+          onChanged:
+              (value) => controller.update(config.copyWith(height: value)),
         ),
         TextFieldRow(
           label: 'Label',
           value: config.label,
-          onChanged: (label) =>
-              controller.update(config.copyWith(label: label)),
+          onChanged:
+              (label) => controller.update(config.copyWith(label: label)),
         ),
         ActionDropDownRow(
           action: config.action,
-          onChanged: (action) =>
-              controller.update(config.copyWith(action: action)),
+          onChanged:
+              (action) => controller.update(config.copyWith(action: action)),
         ),
       ],
     );

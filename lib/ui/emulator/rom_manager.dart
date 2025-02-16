@@ -19,9 +19,8 @@ part 'rom_manager.g.dart';
 String applicationSupportPath(Ref ref) => '';
 
 @riverpod
-RomManager romManager(Ref ref) => RomManager(
-      baseDirectory: ref.watch(applicationSupportPathProvider),
-    );
+RomManager romManager(Ref ref) =>
+    RomManager(baseDirectory: ref.watch(applicationSupportPathProvider));
 
 @JsonSerializable()
 @immutable

@@ -16,11 +16,11 @@ class FrameCounter {
   bool interruptInhibit = false;
 
   FrameCounterState get state => FrameCounterState(
-        counter: counter,
-        fiveStep: fiveStep,
-        interrupt: interrupt,
-        interruptInhibit: interruptInhibit,
-      );
+    counter: counter,
+    fiveStep: fiveStep,
+    interrupt: interrupt,
+    interruptInhibit: interruptInhibit,
+  );
 
   set state(FrameCounterState value) {
     counter = value.counter;

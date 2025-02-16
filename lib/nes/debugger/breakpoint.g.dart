@@ -7,12 +7,12 @@ part of 'breakpoint.dart';
 // **************************************************************************
 
 Breakpoint _$BreakpointFromJson(Map<String, dynamic> json) => Breakpoint(
-      (json['address'] as num).toInt(),
-      enabled: json['enabled'] as bool? ?? true,
-      hidden: json['hidden'] as bool? ?? false,
-      disableOnHit: json['disableOnHit'] as bool? ?? false,
-      removeOnHit: json['removeOnHit'] as bool? ?? false,
-    );
+  (json['address'] as num).toInt(),
+  enabled: json['enabled'] as bool? ?? true,
+  hidden: json['hidden'] as bool? ?? false,
+  disableOnHit: json['disableOnHit'] as bool? ?? false,
+  removeOnHit: json['removeOnHit'] as bool? ?? false,
+);
 
 Map<String, dynamic> _$BreakpointToJson(Breakpoint instance) =>
     <String, dynamic>{

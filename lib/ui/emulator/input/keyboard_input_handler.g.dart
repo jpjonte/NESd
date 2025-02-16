@@ -13,14 +13,15 @@ String _$keyboardInputHandlerHash() =>
 @ProviderFor(keyboardInputHandler)
 final keyboardInputHandlerProvider =
     AutoDisposeProvider<KeyboardInputHandler>.internal(
-  keyboardInputHandler,
-  name: r'keyboardInputHandlerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$keyboardInputHandlerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      keyboardInputHandler,
+      name: r'keyboardInputHandlerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$keyboardInputHandlerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element

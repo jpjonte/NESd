@@ -8,13 +8,13 @@ environment:
   sdk: '>=3.7.0 <4.0.0'
 
 dependencies:
-  archive: ^3.6.1
+  archive: ^4.0.2
   auto_route: ^9.2.2
-  binarize: ^1.5.0
+  binarize: ^2.0.0
   build_runner: ^2.4.10
   collection: ^1.18.0
   crypto: ^3.0.5
-  file_picker: ^8.0.3
+  file_picker: ^9.0.0
   flutter:
     sdk: flutter
   flutter_hooks: ^0.20.5
@@ -29,7 +29,7 @@ dependencies:
       path: packages/gamepads
   hooks_riverpod: ^2.5.1
   image: ^4.2.0
-  intl: ^0.19.0
+  intl: ^0.20.2
   json_annotation: ^4.9.0
   mp_audio_stream:
     git:

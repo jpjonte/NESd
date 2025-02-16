@@ -11,8 +11,9 @@ class ScalingDropdown extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.scaling));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.scaling),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
     final focusNode = useFocusNode();
 
@@ -32,8 +33,9 @@ class ScalingDropdown extends HookConsumerWidget {
               ),
               child: DropdownButton<Scaling>(
                 value: setting,
-                onChanged: (value) =>
-                    controller.scaling = value ?? Scaling.autoInteger,
+                onChanged:
+                    (value) =>
+                        controller.scaling = value ?? Scaling.autoInteger,
                 borderRadius: BorderRadius.circular(8),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 items: const [
@@ -45,22 +47,10 @@ class ScalingDropdown extends HookConsumerWidget {
                     value: Scaling.autoSmooth,
                     child: Text('Auto (smooth)'),
                   ),
-                  DropdownMenuItem(
-                    value: Scaling.x1,
-                    child: Text('1x'),
-                  ),
-                  DropdownMenuItem(
-                    value: Scaling.x2,
-                    child: Text('2x'),
-                  ),
-                  DropdownMenuItem(
-                    value: Scaling.x3,
-                    child: Text('3x'),
-                  ),
-                  DropdownMenuItem(
-                    value: Scaling.x4,
-                    child: Text('4x'),
-                  ),
+                  DropdownMenuItem(value: Scaling.x1, child: Text('1x')),
+                  DropdownMenuItem(value: Scaling.x2, child: Text('2x')),
+                  DropdownMenuItem(value: Scaling.x3, child: Text('3x')),
+                  DropdownMenuItem(value: Scaling.x4, child: Text('4x')),
                 ],
               ),
             ),
@@ -76,10 +66,7 @@ class ScalingDropdown extends HookConsumerWidget {
     if (childContext != null) {
       const intent = ActivateIntent();
 
-      final flutterAction = Actions.maybeFind(
-        childContext,
-        intent: intent,
-      );
+      final flutterAction = Actions.maybeFind(childContext, intent: intent);
 
       if (flutterAction != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

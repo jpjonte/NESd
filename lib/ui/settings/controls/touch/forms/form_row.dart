@@ -5,11 +5,7 @@ import 'package:nesd/ui/emulator/input/action/all_actions.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 
 class FormRow extends StatelessWidget {
-  const FormRow({
-    required this.label,
-    required this.child,
-    super.key,
-  });
+  const FormRow({required this.label, required this.child, super.key});
 
   final String label;
   final Widget child;
@@ -104,12 +100,7 @@ class SliderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormRow(
       label: label,
-      child: Slider(
-        value: value,
-        min: min,
-        max: max,
-        onChanged: onChanged,
-      ),
+      child: Slider(value: value, min: min, max: max, onChanged: onChanged),
     );
   }
 }
@@ -144,10 +135,7 @@ class ActionDropDownRow extends StatelessWidget {
             items: [
               const DropdownMenuItem(child: Text('None')),
               for (final action in allActions)
-                DropdownMenuItem(
-                  value: action,
-                  child: Text(action.title),
-                ),
+                DropdownMenuItem(value: action, child: Text(action.title)),
             ],
           ),
         ),

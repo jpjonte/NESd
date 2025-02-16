@@ -7,9 +7,7 @@ import 'package:nesd/nes/debugger/execution_log_state.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 class ActionBar extends StatelessWidget {
-  const ActionBar({
-    super.key,
-  });
+  const ActionBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,20 +15,14 @@ class ActionBar extends StatelessWidget {
       height: 50,
       color: nesdRed[900],
       child: const Row(
-        children: [
-          RecordButton(),
-          WriteToFileButton(),
-          ClearButton(),
-        ],
+        children: [RecordButton(), WriteToFileButton(), ClearButton()],
       ),
     );
   }
 }
 
 class RecordButton extends ConsumerWidget {
-  const RecordButton({
-    super.key,
-  });
+  const RecordButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,9 +39,7 @@ class RecordButton extends ConsumerWidget {
 }
 
 class WriteToFileButton extends ConsumerWidget {
-  const WriteToFileButton({
-    super.key,
-  });
+  const WriteToFileButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,8 +47,10 @@ class WriteToFileButton extends ConsumerWidget {
 
     return IconButton(
       onPressed: () async {
-        final file = await FilePicker.platform
-            .saveFile(type: FileType.custom, allowedExtensions: ['log', 'txt']);
+        final file = await FilePicker.platform.saveFile(
+          type: FileType.custom,
+          allowedExtensions: ['log', 'txt'],
+        );
 
         if (file != null) {
           log.dumpToFile(file);
@@ -72,9 +64,7 @@ class WriteToFileButton extends ConsumerWidget {
 }
 
 class ClearButton extends ConsumerWidget {
-  const ClearButton({
-    super.key,
-  });
+  const ClearButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

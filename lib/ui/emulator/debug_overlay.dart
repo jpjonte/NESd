@@ -48,10 +48,7 @@ DebugOverlayController debugOverlayController(Ref ref) {
 }
 
 class DebugOverlayController {
-  DebugOverlayController({
-    required this.eventBus,
-    required this.notifier,
-  }) {
+  DebugOverlayController({required this.eventBus, required this.notifier}) {
     _subscription = eventBus.stream
         .where((event) => event is FrameNesEvent)
         .cast<FrameNesEvent>()
@@ -111,11 +108,7 @@ class DebugOverlay extends ConsumerWidget {
                 state.frameTime.toStringAsFixed(3),
                 color: color,
               ),
-              KeyValue(
-                'FPS',
-                state.fps.toStringAsFixed(1),
-                color: color,
-              ),
+              KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
               KeyValue(
                 'Sleep Budget',
                 state.sleepBudget.toStringAsFixed(3),

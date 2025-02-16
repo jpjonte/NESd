@@ -8,19 +8,20 @@ import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 class NativeFileSystem extends FileSystem {
   @override
   Future<(String, List<FileSystemFile>)> list(String path) async {
-    final files = Directory(path)
-        .listSync()
-        .map(
-          (e) => FileSystemFile(
-            path: e.path,
-            type: switch (e) {
-              File() => FileSystemFileType.file,
-              Directory() || Link() => FileSystemFileType.directory,
-              _ => throw UnimplementedError(),
-            },
-          ),
-        )
-        .toList();
+    final files =
+        Directory(path)
+            .listSync()
+            .map(
+              (e) => FileSystemFile(
+                path: e.path,
+                type: switch (e) {
+                  File() => FileSystemFileType.file,
+                  Directory() || Link() => FileSystemFileType.directory,
+                  _ => throw UnimplementedError(),
+                },
+              ),
+            )
+            .toList();
 
     return (path, files);
   }

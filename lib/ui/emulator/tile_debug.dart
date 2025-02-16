@@ -39,9 +39,7 @@ int getChrAddress(int patternTableIndex, int nametableByte) {
 }
 
 class TileDebugWidget extends HookConsumerWidget {
-  const TileDebugWidget({
-    super.key,
-  });
+  const TileDebugWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -163,11 +161,7 @@ class TileDebugWidget extends HookConsumerWidget {
 }
 
 class TileDebugContent extends HookWidget {
-  const TileDebugContent({
-    required this.image,
-    required this.nes,
-    super.key,
-  });
+  const TileDebugContent({required this.image, required this.nes, super.key});
 
   final ui.Image image;
   final NES nes;
@@ -313,9 +307,7 @@ class TileTooltip extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
       child: DefaultTextStyle(
-        style: const TextStyle(
-          fontFamily: 'Ubuntu Mono',
-        ),
+        style: const TextStyle(fontFamily: 'Ubuntu Mono'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -352,22 +344,26 @@ class TileDebugPainter extends CustomPainter {
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
 
-  final _highlightFillPaint = Paint()
-    ..color = Colors.black.withAlpha(50)
-    ..style = PaintingStyle.fill;
-  final _highlightBorderPaint = Paint()
-    ..color = Colors.red
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
+  final _highlightFillPaint =
+      Paint()
+        ..color = Colors.black.withAlpha(50)
+        ..style = PaintingStyle.fill;
+  final _highlightBorderPaint =
+      Paint()
+        ..color = Colors.red
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
 
   final _imagePaint = Paint();
-  final _scrollStrokePaint = Paint()
-    ..color = const Color(0xccff00ff)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
-  final _scrollFillPaint = Paint()
-    ..color = const Color(0x30ff00ff)
-    ..style = PaintingStyle.fill;
+  final _scrollStrokePaint =
+      Paint()
+        ..color = const Color(0xccff00ff)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+  final _scrollFillPaint =
+      Paint()
+        ..color = const Color(0x30ff00ff)
+        ..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -388,14 +384,8 @@ class TileDebugPainter extends CustomPainter {
         Offset.zero & Size(image.width.toDouble(), image.height.toDouble()),
         _imagePaint,
       )
-      ..drawRect(
-        Offset(scrollX, scrollY) & visibleArea,
-        _scrollStrokePaint,
-      )
-      ..drawRect(
-        Offset(scrollX, scrollY) & visibleArea,
-        _scrollFillPaint,
-      );
+      ..drawRect(Offset(scrollX, scrollY) & visibleArea, _scrollStrokePaint)
+      ..drawRect(Offset(scrollX, scrollY) & visibleArea, _scrollFillPaint);
 
     if (scrollX > 32 * 8) {
       canvas

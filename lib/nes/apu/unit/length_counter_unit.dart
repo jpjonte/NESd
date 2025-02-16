@@ -5,10 +5,8 @@ class LengthCounterUnit {
 
   int value = 0;
 
-  LengthCounterUnitState get state => LengthCounterUnitState(
-        halt: halt,
-        value: value,
-      );
+  LengthCounterUnitState get state =>
+      LengthCounterUnitState(halt: halt, value: value);
 
   set state(LengthCounterUnitState state) {
     halt = state.halt;

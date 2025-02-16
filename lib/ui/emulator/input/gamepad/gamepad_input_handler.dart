@@ -13,8 +13,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'gamepad_input_handler.g.dart';
 
 typedef PriorityAction = ({int priority, InputAction action});
-typedef GamepadMap
-    = Map<({String gamepadId, Set<GamepadInput> state}), InputAction>;
+typedef GamepadMap =
+    Map<({String gamepadId, Set<GamepadInput> state}), InputAction>;
 
 const _inputOnThreshold = 0.2;
 const _inputOffThreshold = 0.1;
@@ -83,11 +83,7 @@ class GamepadInputHandler {
       );
     } else if (value < _inputOffThreshold) {
       // handle all actions that are no longer active
-      _addActions(
-        value,
-        previousActions,
-        currentActions,
-      );
+      _addActions(value, previousActions, currentActions);
     }
   }
 
@@ -120,15 +116,11 @@ class GamepadInputHandler {
     if (value > _inputOnThreshold) {
       _state[event.gamepadId] = {
         ...initialState,
-        GamepadInput(
-          id: event.inputId,
-          direction: event.value.sign.toInt(),
-        ),
+        GamepadInput(id: event.inputId, direction: event.value.sign.toInt()),
       };
     } else if (value < _inputOffThreshold) {
-      _state[event.gamepadId] = {
-        ...initialState,
-      }..removeWhere((button) => button.id == event.inputId);
+      _state[event.gamepadId] = {...initialState}
+        ..removeWhere((button) => button.id == event.inputId);
     }
   }
 

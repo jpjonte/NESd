@@ -38,6 +38,8 @@ BindingMap bindingsFromJson(dynamic json) {
       final inputs = inputsFromJson(value);
 
       bindings[action] = inputs;
+
+      // catch errors to ignore invalid actions
       // ignore: avoid_catching_errors
     } on StateError {
       // ignore invalid actions
@@ -60,9 +62,10 @@ List<InputCombination?> inputsFromJson(dynamic value) {
 
   return value
       .map(
-        (e) => e != null
-            ? InputCombination.fromJson(e as Map<String, dynamic>)
-            : null,
+        (e) =>
+            e != null
+                ? InputCombination.fromJson(e as Map<String, dynamic>)
+                : null,
       )
       .toList();
 }
@@ -98,9 +101,7 @@ List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
 // ignore: avoid-dynamic
 List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
   return json
-      .map(
-        (e) => TouchInputConfig.fromJson(e as Map<String, dynamic>),
-      )
+      .map((e) => TouchInputConfig.fromJson(e as Map<String, dynamic>))
       .whereType<TouchInputConfig>()
       .toList();
 }
@@ -227,9 +228,10 @@ class SettingsController extends _$SettingsController {
   List<RomInfo> get recentRoms => state.recentRoms;
 
   void addRecentRom(RomInfo rom) {
-    final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
-      ..insert(0, rom);
+    final recent =
+        state.recentRoms.toList()
+          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
+          ..insert(0, rom);
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -239,8 +241,9 @@ class SettingsController extends _$SettingsController {
   }
 
   void removeRecentRom(RomInfo rom) {
-    final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
+    final recent =
+        state.recentRoms.toList()
+          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -271,14 +274,7 @@ class SettingsController extends _$SettingsController {
         ..add(input);
     }
 
-    _update(
-      state.copyWith(
-        bindings: {
-          ...state.bindings,
-          action: bindings,
-        },
-      ),
-    );
+    _update(state.copyWith(bindings: {...state.bindings, action: bindings}));
   }
 
   void clearBinding(InputAction action, int index) {
@@ -365,20 +361,14 @@ class SettingsController extends _$SettingsController {
     updateTouchInputConfigs(orientation, newConfigs);
   }
 
-  void addTouchInputConfig(
-    Orientation orientation,
-    TouchInputConfig config,
-  ) {
+  void addTouchInputConfig(Orientation orientation, TouchInputConfig config) {
     updateTouchInputConfigs(orientation, [
       ...touchInputConfigsForOrientation(orientation),
       config,
     ]);
   }
 
-  void removeTouchInputConfig(
-    Orientation orientation,
-    int index,
-  ) {
+  void removeTouchInputConfig(Orientation orientation, int index) {
     updateTouchInputConfigs(
       orientation,
       List.of(touchInputConfigsForOrientation(orientation))..removeAt(index),
@@ -404,14 +394,14 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<void> resetTouchInputConfigs(Orientation orientation) async {
-    _update(
-      switch (orientation) {
-        Orientation.portrait =>
-          state.copyWith(narrowTouchInputConfig: defaultPortraitConfig),
-        Orientation.landscape =>
-          state.copyWith(wideTouchInputConfig: defaultLandscapeConfig),
-      },
-    );
+    _update(switch (orientation) {
+      Orientation.portrait => state.copyWith(
+        narrowTouchInputConfig: defaultPortraitConfig,
+      ),
+      Orientation.landscape => state.copyWith(
+        wideTouchInputConfig: defaultLandscapeConfig,
+      ),
+    });
   }
 
   Map<String, List<Breakpoint>> get breakpoints => state.breakpoints;
@@ -422,12 +412,7 @@ class SettingsController extends _$SettingsController {
 
   void setBreakpoints(String hash, List<Breakpoint> breakpoints) {
     _update(
-      state.copyWith(
-        breakpoints: {
-          ...state.breakpoints,
-          hash: breakpoints,
-        },
-      ),
+      state.copyWith(breakpoints: {...state.breakpoints, hash: breakpoints}),
     );
   }
 
@@ -461,11 +446,7 @@ class SettingsController extends _$SettingsController {
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {
     return [
       for (final path in recentRomPaths)
-        RomInfo(
-          name: p.basename(path),
-          path: path,
-          hash: '',
-        ),
+        RomInfo(name: p.basename(path), path: path, hash: ''),
     ];
   }
 }

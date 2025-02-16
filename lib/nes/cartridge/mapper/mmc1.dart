@@ -32,12 +32,12 @@ class MMC1 extends Mapper {
 
   @override
   MMC1State get state => MMC1State(
-        shift: _shift,
-        control: _control,
-        chrBank0: _chrBank0,
-        chrBank1: _chrBank1,
-        prgBank: _prgBank,
-      );
+    shift: _shift,
+    control: _control,
+    chrBank0: _chrBank0,
+    chrBank1: _chrBank1,
+    prgBank: _prgBank,
+  );
 
   @override
   set state(covariant MMC1State state) {

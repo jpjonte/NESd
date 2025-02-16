@@ -18,9 +18,7 @@ import 'package:nesd/ui/settings/settings.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MainMenu extends ConsumerWidget {
-  const MainMenu({
-    super.key,
-  });
+  const MainMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,9 +52,7 @@ class MainMenu extends ConsumerWidget {
 }
 
 class OpenRomButton extends ConsumerWidget {
-  const OpenRomButton({
-    super.key,
-  });
+  const OpenRomButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,16 +110,14 @@ class OpenRomButton extends ConsumerWidget {
 }
 
 class SettingsButton extends ConsumerWidget {
-  const SettingsButton({
-    super.key,
-  });
+  const SettingsButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: NesdButton(
-        onPressed: () =>
-            ref.read(routerProvider).navigate(const SettingsRoute()),
+        onPressed:
+            () => ref.read(routerProvider).navigate(const SettingsRoute()),
         child: const Text('Settings'),
       ),
     );
@@ -131,18 +125,17 @@ class SettingsButton extends ConsumerWidget {
 }
 
 class AboutButton extends StatelessWidget {
-  const AboutButton({
-    super.key,
-  });
+  const AboutButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: NesdButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (context) => const AboutDialog(),
-        ),
+        onPressed:
+            () => showDialog(
+              context: context,
+              builder: (context) => const AboutDialog(),
+            ),
         child: const Text('About'),
       ),
     );
@@ -150,9 +143,7 @@ class AboutButton extends StatelessWidget {
 }
 
 class QuitButton extends StatelessWidget {
-  const QuitButton({
-    super.key,
-  });
+  const QuitButton({super.key});
 
   @override
   Widget build(BuildContext context) {

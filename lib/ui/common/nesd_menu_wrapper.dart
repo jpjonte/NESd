@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NesdMenuWrapper extends StatelessWidget {
-  const NesdMenuWrapper({
-    required this.child,
-  });
+  const NesdMenuWrapper({required this.child});
 
   final Widget child;
 

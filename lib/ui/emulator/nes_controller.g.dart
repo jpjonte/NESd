@@ -13,9 +13,10 @@ String _$nesControllerHash() => r'601c965513b65416412b8863b1de023cd8456bc1';
 final nesControllerProvider = AutoDisposeProvider<NesController>.internal(
   nesController,
   name: r'nesControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$nesControllerHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$nesControllerHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

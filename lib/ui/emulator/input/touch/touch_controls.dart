@@ -15,13 +15,15 @@ class TouchControlsBuilder extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final portraitConfig = ref.watch(
-      settingsControllerProvider
-          .select((settings) => settings.narrowTouchInputConfig),
+      settingsControllerProvider.select(
+        (settings) => settings.narrowTouchInputConfig,
+      ),
     );
 
     final landscapeConfig = ref.watch(
-      settingsControllerProvider
-          .select((settings) => settings.wideTouchInputConfig),
+      settingsControllerProvider.select(
+        (settings) => settings.wideTouchInputConfig,
+      ),
     );
 
     return TouchControls(
@@ -45,9 +47,10 @@ class TouchControls extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return OrientationBuilder(
       builder: (_, orientation) {
-        final config = orientation == Orientation.portrait
-            ? portraitConfig
-            : landscapeConfig;
+        final config =
+            orientation == Orientation.portrait
+                ? portraitConfig
+                : landscapeConfig;
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -67,9 +70,7 @@ class TouchControls extends HookConsumerWidget {
 }
 
 class TouchControl extends StatelessWidget {
-  const TouchControl({
-    required this.config,
-  });
+  const TouchControl({required this.config});
 
   final TouchInputConfig config;
 
@@ -85,11 +86,7 @@ class TouchControl extends StatelessWidget {
 }
 
 class TouchArea extends InheritedWidget {
-  const TouchArea({
-    required this.constraints,
-    required super.child,
-    super.key,
-  });
+  const TouchArea({required this.constraints, required super.child, super.key});
 
   final BoxConstraints constraints;
 

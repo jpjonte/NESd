@@ -13,14 +13,15 @@ String _$gamepadInputMapperHash() =>
 @ProviderFor(gamepadInputMapper)
 final gamepadInputMapperProvider =
     AutoDisposeProvider<GamepadInputMapper>.internal(
-  gamepadInputMapper,
-  name: r'gamepadInputMapperProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$gamepadInputMapperHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      gamepadInputMapper,
+      name: r'gamepadInputMapperProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$gamepadInputMapperHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element

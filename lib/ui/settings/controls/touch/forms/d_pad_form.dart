@@ -6,10 +6,7 @@ import 'package:nesd/ui/settings/controls/touch/forms/form_row.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
 
 class DPadForm extends ConsumerWidget {
-  const DPadForm({
-    required this.config,
-    super.key,
-  });
+  const DPadForm({required this.config, super.key});
 
   final DPadConfig config;
 
@@ -32,32 +29,35 @@ class DPadForm extends ConsumerWidget {
           value: config.deadZone,
           min: 0,
           max: 1,
-          onChanged: (value) =>
-              controller.update(config.copyWith(deadZone: value)),
+          onChanged:
+              (value) => controller.update(config.copyWith(deadZone: value)),
         ),
         ActionDropDownRow(
           label: 'Left Action',
           action: config.leftAction,
-          onChanged: (action) =>
-              controller.update(config.copyWith(leftAction: action)),
+          onChanged:
+              (action) =>
+                  controller.update(config.copyWith(leftAction: action)),
         ),
         ActionDropDownRow(
           label: 'Right Action',
           action: config.rightAction,
-          onChanged: (action) =>
-              controller.update(config.copyWith(rightAction: action)),
+          onChanged:
+              (action) =>
+                  controller.update(config.copyWith(rightAction: action)),
         ),
         ActionDropDownRow(
           label: 'Up Action',
           action: config.upAction,
-          onChanged: (action) =>
-              controller.update(config.copyWith(upAction: action)),
+          onChanged:
+              (action) => controller.update(config.copyWith(upAction: action)),
         ),
         ActionDropDownRow(
           label: 'Down Action',
           action: config.downAction,
-          onChanged: (action) =>
-              controller.update(config.copyWith(downAction: action)),
+          onChanged:
+              (action) =>
+                  controller.update(config.copyWith(downAction: action)),
         ),
       ],
     );

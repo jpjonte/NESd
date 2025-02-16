@@ -28,13 +28,15 @@ String _$profileIndexHash() => r'c78cc409988640f0b8ec85a5e9df36df50f5eeec';
 @ProviderFor(ProfileIndex)
 final profileIndexProvider =
     AutoDisposeNotifierProvider<ProfileIndex, int>.internal(
-  ProfileIndex.new,
-  name: r'profileIndexProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$profileIndexHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      ProfileIndex.new,
+      name: r'profileIndexProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$profileIndexHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$ProfileIndex = AutoDisposeNotifier<int>;
 // ignore_for_file: type=lint

@@ -18,7 +18,7 @@ GamepadInputMapper gamepadInputMapper(Ref ref) {
 
 class GamepadInputMapper {
   GamepadInputMapper()
-      : _streamController = StreamController<GamepadInputEvent>.broadcast() {
+    : _streamController = StreamController<GamepadInputEvent>.broadcast() {
     _subscription = Gamepads.events.listen(_handleGamepadEvent);
   }
 

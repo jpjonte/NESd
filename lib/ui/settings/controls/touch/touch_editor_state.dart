@@ -33,8 +33,11 @@ class TouchEditorNotifier extends _$TouchEditorNotifier {
 
   void add(Orientation orientation) {
     state = state.copyWith(
-      editingConfig:
-          const RectangleButtonConfig(action: controller1A, x: 0, y: 0),
+      editingConfig: const RectangleButtonConfig(
+        action: controller1A,
+        x: 0,
+        y: 0,
+      ),
       editingOrientation: orientation,
     );
   }
@@ -159,20 +162,16 @@ class TouchEditorMoveIndex extends _$TouchEditorMoveIndex {
       return;
     }
 
-    final normalized = _normalize(
-      viewport,
-      offset,
-    );
+    final normalized = _normalize(viewport, offset);
 
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    final config =
-        controller.touchInputConfigForOrientation(orientation, index);
-
-    final newConfig = config.copyWith(
-      x: normalized.dx,
-      y: normalized.dy,
+    final config = controller.touchInputConfigForOrientation(
+      orientation,
+      index,
     );
+
+    final newConfig = config.copyWith(x: normalized.dx, y: normalized.dy);
 
     controller.setTouchInputConfig(orientation, index, newConfig);
   }

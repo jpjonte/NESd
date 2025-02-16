@@ -52,18 +52,20 @@ class SettingsTile extends StatelessWidget {
             height: height,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: column
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: children,
-                    )
-                  : Row(
-                      mainAxisAlignment: title != null
-                          ? MainAxisAlignment.spaceBetween
-                          : MainAxisAlignment.center,
-                      children: children,
-                    ),
+              child:
+                  column
+                      ? Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: children,
+                      )
+                      : Row(
+                        mainAxisAlignment:
+                            title != null
+                                ? MainAxisAlignment.spaceBetween
+                                : MainAxisAlignment.center,
+                        children: children,
+                      ),
             ),
           );
         },
@@ -89,10 +91,7 @@ class SwitchSettingsTile extends StatelessWidget {
     return SettingsTile(
       title: title,
       onTap: () => onChanged(!value),
-      child: Switch(
-        value: value,
-        onChanged: onChanged,
-      ),
+      child: Switch(value: value, onChanged: onChanged),
     );
   }
 }
@@ -138,10 +137,7 @@ class ButtonSettingsTile extends StatelessWidget {
       onTap: onPressed,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: NesdButton(
-          onPressed: onPressed,
-          child: title,
-        ),
+        child: NesdButton(onPressed: onPressed, child: title),
       ),
     );
   }

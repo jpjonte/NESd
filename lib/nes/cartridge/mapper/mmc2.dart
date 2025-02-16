@@ -28,13 +28,13 @@ class MMC2 extends Mapper {
 
   @override
   MMC2State get state => MMC2State(
-        prgBank: _prgBank,
-        chrBank0: _chrBank0,
-        chrBank1: _chrBank1,
-        chrLatch0: _chrLatch0,
-        chrLatch1: _chrLatch1,
-        mirroring: _mirroring,
-      );
+    prgBank: _prgBank,
+    chrBank0: _chrBank0,
+    chrBank1: _chrBank1,
+    chrLatch0: _chrLatch0,
+    chrLatch1: _chrLatch1,
+    mirroring: _mirroring,
+  );
 
   @override
   set state(covariant MMC2State state) {

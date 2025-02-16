@@ -19,7 +19,7 @@ class BinderState extends _$BinderState {
           (settings) =>
               settings.bindings[action]?.elementAtOrNull(profileIndex),
         ),
-      )
+      ),
     );
   }
 

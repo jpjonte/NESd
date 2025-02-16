@@ -26,16 +26,16 @@ class Namco108 extends Mapper {
 
   @override
   Namco108State get state => Namco108State(
-        register: _register,
-        r0: _r0,
-        r1: _r1,
-        r2: _r2,
-        r3: _r3,
-        r4: _r4,
-        r5: _r5,
-        r6: _r6,
-        r7: _r7,
-      );
+    register: _register,
+    r0: _r0,
+    r1: _r1,
+    r2: _r2,
+    r3: _r3,
+    r4: _r4,
+    r5: _r5,
+    r6: _r6,
+    r7: _r7,
+  );
 
   @override
   set state(covariant Namco108State state) {

@@ -82,7 +82,7 @@ class MMC5State extends MapperState {
       lastExtraChr: reader.get(boolean),
       splitEnabled: reader.get(boolean),
       splitActive: reader.get(boolean),
-      splitSide: SplitSide.values[reader.get(uint8)],
+      splitSide: reader.get(enumeration(SplitSide.values)),
       splitTile: reader.get(uint8),
       splitTileAddress: reader.get(uint16),
       splitScroll: reader.get(uint8),
@@ -185,7 +185,7 @@ class MMC5State extends MapperState {
       ..set(boolean, lastExtraChr)
       ..set(boolean, splitEnabled)
       ..set(boolean, splitActive)
-      ..set(uint8, splitSide.index)
+      ..set(enumeration(SplitSide.values), splitSide)
       ..set(uint8, splitTile)
       ..set(uint16, splitTileAddress)
       ..set(uint8, splitScroll)

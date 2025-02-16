@@ -12,7 +12,8 @@ part of 'execution_log_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$ExecutionLogState {
@@ -29,8 +30,9 @@ mixin _$ExecutionLogState {
 /// @nodoc
 abstract class $ExecutionLogStateCopyWith<$Res> {
   factory $ExecutionLogStateCopyWith(
-          ExecutionLogState value, $Res Function(ExecutionLogState) then) =
-      _$ExecutionLogStateCopyWithImpl<$Res, ExecutionLogState>;
+    ExecutionLogState value,
+    $Res Function(ExecutionLogState) then,
+  ) = _$ExecutionLogStateCopyWithImpl<$Res, ExecutionLogState>;
   @useResult
   $Res call({bool enabled, List<ExecutionLogLine> lines});
 }
@@ -49,29 +51,32 @@ class _$ExecutionLogStateCopyWithImpl<$Res, $Val extends ExecutionLogState>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? enabled = null,
-    Object? lines = null,
-  }) {
-    return _then(_value.copyWith(
-      enabled: null == enabled
-          ? _value.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lines: null == lines
-          ? _value.lines
-          : lines // ignore: cast_nullable_to_non_nullable
-              as List<ExecutionLogLine>,
-    ) as $Val);
+  $Res call({Object? enabled = null, Object? lines = null}) {
+    return _then(
+      _value.copyWith(
+            enabled:
+                null == enabled
+                    ? _value.enabled
+                    : enabled // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            lines:
+                null == lines
+                    ? _value.lines
+                    : lines // ignore: cast_nullable_to_non_nullable
+                        as List<ExecutionLogLine>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$ExecutionLogStateImplCopyWith<$Res>
     implements $ExecutionLogStateCopyWith<$Res> {
-  factory _$$ExecutionLogStateImplCopyWith(_$ExecutionLogStateImpl value,
-          $Res Function(_$ExecutionLogStateImpl) then) =
-      __$$ExecutionLogStateImplCopyWithImpl<$Res>;
+  factory _$$ExecutionLogStateImplCopyWith(
+    _$ExecutionLogStateImpl value,
+    $Res Function(_$ExecutionLogStateImpl) then,
+  ) = __$$ExecutionLogStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool enabled, List<ExecutionLogLine> lines});
@@ -81,37 +86,40 @@ abstract class _$$ExecutionLogStateImplCopyWith<$Res>
 class __$$ExecutionLogStateImplCopyWithImpl<$Res>
     extends _$ExecutionLogStateCopyWithImpl<$Res, _$ExecutionLogStateImpl>
     implements _$$ExecutionLogStateImplCopyWith<$Res> {
-  __$$ExecutionLogStateImplCopyWithImpl(_$ExecutionLogStateImpl _value,
-      $Res Function(_$ExecutionLogStateImpl) _then)
-      : super(_value, _then);
+  __$$ExecutionLogStateImplCopyWithImpl(
+    _$ExecutionLogStateImpl _value,
+    $Res Function(_$ExecutionLogStateImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of ExecutionLogState
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? enabled = null,
-    Object? lines = null,
-  }) {
-    return _then(_$ExecutionLogStateImpl(
-      enabled: null == enabled
-          ? _value.enabled
-          : enabled // ignore: cast_nullable_to_non_nullable
-              as bool,
-      lines: null == lines
-          ? _value._lines
-          : lines // ignore: cast_nullable_to_non_nullable
-              as List<ExecutionLogLine>,
-    ));
+  $Res call({Object? enabled = null, Object? lines = null}) {
+    return _then(
+      _$ExecutionLogStateImpl(
+        enabled:
+            null == enabled
+                ? _value.enabled
+                : enabled // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        lines:
+            null == lines
+                ? _value._lines
+                : lines // ignore: cast_nullable_to_non_nullable
+                    as List<ExecutionLogLine>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$ExecutionLogStateImpl implements _ExecutionLogState {
-  const _$ExecutionLogStateImpl(
-      {this.enabled = false, final List<ExecutionLogLine> lines = const []})
-      : _lines = lines;
+  const _$ExecutionLogStateImpl({
+    this.enabled = false,
+    final List<ExecutionLogLine> lines = const [],
+  }) : _lines = lines;
 
   @override
   @JsonKey()
@@ -141,7 +149,10 @@ class _$ExecutionLogStateImpl implements _ExecutionLogState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, enabled, const DeepCollectionEquality().hash(_lines));
+    runtimeType,
+    enabled,
+    const DeepCollectionEquality().hash(_lines),
+  );
 
   /// Create a copy of ExecutionLogState
   /// with the given fields replaced by the non-null parameter values.
@@ -150,13 +161,16 @@ class _$ExecutionLogStateImpl implements _ExecutionLogState {
   @pragma('vm:prefer-inline')
   _$$ExecutionLogStateImplCopyWith<_$ExecutionLogStateImpl> get copyWith =>
       __$$ExecutionLogStateImplCopyWithImpl<_$ExecutionLogStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _ExecutionLogState implements ExecutionLogState {
-  const factory _ExecutionLogState(
-      {final bool enabled,
-      final List<ExecutionLogLine> lines}) = _$ExecutionLogStateImpl;
+  const factory _ExecutionLogState({
+    final bool enabled,
+    final List<ExecutionLogLine> lines,
+  }) = _$ExecutionLogStateImpl;
 
   @override
   bool get enabled;

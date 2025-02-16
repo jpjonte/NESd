@@ -6,9 +6,7 @@ import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/action_bar.dart';
 
 class ExecutionLogWidget extends ConsumerWidget {
-  const ExecutionLogWidget({
-    super.key,
-  });
+  const ExecutionLogWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,9 +24,10 @@ class ExecutionLogWidget extends ConsumerWidget {
               child: ListView.builder(
                 itemCount: state.lines.length,
                 itemExtent: 20,
-                itemBuilder: (context, index) => ExecutionLogLineWidget(
-                  line: log.printLine(state.lines[index]),
-                ),
+                itemBuilder:
+                    (context, index) => ExecutionLogLineWidget(
+                      line: log.printLine(state.lines[index]),
+                    ),
               ),
             ),
           ],
@@ -39,18 +38,12 @@ class ExecutionLogWidget extends ConsumerWidget {
 }
 
 class ExecutionLogLineWidget extends StatelessWidget {
-  const ExecutionLogLineWidget({
-    required this.line,
-    super.key,
-  });
+  const ExecutionLogLineWidget({required this.line, super.key});
 
   final String line;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 20,
-      child: Text(line),
-    );
+    return SizedBox(height: 20, child: Text(line));
   }
 }

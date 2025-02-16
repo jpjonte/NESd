@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:binarize/binarize.dart';

@@ -91,25 +91,22 @@ sealed class TouchInputConfig with _$TouchInputConfig {
     return center + relative;
   }
 
-  Rect boundingBox(Size viewport) => Rect.fromCenter(
-        center: center(viewport),
-        width: width,
-        height: height,
-      );
+  Rect boundingBox(Size viewport) =>
+      Rect.fromCenter(center: center(viewport), width: width, height: height);
 
   double get height => switch (this) {
-        RectangleButtonConfig(height: final height) => height,
-        CircleButtonConfig(size: final size) => size,
-        JoyStickConfig(size: final size) => size,
-        DPadConfig(size: final size) => size,
-      };
+    RectangleButtonConfig(height: final height) => height,
+    CircleButtonConfig(size: final size) => size,
+    JoyStickConfig(size: final size) => size,
+    DPadConfig(size: final size) => size,
+  };
 
   double get width => switch (this) {
-        RectangleButtonConfig(width: final width) => width,
-        CircleButtonConfig(size: final size) => size,
-        JoyStickConfig(size: final size) => size,
-        DPadConfig(size: final size) => size,
-      };
+    RectangleButtonConfig(width: final width) => width,
+    CircleButtonConfig(size: final size) => size,
+    JoyStickConfig(size: final size) => size,
+    DPadConfig(size: final size) => size,
+  };
 
   factory TouchInputConfig.fromJson(Map<String, dynamic> json) =>
       _$TouchInputConfigFromJson(json);
@@ -124,18 +121,8 @@ const defaultPortraitConfig = [
     leftAction: controller1Left,
     rightAction: controller1Right,
   ),
-  CircleButtonConfig(
-    x: 0.7,
-    y: 0.4,
-    action: controller1A,
-    label: 'A',
-  ),
-  CircleButtonConfig(
-    x: 0.2,
-    y: 0.4,
-    action: controller1B,
-    label: 'B',
-  ),
+  CircleButtonConfig(x: 0.7, y: 0.4, action: controller1A, label: 'A'),
+  CircleButtonConfig(x: 0.2, y: 0.4, action: controller1B, label: 'B'),
   RectangleButtonConfig(
     height: 40,
     x: -0.25,
@@ -161,18 +148,8 @@ const defaultLandscapeConfig = [
     leftAction: controller1Left,
     rightAction: controller1Right,
   ),
-  CircleButtonConfig(
-    x: 0.85,
-    y: -0.1,
-    action: controller1A,
-    label: 'A',
-  ),
-  CircleButtonConfig(
-    x: 0.6,
-    y: -0.1,
-    action: controller1B,
-    label: 'B',
-  ),
+  CircleButtonConfig(x: 0.85, y: -0.1, action: controller1A, label: 'A'),
+  CircleButtonConfig(x: 0.6, y: -0.1, action: controller1B, label: 'B'),
   RectangleButtonConfig(
     height: 40,
     x: -0.6,

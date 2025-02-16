@@ -60,8 +60,9 @@ class AudioOutput {
   }
 
   void processSamples(Float32List samples) {
-    final volumeApplied =
-        Float32List.fromList(samples.map((s) => s * _volume).toList());
+    final volumeApplied = Float32List.fromList(
+      samples.map((s) => s * _volume).toList(),
+    );
 
     _audioBuffer.write(volumeApplied);
 
@@ -70,11 +71,7 @@ class AudioOutput {
 
   void _init() {
     audioStream
-      ..init(
-        bufferMilliSec: 50,
-        waitingBufferMilliSec: 20,
-        sampleRate: 48000,
-      )
+      ..init(bufferMilliSec: 50, waitingBufferMilliSec: 20, sampleRate: 48000)
       ..resume();
   }
 

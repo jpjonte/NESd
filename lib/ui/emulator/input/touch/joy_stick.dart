@@ -7,10 +7,7 @@ import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class JoyStick extends HookConsumerWidget {
-  const JoyStick({
-    required this.config,
-    super.key,
-  });
+  const JoyStick({required this.config, super.key});
 
   final JoyStickConfig config;
 
@@ -98,9 +95,10 @@ class JoyStick extends HookConsumerWidget {
               height: config.innerSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: active.value
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x99FFFFFF),
+                color:
+                    active.value
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0x99FFFFFF),
               ),
             ),
           ),

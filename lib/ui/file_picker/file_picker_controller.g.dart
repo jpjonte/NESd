@@ -13,14 +13,15 @@ String _$filePickerControllerHash() =>
 @ProviderFor(filePickerController)
 final filePickerControllerProvider =
     AutoDisposeProvider<FilePickerController>.internal(
-  filePickerController,
-  name: r'filePickerControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$filePickerControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      filePickerController,
+      name: r'filePickerControllerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$filePickerControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
@@ -32,14 +33,15 @@ String _$filePickerNotifierHash() =>
 @ProviderFor(FilePickerNotifier)
 final filePickerNotifierProvider =
     AutoDisposeNotifierProvider<FilePickerNotifier, FilePickerState>.internal(
-  FilePickerNotifier.new,
-  name: r'filePickerNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$filePickerNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      FilePickerNotifier.new,
+      name: r'filePickerNotifierProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$filePickerNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$FilePickerNotifier = AutoDisposeNotifier<FilePickerState>;
 // ignore_for_file: type=lint

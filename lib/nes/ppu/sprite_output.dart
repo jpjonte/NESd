@@ -10,11 +10,11 @@ class SpriteOutput {
   int x = 0;
 
   SpriteOutputState get state => SpriteOutputState(
-        patternLow: patternLow,
-        patternHigh: patternHigh,
-        attribute: attribute,
-        x: x,
-      );
+    patternLow: patternLow,
+    patternHigh: patternHigh,
+    attribute: attribute,
+    x: x,
+  );
 
   set state(SpriteOutputState state) {
     patternLow = state.patternLow;

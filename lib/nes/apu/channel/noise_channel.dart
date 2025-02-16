@@ -23,17 +23,17 @@ class NoiseChannel {
   bool mode = false;
 
   NoiseChannelState get state => NoiseChannelState(
-        enabled: enabled,
-        constantVolume: constantVolume,
-        volume: volume,
-        period: period,
-        timerPeriod: timerPeriod,
-        timer: timer,
-        shiftRegister: shiftRegister,
-        mode: mode,
-        envelopeState: envelope.state,
-        lengthCounterState: lengthCounter.state,
-      );
+    enabled: enabled,
+    constantVolume: constantVolume,
+    volume: volume,
+    period: period,
+    timerPeriod: timerPeriod,
+    timer: timer,
+    shiftRegister: shiftRegister,
+    mode: mode,
+    envelopeState: envelope.state,
+    lengthCounterState: lengthCounter.state,
+  );
 
   set state(NoiseChannelState state) {
     enabled = state.enabled;

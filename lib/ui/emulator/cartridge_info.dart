@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 
 class CartridgeInfoWidget extends StatelessWidget {
-  const CartridgeInfoWidget({
-    required this.cartridge,
-    super.key,
-  });
+  const CartridgeInfoWidget({required this.cartridge, super.key});
 
   final Cartridge cartridge;
 
@@ -46,12 +43,7 @@ class CartridgeInfoWidget extends StatelessWidget {
 }
 
 class KeyValue extends StatelessWidget {
-  const KeyValue(
-    this.label,
-    this.value, {
-    this.color,
-    super.key,
-  });
+  const KeyValue(this.label, this.value, {this.color, super.key});
 
   final String label;
   final String value;

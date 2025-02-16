@@ -19,10 +19,7 @@ KeyboardInputHandler keyboardInputHandler(Ref ref) {
 
   final actionStream = ref.watch(actionStreamProvider);
 
-  return KeyboardInputHandler(
-    bindings: bindings,
-    actionStream: actionStream,
-  );
+  return KeyboardInputHandler(bindings: bindings, actionStream: actionStream);
 }
 
 class KeyboardInputHandler {
@@ -63,11 +60,7 @@ class KeyboardInputHandler {
       );
     } else if (event is KeyUpEvent) {
       // handle all actions that are no longer active
-      return _addActions(
-        0.0,
-        previousActions,
-        currentActions,
-      );
+      return _addActions(0.0, previousActions, currentActions);
     }
 
     return false;

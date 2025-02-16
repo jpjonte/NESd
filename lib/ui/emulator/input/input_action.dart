@@ -8,10 +8,7 @@ part 'action/state.dart';
 part 'action/ui.dart';
 
 sealed class InputAction {
-  const InputAction({
-    required this.title,
-    required this.code,
-  });
+  const InputAction({required this.title, required this.code});
 
   static InputAction? fromCode(String? code) {
     if (code == null) {

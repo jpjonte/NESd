@@ -16,18 +16,16 @@ class ToastOverlay extends ConsumerWidget {
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: toasts.length.toDouble()),
         duration: const Duration(milliseconds: 100),
-        builder: (context, offset, child) => Transform.translate(
-          offset: Offset(0, 32 * (toasts.length.toDouble() - offset)),
-          child: child,
-        ),
+        builder:
+            (context, offset, child) => Transform.translate(
+              offset: Offset(0, 32 * (toasts.length.toDouble() - offset)),
+              child: child,
+            ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final toast in toasts)
-              ToastWidget(
-                toast,
-                isFirst: toast == toasts.first,
-              ),
+              ToastWidget(toast, isFirst: toast == toasts.first),
           ],
         ),
       ),
@@ -36,11 +34,7 @@ class ToastOverlay extends ConsumerWidget {
 }
 
 class ToastWidget extends ConsumerWidget {
-  const ToastWidget(
-    this.toast, {
-    required this.isFirst,
-    super.key,
-  });
+  const ToastWidget(this.toast, {required this.isFirst, super.key});
 
   final Toast toast;
   final bool isFirst;
@@ -74,9 +68,7 @@ class ToastWidget extends ConsumerWidget {
           child: StrokeText(
             toast.message,
             strokeColor: outlineColor,
-            style: textStyle.copyWith(
-              color: color,
-            ),
+            style: textStyle.copyWith(color: color),
           ),
         ),
       ),

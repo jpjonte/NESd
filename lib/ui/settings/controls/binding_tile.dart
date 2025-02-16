@@ -11,10 +11,7 @@ import 'package:nesd/ui/settings/controls/binder_state.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 
 class BindingTile extends HookConsumerWidget {
-  const BindingTile({
-    required this.action,
-    super.key,
-  });
+  const BindingTile({required this.action, super.key});
 
   final InputAction action;
 

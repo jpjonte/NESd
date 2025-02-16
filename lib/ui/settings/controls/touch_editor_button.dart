@@ -17,9 +17,11 @@ class TouchEditorButton extends ConsumerWidget {
     return FocusOnHover(
       child: ButtonSettingsTile(
         title: const Text('Edit touch controls'),
-        onPressed: touchControlsActive
-            ? () => ref.read(routerProvider).navigate(const TouchEditorRoute())
-            : null,
+        onPressed:
+            touchControlsActive
+                ? () =>
+                    ref.read(routerProvider).navigate(const TouchEditorRoute())
+                : null,
       ),
     );
   }

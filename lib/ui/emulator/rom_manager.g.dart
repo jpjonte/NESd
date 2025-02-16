@@ -7,18 +7,18 @@ part of 'rom_manager.dart';
 // **************************************************************************
 
 RomInfo _$RomInfoFromJson(Map<String, dynamic> json) => RomInfo(
-      name: json['name'] as String,
-      path: json['path'] as String,
-      hash: json['hash'] as String,
-      slot: (json['slot'] as num?)?.toInt(),
-    );
+  name: json['name'] as String,
+  path: json['path'] as String,
+  hash: json['hash'] as String,
+  slot: (json['slot'] as num?)?.toInt(),
+);
 
 Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
-      'name': instance.name,
-      'path': instance.path,
-      'hash': instance.hash,
-      'slot': instance.slot,
-    };
+  'name': instance.name,
+  'path': instance.path,
+  'hash': instance.hash,
+  'slot': instance.slot,
+};
 
 // **************************************************************************
 // RiverpodGenerator
@@ -32,9 +32,10 @@ String _$applicationSupportPathHash() =>
 final applicationSupportPathProvider = AutoDisposeProvider<String>.internal(
   applicationSupportPath,
   name: r'applicationSupportPathProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$applicationSupportPathHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$applicationSupportPathHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

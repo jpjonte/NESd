@@ -11,10 +11,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 class ActionBar extends StatelessWidget {
-  const ActionBar({
-    required this.scrollController,
-    super.key,
-  });
+  const ActionBar({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -42,9 +39,7 @@ class ActionBar extends StatelessWidget {
 }
 
 class ResumeButton extends ConsumerWidget {
-  const ResumeButton({
-    super.key,
-  });
+  const ResumeButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,9 +55,7 @@ class ResumeButton extends ConsumerWidget {
 }
 
 class PauseButton extends ConsumerWidget {
-  const PauseButton({
-    super.key,
-  });
+  const PauseButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,9 +71,7 @@ class PauseButton extends ConsumerWidget {
 }
 
 class StepIntoButton extends ConsumerWidget {
-  const StepIntoButton({
-    super.key,
-  });
+  const StepIntoButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,9 +87,7 @@ class StepIntoButton extends ConsumerWidget {
 }
 
 class StepOverButton extends ConsumerWidget {
-  const StepOverButton({
-    super.key,
-  });
+  const StepOverButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -114,9 +103,7 @@ class StepOverButton extends ConsumerWidget {
 }
 
 class StepOutButton extends ConsumerWidget {
-  const StepOutButton({
-    super.key,
-  });
+  const StepOutButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -133,9 +120,7 @@ class StepOutButton extends ConsumerWidget {
 }
 
 class RunToAddressButton extends ConsumerWidget {
-  const RunToAddressButton({
-    super.key,
-  });
+  const RunToAddressButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -143,19 +128,21 @@ class RunToAddressButton extends ConsumerWidget {
     final nesController = ref.read(nesControllerProvider);
 
     return IconButton(
-      onPressed: () => showDialog(
-        context: context,
-        builder: (_) => AddressDialog(
-          title: 'Run to address',
-          onSubmitted: (address) {
-            debugger.addBreakpoint(
-              Breakpoint(address, hidden: true, removeOnHit: true),
-            );
+      onPressed:
+          () => showDialog(
+            context: context,
+            builder:
+                (_) => AddressDialog(
+                  title: 'Run to address',
+                  onSubmitted: (address) {
+                    debugger.addBreakpoint(
+                      Breakpoint(address, hidden: true, removeOnHit: true),
+                    );
 
-            nesController.unpause();
-          },
-        ),
-      ),
+                    nesController.unpause();
+                  },
+                ),
+          ),
       icon: const Icon(Icons.vertical_align_bottom),
       tooltip: 'Run to address',
     );
@@ -163,10 +150,7 @@ class RunToAddressButton extends ConsumerWidget {
 }
 
 class GoToPcButton extends ConsumerWidget {
-  const GoToPcButton({
-    required this.scrollController,
-    super.key,
-  });
+  const GoToPcButton({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -175,13 +159,14 @@ class GoToPcButton extends ConsumerWidget {
     final state = ref.watch(debuggerNotifierProvider);
 
     return IconButton(
-      onPressed: state.enabled
-          ? () {
-              final pcOffset = calculateAddressScrollOffset(state, state.PC);
+      onPressed:
+          state.enabled
+              ? () {
+                final pcOffset = calculateAddressScrollOffset(state, state.PC);
 
-              jumpTo(scrollController, pcOffset);
-            }
-          : null,
+                jumpTo(scrollController, pcOffset);
+              }
+              : null,
       icon: const Icon(Icons.gps_fixed),
       tooltip: 'Go to program counter',
     );
@@ -189,10 +174,7 @@ class GoToPcButton extends ConsumerWidget {
 }
 
 class GoToAddressButton extends ConsumerWidget {
-  const GoToAddressButton({
-    required this.scrollController,
-    super.key,
-  });
+  const GoToAddressButton({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -201,17 +183,19 @@ class GoToAddressButton extends ConsumerWidget {
     final state = ref.watch(debuggerNotifierProvider);
 
     return IconButton(
-      onPressed: () => showDialog(
-        context: context,
-        builder: (_) => AddressDialog(
-          title: 'Go to address',
-          onSubmitted: (address) {
-            final offset = calculateAddressScrollOffset(state, address);
+      onPressed:
+          () => showDialog(
+            context: context,
+            builder:
+                (_) => AddressDialog(
+                  title: 'Go to address',
+                  onSubmitted: (address) {
+                    final offset = calculateAddressScrollOffset(state, address);
 
-            jumpTo(scrollController, offset);
-          },
-        ),
-      ),
+                    jumpTo(scrollController, offset);
+                  },
+                ),
+          ),
       icon: const Icon(Icons.subdirectory_arrow_right),
       tooltip: 'Go to address',
     );
@@ -219,10 +203,7 @@ class GoToAddressButton extends ConsumerWidget {
 }
 
 class BreakpointListButton extends StatelessWidget {
-  const BreakpointListButton({
-    required this.scrollController,
-    super.key,
-  });
+  const BreakpointListButton({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -232,9 +213,7 @@ class BreakpointListButton extends StatelessWidget {
       onPressed: () {
         showDialog(
           context: context,
-          builder: (_) => BreakpointDialog(
-            scrollController: scrollController,
-          ),
+          builder: (_) => BreakpointDialog(scrollController: scrollController),
         );
       },
       icon: const Icon(Icons.circle),
@@ -244,9 +223,7 @@ class BreakpointListButton extends StatelessWidget {
 }
 
 class OpenExecutionLogButton extends ConsumerWidget {
-  const OpenExecutionLogButton({
-    super.key,
-  });
+  const OpenExecutionLogButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

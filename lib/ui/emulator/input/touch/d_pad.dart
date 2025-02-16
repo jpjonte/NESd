@@ -7,10 +7,7 @@ import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class DPad extends HookConsumerWidget {
-  const DPad({
-    required this.config,
-    super.key,
-  });
+  const DPad({required this.config, super.key});
 
   final DPadConfig config;
 
@@ -37,12 +34,7 @@ class DPad extends HookConsumerWidget {
       2 * deadZone,
     );
 
-    final up = Rect.fromLTWH(
-      half - deadZone,
-      0,
-      2 * deadZone,
-      half - deadZone,
-    );
+    final up = Rect.fromLTWH(half - deadZone, 0, 2 * deadZone, half - deadZone);
 
     final down = Rect.fromLTWH(
       half - deadZone,
@@ -62,9 +54,10 @@ class DPad extends HookConsumerWidget {
       }
 
       if (rect.contains(previous) != rect.contains(current)) {
-        actionStream.add(
-          (action: action, value: rect.contains(current) ? 1.0 : 0.0),
-        );
+        actionStream.add((
+          action: action,
+          value: rect.contains(current) ? 1.0 : 0.0,
+        ));
       }
     }
 
@@ -127,9 +120,10 @@ class DPad extends HookConsumerWidget {
                   topLeft: borderRadius,
                   bottomLeft: borderRadius,
                 ),
-                color: left.contains(position.value)
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x99FFFFFF),
+                color:
+                    left.contains(position.value)
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0x99FFFFFF),
               ),
               DPadSegment(
                 rect: right,
@@ -137,9 +131,10 @@ class DPad extends HookConsumerWidget {
                   topRight: borderRadius,
                   bottomRight: borderRadius,
                 ),
-                color: right.contains(position.value)
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x99FFFFFF),
+                color:
+                    right.contains(position.value)
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0x99FFFFFF),
               ),
               DPadSegment(
                 rect: up,
@@ -147,9 +142,10 @@ class DPad extends HookConsumerWidget {
                   topLeft: borderRadius,
                   topRight: borderRadius,
                 ),
-                color: up.contains(position.value)
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x99FFFFFF),
+                color:
+                    up.contains(position.value)
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0x99FFFFFF),
               ),
               DPadSegment(
                 rect: down,
@@ -157,9 +153,10 @@ class DPad extends HookConsumerWidget {
                   bottomLeft: borderRadius,
                   bottomRight: borderRadius,
                 ),
-                color: down.contains(position.value)
-                    ? const Color(0xFFFFFFFF)
-                    : const Color(0x99FFFFFF),
+                color:
+                    down.contains(position.value)
+                        ? const Color(0xFFFFFFFF)
+                        : const Color(0x99FFFFFF),
               ),
             ],
           ),
@@ -190,10 +187,7 @@ class DPadSegment extends StatelessWidget {
       child: Container(
         width: rect.width,
         height: rect.height,
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          color: color,
-        ),
+        decoration: BoxDecoration(borderRadius: borderRadius, color: color),
       ),
     );
   }

@@ -11,10 +11,7 @@ class FilePickerError extends FilePickerState {
 }
 
 class FilePickerData extends FilePickerState {
-  FilePickerData({
-    required this.path,
-    required this.files,
-  });
+  FilePickerData({required this.path, required this.files});
 
   final String path;
 

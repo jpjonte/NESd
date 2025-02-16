@@ -28,13 +28,15 @@ String _$toastStateHash() => r'88d1781167cc6aeef3d9c286fba818397aed6103';
 @ProviderFor(ToastState)
 final toastStateProvider =
     AutoDisposeNotifierProvider<ToastState, List<Toast>>.internal(
-  ToastState.new,
-  name: r'toastStateProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$toastStateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      ToastState.new,
+      name: r'toastStateProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$toastStateHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$ToastState = AutoDisposeNotifier<List<Toast>>;
 // ignore_for_file: type=lint

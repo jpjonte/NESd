@@ -6,7 +6,7 @@ import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 
 class ZipFileSystem extends FileSystem {
   ZipFileSystem({required this.path, required Uint8List zipData})
-      : archive = ZipDecoder().decodeBytes(zipData);
+    : archive = ZipDecoder().decodeBytes(zipData);
 
   final String path;
   final Archive archive;

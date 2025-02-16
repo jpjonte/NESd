@@ -12,7 +12,8 @@ part of 'touch_editor_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 /// @nodoc
 mixin _$TouchEditorState {
@@ -31,14 +32,16 @@ mixin _$TouchEditorState {
 /// @nodoc
 abstract class $TouchEditorStateCopyWith<$Res> {
   factory $TouchEditorStateCopyWith(
-          TouchEditorState value, $Res Function(TouchEditorState) then) =
-      _$TouchEditorStateCopyWithImpl<$Res, TouchEditorState>;
+    TouchEditorState value,
+    $Res Function(TouchEditorState) then,
+  ) = _$TouchEditorStateCopyWithImpl<$Res, TouchEditorState>;
   @useResult
-  $Res call(
-      {bool showHint,
-      int? editingIndex,
-      Orientation? editingOrientation,
-      TouchInputConfig? editingConfig});
+  $Res call({
+    bool showHint,
+    int? editingIndex,
+    Orientation? editingOrientation,
+    TouchInputConfig? editingConfig,
+  });
 
   $TouchInputConfigCopyWith<$Res>? get editingConfig;
 }
@@ -63,24 +66,31 @@ class _$TouchEditorStateCopyWithImpl<$Res, $Val extends TouchEditorState>
     Object? editingOrientation = freezed,
     Object? editingConfig = freezed,
   }) {
-    return _then(_value.copyWith(
-      showHint: null == showHint
-          ? _value.showHint
-          : showHint // ignore: cast_nullable_to_non_nullable
-              as bool,
-      editingIndex: freezed == editingIndex
-          ? _value.editingIndex
-          : editingIndex // ignore: cast_nullable_to_non_nullable
-              as int?,
-      editingOrientation: freezed == editingOrientation
-          ? _value.editingOrientation
-          : editingOrientation // ignore: cast_nullable_to_non_nullable
-              as Orientation?,
-      editingConfig: freezed == editingConfig
-          ? _value.editingConfig
-          : editingConfig // ignore: cast_nullable_to_non_nullable
-              as TouchInputConfig?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            showHint:
+                null == showHint
+                    ? _value.showHint
+                    : showHint // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            editingIndex:
+                freezed == editingIndex
+                    ? _value.editingIndex
+                    : editingIndex // ignore: cast_nullable_to_non_nullable
+                        as int?,
+            editingOrientation:
+                freezed == editingOrientation
+                    ? _value.editingOrientation
+                    : editingOrientation // ignore: cast_nullable_to_non_nullable
+                        as Orientation?,
+            editingConfig:
+                freezed == editingConfig
+                    ? _value.editingConfig
+                    : editingConfig // ignore: cast_nullable_to_non_nullable
+                        as TouchInputConfig?,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of TouchEditorState
@@ -101,16 +111,18 @@ class _$TouchEditorStateCopyWithImpl<$Res, $Val extends TouchEditorState>
 /// @nodoc
 abstract class _$$TouchEditorStateImplCopyWith<$Res>
     implements $TouchEditorStateCopyWith<$Res> {
-  factory _$$TouchEditorStateImplCopyWith(_$TouchEditorStateImpl value,
-          $Res Function(_$TouchEditorStateImpl) then) =
-      __$$TouchEditorStateImplCopyWithImpl<$Res>;
+  factory _$$TouchEditorStateImplCopyWith(
+    _$TouchEditorStateImpl value,
+    $Res Function(_$TouchEditorStateImpl) then,
+  ) = __$$TouchEditorStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {bool showHint,
-      int? editingIndex,
-      Orientation? editingOrientation,
-      TouchInputConfig? editingConfig});
+  $Res call({
+    bool showHint,
+    int? editingIndex,
+    Orientation? editingOrientation,
+    TouchInputConfig? editingConfig,
+  });
 
   @override
   $TouchInputConfigCopyWith<$Res>? get editingConfig;
@@ -120,9 +132,10 @@ abstract class _$$TouchEditorStateImplCopyWith<$Res>
 class __$$TouchEditorStateImplCopyWithImpl<$Res>
     extends _$TouchEditorStateCopyWithImpl<$Res, _$TouchEditorStateImpl>
     implements _$$TouchEditorStateImplCopyWith<$Res> {
-  __$$TouchEditorStateImplCopyWithImpl(_$TouchEditorStateImpl _value,
-      $Res Function(_$TouchEditorStateImpl) _then)
-      : super(_value, _then);
+  __$$TouchEditorStateImplCopyWithImpl(
+    _$TouchEditorStateImpl _value,
+    $Res Function(_$TouchEditorStateImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of TouchEditorState
   /// with the given fields replaced by the non-null parameter values.
@@ -134,35 +147,42 @@ class __$$TouchEditorStateImplCopyWithImpl<$Res>
     Object? editingOrientation = freezed,
     Object? editingConfig = freezed,
   }) {
-    return _then(_$TouchEditorStateImpl(
-      showHint: null == showHint
-          ? _value.showHint
-          : showHint // ignore: cast_nullable_to_non_nullable
-              as bool,
-      editingIndex: freezed == editingIndex
-          ? _value.editingIndex
-          : editingIndex // ignore: cast_nullable_to_non_nullable
-              as int?,
-      editingOrientation: freezed == editingOrientation
-          ? _value.editingOrientation
-          : editingOrientation // ignore: cast_nullable_to_non_nullable
-              as Orientation?,
-      editingConfig: freezed == editingConfig
-          ? _value.editingConfig
-          : editingConfig // ignore: cast_nullable_to_non_nullable
-              as TouchInputConfig?,
-    ));
+    return _then(
+      _$TouchEditorStateImpl(
+        showHint:
+            null == showHint
+                ? _value.showHint
+                : showHint // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        editingIndex:
+            freezed == editingIndex
+                ? _value.editingIndex
+                : editingIndex // ignore: cast_nullable_to_non_nullable
+                    as int?,
+        editingOrientation:
+            freezed == editingOrientation
+                ? _value.editingOrientation
+                : editingOrientation // ignore: cast_nullable_to_non_nullable
+                    as Orientation?,
+        editingConfig:
+            freezed == editingConfig
+                ? _value.editingConfig
+                : editingConfig // ignore: cast_nullable_to_non_nullable
+                    as TouchInputConfig?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 
 class _$TouchEditorStateImpl implements _TouchEditorState {
-  const _$TouchEditorStateImpl(
-      {this.showHint = true,
-      this.editingIndex = null,
-      this.editingOrientation = null,
-      this.editingConfig = null});
+  const _$TouchEditorStateImpl({
+    this.showHint = true,
+    this.editingIndex = null,
+    this.editingOrientation = null,
+    this.editingConfig = null,
+  });
 
   @override
   @JsonKey()
@@ -199,7 +219,12 @@ class _$TouchEditorStateImpl implements _TouchEditorState {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, showHint, editingIndex, editingOrientation, editingConfig);
+    runtimeType,
+    showHint,
+    editingIndex,
+    editingOrientation,
+    editingConfig,
+  );
 
   /// Create a copy of TouchEditorState
   /// with the given fields replaced by the non-null parameter values.
@@ -208,15 +233,18 @@ class _$TouchEditorStateImpl implements _TouchEditorState {
   @pragma('vm:prefer-inline')
   _$$TouchEditorStateImplCopyWith<_$TouchEditorStateImpl> get copyWith =>
       __$$TouchEditorStateImplCopyWithImpl<_$TouchEditorStateImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 }
 
 abstract class _TouchEditorState implements TouchEditorState {
-  const factory _TouchEditorState(
-      {final bool showHint,
-      final int? editingIndex,
-      final Orientation? editingOrientation,
-      final TouchInputConfig? editingConfig}) = _$TouchEditorStateImpl;
+  const factory _TouchEditorState({
+    final bool showHint,
+    final int? editingIndex,
+    final Orientation? editingOrientation,
+    final TouchInputConfig? editingConfig,
+  }) = _$TouchEditorStateImpl;
 
   @override
   bool get showHint;

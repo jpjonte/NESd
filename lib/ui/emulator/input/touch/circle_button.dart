@@ -4,10 +4,7 @@ import 'package:nesd/ui/emulator/input/touch/touch_button.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class CircleButton extends StatelessWidget {
-  const CircleButton({
-    required this.config,
-    super.key,
-  });
+  const CircleButton({required this.config, super.key});
 
   final CircleButtonConfig config;
 
@@ -22,10 +19,8 @@ class CircleButton extends StatelessWidget {
         height: config.size,
         label: config.label,
         action: config.action,
-        decorationBuilder: (color) => BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
+        decorationBuilder:
+            (color) => BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }

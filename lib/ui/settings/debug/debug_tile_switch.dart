@@ -9,8 +9,9 @@ class DebugTileSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.showTiles));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.showTiles),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(

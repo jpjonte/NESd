@@ -13,11 +13,7 @@ class GraphicsSettings extends StatelessWidget {
       index: 1,
       child: SingleChildScrollView(
         child: Column(
-          children: [
-            StretchSwitch(),
-            BorderSwitch(),
-            ScalingDropdown(),
-          ],
+          children: [StretchSwitch(), BorderSwitch(), ScalingDropdown()],
         ),
       ),
     );

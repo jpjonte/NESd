@@ -44,21 +44,21 @@ class APU {
   int _sampleStart = 0;
 
   APUState get state => APUState(
-        cycles: cycles,
-        sampleIndex: sampleIndex,
-        sampleBuffer: sampleBuffer.sublist(0, sampleIndex),
-        pulse1Samples: _pulse1Samples,
-        pulse2Samples: _pulse2Samples,
-        triangleSamples: _triangleSamples,
-        dmcSamples: _dmcSamples,
-        sampleStart: _sampleStart,
-        frameCounterState: _frameCounter.state,
-        pulse1State: pulse1.state,
-        pulse2State: pulse2.state,
-        triangleState: triangle.state,
-        noiseState: noise.state,
-        dmcState: dmc.state,
-      );
+    cycles: cycles,
+    sampleIndex: sampleIndex,
+    sampleBuffer: sampleBuffer.sublist(0, sampleIndex),
+    pulse1Samples: _pulse1Samples,
+    pulse2Samples: _pulse2Samples,
+    triangleSamples: _triangleSamples,
+    dmcSamples: _dmcSamples,
+    sampleStart: _sampleStart,
+    frameCounterState: _frameCounter.state,
+    pulse1State: pulse1.state,
+    pulse2State: pulse2.state,
+    triangleState: triangle.state,
+    noiseState: noise.state,
+    dmcState: dmc.state,
+  );
 
   set state(APUState state) {
     cycles = state.cycles;

@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:async';
 
 import 'package:binarize/binarize.dart';
@@ -18,7 +16,7 @@ import 'package:nesd/util/wait.dart';
 
 class NES {
   NES({required Cartridge cartridge, required this.eventBus})
-      : bus = Bus(cartridge) {
+    : bus = Bus(cartridge) {
     bus
       ..cpu = cpu
       ..ppu = ppu
@@ -66,12 +64,12 @@ class NES {
   }
 
   NESState get state => NESState(
-        cpuState: cpu.state,
-        ppuState: ppu.state,
-        apuState: apu.state,
-        cartridgeState: bus.cartridge.state,
-        cycles: cycles,
-      );
+    cpuState: cpu.state,
+    ppuState: ppu.state,
+    apuState: apu.state,
+    cartridgeState: bus.cartridge.state,
+    cycles: cycles,
+  );
 
   set state(NESState state) {
     cpu.state = state.cpuState;
@@ -259,9 +257,10 @@ class NES {
     }
 
     if (_breakpoints.isNotEmpty) {
-      final breakpoint = _breakpoints
-          .where((b) => b.enabled && b.address == cpu.PC)
-          .firstOrNull;
+      final breakpoint =
+          _breakpoints
+              .where((b) => b.enabled && b.address == cpu.PC)
+              .firstOrNull;
 
       if (breakpoint != null) {
         pause();

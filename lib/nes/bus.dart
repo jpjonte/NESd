@@ -1,3 +1,4 @@
+// we need to mask the addresses a lot
 // ignore_for_file: parameter_assignments
 
 import 'package:nesd/nes/apu/apu.dart';
@@ -9,16 +10,7 @@ import 'package:nesd/nes/ppu/ppu.dart';
 const addressNone = -1;
 const addressA = -2;
 
-enum NesButton {
-  a,
-  b,
-  select,
-  start,
-  up,
-  down,
-  left,
-  right,
-}
+enum NesButton { a, b, select, start, up, down, left, right }
 
 class Bus {
   Bus(this.cartridge);
@@ -68,10 +60,7 @@ class Bus {
       return 0;
     }
 
-    return cartridge.cpuRead(
-      address,
-      disableSideEffects: disableSideEffects,
-    );
+    return cartridge.cpuRead(address, disableSideEffects: disableSideEffects);
   }
 
   int cpuRead16(
@@ -184,9 +173,11 @@ class Bus {
   void triggerDmcDma() => cpu.triggerDmcDma();
 
   int _readController(int controller, {bool disableSideEffects = false}) {
-    final value = _controllerShift[controller] < 8
-        ? (_controllerStatus[controller] >> _controllerShift[controller]) & 1
-        : 1;
+    final value =
+        _controllerShift[controller] < 8
+            ? (_controllerStatus[controller] >> _controllerShift[controller]) &
+                1
+            : 1;
 
     if (!_inputStrobe && !disableSideEffects) {
       _controllerShift[controller]++;

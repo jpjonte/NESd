@@ -61,14 +61,16 @@ class SettingsScreen extends HookConsumerWidget {
         child: Actions(
           actions: {
             PreviousTabIntent: CallbackAction<PreviousTabIntent>(
-              onInvoke: (intent) => tabController.animateTo(
-                (tabController.index - 1) % tabController.length,
-              ),
+              onInvoke:
+                  (intent) => tabController.animateTo(
+                    (tabController.index - 1) % tabController.length,
+                  ),
             ),
             NextTabIntent: CallbackAction<NextTabIntent>(
-              onInvoke: (intent) => tabController.animateTo(
-                (tabController.index + 1) % tabController.length,
-              ),
+              onInvoke:
+                  (intent) => tabController.animateTo(
+                    (tabController.index + 1) % tabController.length,
+                  ),
             ),
           },
           child: NesdMenuWrapper(

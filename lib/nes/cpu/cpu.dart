@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:typed_data';
@@ -83,26 +84,26 @@ class CPU {
   final List<int> callStack = [];
 
   CPUState get state => CPUState(
-        PC: PC,
-        SP: SP,
-        A: A,
-        X: X,
-        Y: Y,
-        P: P,
-        irq: _irq,
-        nmi: _nmi,
-        ram: ram,
-        oamDma: _oamDma,
-        oamDmaStarted: _oamDmaStarted,
-        oamDmaOffset: _oamDmaOffset,
-        oamDmaValue: _oamDmaValue,
-        dmcDma: _dmcDma,
-        dmcDmaRead: _dmcDmaRead,
-        dmcDmaDummy: _dmcDmaDummy,
-        dmcDmaValue: _dmcDmaValue,
-        oamDmaPage: _oamDmaPage,
-        cycles: cycles,
-      );
+    PC: PC,
+    SP: SP,
+    A: A,
+    X: X,
+    Y: Y,
+    P: P,
+    irq: _irq,
+    nmi: _nmi,
+    ram: ram,
+    oamDma: _oamDma,
+    oamDmaStarted: _oamDmaStarted,
+    oamDmaOffset: _oamDmaOffset,
+    oamDmaValue: _oamDmaValue,
+    dmcDma: _dmcDma,
+    dmcDmaRead: _dmcDmaRead,
+    dmcDmaDummy: _dmcDmaDummy,
+    dmcDmaValue: _dmcDmaValue,
+    oamDmaPage: _oamDmaPage,
+    cycles: cycles,
+  );
 
   set state(CPUState state) {
     cycles = state.cycles;
@@ -135,10 +136,10 @@ class CPU {
       bus.cpuRead(address, disableSideEffects: disableSideEffects);
 
   int read16(int address, {bool wrap = false}) => bus.cpuRead16(
-        address,
-        wrap: wrap,
-        disableSideEffects: disableSideEffects,
-      );
+    address,
+    wrap: wrap,
+    disableSideEffects: disableSideEffects,
+  );
 
   void write(int address, int value) => bus.cpuWrite(address, value);
 

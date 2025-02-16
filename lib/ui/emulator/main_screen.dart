@@ -21,9 +21,7 @@ import 'package:nesd/ui/toast/toaster.dart';
 
 @RoutePage()
 class MainScreen extends HookConsumerWidget {
-  const MainScreen({
-    super.key,
-  });
+  const MainScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,17 +31,15 @@ class MainScreen extends HookConsumerWidget {
     final settingsController = ref.read(settingsControllerProvider.notifier);
     final debuggerState = ref.watch(debuggerNotifierProvider);
 
-    useEffect(
-      () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Overlay.of(context)
-              .insert(OverlayEntry(builder: (context) => const ToastOverlay()));
-        });
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Overlay.of(
+          context,
+        ).insert(OverlayEntry(builder: (context) => const ToastOverlay()));
+      });
 
-        return null;
-      },
-      [],
-    );
+      return null;
+    }, []);
 
     // make sure services are kept alive
     ref
@@ -111,8 +107,8 @@ class MainScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Settings...',
           shortcut: const CharacterActivator(',', meta: true),
-          onSelected: () async =>
-              context.router.navigate(const SettingsRoute()),
+          onSelected:
+              () async => context.router.navigate(const SettingsRoute()),
         ),
         PlatformMenuItem(
           label: 'Quit NESd',
