@@ -79,7 +79,7 @@ class Cartridge {
   final TvSystem tvSystem;
   final String hash;
 
-  final Uint8List sram = Uint8List(0x2000);
+  final Uint8List sram = Uint8List(0x10000);
 
   CartridgeState get state => CartridgeState(
         chr: chr,
@@ -193,8 +193,8 @@ class Cartridge {
     mapper.reset();
   }
 
-  int read(Bus bus, int address, {bool disableSideEffects = false}) {
-    return mapper.read(address, disableSideEffects: disableSideEffects);
+  void step() {
+    mapper.step();
   }
 
   int cpuRead(int address, {bool disableSideEffects = false}) {

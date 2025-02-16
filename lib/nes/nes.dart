@@ -242,6 +242,10 @@ class NES {
 
     cycles += cpuCycles * 12;
 
+    for (var i = 0; i < cpuCycles; i++) {
+      bus.cartridge.step();
+    }
+
     final ppuDiff = cycles - ppu.cycles * 4;
 
     for (var i = 0; i < ppuDiff; i++) {

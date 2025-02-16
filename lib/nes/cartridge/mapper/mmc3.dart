@@ -264,8 +264,9 @@ class MMC3 extends Mapper {
   bool _a12RisingEdgeDetected(int address) {
     if (address.bit(12) == 1) {
       // rising edge only counts if A12 was low for at least 3 cycles
+      // TODO threshold should be 3, but that only works with cycle accuracy
       final cyclesHaveElapsed =
-          _a12LowStart > 0 && (bus.cpu.cycles - _a12LowStart) >= 3;
+          _a12LowStart > 0 && (bus.cpu.cycles - _a12LowStart) >= 30;
 
       _a12LowStart = 0;
 
