@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'dart:ui' as ui;
-import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -225,7 +224,8 @@ class EmulatorPainter extends CustomPainter {
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
-  final _pauseOverlayPaint = Paint()..color = Colors.black.withOpacity(0.5);
+  final _pauseOverlayPaint = Paint()
+    ..color = Colors.black.withValues(alpha: 0.5);
 
   final _iconPaint = Paint()..color = Colors.white;
 

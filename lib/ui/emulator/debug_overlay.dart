@@ -102,7 +102,7 @@ class DebugOverlay extends ConsumerWidget {
         child: Container(
           width: 200,
           padding: const EdgeInsets.all(8),
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withValues(alpha: 0.5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
