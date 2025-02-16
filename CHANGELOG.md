@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Added support for MMC5 (mapper 5; without additional audio for now)
+- When stepping through the instructions, frames are shown as they are built
+
+### Changed
+
+- Upgraded to Flutter 3.29 and Dart 3.7
+- Upgraded dependencies
+
+### Removed
+
+- Removed legacy save state serialization
+
+### Fixed
+
+- Fixed broken layout in the file picker
+- Fixed constant reloading in the recent ROM list
+- Fixed sprites leaking from the bottom of the screen into the first scanline
+- Fixed missing garbage nametable fetches in the PPU
+- Fixed inaccuracies in sprite rendering
+- Fixed IRQs being acknowledged too early
+- Fixed tile viewer affecting code execution
+
 ## [0.7.0] - 2024-11-01
 
 ### Added
