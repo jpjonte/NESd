@@ -43,8 +43,4 @@ class FrameBuffer {
       ..set(uint32, height)
       ..set(uint8List(lengthType: uint32), pixels);
   }
-
-  void clear() {
-    pixels.fillRange(0, pixels.length, 0);
-  }
 }

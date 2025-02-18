@@ -9,7 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Added support for MMC5 (mapper 5; without additional audio for now)
-- When stepping through the instructions, frames are shown as they are built
 
 ### Changed
 
