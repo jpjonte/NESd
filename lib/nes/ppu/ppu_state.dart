@@ -1,10 +1,10 @@
+// the register names don't match dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
-import 'package:nesd/payload_types/uint8_list.dart';
 
 class PPUState {
   PPUState({
@@ -68,10 +68,10 @@ class PPUState {
       t: reader.get(uint16),
       x: reader.get(uint8),
       w: reader.get(uint8),
-      ram: reader.get(uint8List),
-      oam: reader.get(uint8List),
-      secondaryOam: reader.get(uint8List),
-      palette: reader.get(uint8List),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
       cycles: reader.get(uint64),
       cycle: reader.get(uint8),
@@ -95,44 +95,6 @@ class PPUState {
       spriteOutputs: SpriteOutputState.deserializeList(reader),
     );
   }
-
-  PPUState.dummy()
-      : PPUCTRL = 0,
-        PPUMASK = 0,
-        PPUSTATUS = 0,
-        OAMADDR = 0,
-        OAMDATA = 0,
-        PPUSCROLL = 0,
-        PPUDATA = 0,
-        v = 0,
-        t = 0,
-        x = 0,
-        w = 0,
-        ram = Uint8List(1),
-        oam = Uint8List(1),
-        secondaryOam = Uint8List(1),
-        palette = Uint8List(1),
-        frameBuffer = FrameBuffer(width: 0, height: 0),
-        cycles = 0,
-        cycle = 0,
-        scanline = 0,
-        frames = 0,
-        nametableLatch = 0,
-        patternTableHighLatch = 0,
-        patternTableLowLatch = 0,
-        patternTableHighShift = 0,
-        patternTableLowShift = 0,
-        attributeTableLatch = 0,
-        attributeTableHighShift = 0,
-        attributeTableLowShift = 0,
-        attribute = 0,
-        oamAddress = 0,
-        oamBuffer = 0,
-        spriteCount = 0,
-        secondarySpriteCount = 0,
-        sprite0OnNextLine = false,
-        sprite0OnCurrentLine = false,
-        spriteOutputs = [];
 
   final int PPUCTRL;
   final int PPUMASK;
@@ -199,10 +161,10 @@ class PPUState {
       ..set(uint16, t)
       ..set(uint8, x)
       ..set(uint8, w)
-      ..set(uint8List, ram)
-      ..set(uint8List, oam)
-      ..set(uint8List, secondaryOam)
-      ..set(uint8List, palette);
+      ..set(uint8List(lengthType: uint32), ram)
+      ..set(uint8List(lengthType: uint32), oam)
+      ..set(uint8List(lengthType: uint32), secondaryOam)
+      ..set(uint8List(lengthType: uint32), palette);
 
     frameBuffer.serialize(writer);
 
@@ -230,179 +192,3 @@ class PPUState {
     SpriteOutputState.serializeList(writer, spriteOutputs);
   }
 }
-
-class _LegacyPPUStateContract extends BinaryContract<PPUState>
-    implements PPUState {
-  _LegacyPPUStateContract() : super(PPUState.dummy());
-
-  @override
-  PPUState order(PPUState contract) {
-    return PPUState(
-      PPUCTRL: contract.PPUCTRL,
-      PPUMASK: contract.PPUMASK,
-      PPUSTATUS: contract.PPUSTATUS,
-      OAMADDR: contract.OAMADDR,
-      OAMDATA: contract.OAMDATA,
-      PPUSCROLL: contract.PPUSCROLL,
-      PPUDATA: contract.PPUDATA,
-      v: contract.v,
-      t: contract.t,
-      x: contract.x,
-      w: contract.w,
-      ram: contract.ram,
-      oam: contract.oam,
-      secondaryOam: contract.secondaryOam,
-      palette: contract.palette,
-      frameBuffer: contract.frameBuffer,
-      cycles: contract.cycles,
-      cycle: contract.cycle,
-      scanline: contract.scanline,
-      frames: contract.frames,
-      nametableLatch: contract.nametableLatch,
-      patternTableHighLatch: contract.patternTableHighLatch,
-      patternTableLowLatch: contract.patternTableLowLatch,
-      patternTableHighShift: contract.patternTableHighShift,
-      patternTableLowShift: contract.patternTableLowShift,
-      attributeTableLatch: contract.attributeTableLatch,
-      attributeTableHighShift: contract.attributeTableHighShift,
-      attributeTableLowShift: contract.attributeTableLowShift,
-      attribute: contract.attribute,
-      oamAddress: contract.oamAddress,
-      oamBuffer: contract.oamBuffer,
-      spriteCount: contract.spriteCount,
-      secondarySpriteCount: contract.secondarySpriteCount,
-      sprite0OnNextLine: contract.sprite0OnNextLine,
-      sprite0OnCurrentLine: contract.sprite0OnCurrentLine,
-      spriteOutputs: contract.spriteOutputs,
-    );
-  }
-
-  @override
-  int get PPUCTRL => type(uint8, (o) => o.PPUCTRL);
-
-  @override
-  int get PPUMASK => type(uint8, (o) => o.PPUMASK);
-
-  @override
-  int get PPUSTATUS => type(uint8, (o) => o.PPUSTATUS);
-
-  @override
-  int get OAMADDR => type(uint8, (o) => o.OAMADDR);
-
-  @override
-  int get OAMDATA => type(uint8, (o) => o.OAMDATA);
-
-  @override
-  int get PPUSCROLL => type(uint8, (o) => o.PPUSCROLL);
-
-  @override
-  int get PPUDATA => type(uint8, (o) => o.PPUDATA);
-
-  @override
-  int get v => type(uint16, (o) => o.v);
-
-  @override
-  int get t => type(uint16, (o) => o.t);
-
-  @override
-  int get x => type(uint8, (o) => o.x);
-
-  @override
-  int get w => type(uint8, (o) => o.w);
-
-  @override
-  Uint8List get ram => Uint8List.fromList(type(list(uint8), (o) => o.ram));
-
-  @override
-  Uint8List get oam => Uint8List.fromList(type(list(uint8), (o) => o.oam));
-
-  @override
-  Uint8List get secondaryOam => Uint8List.fromList(
-        type(list(uint8), (o) => o.secondaryOam),
-      );
-
-  @override
-  Uint8List get palette => Uint8List.fromList(
-        type(list(uint8), (o) => o.palette),
-      );
-
-  @override
-  FrameBuffer get frameBuffer => type(
-        legacyFrameBufferContract,
-        (o) => o.frameBuffer,
-      );
-
-  @override
-  int get attribute => type(uint8, (o) => o.attribute);
-
-  @override
-  int get attributeTableHighShift => type(
-        uint8,
-        (o) => o.attributeTableHighShift,
-      );
-
-  @override
-  int get attributeTableLatch => type(uint8, (o) => o.attributeTableLatch);
-
-  @override
-  int get attributeTableLowShift => type(
-        uint8,
-        (o) => o.attributeTableLowShift,
-      );
-
-  @override
-  int get cycle => type(uint8, (o) => o.cycle);
-
-  @override
-  int get cycles => type(uint64, (o) => o.cycles);
-
-  @override
-  int get frames => type(uint8, (o) => o.frames);
-
-  @override
-  int get nametableLatch => type(uint8, (o) => o.nametableLatch);
-
-  @override
-  int get oamAddress => type(uint8, (o) => o.oamAddress);
-
-  @override
-  int get oamBuffer => type(uint8, (o) => o.oamBuffer);
-
-  @override
-  int get patternTableHighLatch => type(uint8, (o) => o.patternTableHighLatch);
-
-  @override
-  int get patternTableHighShift => type(uint8, (o) => o.patternTableHighShift);
-
-  @override
-  int get patternTableLowLatch => type(uint8, (o) => o.patternTableLowLatch);
-
-  @override
-  int get patternTableLowShift => type(uint8, (o) => o.patternTableLowShift);
-
-  @override
-  int get scanline => type(uint8, (o) => o.scanline);
-
-  @override
-  int get secondarySpriteCount => type(uint8, (o) => o.secondarySpriteCount);
-
-  @override
-  bool get sprite0OnCurrentLine => type(boolean, (o) => o.sprite0OnCurrentLine);
-
-  @override
-  bool get sprite0OnNextLine => type(boolean, (o) => o.sprite0OnNextLine);
-
-  @override
-  int get spriteCount => type(uint8, (o) => o.spriteCount);
-
-  @override
-  List<SpriteOutputState> get spriteOutputs => type(
-        list(legacySpriteOutputStateContract),
-        (o) => o.spriteOutputs,
-      );
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-final legacyPpuStateContract = _LegacyPPUStateContract();

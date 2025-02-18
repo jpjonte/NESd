@@ -18,19 +18,20 @@ class EditingHint extends ConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(16)),
       ),
       child: LayoutBuilder(
-        builder: (context, constraints) => GestureDetector(
-          onTap: () => controller.hideHint(),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const BackButton(),
-              if (state.showHint) const Expanded(child: HintText()),
-              if (state.showHint) const SizedBox(width: 8),
-              if (state.showHint) const Icon(Icons.close, size: 16),
-            ],
-          ),
-        ),
+        builder:
+            (context, constraints) => GestureDetector(
+              onTap: () => controller.hideHint(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const BackButton(),
+                  if (state.showHint) const Expanded(child: HintText()),
+                  if (state.showHint) const SizedBox(width: 8),
+                  if (state.showHint) const Icon(Icons.close, size: 16),
+                ],
+              ),
+            ),
       ),
     );
   }
@@ -66,5 +67,5 @@ class HintText extends StatelessWidget {
 
 class BoldSpan extends TextSpan {
   const BoldSpan(String text)
-      : super(text: text, style: const TextStyle(fontWeight: FontWeight.bold));
+    : super(text: text, style: const TextStyle(fontWeight: FontWeight.bold));
 }

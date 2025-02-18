@@ -1,23 +1,16 @@
+// instruction names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 
-enum InstructionType {
-  jump,
-  branch,
-  other,
-}
+enum InstructionType { jump, branch, other }
 
 typedef Executor = void Function(CPU, int);
 
 class Instruction {
-  Instruction(
-    this.name,
-    this.execute, {
-    this.type = InstructionType.other,
-  });
+  Instruction(this.name, this.execute, {this.type = InstructionType.other});
 
   final String name;
   final Executor execute;
@@ -53,27 +46,19 @@ final PHP = Instruction(
   (cpu, address) => cpu.pushStack(cpu.P.setBit(4, 1)),
 );
 
-final BPL = Instruction(
-  'BPL',
-  (cpu, address) {
-    if (cpu.N == 0) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BPL = Instruction('BPL', (cpu, address) {
+  if (cpu.N == 0) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final CLC = Instruction('CLC', (cpu, address) => cpu.C = 0);
 
-final JSR = Instruction(
-  'JSR',
-  (cpu, address) {
-    cpu
-      ..pushStack16(cpu.PC - 1)
-      ..PC = address;
-  },
-  type: InstructionType.jump,
-);
+final JSR = Instruction('JSR', (cpu, address) {
+  cpu
+    ..pushStack16(cpu.PC - 1)
+    ..PC = address;
+}, type: InstructionType.jump);
 
 final AND = Instruction('AND', (cpu, address) {
   final value = cpu.read(address);
@@ -118,15 +103,11 @@ final PLP = Instruction('PLP', (cpu, address) {
     ..N = result.bit(7);
 });
 
-final BMI = Instruction(
-  'BMI',
-  (cpu, address) {
-    if (cpu.N == 1) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BMI = Instruction('BMI', (cpu, address) {
+  if (cpu.N == 1) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final SEC = Instruction('SEC', (cpu, address) => cpu.C = 1);
 
@@ -156,10 +137,7 @@ final LSR = Instruction('LSR', (cpu, address) {
     ..write(address, result);
 });
 
-final PHA = Instruction(
-  'PHA',
-  (cpu, address) => cpu.pushStack(cpu.A),
-);
+final PHA = Instruction('PHA', (cpu, address) => cpu.pushStack(cpu.A));
 
 final JMP = Instruction(
   'JMP',
@@ -167,22 +145,15 @@ final JMP = Instruction(
   type: InstructionType.jump,
 );
 
-final BVC = Instruction(
-  'BVC',
-  (cpu, address) {
-    if (cpu.V == 0) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BVC = Instruction('BVC', (cpu, address) {
+  if (cpu.V == 0) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final CLI = Instruction('CLI', (cpu, address) => cpu.I = 0);
 
-final RTS = Instruction(
-  'RTS',
-  (cpu, address) => cpu.PC = cpu.popStack16() + 1,
-);
+final RTS = Instruction('RTS', (cpu, address) => cpu.PC = cpu.popStack16() + 1);
 
 final ADC = Instruction('ADC', (cpu, address) {
   final value = cpu.read(address);
@@ -216,15 +187,11 @@ final PLA = Instruction('PLA', (cpu, address) {
     ..N = result.bit(7);
 });
 
-final BVS = Instruction(
-  'BVS',
-  (cpu, address) {
-    if (cpu.V == 1) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BVS = Instruction('BVS', (cpu, address) {
+  if (cpu.V == 1) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final SEI = Instruction('SEI', (cpu, address) => cpu.I = 1);
 
@@ -248,15 +215,11 @@ final TXA = Instruction('TXA', (cpu, address) {
     ..N = cpu.A.bit(7);
 });
 
-final BCC = Instruction(
-  'BCC',
-  (cpu, address) {
-    if (cpu.C == 0) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BCC = Instruction('BCC', (cpu, address) {
+  if (cpu.C == 0) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final TYA = Instruction('TYA', (cpu, address) {
   cpu
@@ -308,15 +271,11 @@ final TAX = Instruction('TAX', (cpu, address) {
     ..N = cpu.X.bit(7);
 });
 
-final BCS = Instruction(
-  'BCS',
-  (cpu, address) {
-    if (cpu.C == 1) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BCS = Instruction('BCS', (cpu, address) {
+  if (cpu.C == 1) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final CLV = Instruction('CLV', (cpu, address) => cpu.V = 0);
 
@@ -371,15 +330,11 @@ final DEX = Instruction('DEX', (cpu, address) {
     ..N = cpu.X.bit(7);
 });
 
-final BNE = Instruction(
-  'BNE',
-  (cpu, address) {
-    if (cpu.Z == 0) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BNE = Instruction('BNE', (cpu, address) {
+  if (cpu.Z == 0) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final CLD = Instruction('CLD', (cpu, address) => cpu.D = 0);
 
@@ -424,15 +379,11 @@ final INX = Instruction('INX', (cpu, address) {
 
 final NOP = Instruction('NOP', (cpu, address) {});
 
-final BEQ = Instruction(
-  'BEQ',
-  (cpu, address) {
-    if (cpu.Z == 1) {
-      cpu.PC = address;
-    }
-  },
-  type: InstructionType.branch,
-);
+final BEQ = Instruction('BEQ', (cpu, address) {
+  if (cpu.Z == 1) {
+    cpu.PC = address;
+  }
+}, type: InstructionType.branch);
 
 final SED = Instruction('SED', (cpu, address) => cpu.D = 1);
 

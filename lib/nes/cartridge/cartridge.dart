@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:nesd/exception/invalid_rom_header.dart';
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -80,14 +79,14 @@ class Cartridge {
   final TvSystem tvSystem;
   final String hash;
 
-  final Uint8List sram = Uint8List(0x2000);
+  final Uint8List sram = Uint8List(0x10000);
 
   CartridgeState get state => CartridgeState(
-        chr: chr,
-        sram: sram,
-        mapperId: mapper.id,
-        mapperState: mapper.state,
-      );
+    chr: chr,
+    sram: sram,
+    mapperId: mapper.id,
+    mapperState: mapper.state,
+  );
 
   set state(CartridgeState state) {
     if (chrRomSize == 0) {
@@ -98,15 +97,13 @@ class Cartridge {
     mapper.state = state.mapperState;
   }
 
-  RomInfo get romInfo => RomInfo(
-        name: p.basename(file),
-        path: file,
-        hash: hash,
-      );
+  RomInfo get romInfo =>
+      RomInfo(name: p.basename(file), path: file, hash: hash);
 
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
     final prgRomSize = rom[4] * 0x4000;
+
     return rom.sublist(16 + trainerSize, 16 + trainerSize + prgRomSize);
   }
 
@@ -193,12 +190,24 @@ class Cartridge {
     mapper.reset();
   }
 
-  int read(Bus bus, int address, {bool disableSideEffects = false}) {
-    return mapper.read(address, disableSideEffects: disableSideEffects);
+  void step() {
+    mapper.step();
   }
 
-  void write(Bus bus, int address, int value) {
-    mapper.write(bus, address, value);
+  int cpuRead(int address, {bool disableSideEffects = false}) {
+    return mapper.cpuRead(address, disableSideEffects: disableSideEffects);
+  }
+
+  int ppuRead(int address, {bool disableSideEffects = false}) {
+    return mapper.ppuRead(address, disableSideEffects: disableSideEffects);
+  }
+
+  void cpuWrite(int address, int value) {
+    mapper.cpuWrite(address, value);
+  }
+
+  void ppuWrite(int address, int value) {
+    mapper.ppuWrite(address, value);
   }
 
   Uint8List? save() {

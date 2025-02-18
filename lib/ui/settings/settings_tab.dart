@@ -4,11 +4,7 @@ import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 
 class SettingsTab extends ConsumerWidget {
-  const SettingsTab({
-    required this.index,
-    required this.child,
-    super.key,
-  });
+  const SettingsTab({required this.index, required this.child, super.key});
 
   final int index;
   final Widget child;
@@ -17,9 +13,6 @@ class SettingsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(settingsTabIndexProvider);
 
-    return FocusChild(
-      autofocus: currentIndex == index,
-      child: child,
-    );
+    return FocusChild(autofocus: currentIndex == index, child: child);
   }
 }

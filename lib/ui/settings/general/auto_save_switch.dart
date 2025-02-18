@@ -9,8 +9,9 @@ class AutoSaveSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.autoSave));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.autoSave),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
@@ -36,7 +36,7 @@ class DebugOverlayNotifier extends _$DebugOverlayNotifier {
 }
 
 @riverpod
-DebugOverlayController debugOverlayController(DebugOverlayControllerRef ref) {
+DebugOverlayController debugOverlayController(Ref ref) {
   final controller = DebugOverlayController(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(debugOverlayNotifierProvider.notifier),
@@ -48,10 +48,7 @@ DebugOverlayController debugOverlayController(DebugOverlayControllerRef ref) {
 }
 
 class DebugOverlayController {
-  DebugOverlayController({
-    required this.eventBus,
-    required this.notifier,
-  }) {
+  DebugOverlayController({required this.eventBus, required this.notifier}) {
     _subscription = eventBus.stream
         .where((event) => event is FrameNesEvent)
         .cast<FrameNesEvent>()
@@ -102,7 +99,7 @@ class DebugOverlay extends ConsumerWidget {
         child: Container(
           width: 200,
           padding: const EdgeInsets.all(8),
-          color: Colors.black.withOpacity(0.5),
+          color: Colors.black.withValues(alpha: 0.5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -111,11 +108,7 @@ class DebugOverlay extends ConsumerWidget {
                 state.frameTime.toStringAsFixed(3),
                 color: color,
               ),
-              KeyValue(
-                'FPS',
-                state.fps.toStringAsFixed(1),
-                color: color,
-              ),
+              KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
               KeyValue(
                 'Sleep Budget',
                 state.sleepBudget.toStringAsFixed(3),

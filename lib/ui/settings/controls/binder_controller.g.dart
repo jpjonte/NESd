@@ -6,7 +6,7 @@ part of 'binder_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$binderControllerHash() => r'f42f092667fcf60543f7a0ce71db66381d188ff1';
+String _$binderControllerHash() => r'eea6b44750e9433a915210a356e9843b49208ba7';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,21 +39,15 @@ class BinderControllerFamily extends Family<BinderController> {
   const BinderControllerFamily();
 
   /// See also [binderController].
-  BinderControllerProvider call(
-    NesAction action,
-  ) {
-    return BinderControllerProvider(
-      action,
-    );
+  BinderControllerProvider call(InputAction action) {
+    return BinderControllerProvider(action);
   }
 
   @override
   BinderControllerProvider getProviderOverride(
     covariant BinderControllerProvider provider,
   ) {
-    return call(
-      provider.action,
-    );
+    return call(provider.action);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -74,24 +68,20 @@ class BinderControllerFamily extends Family<BinderController> {
 /// See also [binderController].
 class BinderControllerProvider extends AutoDisposeProvider<BinderController> {
   /// See also [binderController].
-  BinderControllerProvider(
-    NesAction action,
-  ) : this._internal(
-          (ref) => binderController(
-            ref as BinderControllerRef,
-            action,
-          ),
-          from: binderControllerProvider,
-          name: r'binderControllerProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$binderControllerHash,
-          dependencies: BinderControllerFamily._dependencies,
-          allTransitiveDependencies:
-              BinderControllerFamily._allTransitiveDependencies,
-          action: action,
-        );
+  BinderControllerProvider(InputAction action)
+    : this._internal(
+        (ref) => binderController(ref as BinderControllerRef, action),
+        from: binderControllerProvider,
+        name: r'binderControllerProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$binderControllerHash,
+        dependencies: BinderControllerFamily._dependencies,
+        allTransitiveDependencies:
+            BinderControllerFamily._allTransitiveDependencies,
+        action: action,
+      );
 
   BinderControllerProvider._internal(
     super._createNotifier, {
@@ -103,7 +93,7 @@ class BinderControllerProvider extends AutoDisposeProvider<BinderController> {
     required this.action,
   }) : super.internal();
 
-  final NesAction action;
+  final InputAction action;
 
   @override
   Override overrideWith(
@@ -142,9 +132,11 @@ class BinderControllerProvider extends AutoDisposeProvider<BinderController> {
   }
 }
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 mixin BinderControllerRef on AutoDisposeProviderRef<BinderController> {
   /// The parameter `action` of this provider.
-  NesAction get action;
+  InputAction get action;
 }
 
 class _BinderControllerProviderElement
@@ -153,7 +145,8 @@ class _BinderControllerProviderElement
   _BinderControllerProviderElement(super.provider);
 
   @override
-  NesAction get action => (origin as BinderControllerProvider).action;
+  InputAction get action => (origin as BinderControllerProvider).action;
 }
+
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

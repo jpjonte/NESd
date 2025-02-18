@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
 
 class ActionButtons extends ConsumerWidget {
-  const ActionButtons({
-    required this.orientation,
-    super.key,
-  });
+  const ActionButtons({required this.orientation, super.key});
 
   final Orientation orientation;
 
@@ -28,25 +25,26 @@ class ActionButtons extends ConsumerWidget {
                 // open confirmation dialog
                 showDialog(
                   context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text('Reset Layout'),
-                    content: const Text(
-                      'Are you sure you want to reset the layout?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('No'),
+                  builder:
+                      (_) => AlertDialog(
+                        title: const Text('Reset Layout'),
+                        content: const Text(
+                          'Are you sure you want to reset the layout?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('No'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              controller.reset(orientation);
+                            },
+                            child: const Text('Yes'),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          controller.reset(orientation);
-                        },
-                        child: const Text('Yes'),
-                      ),
-                    ],
-                  ),
                 );
               },
             ),

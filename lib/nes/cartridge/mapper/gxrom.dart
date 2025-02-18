@@ -8,20 +8,17 @@ class GxROM extends Mapper {
   String name = 'GxROM';
 
   @override
-  int prgBankSize = 0x8000;
+  int prgRomPageSize = 0x8000;
 
   @override
-  int chrBankSize = 0x2000;
+  int chrPageSize = 0x2000;
 
   int _prgBank = 0;
 
   int _chrBank = 0;
 
   @override
-  GxROMState get state => GxROMState(
-        prgBank: _prgBank,
-        chrBank: _chrBank,
-      );
+  GxROMState get state => GxROMState(prgBank: _prgBank, chrBank: _chrBank);
 
   @override
   set state(covariant GxROMState state) {
@@ -33,6 +30,8 @@ class GxROM extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     _prgBank = 0;
     _chrBank = 0;
 
@@ -40,7 +39,13 @@ class GxROM extends Mapper {
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
+    if (address < 0x8000) {
+      return;
+    }
+
     _chrBank = value & 0x03;
     _prgBank = (value >> 4) & 0x03;
 
@@ -53,10 +58,10 @@ class GxROM extends Mapper {
   }
 
   void _updatePrgPages() {
-    setPrgPage(0, _prgBank);
+    mapCpu(0x8000, 0xffff, _prgBank);
   }
 
   void _updateChrPages() {
-    setChrPage(0, _chrBank);
+    mapPpu(0x0000, 0x1fff, _chrBank);
   }
 }

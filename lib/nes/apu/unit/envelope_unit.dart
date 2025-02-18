@@ -8,12 +8,12 @@ class EnvelopeUnit {
   bool loop = false;
 
   EnvelopeUnitState get state => EnvelopeUnitState(
-        volume: volume,
-        period: period,
-        timer: timer,
-        start: start,
-        loop: loop,
-      );
+    volume: volume,
+    period: period,
+    timer: timer,
+    start: start,
+    loop: loop,
+  );
 
   set state(EnvelopeUnitState value) {
     volume = value.volume;

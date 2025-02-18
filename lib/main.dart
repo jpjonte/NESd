@@ -29,8 +29,9 @@ void main() async {
         sharedPreferencesProvider.overrideWithValue(preferences),
         packageInfoProvider.overrideWithValue(packageInfo),
         fileSystemProvider.overrideWithValue(fileSystem),
-        applicationSupportPathProvider
-            .overrideWithValue(applicationSupport.path),
+        applicationSupportPathProvider.overrideWithValue(
+          applicationSupport.path,
+        ),
       ],
       child: const NesdApp(),
     ),

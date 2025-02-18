@@ -3,6 +3,7 @@ import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
 import 'package:path/path.dart' as p;
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'file_picker_controller.g.dart';
@@ -14,6 +15,7 @@ class FilePickerNotifier extends _$FilePickerNotifier {
     return FilePickerLoading();
   }
 
+  // can't use a setter to change the state from outside
   // ignore: use_setters_to_change_properties
   void update(FilePickerState state) {
     this.state = state;
@@ -21,7 +23,7 @@ class FilePickerNotifier extends _$FilePickerNotifier {
 }
 
 @riverpod
-FilePickerController filePickerController(FilePickerControllerRef ref) {
+FilePickerController filePickerController(Ref ref) {
   return FilePickerController(
     notifier: ref.watch(filePickerNotifierProvider.notifier),
     filesystem: ref.watch(fileSystemProvider),
@@ -80,23 +82,24 @@ class FilePickerController {
       returnPath = resultPath;
     }
 
-    final children = allFiles
-        .where((file) => !p.basename(file.path).startsWith('.'))
-        .toList()
-      ..sort((a, b) {
-        final aType = a.type;
-        final bType = b.type;
+    final children =
+        allFiles
+            .where((file) => !p.basename(file.path).startsWith('.'))
+            .toList()
+          ..sort((a, b) {
+            final aType = a.type;
+            final bType = b.type;
 
-        if (aType == FileSystemFileType.directory &&
-            bType != FileSystemFileType.directory) {
-          return -1;
-        } else if (aType != FileSystemFileType.directory &&
-            bType == FileSystemFileType.directory) {
-          return 1;
-        }
+            if (aType == FileSystemFileType.directory &&
+                bType != FileSystemFileType.directory) {
+              return -1;
+            } else if (aType != FileSystemFileType.directory &&
+                bType == FileSystemFileType.directory) {
+              return 1;
+            }
 
-        return a.path.compareTo(b.path);
-      });
+            return a.path.compareTo(b.path);
+          });
 
     notifier.update(FilePickerData(path: returnPath, files: children));
   }

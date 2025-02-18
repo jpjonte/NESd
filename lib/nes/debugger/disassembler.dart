@@ -7,6 +7,7 @@ import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'disassembler.g.dart';
@@ -14,17 +15,14 @@ part 'disassembler.g.dart';
 typedef Disassembly = List<DisassemblyLine>;
 
 @riverpod
-Disassembler disassembler(DisassemblerRef ref) {
+Disassembler disassembler(Ref ref) {
   final nes = ref.watch(nesStateProvider);
 
   if (nes == null) {
     return DummyDisassembler();
   }
 
-  return Disassembler(
-    eventBus: ref.watch(eventBusProvider),
-    cpu: nes.cpu,
-  );
+  return Disassembler(eventBus: ref.watch(eventBusProvider), cpu: nes.cpu);
 }
 
 class DisassemblerSearchNode {
@@ -40,13 +38,11 @@ class DisassemblerSearchNode {
 }
 
 class Disassembler {
-  Disassembler({
-    required this.eventBus,
-    required this.cpu,
-  }) {
-    final bus = Bus(cpu.bus.cartridge)
-      ..ppu = cpu.bus.ppu
-      ..apu = cpu.bus.apu;
+  Disassembler({required this.eventBus, required this.cpu}) {
+    final bus =
+        Bus(cpu.bus.cartridge)
+          ..ppu = cpu.bus.ppu
+          ..apu = cpu.bus.apu;
 
     debugCpu = CPU(eventBus: eventBus, bus: bus, disableSideEffects: true)
       ..state = cpu.state;
@@ -54,9 +50,9 @@ class Disassembler {
     bus.cpu = debugCpu;
 
     _search([
-      DisassemblerSearchNode(debugCpu.read16(resetVector)),
-      DisassemblerSearchNode(debugCpu.read16(nmiVector)),
-      DisassemblerSearchNode(debugCpu.read16(irqVector)),
+      DisassemblerSearchNode(debugCpu.read16(resetVector), entrypoint: true),
+      DisassemblerSearchNode(debugCpu.read16(nmiVector), entrypoint: true),
+      DisassemblerSearchNode(debugCpu.read16(irqVector), entrypoint: true),
     ]);
   }
 
@@ -69,9 +65,7 @@ class Disassembler {
   Disassembly update() {
     debugCpu.state = cpu.state;
 
-    _search([
-      DisassemblerSearchNode(cpu.PC),
-    ]);
+    _search([DisassemblerSearchNode(cpu.PC)]);
 
     return lines.values.toList()
       ..sort((a, b) => a.address.compareTo(b.address));
@@ -123,8 +117,12 @@ class Disassembler {
       operands: operands,
       disassembledOperands: disassembledOperands,
       readAddress: readAddress,
-      sectionStart: isEntrypoint,
-      sectionEnd: op.instruction == RTS || op.instruction == RTI,
+      sectionStart: isEntrypoint || lines[address]?.sectionStart == true,
+      sectionEnd:
+          op.instruction == RTS ||
+          op.instruction == RTI ||
+          op.instruction == JMP ||
+          lines[address]?.sectionEnd == true,
     );
 
     lines[address] = line;
@@ -151,13 +149,17 @@ class Disassembler {
       Implicit() => '',
       Accumulator() => 'A',
       Immediate() => '#\$${operands[0].toHex()}',
-      ZeroPage() => '\$${operands[0].toHex()}' ' = \$${value.toHex()}',
-      ZeroPageX() => '\$${operands[0].toHex()},X'
-          ' [\$${readAddress.toHex(width: 4)}]'
-          ' = \$${value.toHex()}',
-      ZeroPageY() => '\$${operands[0].toHex()},Y'
-          ' [\$${readAddress.toHex(width: 4)}]'
-          ' = \$${value.toHex()}',
+      ZeroPage() =>
+        '\$${operands[0].toHex()}'
+            ' = \$${value.toHex()}',
+      ZeroPageX() =>
+        '\$${operands[0].toHex()},X'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
+      ZeroPageY() =>
+        '\$${operands[0].toHex()},Y'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
       Relative() => '\$${readAddress.toHex(width: 4)}',
       Absolute() => _disassembleAbsolute(readAddress, op),
       AbsoluteX() =>
@@ -168,14 +170,17 @@ class Disassembler {
         '\$${((readAddress - debugCpu.Y) & 0xffff).toHex(width: 4)},Y'
             ' [\$${readAddress.toHex(width: 4)}]'
             ' = \$${value.toHex()}',
-      Indirect() => '(\$${operands[1].toHex()}${operands[0].toHex()}) ='
-          ' \$${readAddress.toHex(width: 4)}',
-      IndexedIndirect() => '(\$${operands[0].toHex()},X)'
-          ' [\$${readAddress.toHex(width: 4)}]'
-          ' = \$${value.toHex()}',
-      IndirectIndexed() => '(\$${operands[0].toHex()}),Y'
-          ' [\$${readAddress.toHex(width: 4)}]'
-          ' = \$${value.toHex()}',
+      Indirect() =>
+        '(\$${operands[1].toHex()}${operands[0].toHex()}) ='
+            ' \$${readAddress.toHex(width: 4)}',
+      IndexedIndirect() =>
+        '(\$${operands[0].toHex()},X)'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
+      IndirectIndexed() =>
+        '(\$${operands[0].toHex()}),Y'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
     };
   }
 
@@ -197,8 +202,6 @@ class Disassembler {
 
       final pc = current.pc;
 
-      visited.add(pc);
-
       final line = disassembleLine(pc, isEntrypoint: current.entrypoint);
 
       if (line == null) {
@@ -219,11 +222,15 @@ class Disassembler {
       }
 
       if (op.instruction.type == InstructionType.branch ||
-          op.instruction.type == InstructionType.jump) {
+          op.instruction.type == InstructionType.jump ||
+          op.instruction == BRK) {
         children.add(
           DisassemblerSearchNode(
             line.readAddress,
-            entrypoint: op.instruction == JSR || op.instruction == BRK,
+            entrypoint:
+                op.instruction == JSR ||
+                op.instruction == BRK ||
+                op.instruction == JMP,
             depth: current.depth + 1,
           ),
         );
@@ -233,6 +240,7 @@ class Disassembler {
         if (child.depth < 100 &&
             !visited.contains(child.pc) &&
             child.pc <= 0xffff) {
+          visited.add(child.pc);
           queue.add(child);
         }
       }

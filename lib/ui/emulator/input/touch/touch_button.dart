@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 enum TouchButtonShape { circle, rectangle }
 
@@ -19,7 +19,7 @@ class TouchButton extends HookConsumerWidget {
   final double width;
   final double height;
   final String label;
-  final NesAction? action;
+  final InputAction? action;
   final Decoration Function(Color) decorationBuilder;
 
   @override

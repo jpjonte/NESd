@@ -14,11 +14,7 @@ import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
-enum FilePickerType {
-  file,
-  directory,
-  any,
-}
+enum FilePickerType { file, directory, any }
 
 @RoutePage()
 class FilePickerScreen extends HookConsumerWidget {
@@ -44,16 +40,13 @@ class FilePickerScreen extends HookConsumerWidget {
     final state = ref.watch(filePickerNotifierProvider);
     final controller = ref.watch(filePickerControllerProvider);
 
-    useEffect(
-      () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          controller.go(initialDirectory);
-        });
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.go(initialDirectory);
+      });
 
-        return null;
-      },
-      [initialDirectory],
-    );
+      return null;
+    }, [initialDirectory]);
 
     if (state is FilePickerData &&
         p.extension(state.path) == '.zip' &&
@@ -70,25 +63,26 @@ class FilePickerScreen extends HookConsumerWidget {
     return switch (state) {
       FilePickerLoading() => const Center(child: CircularProgressIndicator()),
       FilePickerError(message: final message) => Center(
-          child: Text(
-            message,
+        child: Text(
+          message,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.error,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      FilePickerData(path: final path, files: final files) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            title,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.error,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      FilePickerData(path: final path, files: final files) => Scaffold(
-          appBar: AppBar(
-            title: Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          body: NesdMenuWrapper(
+        body: Center(
+          child: NesdMenuWrapper(
             child: FocusChild(
               autofocus: true,
               child: Column(
@@ -148,7 +142,8 @@ class FilePickerScreen extends HookConsumerWidget {
 
                         final fileIsZip = p.extension(file.path) == '.zip';
 
-                        final enabled = isDirectory ||
+                        final enabled =
+                            isDirectory ||
                             allowedExtensions.isEmpty ||
                             allowedExtensions.contains(p.extension(file.path));
 
@@ -158,8 +153,8 @@ class FilePickerScreen extends HookConsumerWidget {
                               isDirectory
                                   ? Icons.folder
                                   : enabled
-                                      ? Icons.videogame_asset
-                                      : null,
+                                  ? Icons.videogame_asset
+                                  : null,
                               color: nesdRed[500],
                             ),
                             enabled: enabled,
@@ -187,6 +182,7 @@ class FilePickerScreen extends HookConsumerWidget {
             ),
           ),
         ),
+      ),
     };
   }
 }

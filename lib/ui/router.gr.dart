@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -21,17 +22,17 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
-          FilePickerRoute.name,
-          args: FilePickerRouteArgs(
-            title: title,
-            initialDirectory: initialDirectory,
-            type: type,
-            allowedExtensions: allowedExtensions,
-            onChangeDirectory: onChangeDirectory,
-            key: key,
-          ),
-          initialChildren: children,
-        );
+         FilePickerRoute.name,
+         args: FilePickerRouteArgs(
+           title: title,
+           initialDirectory: initialDirectory,
+           type: type,
+           allowedExtensions: allowedExtensions,
+           onChangeDirectory: onChangeDirectory,
+           key: key,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'FilePickerRoute';
 
@@ -83,10 +84,7 @@ class FilePickerRouteArgs {
 /// [MainScreen]
 class MainRoute extends PageRouteInfo<void> {
   const MainRoute({List<PageRouteInfo>? children})
-      : super(
-          MainRoute.name,
-          initialChildren: children,
-        );
+    : super(MainRoute.name, initialChildren: children);
 
   static const String name = 'MainRoute';
 
@@ -102,10 +100,7 @@ class MainRoute extends PageRouteInfo<void> {
 /// [MenuScreen]
 class MenuRoute extends PageRouteInfo<void> {
   const MenuRoute({List<PageRouteInfo>? children})
-      : super(
-          MenuRoute.name,
-          initialChildren: children,
-        );
+    : super(MenuRoute.name, initialChildren: children);
 
   static const String name = 'MenuRoute';
 
@@ -125,13 +120,10 @@ class SaveStatesRoute extends PageRouteInfo<SaveStatesRouteArgs> {
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
-          SaveStatesRoute.name,
-          args: SaveStatesRouteArgs(
-            romInfo: romInfo,
-            key: key,
-          ),
-          initialChildren: children,
-        );
+         SaveStatesRoute.name,
+         args: SaveStatesRouteArgs(romInfo: romInfo, key: key),
+         initialChildren: children,
+       );
 
   static const String name = 'SaveStatesRoute';
 
@@ -139,19 +131,13 @@ class SaveStatesRoute extends PageRouteInfo<SaveStatesRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SaveStatesRouteArgs>();
-      return SaveStatesScreen(
-        romInfo: args.romInfo,
-        key: args.key,
-      );
+      return SaveStatesScreen(romInfo: args.romInfo, key: args.key);
     },
   );
 }
 
 class SaveStatesRouteArgs {
-  const SaveStatesRouteArgs({
-    required this.romInfo,
-    this.key,
-  });
+  const SaveStatesRouteArgs({required this.romInfo, this.key});
 
   final RomInfo romInfo;
 
@@ -167,10 +153,7 @@ class SaveStatesRouteArgs {
 /// [SettingsScreen]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})
-      : super(
-          SettingsRoute.name,
-          initialChildren: children,
-        );
+    : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
@@ -186,10 +169,7 @@ class SettingsRoute extends PageRouteInfo<void> {
 /// [TouchEditorScreen]
 class TouchEditorRoute extends PageRouteInfo<void> {
   const TouchEditorRoute({List<PageRouteInfo>? children})
-      : super(
-          TouchEditorRoute.name,
-          initialChildren: children,
-        );
+    : super(TouchEditorRoute.name, initialChildren: children);
 
   static const String name = 'TouchEditorRoute';
 

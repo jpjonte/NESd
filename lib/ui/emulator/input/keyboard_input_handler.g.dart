@@ -7,21 +7,24 @@ part of 'keyboard_input_handler.dart';
 // **************************************************************************
 
 String _$keyboardInputHandlerHash() =>
-    r'a1ea1f7600ae5126972dd76175f42d72bf12bf1d';
+    r'ce5ba8ce2a61208d3d3c9facae172a4af23afde1';
 
 /// See also [keyboardInputHandler].
 @ProviderFor(keyboardInputHandler)
 final keyboardInputHandlerProvider =
     AutoDisposeProvider<KeyboardInputHandler>.internal(
-  keyboardInputHandler,
-  name: r'keyboardInputHandlerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$keyboardInputHandlerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      keyboardInputHandler,
+      name: r'keyboardInputHandlerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$keyboardInputHandlerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
 typedef KeyboardInputHandlerRef = AutoDisposeProviderRef<KeyboardInputHandler>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

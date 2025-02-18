@@ -55,28 +55,6 @@ class MMC3State extends MapperState {
     );
   }
 
-  factory MMC3State.legacyFromByteData(ByteData data, int offset) {
-    return MMC3State(
-      register: data.getUint8(offset),
-      r0: data.getUint8(offset + 1),
-      r1: data.getUint8(offset + 2),
-      r2: data.getUint8(offset + 3),
-      r3: data.getUint8(offset + 4),
-      r4: data.getUint8(offset + 5),
-      r5: data.getUint8(offset + 6),
-      r6: data.getUint8(offset + 7),
-      r7: data.getUint8(offset + 8),
-      prgBankMode: data.getUint8(offset + 9),
-      chrBankMode: data.getUint8(offset + 10),
-      mirroring: data.getUint8(offset + 11),
-      irqCounter: data.getUint8(offset + 12),
-      irqLatch: data.getUint8(offset + 13),
-      irqReload: data.getUint8(offset + 14) == 1,
-      irqEnabled: data.getUint8(offset + 15) == 1,
-      a12LowStart: data.getUint64(offset + 16),
-    );
-  }
-
   final int register;
   final int r0;
   final int r1;

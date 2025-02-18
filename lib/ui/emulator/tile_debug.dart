@@ -39,9 +39,7 @@ int getChrAddress(int patternTableIndex, int nametableByte) {
 }
 
 class TileDebugWidget extends HookConsumerWidget {
-  const TileDebugWidget({
-    super.key,
-  });
+  const TileDebugWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,15 +104,27 @@ class TileDebugWidget extends HookConsumerWidget {
 
       for (var ty = 0; ty < 30; ty++) {
         for (var tx = 0; tx < 32; tx++) {
-          final nametableByte = nes.bus.ppuRead(getNametableAddress(n, ty, tx));
-          final attributeByte = nes.bus.ppuRead(getAttributeAddress(n, ty, tx));
+          final nametableByte = nes.bus.ppuRead(
+            getNametableAddress(n, ty, tx),
+            disableSideEffects: true,
+          );
+          final attributeByte = nes.bus.ppuRead(
+            getAttributeAddress(n, ty, tx),
+            disableSideEffects: true,
+          );
           final palette = getPalette(attributeByte, n, ty, tx);
 
           final chrAddress = getChrAddress(patternTableIndex, nametableByte);
 
           for (var py = 0; py < 8; py++) {
-            final patternTableLowByte = nes.bus.ppuRead(chrAddress + py);
-            final patternTableHighByte = nes.bus.ppuRead(chrAddress + py + 8);
+            final patternTableLowByte = nes.bus.ppuRead(
+              chrAddress + py,
+              disableSideEffects: true,
+            );
+            final patternTableHighByte = nes.bus.ppuRead(
+              chrAddress + py + 8,
+              disableSideEffects: true,
+            );
 
             for (var px = 0; px < 8; px++) {
               final patternHigh = (patternTableHighByte >> (7 - px)) & 0x1;
@@ -128,7 +138,10 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final paletteAddress = 0x3f00 | index;
 
-              final systemPaletteIndex = nes.bus.ppuRead(paletteAddress);
+              final systemPaletteIndex = nes.bus.ppuRead(
+                paletteAddress,
+                disableSideEffects: true,
+              );
 
               final color = systemPalette[systemPaletteIndex & 0x3f];
 
@@ -148,11 +161,7 @@ class TileDebugWidget extends HookConsumerWidget {
 }
 
 class TileDebugContent extends HookWidget {
-  const TileDebugContent({
-    required this.image,
-    required this.nes,
-    super.key,
-  });
+  const TileDebugContent({required this.image, required this.nes, super.key});
 
   final ui.Image image;
   final NES nes;
@@ -272,9 +281,15 @@ class TileTooltip extends StatelessWidget {
 
     final address = 0x2000 + 0x400 * n + 32 * ty + tx;
 
-    final nametableByte = nes.bus.ppuRead(getNametableAddress(n, ty, tx));
+    final nametableByte = nes.bus.ppuRead(
+      getNametableAddress(n, ty, tx),
+      disableSideEffects: true,
+    );
     final attributeAddress = getAttributeAddress(n, ty, tx);
-    final attribute = nes.bus.ppuRead(attributeAddress);
+    final attribute = nes.bus.ppuRead(
+      attributeAddress,
+      disableSideEffects: true,
+    );
     final palette = getPalette(attribute, n, ty, tx);
 
     final patternTableIndex = nes.ppu.PPUCTRL_B;
@@ -292,9 +307,7 @@ class TileTooltip extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
       child: DefaultTextStyle(
-        style: const TextStyle(
-          fontFamily: 'Ubuntu Mono',
-        ),
+        style: const TextStyle(fontFamily: 'Ubuntu Mono'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -331,22 +344,26 @@ class TileDebugPainter extends CustomPainter {
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
 
-  final _highlightFillPaint = Paint()
-    ..color = Colors.black.withAlpha(50)
-    ..style = PaintingStyle.fill;
-  final _highlightBorderPaint = Paint()
-    ..color = Colors.red
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
+  final _highlightFillPaint =
+      Paint()
+        ..color = Colors.black.withAlpha(50)
+        ..style = PaintingStyle.fill;
+  final _highlightBorderPaint =
+      Paint()
+        ..color = Colors.red
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
 
   final _imagePaint = Paint();
-  final _scrollStrokePaint = Paint()
-    ..color = const Color(0xccff00ff)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 2;
-  final _scrollFillPaint = Paint()
-    ..color = const Color(0x30ff00ff)
-    ..style = PaintingStyle.fill;
+  final _scrollStrokePaint =
+      Paint()
+        ..color = const Color(0xccff00ff)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+  final _scrollFillPaint =
+      Paint()
+        ..color = const Color(0x30ff00ff)
+        ..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -367,14 +384,8 @@ class TileDebugPainter extends CustomPainter {
         Offset.zero & Size(image.width.toDouble(), image.height.toDouble()),
         _imagePaint,
       )
-      ..drawRect(
-        Offset(scrollX, scrollY) & visibleArea,
-        _scrollStrokePaint,
-      )
-      ..drawRect(
-        Offset(scrollX, scrollY) & visibleArea,
-        _scrollFillPaint,
-      );
+      ..drawRect(Offset(scrollX, scrollY) & visibleArea, _scrollStrokePaint)
+      ..drawRect(Offset(scrollX, scrollY) & visibleArea, _scrollFillPaint);
 
     if (scrollX > 32 * 8) {
       canvas

@@ -39,15 +39,12 @@ class ControlsSettings extends StatelessWidget {
 }
 
 @riverpod
-int maxIndex(MaxIndexRef ref) {
+int maxIndex(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((s) => s.bindings),
   );
 
-  return bindings.values.fold(
-    0,
-    (acc, inputs) => max(acc, inputs.length - 1),
-  );
+  return bindings.values.fold(0, (acc, inputs) => max(acc, inputs.length - 1));
 }
 
 @riverpod
@@ -144,12 +141,13 @@ class PreviousProfileButton extends ConsumerWidget {
     return SizedBox(
       width: 40,
       height: 40,
-      child: index > 0
-          ? IconButton(
-              onPressed: indexController.previous,
-              icon: const Icon(Icons.keyboard_arrow_left),
-            )
-          : null,
+      child:
+          index > 0
+              ? IconButton(
+                onPressed: indexController.previous,
+                icon: const Icon(Icons.keyboard_arrow_left),
+              )
+              : null,
     );
   }
 }
@@ -169,16 +167,10 @@ class NextProfileButton extends ConsumerWidget {
     if (index <= maxIndex) {
       child = IconButton(
         onPressed: indexController.next,
-        icon: Icon(
-          index == maxIndex ? Icons.add : Icons.keyboard_arrow_right,
-        ),
+        icon: Icon(index == maxIndex ? Icons.add : Icons.keyboard_arrow_right),
       );
     }
 
-    return SizedBox(
-      width: 40,
-      height: 40,
-      child: child,
-    );
+    return SizedBox(width: 40, height: 40, child: child);
   }
 }

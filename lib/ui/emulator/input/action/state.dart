@@ -1,13 +1,10 @@
-part of '../action.dart';
+part of '../input_action.dart';
 
-class TogglePauseAction extends NesAction {
-  const TogglePauseAction({
-    required super.title,
-    required super.code,
-  });
+class TogglePauseAction extends InputAction {
+  const TogglePauseAction({required super.title, required super.code});
 }
 
-class PauseAction extends NesAction {
+class PauseAction extends InputAction {
   const PauseAction({
     required this.paused,
     required super.title,
@@ -17,32 +14,20 @@ class PauseAction extends NesAction {
   final bool paused;
 }
 
-class StopAction extends NesAction {
-  const StopAction({
-    required super.title,
-    required super.code,
-  });
+class StopAction extends InputAction {
+  const StopAction({required super.title, required super.code});
 }
 
-class ToggleFastForward extends NesAction {
-  const ToggleFastForward({
-    required super.title,
-    required super.code,
-  });
+class ToggleFastForward extends InputAction {
+  const ToggleFastForward({required super.title, required super.code});
 }
 
-class DecreaseVolume extends NesAction {
-  const DecreaseVolume({
-    required super.title,
-    required super.code,
-  });
+class DecreaseVolume extends InputAction {
+  const DecreaseVolume({required super.title, required super.code});
 }
 
-class IncreaseVolume extends NesAction {
-  const IncreaseVolume({
-    required super.title,
-    required super.code,
-  });
+class IncreaseVolume extends InputAction {
+  const IncreaseVolume({required super.title, required super.code});
 }
 
 const togglePause = TogglePauseAction(
@@ -50,11 +35,7 @@ const togglePause = TogglePauseAction(
   code: 'state.togglePause',
 );
 
-const pause = PauseAction(
-  paused: true,
-  title: 'Pause',
-  code: 'state.pause',
-);
+const pause = PauseAction(paused: true, title: 'Pause', code: 'state.pause');
 
 const unpause = PauseAction(
   paused: false,
@@ -62,10 +43,7 @@ const unpause = PauseAction(
   code: 'state.unpause',
 );
 
-const stop = StopAction(
-  title: 'Stop Game',
-  code: 'state.stop',
-);
+const stop = StopAction(title: 'Stop Game', code: 'state.stop');
 
 const toggleFastForward = ToggleFastForward(
   title: 'Toggle Fast Forward',

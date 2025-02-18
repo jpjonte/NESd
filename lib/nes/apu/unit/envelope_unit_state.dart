@@ -29,13 +29,6 @@ class EnvelopeUnitState {
     );
   }
 
-  const EnvelopeUnitState.dummy()
-      : volume = 0,
-        period = 0,
-        timer = 0,
-        start = false,
-        loop = false;
-
   final int volume;
   final int period;
   final int timer;
@@ -52,40 +45,3 @@ class EnvelopeUnitState {
       ..set(boolean, loop);
   }
 }
-
-class _LegacyEnvelopeUnitStateContract extends BinaryContract<EnvelopeUnitState>
-    implements EnvelopeUnitState {
-  const _LegacyEnvelopeUnitStateContract()
-      : super(const EnvelopeUnitState.dummy());
-
-  @override
-  EnvelopeUnitState order(EnvelopeUnitState contract) {
-    return EnvelopeUnitState(
-      volume: contract.volume,
-      period: contract.period,
-      timer: contract.timer,
-      start: contract.start,
-      loop: contract.loop,
-    );
-  }
-
-  @override
-  int get volume => type(uint8, (o) => o.volume);
-
-  @override
-  int get period => type(uint8, (o) => o.period);
-
-  @override
-  int get timer => type(uint8, (o) => o.timer);
-
-  @override
-  bool get start => type(boolean, (o) => o.start);
-
-  @override
-  bool get loop => type(boolean, (o) => o.loop);
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-const legacyEnvelopeUnitStateContract = _LegacyEnvelopeUnitStateContract();

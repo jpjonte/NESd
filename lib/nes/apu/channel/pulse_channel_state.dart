@@ -42,20 +42,6 @@ class PulseChannelState {
     );
   }
 
-  const PulseChannelState.dummy()
-      : this(
-          enabled: false,
-          duty: 0,
-          constantVolume: false,
-          volume: 0,
-          dutyIndex: 0,
-          timer: 0,
-          timerPeriod: 0,
-          envelopeState: const EnvelopeUnitState.dummy(),
-          lengthCounterState: const LengthCounterUnitState.dummy(),
-          sweepState: const SweepUnitState.dummy(),
-        );
-
   final bool enabled;
 
   final int duty;
@@ -91,69 +77,3 @@ class PulseChannelState {
     sweepState.serialize(writer);
   }
 }
-
-class _LegacyPulseChannelStateContract extends BinaryContract<PulseChannelState>
-    implements PulseChannelState {
-  const _LegacyPulseChannelStateContract()
-      : super(const PulseChannelState.dummy());
-
-  @override
-  PulseChannelState order(PulseChannelState contract) {
-    return PulseChannelState(
-      enabled: contract.enabled,
-      duty: contract.duty,
-      constantVolume: contract.constantVolume,
-      volume: contract.volume,
-      dutyIndex: contract.dutyIndex,
-      timer: contract.timer,
-      timerPeriod: contract.timerPeriod,
-      envelopeState: contract.envelopeState,
-      lengthCounterState: contract.lengthCounterState,
-      sweepState: contract.sweepState,
-    );
-  }
-
-  @override
-  bool get enabled => type(boolean, (o) => o.enabled);
-
-  @override
-  int get duty => type(uint8, (o) => o.duty);
-
-  @override
-  bool get constantVolume => type(boolean, (o) => o.constantVolume);
-
-  @override
-  int get volume => type(uint8, (o) => o.volume);
-
-  @override
-  int get dutyIndex => type(uint8, (o) => o.dutyIndex);
-
-  @override
-  int get timer => type(uint16, (o) => o.timer);
-
-  @override
-  int get timerPeriod => type(uint16, (o) => o.timerPeriod);
-
-  @override
-  EnvelopeUnitState get envelopeState => type(
-        legacyEnvelopeUnitStateContract,
-        (o) => o.envelopeState,
-      );
-
-  @override
-  LengthCounterUnitState get lengthCounterState => type(
-        legacyLengthCounterUnitStateContract,
-        (o) => o.lengthCounterState,
-      );
-
-  @override
-  SweepUnitState get sweepState => type(
-        legacySweepUnitStateContract,
-        (o) => o.sweepState,
-      );
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-const legacyPulseChannelStateContract = _LegacyPulseChannelStateContract();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 part 'touch_input_config.freezed.dart';
 part 'touch_input_config.g.dart';
@@ -28,8 +28,8 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.rectangleButton({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? action,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? action,
     @Default(60) double width,
     @Default(60) double height,
     @Default('') String label,
@@ -38,8 +38,8 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.circleButton({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? action,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? action,
     @Default(75) double size,
     @Default('') String label,
   }) = CircleButtonConfig;
@@ -47,14 +47,14 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.joyStick({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? upAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? downAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? leftAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? rightAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? upAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? downAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? leftAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? rightAction,
     @Default(150) double size,
     @Default(60) double innerSize,
     @Default(0.25) double deadZone,
@@ -63,14 +63,14 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.dPad({
     required double x,
     required double y,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? upAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? downAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? leftAction,
-    @JsonKey(fromJson: NesAction.fromCode, toJson: NesAction.toJson)
-    NesAction? rightAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? upAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? downAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? leftAction,
+    @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
+    InputAction? rightAction,
     @Default(150) double size,
     @Default(0.25) double deadZone,
   }) = DPadConfig;
@@ -91,25 +91,22 @@ sealed class TouchInputConfig with _$TouchInputConfig {
     return center + relative;
   }
 
-  Rect boundingBox(Size viewport) => Rect.fromCenter(
-        center: center(viewport),
-        width: width,
-        height: height,
-      );
+  Rect boundingBox(Size viewport) =>
+      Rect.fromCenter(center: center(viewport), width: width, height: height);
 
   double get height => switch (this) {
-        RectangleButtonConfig(height: final height) => height,
-        CircleButtonConfig(size: final size) => size,
-        JoyStickConfig(size: final size) => size,
-        DPadConfig(size: final size) => size,
-      };
+    RectangleButtonConfig(height: final height) => height,
+    CircleButtonConfig(size: final size) => size,
+    JoyStickConfig(size: final size) => size,
+    DPadConfig(size: final size) => size,
+  };
 
   double get width => switch (this) {
-        RectangleButtonConfig(width: final width) => width,
-        CircleButtonConfig(size: final size) => size,
-        JoyStickConfig(size: final size) => size,
-        DPadConfig(size: final size) => size,
-      };
+    RectangleButtonConfig(width: final width) => width,
+    CircleButtonConfig(size: final size) => size,
+    JoyStickConfig(size: final size) => size,
+    DPadConfig(size: final size) => size,
+  };
 
   factory TouchInputConfig.fromJson(Map<String, dynamic> json) =>
       _$TouchInputConfigFromJson(json);
@@ -124,18 +121,8 @@ const defaultPortraitConfig = [
     leftAction: controller1Left,
     rightAction: controller1Right,
   ),
-  CircleButtonConfig(
-    x: 0.7,
-    y: 0.4,
-    action: controller1A,
-    label: 'A',
-  ),
-  CircleButtonConfig(
-    x: 0.2,
-    y: 0.4,
-    action: controller1B,
-    label: 'B',
-  ),
+  CircleButtonConfig(x: 0.7, y: 0.4, action: controller1A, label: 'A'),
+  CircleButtonConfig(x: 0.2, y: 0.4, action: controller1B, label: 'B'),
   RectangleButtonConfig(
     height: 40,
     x: -0.25,
@@ -161,18 +148,8 @@ const defaultLandscapeConfig = [
     leftAction: controller1Left,
     rightAction: controller1Right,
   ),
-  CircleButtonConfig(
-    x: 0.85,
-    y: -0.1,
-    action: controller1A,
-    label: 'A',
-  ),
-  CircleButtonConfig(
-    x: 0.6,
-    y: -0.1,
-    action: controller1B,
-    label: 'B',
-  ),
+  CircleButtonConfig(x: 0.85, y: -0.1, action: controller1A, label: 'A'),
+  CircleButtonConfig(x: 0.6, y: -0.1, action: controller1B, label: 'B'),
   RectangleButtonConfig(
     height: 40,
     x: -0.6,

@@ -10,17 +10,17 @@ import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:path/path.dart' as p;
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'rom_manager.g.dart';
 
 @riverpod
-String applicationSupportPath(ApplicationSupportPathRef ref) => '';
+String applicationSupportPath(Ref ref) => '';
 
 @riverpod
-RomManager romManager(RomManagerRef ref) => RomManager(
-      baseDirectory: ref.watch(applicationSupportPathProvider),
-    );
+RomManager romManager(Ref ref) =>
+    RomManager(baseDirectory: ref.watch(applicationSupportPathProvider));
 
 @JsonSerializable()
 @immutable

@@ -19,26 +19,7 @@ class GxROMState extends MapperState {
   }
 
   factory GxROMState._version0(PayloadReader reader) {
-    return GxROMState(
-      prgBank: reader.get(uint8),
-      chrBank: reader.get(uint8),
-    );
-  }
-
-  factory GxROMState.legacyFromByteData(ByteData data, int offset) {
-    final version = data.getUint8(offset);
-
-    return switch (version) {
-      0 => GxROMState.version0(data, offset + 1),
-      _ => throw InvalidSerializationVersion('GxROM', version),
-    };
-  }
-
-  factory GxROMState.version0(ByteData data, int offset) {
-    return GxROMState(
-      prgBank: data.getUint8(offset),
-      chrBank: data.getUint8(offset + 1),
-    );
+    return GxROMState(prgBank: reader.get(uint8), chrBank: reader.get(uint8));
   }
 
   final int chrBank;

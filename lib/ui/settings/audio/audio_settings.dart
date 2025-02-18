@@ -9,13 +9,7 @@ class AudioSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SettingsTab(
       index: 2,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            VolumeSlider(),
-          ],
-        ),
-      ),
+      child: SingleChildScrollView(child: Column(children: [VolumeSlider()])),
     );
   }
 }

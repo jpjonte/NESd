@@ -27,12 +27,6 @@ class FrameCounterState {
     );
   }
 
-  const FrameCounterState.dummy()
-      : counter = 0,
-        fiveStep = false,
-        interrupt = false,
-        interruptInhibit = false;
-
   final int counter;
 
   final bool fiveStep;
@@ -49,36 +43,3 @@ class FrameCounterState {
       ..set(boolean, interruptInhibit);
   }
 }
-
-class _LegacyFrameCounterStateContract extends BinaryContract<FrameCounterState>
-    implements FrameCounterState {
-  const _LegacyFrameCounterStateContract()
-      : super(const FrameCounterState.dummy());
-
-  @override
-  FrameCounterState order(FrameCounterState contract) {
-    return FrameCounterState(
-      counter: contract.counter,
-      fiveStep: contract.fiveStep,
-      interrupt: contract.interrupt,
-      interruptInhibit: contract.interruptInhibit,
-    );
-  }
-
-  @override
-  int get counter => type(uint8, (o) => o.counter);
-
-  @override
-  bool get fiveStep => type(boolean, (o) => o.fiveStep);
-
-  @override
-  bool get interrupt => type(boolean, (o) => o.interrupt);
-
-  @override
-  bool get interruptInhibit => type(boolean, (o) => o.interruptInhibit);
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-const legacyFrameCounterStateContract = _LegacyFrameCounterStateContract();

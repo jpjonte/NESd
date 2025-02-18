@@ -33,8 +33,10 @@ class MenuScreen extends ConsumerWidget {
                 Center(
                   child: NesdButton(
                     autofocus: true,
-                    onPressed: () =>
-                        ref.read(routerProvider).navigate(const MainRoute()),
+                    onPressed:
+                        () => ref
+                            .read(routerProvider)
+                            .navigate(const MainRoute()),
                     child: const Text('Resume'),
                   ),
                 ),
@@ -42,16 +44,20 @@ class MenuScreen extends ConsumerWidget {
                 Center(
                   child: NesdButton(
                     autofocus: true,
-                    onPressed: () => ref.read(routerProvider).navigate(
-                          SaveStatesRoute(
-                            romInfo: ref
-                                .read(nesControllerProvider)
-                                .nes!
-                                .bus
-                                .cartridge
-                                .romInfo,
-                          ),
-                        ),
+                    onPressed:
+                        () => ref
+                            .read(routerProvider)
+                            .navigate(
+                              SaveStatesRoute(
+                                romInfo:
+                                    ref
+                                        .read(nesControllerProvider)
+                                        .nes!
+                                        .bus
+                                        .cartridge
+                                        .romInfo,
+                              ),
+                            ),
                     child: const Text('Save States'),
                   ),
                 ),
@@ -78,8 +84,10 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
-                    onPressed: () =>
-                        ref.read(routerProvider).push(const SettingsRoute()),
+                    onPressed:
+                        () => ref
+                            .read(routerProvider)
+                            .push(const SettingsRoute()),
                     child: const Text('Settings'),
                   ),
                 ),

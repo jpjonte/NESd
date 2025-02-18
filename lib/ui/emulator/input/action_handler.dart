@@ -3,19 +3,20 @@ import 'dart:async';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'action_handler.g.dart';
 
-typedef NesActionEvent = ({NesAction action, double value});
+typedef InputActionEvent = ({InputAction action, double value});
 
 @riverpod
-ActionStream actionStream(ActionStreamRef ref) {
+ActionStream actionStream(Ref ref) {
   final stream = ActionStream();
 
   ref.onDispose(stream.dispose);
@@ -24,11 +25,11 @@ ActionStream actionStream(ActionStreamRef ref) {
 }
 
 class ActionStream {
-  Stream<NesActionEvent> get stream => _streamController.stream;
+  Stream<InputActionEvent> get stream => _streamController.stream;
 
-  final _streamController = StreamController<NesActionEvent>.broadcast();
+  final _streamController = StreamController<InputActionEvent>.broadcast();
 
-  void add(NesActionEvent event) {
+  void add(InputActionEvent event) {
     _streamController.add(event);
   }
 
@@ -38,7 +39,7 @@ class ActionStream {
 }
 
 @riverpod
-ActionHandler actionHandler(ActionHandlerRef ref) {
+ActionHandler actionHandler(Ref ref) {
   final actionStream = ref.watch(actionStreamProvider);
 
   final handler = ActionHandler(
@@ -62,7 +63,7 @@ class ActionHandler {
     required this.router,
     required this.romManager,
     required this.audioOutput,
-    required Stream<NesActionEvent> actionStream,
+    required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
 
@@ -75,7 +76,7 @@ class ActionHandler {
   final RomManager romManager;
   final AudioOutput audioOutput;
 
-  late final StreamSubscription<NesActionEvent> _actionSubscription;
+  late final StreamSubscription<InputActionEvent> _actionSubscription;
 
   bool enabled = true;
 
@@ -89,7 +90,7 @@ class ActionHandler {
     router.removeListener(_updateRoute);
   }
 
-  void handleAction(NesActionEvent event) {
+  void handleAction(InputActionEvent event) {
     if (!enabled) {
       return;
     }
@@ -101,7 +102,7 @@ class ActionHandler {
     }
   }
 
-  void handleActionDown(NesAction action) {
+  void handleActionDown(InputAction action) {
     if (action is OpenMenu) {
       if (_currentRoute == MainRoute.name) {
         router.navigate(const MenuRoute());
@@ -119,7 +120,7 @@ class ActionHandler {
     }
   }
 
-  void handleActionUp(NesAction action) {
+  void handleActionUp(InputAction action) {
     switch (action) {
       case ControllerPress():
         if (_inGame) {
@@ -130,7 +131,7 @@ class ActionHandler {
     }
   }
 
-  void _handleActionDownInGame(NesAction action) {
+  void _handleActionDownInGame(InputAction action) {
     switch (action) {
       case ControllerPress():
         nes?.buttonDown(action.controller, action.button);
@@ -159,7 +160,7 @@ class ActionHandler {
     }
   }
 
-  void _handleActionDownInMenu(NesAction action) {
+  void _handleActionDownInMenu(InputAction action) {
     switch (action) {
       case NextInput():
         _sendIntent(const NextFocusIntent());

@@ -4,10 +4,7 @@ import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class SinglePrgBankState extends MapperState {
-  const SinglePrgBankState({
-    required super.id,
-    required this.prgBank,
-  });
+  const SinglePrgBankState({required super.id, required this.prgBank});
 
   factory SinglePrgBankState.deserialize(PayloadReader reader, int id) {
     final version = reader.get(uint8);
@@ -23,17 +20,6 @@ class SinglePrgBankState extends MapperState {
       2 || 71 => SinglePrgBankState(id: id, prgBank: reader.get(uint8)),
       _ => throw UnsupportedMapper(id),
     };
-  }
-
-  factory SinglePrgBankState.legacyFromByteData(
-    int id,
-    ByteData data,
-    int offset,
-  ) {
-    return SinglePrgBankState(
-      id: id,
-      prgBank: data.getUint8(offset),
-    );
   }
 
   final int prgBank;

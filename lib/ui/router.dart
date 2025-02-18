@@ -19,25 +19,25 @@ final routerProvider = ChangeNotifierProvider((ref) => Router());
 class Router extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
-        CustomRoute(
-          page: MainRoute.page,
-          path: '/',
-          initial: true,
-          transitionsBuilder: TransitionsBuilders.noTransition,
-          durationInMilliseconds: 0,
-          reverseDurationInMilliseconds: 0,
-        ),
-        AutoRoute(page: SettingsRoute.page, path: '/settings'),
-        AutoRoute(page: TouchEditorRoute.page, path: '/touch_editor'),
-        AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
-        CustomRoute(
-          page: MenuRoute.page,
-          path: '/menu',
-          transitionsBuilder: TransitionsBuilders.fadeIn,
-          durationInMilliseconds: 200,
-          reverseDurationInMilliseconds: 200,
-          opaque: false,
-        ),
-        AutoRoute(page: SaveStatesRoute.page, path: '/save_states'),
-      ];
+    CustomRoute(
+      page: MainRoute.page,
+      path: '/',
+      initial: true,
+      transitionsBuilder: TransitionsBuilders.noTransition,
+      durationInMilliseconds: 0,
+      reverseDurationInMilliseconds: 0,
+    ),
+    AutoRoute(page: SettingsRoute.page, path: '/settings'),
+    AutoRoute(page: TouchEditorRoute.page, path: '/touch_editor'),
+    AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
+    CustomRoute(
+      page: MenuRoute.page,
+      path: '/menu',
+      transitionsBuilder: TransitionsBuilders.fadeIn,
+      durationInMilliseconds: 200,
+      reverseDurationInMilliseconds: 200,
+      opaque: false,
+    ),
+    AutoRoute(page: SaveStatesRoute.page, path: '/save_states'),
+  ];
 }

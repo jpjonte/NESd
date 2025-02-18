@@ -3,14 +3,7 @@ import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class CNROMState extends MapperState {
-  const CNROMState({
-    required this.chrBank,
-    super.id = 3,
-  });
-
-  factory CNROMState.legacyFromByteData(ByteData data, int offset) {
-    return CNROMState(chrBank: data.getUint8(offset));
-  }
+  const CNROMState({required this.chrBank, super.id = 3});
 
   factory CNROMState.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);

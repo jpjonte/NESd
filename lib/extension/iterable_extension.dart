@@ -1,3 +1,4 @@
+// catching the error is intentional
 // ignore_for_file: avoid_catching_errors
 
 extension IterableExtension<E> on Iterable<E> {

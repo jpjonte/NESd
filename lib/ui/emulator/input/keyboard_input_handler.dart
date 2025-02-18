@@ -1,27 +1,25 @@
 import 'package:flutter/services.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'keyboard_input_handler.g.dart';
 
-typedef PriorityAction = ({int priority, NesAction action});
-typedef KeyMap = Map<Set<LogicalKeyboardKey>, NesAction>;
+typedef PriorityAction = ({int priority, InputAction action});
+typedef KeyMap = Map<Set<LogicalKeyboardKey>, InputAction>;
 
 @riverpod
-KeyboardInputHandler keyboardInputHandler(KeyboardInputHandlerRef ref) {
+KeyboardInputHandler keyboardInputHandler(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((settings) => settings.bindings),
   );
 
   final actionStream = ref.watch(actionStreamProvider);
 
-  return KeyboardInputHandler(
-    bindings: bindings,
-    actionStream: actionStream,
-  );
+  return KeyboardInputHandler(bindings: bindings, actionStream: actionStream);
 }
 
 class KeyboardInputHandler {
@@ -62,11 +60,7 @@ class KeyboardInputHandler {
       );
     } else if (event is KeyUpEvent) {
       // handle all actions that are no longer active
-      return _addActions(
-        0.0,
-        previousActions,
-        currentActions,
-      );
+      return _addActions(0.0, previousActions, currentActions);
     }
 
     return false;

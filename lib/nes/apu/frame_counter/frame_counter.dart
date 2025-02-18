@@ -1,7 +1,7 @@
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
-import 'package:nesd/nes/cpu/cpu.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 
 class FrameCounter {
   FrameCounter(this.apu);
@@ -16,11 +16,11 @@ class FrameCounter {
   bool interruptInhibit = false;
 
   FrameCounterState get state => FrameCounterState(
-        counter: counter,
-        fiveStep: fiveStep,
-        interrupt: interrupt,
-        interruptInhibit: interruptInhibit,
-      );
+    counter: counter,
+    fiveStep: fiveStep,
+    interrupt: interrupt,
+    interruptInhibit: interruptInhibit,
+  );
 
   set state(FrameCounterState value) {
     counter = value.counter;

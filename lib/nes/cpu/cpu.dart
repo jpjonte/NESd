@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:typed_data';
@@ -9,6 +10,7 @@ import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/cpu/instruction.dart' as instr show BRK;
 import 'package:nesd/nes/cpu/instruction.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
@@ -16,16 +18,6 @@ import 'package:nesd/nes/event/nes_event.dart';
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
 const irqVector = 0xfffe;
-
-enum IrqSource {
-  apuFrameCounter(1),
-  apuDmc(2),
-  mapper(4);
-
-  const IrqSource(this.bit);
-
-  final int bit;
-}
 
 class CPU {
   CPU({
@@ -69,12 +61,9 @@ class CPU {
 
   int _irq = 0;
 
-  bool _doIrq = false;
-  bool _previousDoIrq = false;
   bool _nmi = false;
-  bool _previousNmi = false;
   bool _doNmi = false;
-  bool _previousDoNmi = false;
+  bool _previousNmi = false;
 
   bool _oamDma = false;
   bool _oamDmaStarted = false;
@@ -92,26 +81,26 @@ class CPU {
   final List<int> callStack = [];
 
   CPUState get state => CPUState(
-        PC: PC,
-        SP: SP,
-        A: A,
-        X: X,
-        Y: Y,
-        P: P,
-        irq: _irq,
-        nmi: _nmi,
-        ram: ram,
-        oamDma: _oamDma,
-        oamDmaStarted: _oamDmaStarted,
-        oamDmaOffset: _oamDmaOffset,
-        oamDmaValue: _oamDmaValue,
-        dmcDma: _dmcDma,
-        dmcDmaRead: _dmcDmaRead,
-        dmcDmaDummy: _dmcDmaDummy,
-        dmcDmaValue: _dmcDmaValue,
-        oamDmaPage: _oamDmaPage,
-        cycles: cycles,
-      );
+    PC: PC,
+    SP: SP,
+    A: A,
+    X: X,
+    Y: Y,
+    P: P,
+    irq: _irq,
+    nmi: _nmi,
+    ram: ram,
+    oamDma: _oamDma,
+    oamDmaStarted: _oamDmaStarted,
+    oamDmaOffset: _oamDmaOffset,
+    oamDmaValue: _oamDmaValue,
+    dmcDma: _dmcDma,
+    dmcDmaRead: _dmcDmaRead,
+    dmcDmaDummy: _dmcDmaDummy,
+    dmcDmaValue: _dmcDmaValue,
+    oamDmaPage: _oamDmaPage,
+    cycles: cycles,
+  );
 
   set state(CPUState state) {
     cycles = state.cycles;
@@ -144,10 +133,10 @@ class CPU {
       bus.cpuRead(address, disableSideEffects: disableSideEffects);
 
   int read16(int address, {bool wrap = false}) => bus.cpuRead16(
-        address,
-        wrap: wrap,
-        disableSideEffects: disableSideEffects,
-      );
+    address,
+    wrap: wrap,
+    disableSideEffects: disableSideEffects,
+  );
 
   void write(int address, int value) => bus.cpuWrite(address, value);
 
@@ -187,12 +176,9 @@ class CPU {
     Y = 0x00;
 
     _irq = 0;
-    _doIrq = false;
-    _previousDoIrq = false;
     _nmi = false;
-    _previousNmi = false;
     _doNmi = false;
-    _previousDoNmi = false;
+    _previousNmi = false;
 
     _oamDma = false;
     _oamDmaStarted = false;
@@ -257,24 +243,17 @@ class CPU {
   }
 
   void _handleInterrupts() {
-    _previousDoNmi = _doNmi;
-
     if (!_previousNmi && _nmi) {
       _doNmi = true;
     }
 
     _previousNmi = _nmi;
 
-    _previousDoIrq = _doIrq;
-
-    _doIrq = _irq > 0 && I == 0;
-
-    if (_previousDoNmi) {
+    if (_doNmi) {
       _doNmi = false;
 
       _handleIrq(nmiVector);
-    } else if (_previousDoIrq) {
-      _irq = 0;
+    } else if (_irq > 0 && I == 0) {
       _handleIrq(irqVector);
     }
   }
@@ -344,11 +323,11 @@ class CPU {
   }
 
   void triggerIrq(IrqSource source) {
-    _irq = _irq.setBit(source.bit, 1);
+    _irq = _irq | (1 << source.bit);
   }
 
   void clearIrq(IrqSource source) {
-    _irq = _irq.setBit(source.bit, 0);
+    _irq = _irq & ~(1 << source.bit);
   }
 
   void triggerNmi() {
@@ -382,8 +361,6 @@ class CPU {
     } else {
       PC = read16(irqVector);
     }
-
-    _previousDoNmi = false;
   }
 
   void _updateCallStack(Operation op) {

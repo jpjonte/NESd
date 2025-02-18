@@ -10,11 +10,11 @@ class SpriteOutput {
   int x = 0;
 
   SpriteOutputState get state => SpriteOutputState(
-        patternLow: patternLow,
-        patternHigh: patternHigh,
-        attribute: attribute,
-        x: x,
-      );
+    patternLow: patternLow,
+    patternHigh: patternHigh,
+    attribute: attribute,
+    x: x,
+  );
 
   set state(SpriteOutputState state) {
     patternLow = state.patternLow;
@@ -83,43 +83,3 @@ class SpriteOutputState {
       ..set(uint8, x);
   }
 }
-
-class _LegacySpriteOutputStateContract extends BinaryContract<SpriteOutputState>
-    implements SpriteOutputState {
-  const _LegacySpriteOutputStateContract()
-      : super(
-          const SpriteOutputState(
-            patternLow: 0,
-            patternHigh: 0,
-            attribute: 0,
-            x: 0,
-          ),
-        );
-
-  @override
-  SpriteOutputState order(SpriteOutputState contract) {
-    return SpriteOutputState(
-      patternLow: contract.patternLow,
-      patternHigh: contract.patternHigh,
-      attribute: contract.attribute,
-      x: contract.x,
-    );
-  }
-
-  @override
-  int get patternLow => type(uint8, (o) => o.patternLow);
-
-  @override
-  int get patternHigh => type(uint8, (o) => o.patternHigh);
-
-  @override
-  int get attribute => type(uint8, (o) => o.attribute);
-
-  @override
-  int get x => type(uint8, (o) => o.x);
-
-  @override
-  void serialize(PayloadWriter writer) => throw UnimplementedError();
-}
-
-const legacySpriteOutputStateContract = _LegacySpriteOutputStateContract();

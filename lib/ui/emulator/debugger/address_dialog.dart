@@ -1,13 +1,11 @@
+// raw strings are used to avoid escaping backslashes in regexes
 // ignore_for_file: unnecessary_raw_strings
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class AddressDialog extends HookWidget {
-  const AddressDialog({
-    required this.title,
-    required this.onSubmitted,
-  });
+  const AddressDialog({required this.title, required this.onSubmitted});
 
   final String title;
   final Function(int) onSubmitted;
@@ -31,7 +29,9 @@ class AddressDialog extends HookWidget {
             text = text.replaceAll(RegExp(r'[^0-9a-fA-F]'), '');
           }
 
-          controller.text = text.toUpperCase();
+          controller
+            ..value = TextEditingValue(text: text.toUpperCase())
+            ..selection = TextSelection.collapsed(offset: text.length);
         },
         decoration: const InputDecoration(
           label: Text('Address'),

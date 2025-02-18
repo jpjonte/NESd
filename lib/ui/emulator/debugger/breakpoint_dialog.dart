@@ -1,3 +1,4 @@
+// raw strings are used to avoid escaping backslashes in regexes
 // ignore_for_file: unnecessary_raw_strings
 
 import 'package:flutter/material.dart';
@@ -10,10 +11,7 @@ import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 
 class BreakpointDialog extends ConsumerWidget {
-  const BreakpointDialog({
-    required this.scrollController,
-    super.key,
-  });
+  const BreakpointDialog({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -71,8 +69,8 @@ class BreakpointRow extends ConsumerWidget {
           children: [
             Checkbox(
               value: breakpoint.enabled,
-              onChanged: (_) =>
-                  debugger.toggleBreakpointEnabled(breakpoint.address),
+              onChanged:
+                  (_) => debugger.toggleBreakpointEnabled(breakpoint.address),
             ),
             const SizedBox(width: 8),
             Text(
@@ -140,9 +138,7 @@ class BreakpointRow extends ConsumerWidget {
 }
 
 class AddBreakpointWidget extends HookConsumerWidget {
-  const AddBreakpointWidget({
-    super.key,
-  });
+  const AddBreakpointWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -175,7 +171,9 @@ class AddBreakpointWidget extends HookConsumerWidget {
                 text = text.replaceAll(RegExp(r'[^0-9a-fA-F]'), '');
               }
 
-              controller.text = text.toUpperCase();
+              controller
+                ..value = TextEditingValue(text: text.toUpperCase())
+                ..selection = TextSelection.collapsed(offset: text.length);
             },
             onSubmitted: (_) => submit(),
             decoration: const InputDecoration(
@@ -184,10 +182,7 @@ class AddBreakpointWidget extends HookConsumerWidget {
             ),
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: submit,
-        ),
+        IconButton(icon: const Icon(Icons.add), onPressed: submit),
       ],
     );
   }

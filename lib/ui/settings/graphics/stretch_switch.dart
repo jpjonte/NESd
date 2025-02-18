@@ -9,8 +9,9 @@ class StretchSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.stretch));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.stretch),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(

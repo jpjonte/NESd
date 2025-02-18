@@ -12,7 +12,8 @@ part of 'input_combination.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 InputCombination _$InputCombinationFromJson(Map<String, dynamic> json) {
   switch (json['type']) {
@@ -29,56 +30,62 @@ mixin _$InputCombination {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )
+    keyboard,
     required TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)
-        gamepad,
-  }) =>
-      throw _privateConstructorUsedError;
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )
+    gamepad,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult? Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
-  }) =>
-      throw _privateConstructorUsedError;
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(KeyboardInputCombination value) keyboard,
     required TResult Function(GamepadInputCombination value) gamepad,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(KeyboardInputCombination value)? keyboard,
     TResult? Function(GamepadInputCombination value)? gamepad,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(KeyboardInputCombination value)? keyboard,
     TResult Function(GamepadInputCombination value)? gamepad,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 
   /// Serializes this InputCombination to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -87,8 +94,9 @@ mixin _$InputCombination {
 /// @nodoc
 abstract class $InputCombinationCopyWith<$Res> {
   factory $InputCombinationCopyWith(
-          InputCombination value, $Res Function(InputCombination) then) =
-      _$InputCombinationCopyWithImpl<$Res, InputCombination>;
+    InputCombination value,
+    $Res Function(InputCombination) then,
+  ) = _$InputCombinationCopyWithImpl<$Res, InputCombination>;
 }
 
 /// @nodoc
@@ -108,13 +116,14 @@ class _$InputCombinationCopyWithImpl<$Res, $Val extends InputCombination>
 /// @nodoc
 abstract class _$$KeyboardInputCombinationImplCopyWith<$Res> {
   factory _$$KeyboardInputCombinationImplCopyWith(
-          _$KeyboardInputCombinationImpl value,
-          $Res Function(_$KeyboardInputCombinationImpl) then) =
-      __$$KeyboardInputCombinationImplCopyWithImpl<$Res>;
+    _$KeyboardInputCombinationImpl value,
+    $Res Function(_$KeyboardInputCombinationImpl) then,
+  ) = __$$KeyboardInputCombinationImplCopyWithImpl<$Res>;
   @useResult
-  $Res call(
-      {@JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-      Set<LogicalKeyboardKey> keys});
+  $Res call({
+    @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+    Set<LogicalKeyboardKey> keys,
+  });
 }
 
 /// @nodoc
@@ -122,23 +131,23 @@ class __$$KeyboardInputCombinationImplCopyWithImpl<$Res>
     extends _$InputCombinationCopyWithImpl<$Res, _$KeyboardInputCombinationImpl>
     implements _$$KeyboardInputCombinationImplCopyWith<$Res> {
   __$$KeyboardInputCombinationImplCopyWithImpl(
-      _$KeyboardInputCombinationImpl _value,
-      $Res Function(_$KeyboardInputCombinationImpl) _then)
-      : super(_value, _then);
+    _$KeyboardInputCombinationImpl _value,
+    $Res Function(_$KeyboardInputCombinationImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of InputCombination
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? keys = null,
-  }) {
-    return _then(_$KeyboardInputCombinationImpl(
-      null == keys
-          ? _value._keys
-          : keys // ignore: cast_nullable_to_non_nullable
-              as Set<LogicalKeyboardKey>,
-    ));
+  $Res call({Object? keys = null}) {
+    return _then(
+      _$KeyboardInputCombinationImpl(
+        null == keys
+            ? _value._keys
+            : keys // ignore: cast_nullable_to_non_nullable
+                as Set<LogicalKeyboardKey>,
+      ),
+    );
   }
 }
 
@@ -146,12 +155,12 @@ class __$$KeyboardInputCombinationImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
   const _$KeyboardInputCombinationImpl(
-      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-      final Set<LogicalKeyboardKey> keys,
-      {final String? $type})
-      : _keys = keys,
-        $type = $type ?? 'keyboard',
-        super._();
+    @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+    final Set<LogicalKeyboardKey> keys, {
+    final String? $type,
+  }) : _keys = keys,
+       $type = $type ?? 'keyboard',
+       super._();
 
   factory _$KeyboardInputCombinationImpl.fromJson(Map<String, dynamic> json) =>
       _$$KeyboardInputCombinationImplFromJson(json);
@@ -192,19 +201,24 @@ class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
   @override
   @pragma('vm:prefer-inline')
   _$$KeyboardInputCombinationImplCopyWith<_$KeyboardInputCombinationImpl>
-      get copyWith => __$$KeyboardInputCombinationImplCopyWithImpl<
-          _$KeyboardInputCombinationImpl>(this, _$identity);
+  get copyWith => __$$KeyboardInputCombinationImplCopyWithImpl<
+    _$KeyboardInputCombinationImpl
+  >(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )
+    keyboard,
     required TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )
+    gamepad,
   }) {
     return keyboard(keys);
   }
@@ -213,12 +227,16 @@ class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult? Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
   }) {
     return keyboard?.call(keys);
   }
@@ -227,12 +245,16 @@ class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
     required TResult orElse(),
   }) {
     if (keyboard != null) {
@@ -274,16 +296,15 @@ class _$KeyboardInputCombinationImpl extends KeyboardInputCombination {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$KeyboardInputCombinationImplToJson(
-      this,
-    );
+    return _$$KeyboardInputCombinationImplToJson(this);
   }
 }
 
 abstract class KeyboardInputCombination extends InputCombination {
   const factory KeyboardInputCombination(
-      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-      final Set<LogicalKeyboardKey> keys) = _$KeyboardInputCombinationImpl;
+    @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+    final Set<LogicalKeyboardKey> keys,
+  ) = _$KeyboardInputCombinationImpl;
   const KeyboardInputCombination._() : super._();
 
   factory KeyboardInputCombination.fromJson(Map<String, dynamic> json) =
@@ -296,15 +317,15 @@ abstract class KeyboardInputCombination extends InputCombination {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$KeyboardInputCombinationImplCopyWith<_$KeyboardInputCombinationImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class _$$GamepadInputCombinationImplCopyWith<$Res> {
   factory _$$GamepadInputCombinationImplCopyWith(
-          _$GamepadInputCombinationImpl value,
-          $Res Function(_$GamepadInputCombinationImpl) then) =
-      __$$GamepadInputCombinationImplCopyWithImpl<$Res>;
+    _$GamepadInputCombinationImpl value,
+    $Res Function(_$GamepadInputCombinationImpl) then,
+  ) = __$$GamepadInputCombinationImplCopyWithImpl<$Res>;
   @useResult
   $Res call({String gamepadId, Set<GamepadInput> inputs, String gamepadName});
 }
@@ -314,9 +335,9 @@ class __$$GamepadInputCombinationImplCopyWithImpl<$Res>
     extends _$InputCombinationCopyWithImpl<$Res, _$GamepadInputCombinationImpl>
     implements _$$GamepadInputCombinationImplCopyWith<$Res> {
   __$$GamepadInputCombinationImplCopyWithImpl(
-      _$GamepadInputCombinationImpl _value,
-      $Res Function(_$GamepadInputCombinationImpl) _then)
-      : super(_value, _then);
+    _$GamepadInputCombinationImpl _value,
+    $Res Function(_$GamepadInputCombinationImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of InputCombination
   /// with the given fields replaced by the non-null parameter values.
@@ -327,34 +348,39 @@ class __$$GamepadInputCombinationImplCopyWithImpl<$Res>
     Object? inputs = null,
     Object? gamepadName = null,
   }) {
-    return _then(_$GamepadInputCombinationImpl(
-      gamepadId: null == gamepadId
-          ? _value.gamepadId
-          : gamepadId // ignore: cast_nullable_to_non_nullable
-              as String,
-      inputs: null == inputs
-          ? _value._inputs
-          : inputs // ignore: cast_nullable_to_non_nullable
-              as Set<GamepadInput>,
-      gamepadName: null == gamepadName
-          ? _value.gamepadName
-          : gamepadName // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$GamepadInputCombinationImpl(
+        gamepadId:
+            null == gamepadId
+                ? _value.gamepadId
+                : gamepadId // ignore: cast_nullable_to_non_nullable
+                    as String,
+        inputs:
+            null == inputs
+                ? _value._inputs
+                : inputs // ignore: cast_nullable_to_non_nullable
+                    as Set<GamepadInput>,
+        gamepadName:
+            null == gamepadName
+                ? _value.gamepadName
+                : gamepadName // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$GamepadInputCombinationImpl extends GamepadInputCombination {
-  const _$GamepadInputCombinationImpl(
-      {required this.gamepadId,
-      required final Set<GamepadInput> inputs,
-      this.gamepadName = 'Unknown',
-      final String? $type})
-      : _inputs = inputs,
-        $type = $type ?? 'gamepad',
-        super._();
+  const _$GamepadInputCombinationImpl({
+    required this.gamepadId,
+    required final Set<GamepadInput> inputs,
+    this.gamepadName = 'Unknown',
+    final String? $type,
+  }) : _inputs = inputs,
+       $type = $type ?? 'gamepad',
+       super._();
 
   factory _$GamepadInputCombinationImpl.fromJson(Map<String, dynamic> json) =>
       _$$GamepadInputCombinationImplFromJson(json);
@@ -395,8 +421,12 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, gamepadId,
-      const DeepCollectionEquality().hash(_inputs), gamepadName);
+  int get hashCode => Object.hash(
+    runtimeType,
+    gamepadId,
+    const DeepCollectionEquality().hash(_inputs),
+    gamepadName,
+  );
 
   /// Create a copy of InputCombination
   /// with the given fields replaced by the non-null parameter values.
@@ -404,19 +434,24 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
   @override
   @pragma('vm:prefer-inline')
   _$$GamepadInputCombinationImplCopyWith<_$GamepadInputCombinationImpl>
-      get copyWith => __$$GamepadInputCombinationImplCopyWithImpl<
-          _$GamepadInputCombinationImpl>(this, _$identity);
+  get copyWith => __$$GamepadInputCombinationImplCopyWithImpl<
+    _$GamepadInputCombinationImpl
+  >(this, _$identity);
 
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )
+    keyboard,
     required TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )
+    gamepad,
   }) {
     return gamepad(gamepadId, inputs, gamepadName);
   }
@@ -425,12 +460,16 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult? Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
   }) {
     return gamepad?.call(gamepadId, inputs, gamepadName);
   }
@@ -439,12 +478,16 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(
-            @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
-            Set<LogicalKeyboardKey> keys)?
-        keyboard,
+      @JsonKey(fromJson: keysFromJson, toJson: keysToJson)
+      Set<LogicalKeyboardKey> keys,
+    )?
+    keyboard,
     TResult Function(
-            String gamepadId, Set<GamepadInput> inputs, String gamepadName)?
-        gamepad,
+      String gamepadId,
+      Set<GamepadInput> inputs,
+      String gamepadName,
+    )?
+    gamepad,
     required TResult orElse(),
   }) {
     if (gamepad != null) {
@@ -486,17 +529,16 @@ class _$GamepadInputCombinationImpl extends GamepadInputCombination {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$GamepadInputCombinationImplToJson(
-      this,
-    );
+    return _$$GamepadInputCombinationImplToJson(this);
   }
 }
 
 abstract class GamepadInputCombination extends InputCombination {
-  const factory GamepadInputCombination(
-      {required final String gamepadId,
-      required final Set<GamepadInput> inputs,
-      final String gamepadName}) = _$GamepadInputCombinationImpl;
+  const factory GamepadInputCombination({
+    required final String gamepadId,
+    required final Set<GamepadInput> inputs,
+    final String gamepadName,
+  }) = _$GamepadInputCombinationImpl;
   const GamepadInputCombination._() : super._();
 
   factory GamepadInputCombination.fromJson(Map<String, dynamic> json) =
@@ -510,5 +552,5 @@ abstract class GamepadInputCombination extends InputCombination {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$GamepadInputCombinationImplCopyWith<_$GamepadInputCombinationImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  get copyWith => throw _privateConstructorUsedError;
 }

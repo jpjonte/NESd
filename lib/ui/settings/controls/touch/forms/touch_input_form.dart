@@ -37,10 +37,7 @@ class TouchInputForm extends ConsumerWidget {
             children: [
               const Text(
                 'Edit Input',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               IconButton(
                 onPressed: () => controller.close(),
@@ -100,8 +97,8 @@ class TouchInputForm extends ConsumerWidget {
             child: Slider(
               value: config.x,
               min: -1,
-              onChanged: (value) =>
-                  controller.update(config.copyWith(x: value)),
+              onChanged:
+                  (value) => controller.update(config.copyWith(x: value)),
             ),
           ),
           FormRow(
@@ -109,13 +106,14 @@ class TouchInputForm extends ConsumerWidget {
             child: Slider(
               value: config.y,
               min: -1,
-              onChanged: (value) =>
-                  controller.update(config.copyWith(y: value)),
+              onChanged:
+                  (value) => controller.update(config.copyWith(y: value)),
             ),
           ),
           switch (config) {
-            final RectangleButtonConfig config =>
-              RectangleButtonForm(config: config),
+            final RectangleButtonConfig config => RectangleButtonForm(
+              config: config,
+            ),
             final CircleButtonConfig config => CircleButtonForm(config: config),
             final JoyStickConfig config => JoyStickForm(config: config),
             final DPadConfig config => DPadForm(config: config),
@@ -149,102 +147,102 @@ class TouchInputForm extends ConsumerWidget {
     return switch (config) {
       final RectangleButtonConfig config => config,
       final CircleButtonConfig config => RectangleButtonConfig(
-          x: config.x,
-          y: config.y,
-          width: config.size,
-          height: config.size,
-          label: config.label,
-          action: config.action,
-        ),
+        x: config.x,
+        y: config.y,
+        width: config.size,
+        height: config.size,
+        label: config.label,
+        action: config.action,
+      ),
       final JoyStickConfig config => RectangleButtonConfig(
-          x: config.x,
-          y: config.y,
-          width: config.size,
-          height: config.size,
-        ),
+        x: config.x,
+        y: config.y,
+        width: config.size,
+        height: config.size,
+      ),
       final DPadConfig config => RectangleButtonConfig(
-          x: config.x,
-          y: config.y,
-          width: config.size,
-          height: config.size,
-        ),
+        x: config.x,
+        y: config.y,
+        width: config.size,
+        height: config.size,
+      ),
     };
   }
 
   CircleButtonConfig _toCircleButton(TouchInputConfig config) {
     return switch (config) {
       final RectangleButtonConfig config => CircleButtonConfig(
-          x: config.x,
-          y: config.y,
-          size: min(config.width, config.height),
-          label: config.label,
-          action: config.action,
-        ),
+        x: config.x,
+        y: config.y,
+        size: min(config.width, config.height),
+        label: config.label,
+        action: config.action,
+      ),
       final CircleButtonConfig config => config,
       final JoyStickConfig config => CircleButtonConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+      ),
       final DPadConfig config => CircleButtonConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+      ),
     };
   }
 
   JoyStickConfig _toJoyStick(TouchInputConfig config) {
     return switch (config) {
       final RectangleButtonConfig config => JoyStickConfig(
-          x: config.x,
-          y: config.y,
-          size: min(config.width, config.height),
-          innerSize: min(config.width, config.height) / 2,
-        ),
+        x: config.x,
+        y: config.y,
+        size: min(config.width, config.height),
+        innerSize: min(config.width, config.height) / 2,
+      ),
       final CircleButtonConfig config => JoyStickConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-          innerSize: config.size / 2,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+        innerSize: config.size / 2,
+      ),
       final JoyStickConfig config => config,
       final DPadConfig config => JoyStickConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-          innerSize: config.size / 2,
-          deadZone: config.deadZone,
-          upAction: config.upAction,
-          downAction: config.downAction,
-          leftAction: config.leftAction,
-          rightAction: config.rightAction,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+        innerSize: config.size / 2,
+        deadZone: config.deadZone,
+        upAction: config.upAction,
+        downAction: config.downAction,
+        leftAction: config.leftAction,
+        rightAction: config.rightAction,
+      ),
     };
   }
 
   DPadConfig _toDPad(TouchInputConfig config) {
     return switch (config) {
       final RectangleButtonConfig config => DPadConfig(
-          x: config.x,
-          y: config.y,
-          size: min(config.width, config.height),
-        ),
+        x: config.x,
+        y: config.y,
+        size: min(config.width, config.height),
+      ),
       final CircleButtonConfig config => DPadConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+      ),
       final JoyStickConfig config => DPadConfig(
-          x: config.x,
-          y: config.y,
-          size: config.size,
-          deadZone: config.deadZone,
-          upAction: config.upAction,
-          downAction: config.downAction,
-          leftAction: config.leftAction,
-          rightAction: config.rightAction,
-        ),
+        x: config.x,
+        y: config.y,
+        size: config.size,
+        deadZone: config.deadZone,
+        upAction: config.upAction,
+        downAction: config.downAction,
+        leftAction: config.leftAction,
+        rightAction: config.rightAction,
+      ),
       final DPadConfig config => config,
     };
   }

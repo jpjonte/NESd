@@ -10,8 +10,9 @@ class VolumeSlider extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.volume));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.volume),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return Actions(
@@ -28,14 +29,15 @@ class VolumeSlider extends ConsumerWidget {
           title: const Text('Volume'),
           onTap: () => controller.volume = 0.5,
           child: LayoutBuilder(
-            builder: (_, constraints) => SizedBox(
-              width: constraints.maxWidth,
-              child: Slider(
-                value: setting,
-                onChanged: (value) => controller.volume = value,
-                label: 'Volume',
-              ),
-            ),
+            builder:
+                (_, constraints) => SizedBox(
+                  width: constraints.maxWidth,
+                  child: Slider(
+                    value: setting,
+                    onChanged: (value) => controller.volume = value,
+                    label: 'Volume',
+                  ),
+                ),
           ),
         ),
       ),

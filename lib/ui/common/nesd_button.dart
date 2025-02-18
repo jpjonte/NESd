@@ -20,18 +20,19 @@ class NesdButton extends StatelessWidget {
     return FocusOnHover(
       child: SizedBox(
         width: 200,
-        child: icon != null
-            ? FilledButton.icon(
-                autofocus: autofocus,
-                onPressed: onPressed,
-                icon: icon,
-                label: child,
-              )
-            : FilledButton(
-                autofocus: autofocus,
-                onPressed: onPressed,
-                child: child,
-              ),
+        child:
+            icon != null
+                ? FilledButton.icon(
+                  autofocus: autofocus,
+                  onPressed: onPressed,
+                  icon: icon,
+                  label: child,
+                )
+                : FilledButton(
+                  autofocus: autofocus,
+                  onPressed: onPressed,
+                  child: child,
+                ),
       ),
     );
   }

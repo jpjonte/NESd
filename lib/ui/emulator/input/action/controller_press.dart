@@ -1,6 +1,6 @@
-part of '../action.dart';
+part of '../input_action.dart';
 
-class ControllerPress extends NesAction {
+class ControllerPress extends InputAction {
   const ControllerPress(
     this.controller,
     this.button, {

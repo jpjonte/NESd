@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -17,20 +17,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
-typedef BindingMap = Map<NesAction, List<InputCombination?>>;
+typedef BindingMap = Map<InputAction, List<InputCombination?>>;
 
-BindingMap bindingsFromJson(
-  dynamic json,
-) {
+// ignore: avoid-dynamic
+BindingMap bindingsFromJson(dynamic json) {
   if (json is! Map<String, dynamic>) {
     return defaultBindings;
   }
 
-  final bindings = <NesAction, List<InputCombination?>>{};
+  final bindings = <InputAction, List<InputCombination?>>{};
 
   for (final MapEntry(key: code, :value) in json.entries) {
     try {
-      final action = NesAction.fromCode(code);
+      final action = InputAction.fromCode(code);
 
       if (action == null) {
         continue;
@@ -39,6 +38,8 @@ BindingMap bindingsFromJson(
       final inputs = inputsFromJson(value);
 
       bindings[action] = inputs;
+
+      // catch errors to ignore invalid actions
       // ignore: avoid_catching_errors
     } on StateError {
       // ignore invalid actions
@@ -48,6 +49,7 @@ BindingMap bindingsFromJson(
   return bindings;
 }
 
+// ignore: avoid-dynamic
 List<InputCombination?> inputsFromJson(dynamic value) {
   if (value is! List) {
     return [
@@ -60,9 +62,10 @@ List<InputCombination?> inputsFromJson(dynamic value) {
 
   return value
       .map(
-        (e) => e != null
-            ? InputCombination.fromJson(e as Map<String, dynamic>)
-            : null,
+        (e) =>
+            e != null
+                ? InputCombination.fromJson(e as Map<String, dynamic>)
+                : null,
       )
       .toList();
 }
@@ -77,6 +80,7 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   };
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultPortraitConfig;
@@ -85,6 +89,7 @@ List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultLandscapeConfig;
@@ -93,11 +98,10 @@ List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
+// ignore: avoid-dynamic
 List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
   return json
-      .map(
-        (e) => TouchInputConfig.fromJson(e as Map<String, dynamic>),
-      )
+      .map((e) => TouchInputConfig.fromJson(e as Map<String, dynamic>))
       .whereType<TouchInputConfig>()
       .toList();
 }
@@ -118,7 +122,7 @@ class Settings with _$Settings {
     @Default(false) bool autoLoad,
     @Default({})
     @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
-    Map<NesAction, List<InputCombination?>> bindings,
+    Map<InputAction, List<InputCombination?>> bindings,
     @Default(null) String? lastRomPath,
     @Default([]) List<String> recentRomPaths,
     @Default([]) List<RomInfo> recentRoms,
@@ -224,9 +228,10 @@ class SettingsController extends _$SettingsController {
   List<RomInfo> get recentRoms => state.recentRoms;
 
   void addRecentRom(RomInfo rom) {
-    final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
-      ..insert(0, rom);
+    final recent =
+        state.recentRoms.toList()
+          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
+          ..insert(0, rom);
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -236,8 +241,9 @@ class SettingsController extends _$SettingsController {
   }
 
   void removeRecentRom(RomInfo rom) {
-    final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
+    final recent =
+        state.recentRoms.toList()
+          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -254,7 +260,7 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(bindings: bindings));
   }
 
-  void updateBinding(NesAction action, int index, InputCombination input) {
+  void updateBinding(InputAction action, int index, InputCombination input) {
     final bindings = state.bindings[action] ?? <InputCombination?>[];
 
     if (index < bindings.length) {
@@ -268,17 +274,10 @@ class SettingsController extends _$SettingsController {
         ..add(input);
     }
 
-    _update(
-      state.copyWith(
-        bindings: {
-          ...state.bindings,
-          action: bindings,
-        },
-      ),
-    );
+    _update(state.copyWith(bindings: {...state.bindings, action: bindings}));
   }
 
-  void clearBinding(NesAction action, int index) {
+  void clearBinding(InputAction action, int index) {
     final bindings = state.bindings[action] ?? [];
 
     if (index < bindings.length - 1) {
@@ -362,20 +361,14 @@ class SettingsController extends _$SettingsController {
     updateTouchInputConfigs(orientation, newConfigs);
   }
 
-  void addTouchInputConfig(
-    Orientation orientation,
-    TouchInputConfig config,
-  ) {
+  void addTouchInputConfig(Orientation orientation, TouchInputConfig config) {
     updateTouchInputConfigs(orientation, [
       ...touchInputConfigsForOrientation(orientation),
       config,
     ]);
   }
 
-  void removeTouchInputConfig(
-    Orientation orientation,
-    int index,
-  ) {
+  void removeTouchInputConfig(Orientation orientation, int index) {
     updateTouchInputConfigs(
       orientation,
       List.of(touchInputConfigsForOrientation(orientation))..removeAt(index),
@@ -401,14 +394,14 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<void> resetTouchInputConfigs(Orientation orientation) async {
-    _update(
-      switch (orientation) {
-        Orientation.portrait =>
-          state.copyWith(narrowTouchInputConfig: defaultPortraitConfig),
-        Orientation.landscape =>
-          state.copyWith(wideTouchInputConfig: defaultLandscapeConfig),
-      },
-    );
+    _update(switch (orientation) {
+      Orientation.portrait => state.copyWith(
+        narrowTouchInputConfig: defaultPortraitConfig,
+      ),
+      Orientation.landscape => state.copyWith(
+        wideTouchInputConfig: defaultLandscapeConfig,
+      ),
+    });
   }
 
   Map<String, List<Breakpoint>> get breakpoints => state.breakpoints;
@@ -419,12 +412,7 @@ class SettingsController extends _$SettingsController {
 
   void setBreakpoints(String hash, List<Breakpoint> breakpoints) {
     _update(
-      state.copyWith(
-        breakpoints: {
-          ...state.breakpoints,
-          hash: breakpoints,
-        },
-      ),
+      state.copyWith(breakpoints: {...state.breakpoints, hash: breakpoints}),
     );
   }
 
@@ -458,11 +446,7 @@ class SettingsController extends _$SettingsController {
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {
     return [
       for (final path in recentRomPaths)
-        RomInfo(
-          name: p.basename(path),
-          path: path,
-          hash: '',
-        ),
+        RomInfo(name: p.basename(path), path: path, hash: ''),
     ];
   }
 }

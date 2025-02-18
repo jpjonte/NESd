@@ -39,29 +39,6 @@ class Namco108State extends MapperState {
     );
   }
 
-  factory Namco108State.legacyFromByteData(ByteData data, int offset) {
-    final version = data.getUint8(offset);
-
-    return switch (version) {
-      0 => Namco108State.version0(data, offset + 1),
-      _ => throw InvalidSerializationVersion('Namco108', version),
-    };
-  }
-
-  factory Namco108State.version0(ByteData data, int offset) {
-    return Namco108State(
-      register: data.getUint8(offset),
-      r0: data.getUint8(offset + 1),
-      r1: data.getUint8(offset + 2),
-      r2: data.getUint8(offset + 3),
-      r3: data.getUint8(offset + 4),
-      r4: data.getUint8(offset + 5),
-      r5: data.getUint8(offset + 6),
-      r6: data.getUint8(offset + 7),
-      r7: data.getUint8(offset + 8),
-    );
-  }
-
   final int register;
 
   final int r0;

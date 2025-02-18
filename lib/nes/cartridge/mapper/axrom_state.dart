@@ -9,13 +9,6 @@ class AXROMState extends MapperState {
     super.id = 7,
   });
 
-  factory AXROMState.legacyFromByteData(ByteData data, int offset) {
-    return AXROMState(
-      prgBank: data.getUint8(offset),
-      vramBank: data.getUint8(offset + 1),
-    );
-  }
-
   factory AXROMState.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
 
@@ -26,10 +19,7 @@ class AXROMState extends MapperState {
   }
 
   factory AXROMState.version0(PayloadReader reader) {
-    return AXROMState(
-      prgBank: reader.get(uint8),
-      vramBank: reader.get(uint8),
-    );
+    return AXROMState(prgBank: reader.get(uint8), vramBank: reader.get(uint8));
   }
 
   final int prgBank;
@@ -54,31 +44,25 @@ class _AXROMState extends PayloadType<AXROMState> {
   const _AXROMState();
 
   @override
-  int length(AXROMState value) => 3;
-
-  @override
-  AXROMState get(ByteData data, int offset) {
-    final version = data.getUint8(offset);
+  AXROMState get(ByteReader reader, [Endian? endian]) {
+    final version = reader.uint8();
 
     return switch (version) {
-      0 => _version0(data, offset + 1),
+      0 => _version0(reader),
       _ => throw InvalidSerializationVersion('AXROM', version),
     };
   }
 
   @override
-  void set(AXROMState value, ByteData data, int offset) {
-    data
-      ..setUint8(offset, 0) // version
-      ..setUint8(offset, value.prgBank)
-      ..setUint8(offset + 1, value.vramBank);
+  void set(ByteWriter writer, AXROMState value, [Endian? endian]) {
+    writer
+      ..uint8(0) // version
+      ..uint8(value.prgBank)
+      ..uint8(value.vramBank);
   }
 
-  AXROMState _version0(ByteData data, int offset) {
-    return AXROMState(
-      prgBank: data.getUint8(offset),
-      vramBank: data.getUint8(offset + 1),
-    );
+  AXROMState _version0(ByteReader reader) {
+    return AXROMState(prgBank: reader.uint8(), vramBank: reader.uint8());
   }
 }
 

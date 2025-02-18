@@ -9,8 +9,9 @@ class CartridgeSwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting = ref
-        .watch(settingsControllerProvider.select((s) => s.showCartridgeInfo));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.showCartridgeInfo),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(

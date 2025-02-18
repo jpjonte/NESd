@@ -2,21 +2,18 @@ import 'package:flutter/material.dart';
 
 const nesdRedPrimary = 0xffdd2222;
 
-const nesdRed = MaterialColor(
-  nesdRedPrimary,
-  {
-    50: Color.fromARGB(0xff, 0xff, 0xee, 0xee),
-    100: Color.fromARGB(0xff, 0xff, 0xcc, 0xcc),
-    200: Color.fromARGB(0xff, 0xff, 0x99, 0x99),
-    300: Color.fromARGB(0xff, 0xff, 0x66, 0x66),
-    400: Color.fromARGB(0xff, 0xff, 0x33, 0x33),
-    500: Color(nesdRedPrimary),
-    600: Color.fromARGB(0xff, 0xcc, 0x00, 0x00),
-    700: Color.fromARGB(0xff, 0x88, 0x00, 0x00),
-    800: Color.fromARGB(0xff, 0x44, 0x00, 0x00),
-    900: Color.fromARGB(0xff, 0x22, 0x00, 0x00),
-  },
-);
+const nesdRed = MaterialColor(nesdRedPrimary, {
+  50: Color.fromARGB(0xff, 0xff, 0xee, 0xee),
+  100: Color.fromARGB(0xff, 0xff, 0xcc, 0xcc),
+  200: Color.fromARGB(0xff, 0xff, 0x99, 0x99),
+  300: Color.fromARGB(0xff, 0xff, 0x66, 0x66),
+  400: Color.fromARGB(0xff, 0xff, 0x33, 0x33),
+  500: Color(nesdRedPrimary),
+  600: Color.fromARGB(0xff, 0xcc, 0x00, 0x00),
+  700: Color.fromARGB(0xff, 0x88, 0x00, 0x00),
+  800: Color.fromARGB(0xff, 0x44, 0x00, 0x00),
+  900: Color.fromARGB(0xff, 0x22, 0x00, 0x00),
+});
 
 const textTheme = TextTheme(
   bodyMedium: TextStyle(fontSize: 12.0),
@@ -34,25 +31,21 @@ final filledButtonTheme = FilledButtonThemeData(
     overlayColor: WidgetStateProperty.resolveWith((states) {
       return nesdRed[500];
     }),
-    backgroundColor: WidgetStateProperty.resolveWith(
-      (states) {
-        if (states.contains(WidgetState.disabled)) {
-          return Colors.grey[900];
-        }
+    backgroundColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.disabled)) {
+        return Colors.grey[900];
+      }
 
-        if (states.contains(WidgetState.pressed)) {
-          return nesdRed[600];
-        }
+      if (states.contains(WidgetState.pressed)) {
+        return nesdRed[600];
+      }
 
-        return nesdRed[800];
-      },
-    ),
+      return nesdRed[800];
+    }),
     foregroundColor: WidgetStateProperty.all(Colors.white),
     shape: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.focused)) {
-        return const StadiumBorder(
-          side: BorderSide(color: Colors.white),
-        );
+        return const StadiumBorder(side: BorderSide(color: Colors.white));
       }
 
       return const StadiumBorder();
@@ -103,8 +96,6 @@ final nesdThemeDark = ThemeData(
     primary: nesdRed,
     onPrimary: Colors.white,
     surface: Colors.black,
-    // ignore: deprecated_member_use
-    background: Colors.black,
     surfaceContainer: surfaceContainerColor,
   ),
   canvasColor: canvasColor,

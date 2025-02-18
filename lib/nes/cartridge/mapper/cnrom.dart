@@ -7,10 +7,10 @@ class CNROM extends Mapper {
   int chrBank = 0;
 
   @override
-  int prgBankSize = 0x8000;
+  int prgRomPageSize = 0x8000;
 
   @override
-  int chrBankSize = 0x2000;
+  int chrPageSize = 0x2000;
 
   @override
   CNROMState get state => CNROMState(chrBank: chrBank);
@@ -27,19 +27,27 @@ class CNROM extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     chrBank = 0;
 
     _updateChrPages();
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
+    if (address < 0x8000) {
+      return;
+    }
+
     chrBank = value & 0x0f;
 
     _updateChrPages();
   }
 
   void _updateChrPages() {
-    setChrPage(0, chrBank);
+    mapPpu(0x0000, 0x1fff, chrBank);
   }
 }

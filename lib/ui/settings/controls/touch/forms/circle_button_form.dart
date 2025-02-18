@@ -6,10 +6,7 @@ import 'package:nesd/ui/settings/controls/touch/forms/form_row.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
 
 class CircleButtonForm extends ConsumerWidget {
-  const CircleButtonForm({
-    required this.config,
-    super.key,
-  });
+  const CircleButtonForm({required this.config, super.key});
 
   final CircleButtonConfig config;
 
@@ -30,13 +27,13 @@ class CircleButtonForm extends ConsumerWidget {
         TextFieldRow(
           label: 'Label',
           value: config.label,
-          onChanged: (label) =>
-              controller.update(config.copyWith(label: label)),
+          onChanged:
+              (label) => controller.update(config.copyWith(label: label)),
         ),
         ActionDropDownRow(
           action: config.action,
-          onChanged: (action) =>
-              controller.update(config.copyWith(action: action)),
+          onChanged:
+              (action) => controller.update(config.copyWith(action: action)),
         ),
       ],
     );

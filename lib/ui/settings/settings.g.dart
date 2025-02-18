@@ -15,36 +15,44 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
       showCartridgeInfo: json['showCartridgeInfo'] as bool? ?? false,
       showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
       showDebugger: json['showDebugger'] as bool? ?? false,
-      scaling: $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
+      scaling:
+          $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
           Scaling.autoInteger,
       autoSave: json['autoSave'] as bool? ?? true,
       autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
       autoLoad: json['autoLoad'] as bool? ?? false,
-      bindings: json['bindings'] == null
-          ? const {}
-          : bindingsFromJson(json['bindings']),
+      bindings:
+          json['bindings'] == null
+              ? const {}
+              : bindingsFromJson(json['bindings']),
       lastRomPath: json['lastRomPath'] as String? ?? null,
-      recentRomPaths: (json['recentRomPaths'] as List<dynamic>?)
+      recentRomPaths:
+          (json['recentRomPaths'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      recentRoms: (json['recentRoms'] as List<dynamic>?)
+      recentRoms:
+          (json['recentRoms'] as List<dynamic>?)
               ?.map((e) => RomInfo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       showTouchControls: json['showTouchControls'] as bool? ?? false,
-      narrowTouchInputConfig: json['narrowTouchInputConfig'] == null
-          ? const []
-          : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
-      wideTouchInputConfig: json['wideTouchInputConfig'] == null
-          ? const []
-          : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
-      breakpoints: (json['breakpoints'] as Map<String, dynamic>?)?.map(
+      narrowTouchInputConfig:
+          json['narrowTouchInputConfig'] == null
+              ? const []
+              : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
+      wideTouchInputConfig:
+          json['wideTouchInputConfig'] == null
+              ? const []
+              : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
+      breakpoints:
+          (json['breakpoints'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(
-                k,
-                (e as List<dynamic>)
-                    .map((e) => Breakpoint.fromJson(e as Map<String, dynamic>))
-                    .toList()),
+              k,
+              (e as List<dynamic>)
+                  .map((e) => Breakpoint.fromJson(e as Map<String, dynamic>))
+                  .toList(),
+            ),
           ) ??
           const {},
     );
@@ -86,21 +94,22 @@ const _$ScalingEnumMap = {
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'033265f20dc7edde0270b04b1ecac3de2b07c12b';
+    r'86370491fddf62f473550302f356801862c334fb';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)
 final settingsControllerProvider =
     AutoDisposeNotifierProvider<SettingsController, Settings>.internal(
-  SettingsController.new,
-  name: r'settingsControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$settingsControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      SettingsController.new,
+      name: r'settingsControllerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$settingsControllerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$SettingsController = AutoDisposeNotifier<Settings>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

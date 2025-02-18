@@ -12,24 +12,22 @@ class PlaceholderDisplay extends HookWidget {
     final imageState = useState<ui.Image?>(null);
     final imageConfiguration = createLocalImageConfiguration(context);
 
-    useEffect(
-      () {
-        const assetImage = AssetImage('assets/placeholder.png');
+    useEffect(() {
+      const assetImage = AssetImage('assets/placeholder.png');
 
-        final imageStream = assetImage.resolve(imageConfiguration);
+      final imageStream = assetImage.resolve(imageConfiguration);
 
-        final listener =
-            ImageStreamListener((info, _) => imageState.value = info.image);
+      final listener = ImageStreamListener(
+        (info, _) => imageState.value = info.image,
+      );
 
-        imageStream.addListener(listener);
+      imageStream.addListener(listener);
 
-        return () {
-          imageState.value?.dispose();
-          imageStream.removeListener(listener);
-        };
-      },
-      [],
-    );
+      return () {
+        imageState.value?.dispose();
+        imageStream.removeListener(listener);
+      };
+    }, []);
 
     final image = imageState.value;
 

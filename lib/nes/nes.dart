@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:async';
 
 import 'package:binarize/binarize.dart';
@@ -18,7 +16,7 @@ import 'package:nesd/util/wait.dart';
 
 class NES {
   NES({required Cartridge cartridge, required this.eventBus})
-      : bus = Bus(cartridge) {
+    : bus = Bus(cartridge) {
     bus
       ..cpu = cpu
       ..ppu = ppu
@@ -51,26 +49,7 @@ class NES {
 
   List<Breakpoint> get breakpoints => _breakpoints;
 
-  NESState get state => NESState(
-        cpuState: cpu.state,
-        ppuState: ppu.state,
-        apuState: apu.state,
-        cartridgeState: bus.cartridge.state,
-        cycles: cycles,
-      );
-
-  set state(NESState state) {
-    cpu.state = state.cpuState;
-    ppu.state = state.ppuState;
-    apu.state = state.apuState;
-    bus.cartridge.state = state.cartridgeState;
-    cycles = state.cycles;
-
-    _frameStart = DateTime.now();
-    _sleepBudget = Duration.zero;
-  }
-
-  void setBreakpoints(List<Breakpoint> breakpoints) {
+  set breakpoints(List<Breakpoint> breakpoints) {
     _breakpoints
       ..clear()
       ..addAll(breakpoints);
@@ -82,6 +61,25 @@ class NES {
 
   void removeBreakpoint(int address) {
     _breakpoints.removeWhere((b) => b.address == address);
+  }
+
+  NESState get state => NESState(
+    cpuState: cpu.state,
+    ppuState: ppu.state,
+    apuState: apu.state,
+    cartridgeState: bus.cartridge.state,
+    cycles: cycles,
+  );
+
+  set state(NESState state) {
+    cpu.state = state.cpuState;
+    ppu.state = state.ppuState;
+    apu.state = state.apuState;
+    bus.cartridge.state = state.cartridgeState;
+    cycles = state.cycles;
+
+    _frameStart = DateTime.now();
+    _sleepBudget = Duration.zero;
   }
 
   Uint8List? save() => bus.cartridge.save();
@@ -242,6 +240,10 @@ class NES {
 
     cycles += cpuCycles * 12;
 
+    for (var i = 0; i < cpuCycles; i++) {
+      bus.cartridge.step();
+    }
+
     final ppuDiff = cycles - ppu.cycles * 4;
 
     for (var i = 0; i < ppuDiff; i++) {
@@ -255,9 +257,10 @@ class NES {
     }
 
     if (_breakpoints.isNotEmpty) {
-      final breakpoint = _breakpoints
-          .where((b) => b.enabled && b.address == cpu.PC)
-          .firstOrNull;
+      final breakpoint =
+          _breakpoints
+              .where((b) => b.enabled && b.address == cpu.PC)
+              .firstOrNull;
 
       if (breakpoint != null) {
         pause();

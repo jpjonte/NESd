@@ -28,17 +28,17 @@ class PulseChannel {
   int timerPeriod = 0;
 
   PulseChannelState get state => PulseChannelState(
-        enabled: enabled,
-        duty: duty,
-        constantVolume: constantVolume,
-        volume: volume,
-        dutyIndex: dutyIndex,
-        timer: timer,
-        timerPeriod: timerPeriod,
-        envelopeState: envelope.state,
-        lengthCounterState: lengthCounter.state,
-        sweepState: sweep.state,
-      );
+    enabled: enabled,
+    duty: duty,
+    constantVolume: constantVolume,
+    volume: volume,
+    dutyIndex: dutyIndex,
+    timer: timer,
+    timerPeriod: timerPeriod,
+    envelopeState: envelope.state,
+    lengthCounterState: lengthCounter.state,
+    sweepState: sweep.state,
+  );
 
   set state(PulseChannelState state) {
     enabled = state.enabled;

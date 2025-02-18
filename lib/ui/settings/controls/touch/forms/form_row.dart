@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 class FormRow extends StatelessWidget {
-  const FormRow({
-    required this.label,
-    required this.child,
-    super.key,
-  });
+  const FormRow({required this.label, required this.child, super.key});
 
   final String label;
   final Widget child;
@@ -104,12 +100,7 @@ class SliderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormRow(
       label: label,
-      child: Slider(
-        value: value,
-        min: min,
-        max: max,
-        onChanged: onChanged,
-      ),
+      child: Slider(value: value, min: min, max: max, onChanged: onChanged),
     );
   }
 }
@@ -123,8 +114,8 @@ class ActionDropDownRow extends StatelessWidget {
   });
 
   final String? label;
-  final NesAction? action;
-  final void Function(NesAction?) onChanged;
+  final InputAction? action;
+  final void Function(InputAction?) onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +127,7 @@ class ActionDropDownRow extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             border: OutlineInputBorder(),
           ),
-          child: DropdownButton<NesAction?>(
+          child: DropdownButton<InputAction?>(
             value: action,
             onChanged: onChanged,
             borderRadius: BorderRadius.circular(8),
@@ -144,10 +135,7 @@ class ActionDropDownRow extends StatelessWidget {
             items: [
               const DropdownMenuItem(child: Text('None')),
               for (final action in allActions)
-                DropdownMenuItem(
-                  value: action,
-                  child: Text(action.title),
-                ),
+                DropdownMenuItem(value: action, child: Text(action.title)),
             ],
           ),
         ),

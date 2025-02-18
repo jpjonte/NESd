@@ -20,6 +20,7 @@ import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
@@ -46,7 +47,7 @@ class NesState extends _$NesState {
 }
 
 @riverpod
-NesController nesController(NesControllerRef ref) {
+NesController nesController(Ref ref) {
   final controller = NesController(
     eventBus: ref.watch(eventBusProvider),
     nesState: ref.watch(nesStateProvider.notifier),
@@ -61,12 +62,11 @@ NesController nesController(NesControllerRef ref) {
   ref.onDispose(controller._dispose);
 
   final settingsSubscription = ref.listen(
-    settingsControllerProvider
-        .select((settings) => (settings.autoSave, settings.autoSaveInterval)),
-    (_, setting) => controller.setAutoSave(
-      enabled: setting.$1,
-      interval: setting.$2,
+    settingsControllerProvider.select(
+      (settings) => (settings.autoSave, settings.autoSaveInterval),
     ),
+    (_, setting) =>
+        controller.setAutoSave(enabled: setting.$1, interval: setting.$2),
     fireImmediately: true,
   );
 
@@ -96,13 +96,10 @@ class NesController {
     router.addListener(_updateRoute);
 
     _nesEventSubscription = eventBus.stream.listen(_handleNesEvent)
-      ..onError(
-        // ignore: avoid_types_on_closure_parameters
-        (Object error, StackTrace stackTrace) {
-          toaster.send(Toast.error(error.toString()));
-          nesState.stop();
-        },
-      );
+      ..onError((error, stackTrace) {
+        toaster.send(Toast.error(error.toString()));
+        nesState.stop();
+      });
   }
 
   final EventBus eventBus;
@@ -123,7 +120,6 @@ class NesController {
 
   NES? get nes => nesState.nes;
 
-  // ignore: unused_field
   late final AppLifecycleListener _lifecycleListener;
 
   bool lifeCycleListenerEnabled = true;
@@ -160,11 +156,12 @@ class NesController {
   Future<Uint8List> _readFile(String path) async {
     final data = await switch (path.contains(':') && path.contains('.zip')) {
       true => ZipFileSystem(
-          path: path.split(':').first,
-          zipData: await fileSystem.read(path.split(':').first),
-        ).read(path.split(':').last),
+        path: path.split(':').first,
+        zipData: await fileSystem.read(path.split(':').first),
+      ).read(path.split(':').last),
       false => fileSystem.read(path),
     };
+
     return data;
   }
 
@@ -304,10 +301,7 @@ class NesController {
     }
   }
 
-  void setAutoSave({
-    required bool enabled,
-    required int? interval,
-  }) {
+  void setAutoSave({required bool enabled, required int? interval}) {
     _autoSaveTimer?.cancel();
 
     if (enabled && interval != null) {
@@ -345,9 +339,10 @@ class NesController {
   Uint8List _loadZip(String path, Uint8List data) {
     final archive = ZipDecoder().decodeBytes(data);
 
-    final roms = archive.files
-        .where((file) => p.extension(file.name) == '.nes')
-        .toList();
+    final roms =
+        archive.files
+            .where((file) => p.extension(file.name) == '.nes')
+            .toList();
 
     if (roms.isEmpty) {
       throw EmptyArchive(path);

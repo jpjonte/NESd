@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 
 part 'input_combination.freezed.dart';
@@ -38,73 +38,82 @@ final defaultBindings = {
     InputCombination.keyboard({LogicalKeyboardKey.digit1}),
   ],
   saveState1: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit1, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit1,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState2: [
     InputCombination.keyboard({LogicalKeyboardKey.digit2}),
   ],
   saveState2: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit2, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit2,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState3: [
     InputCombination.keyboard({LogicalKeyboardKey.digit3}),
   ],
   saveState3: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit3, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit3,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState4: [
     InputCombination.keyboard({LogicalKeyboardKey.digit4}),
   ],
   saveState4: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit4, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit4,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState5: [
     InputCombination.keyboard({LogicalKeyboardKey.digit5}),
   ],
   saveState5: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit5, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit5,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState6: [
     InputCombination.keyboard({LogicalKeyboardKey.digit6}),
   ],
   saveState6: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit6, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit6,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState7: [
     InputCombination.keyboard({LogicalKeyboardKey.digit7}),
   ],
   saveState7: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit7, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit7,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState8: [
     InputCombination.keyboard({LogicalKeyboardKey.digit8}),
   ],
   saveState8: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit8, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit8,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   loadState9: [
     InputCombination.keyboard({LogicalKeyboardKey.digit9}),
   ],
   saveState9: [
-    InputCombination.keyboard(
-      {LogicalKeyboardKey.digit9, LogicalKeyboardKey.shift},
-    ),
+    InputCombination.keyboard({
+      LogicalKeyboardKey.digit9,
+      LogicalKeyboardKey.shift,
+    }),
   ],
   togglePause: [
     InputCombination.keyboard({LogicalKeyboardKey.keyP}),
@@ -141,6 +150,7 @@ final defaultBindings = {
   ],
 };
 
+// ignore: avoid-dynamic
 Set<LogicalKeyboardKey> keysFromJson(List<dynamic> json) {
   final keys = json.cast<int>();
 
@@ -171,9 +181,9 @@ sealed class InputCombination with _$InputCombination {
   }) = GamepadInputCombination;
 
   String get label => switch (this) {
-        final KeyboardInputCombination input => _keyboardLabel(input),
-        final GamepadInputCombination input => _gamepadLabel(input),
-      };
+    final KeyboardInputCombination input => _keyboardLabel(input),
+    final GamepadInputCombination input => _gamepadLabel(input),
+  };
 
   static String _keyboardLabel(KeyboardInputCombination input) {
     final sorted = input.keys.toList()..sort((a, b) => b.keyId - a.keyId);

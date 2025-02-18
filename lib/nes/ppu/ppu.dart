@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:typed_data';
@@ -207,43 +208,43 @@ class PPU {
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
   PPUState get state => PPUState(
-        PPUCTRL: PPUCTRL,
-        PPUMASK: PPUMASK,
-        PPUSTATUS: PPUSTATUS,
-        OAMADDR: OAMADDR,
-        OAMDATA: OAMDATA,
-        PPUSCROLL: PPUSCROLL,
-        PPUDATA: PPUDATA,
-        v: v,
-        t: t,
-        x: x,
-        w: w,
-        ram: ram,
-        oam: oam,
-        secondaryOam: secondaryOam,
-        palette: palette,
-        frameBuffer: frameBuffer,
-        cycles: cycles,
-        cycle: cycle,
-        scanline: scanline,
-        frames: frames,
-        nametableLatch: nametableLatch,
-        patternTableHighLatch: patternTableHighLatch,
-        patternTableLowLatch: patternTableLowLatch,
-        patternTableHighShift: patternTableHighShift,
-        patternTableLowShift: patternTableLowShift,
-        attributeTableLatch: attributeTableLatch,
-        attributeTableHighShift: attributeTableHighShift,
-        attributeTableLowShift: attributeTableLowShift,
-        attribute: attribute,
-        oamAddress: oamAddress,
-        oamBuffer: oamBuffer,
-        spriteCount: spriteCount,
-        secondarySpriteCount: secondarySpriteCount,
-        sprite0OnNextLine: sprite0OnNextLine,
-        sprite0OnCurrentLine: sprite0OnCurrentLine,
-        spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
-      );
+    PPUCTRL: PPUCTRL,
+    PPUMASK: PPUMASK,
+    PPUSTATUS: PPUSTATUS,
+    OAMADDR: OAMADDR,
+    OAMDATA: OAMDATA,
+    PPUSCROLL: PPUSCROLL,
+    PPUDATA: PPUDATA,
+    v: v,
+    t: t,
+    x: x,
+    w: w,
+    ram: ram,
+    oam: oam,
+    secondaryOam: secondaryOam,
+    palette: palette,
+    frameBuffer: frameBuffer,
+    cycles: cycles,
+    cycle: cycle,
+    scanline: scanline,
+    frames: frames,
+    nametableLatch: nametableLatch,
+    patternTableHighLatch: patternTableHighLatch,
+    patternTableLowLatch: patternTableLowLatch,
+    patternTableHighShift: patternTableHighShift,
+    patternTableLowShift: patternTableLowShift,
+    attributeTableLatch: attributeTableLatch,
+    attributeTableHighShift: attributeTableHighShift,
+    attributeTableLowShift: attributeTableLowShift,
+    attribute: attribute,
+    oamAddress: oamAddress,
+    oamBuffer: oamBuffer,
+    spriteCount: spriteCount,
+    secondarySpriteCount: secondarySpriteCount,
+    sprite0OnNextLine: sprite0OnNextLine,
+    sprite0OnCurrentLine: sprite0OnCurrentLine,
+    spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
+  );
 
   set state(PPUState state) {
     PPUCTRL = state.PPUCTRL;
@@ -331,7 +332,7 @@ class PPU {
     palette.fillRange(0, palette.length, 0);
   }
 
-  int read(int address, {bool updateBusAddress = true}) {
+  int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
@@ -339,7 +340,7 @@ class PPU {
     return bus.ppuRead(address);
   }
 
-  void write(int address, int value, {bool updateBusAddress = true}) {
+  void writePpuMemory(int address, int value, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
@@ -403,6 +404,8 @@ class PPU {
   void step() {
     _handleRendering();
 
+    _handleGarbageFetches();
+
     _handleOAMADDRReset();
 
     _handleVBlank();
@@ -432,11 +435,21 @@ class PPU {
     _copyVerticalBits();
   }
 
+  void _handleGarbageFetches() {
+    if (scanline <= 239 || scanline == 261) {
+      if (cycle == 337 || cycle == 339) {
+        readPpuMemory(_nametableAddress());
+      }
+    }
+  }
+
   void _handleVBlank() {
     if (lineVblank && cycle == 1) {
       PPUSTATUS_V = 1;
 
-      // trigger nmi if PPUCTRL.V is set
+      spriteCount = 0;
+      secondarySpriteCount = 0;
+
       if (PPUCTRL_V == 1) {
         bus.triggerNmi();
       }
@@ -483,7 +496,7 @@ class PPU {
     var value = PPUDATA;
 
     if (!disableSideEffects) {
-      PPUDATA = read(v);
+      PPUDATA = readPpuMemory(v);
     }
 
     // always return current palette data
@@ -547,7 +560,7 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    write(v, value);
+    writePpuMemory(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
   }
@@ -558,8 +571,8 @@ class PPU {
     }
 
     if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
-      _updateBusAddress(0x2000 | v_nametable << 10 | v_coarseScroll);
-    } else if (scanline == 241) {
+      _updateBusAddress(_nametableAddress());
+    } else if (lineVblank) {
       _updateBusAddress(v & 0x3fff);
     }
   }
@@ -573,6 +586,8 @@ class PPU {
       cycle = 0;
       frames++;
 
+      frameBuffer.clear();
+
       return;
     }
 
@@ -583,6 +598,8 @@ class PPU {
       if (scanline > 261) {
         scanline = 0;
         frames++;
+
+        frameBuffer.clear();
       }
     }
   }
@@ -604,7 +621,7 @@ class PPU {
 
     final color = _getPixelColor();
 
-    final paletteColor = read(0x3F00 | color, updateBusAddress: false);
+    final paletteColor = readPpuMemory(0x3F00 | color, updateBusAddress: false);
 
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
@@ -681,7 +698,8 @@ class PPU {
     final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
     final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
 
-    final address = paletteIndexHigh << 3 |
+    final address =
+        paletteIndexHigh << 3 |
         paletteIndexLow << 2 |
         patternHigh << 1 |
         patternLow;
@@ -752,18 +770,15 @@ class PPU {
   }
 
   void _fetchNametable() {
-    final address = 0x2000 | v_nametable << 10 | v_coarseScroll;
-
-    nametableLatch = read(address);
+    nametableLatch = readPpuMemory(_nametableAddress());
   }
 
-  void _fetchAttributeTable() {
-    final address = 0x23c0 |
-        (v_nametable << 10) |
-        ((v_coarseY & 0x1C) << 1) | // we select the attribute table
-        ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
+  int _nametableAddress() => 0x2000 | v_nametable << 10 | v_coarseScroll;
 
-    final value = read(address);
+  void _fetchAttributeTable() {
+    final address = _attributeAddress();
+
+    final value = readPpuMemory(address);
 
     // attribute table byte layout: DDCCBBAA
     // quadrants A, B, C, D = Top Left, Top Right, Bottom Left, Bottom Right
@@ -775,6 +790,16 @@ class PPU {
     final quadrantShift = ((v_coarseY & 0x2) << 1) | (v_coarseX & 0x2);
 
     attributeTableLatch = (value >> quadrantShift) & 0x03;
+  }
+
+  int _attributeAddress() {
+    final address =
+        0x23c0 |
+        (v_nametable << 10) |
+        ((v_coarseY & 0x1C) << 1) | // we select the attribute table
+        ((v_coarseX & 0x1C) >> 2); // using bits 2..4 of the tile x and y
+
+    return address;
   }
 
   void _fetch() {
@@ -805,13 +830,13 @@ class PPU {
   void _fetchPatternTableLow() {
     final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY;
 
-    patternTableLowLatch = read(address);
+    patternTableLowLatch = readPpuMemory(address);
   }
 
   void _fetchPatternTableHigh() {
     final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY + 8;
 
-    patternTableHighLatch = read(address);
+    patternTableHighLatch = readPpuMemory(address);
   }
 
   void _incrementX() {
@@ -926,6 +951,7 @@ class PPU {
 
       return;
     }
+    // from here on, secondarySpriteCount must >= 8
 
     if (scanline >= y && scanline < y + spriteSize) {
       PPUSTATUS_O = 1; // set overflow flag
@@ -953,45 +979,45 @@ class PPU {
     final sprite = subcycle ~/ 8;
     final offset = subcycle % 8;
 
-    if (sprite > spriteCount) {
-      _fetchPatternTableLow();
-      _fetchPatternTableHigh();
-
-      return;
-    }
-
     switch (offset) {
+      case 0:
+        readPpuMemory(_nametableAddress());
       case 2:
+        readPpuMemory(_attributeAddress());
+
         _spriteOutputs[sprite].attribute = secondaryOam[sprite * 4 + 2];
       case 3:
         _spriteOutputs[sprite].x = secondaryOam[sprite * 4 + 3];
       case 4:
-        final bigSprites = PPUCTRL_H == 1;
-
-        final tileIndex = secondaryOam[sprite * 4 + 1];
-        final attribute = _spriteOutputs[sprite].attribute;
-        final flipV = attribute.bit(7) == 1;
-
-        final y = secondaryOam[sprite * 4];
-        final yOffset = scanline - y;
-        final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
-
-        final isBigSpriteSecondTile = yOffset < 8;
-        final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
-        final tile =
-            bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
-
-        final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
-        final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
-
-        final lowAddress =
-            patternTable << 12 | tile << 4 | fineY + addressOffset;
-        final highAddress =
-            patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
-
-        _spriteOutputs[sprite].patternLow = read(lowAddress);
-        _spriteOutputs[sprite].patternHigh = read(highAddress);
+        _loadSprite(sprite);
     }
+  }
+
+  void _loadSprite(int sprite) {
+    final bigSprites = PPUCTRL_H == 1;
+
+    final tileIndex = secondaryOam[sprite * 4 + 1];
+    final attribute = _spriteOutputs[sprite].attribute;
+    final flipV = attribute.bit(7) == 1;
+
+    final y = secondaryOam[sprite * 4];
+    final yOffset = scanline - y;
+    final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
+
+    final isBigSpriteSecondTile = yOffset < 8;
+    final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
+    final tile =
+        bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
+
+    final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
+    final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
+
+    final lowAddress = patternTable << 12 | tile << 4 | fineY + addressOffset;
+    final highAddress =
+        patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
+
+    _spriteOutputs[sprite].patternLow = readPpuMemory(lowAddress);
+    _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
   }
 
   void _handleSprite0() {

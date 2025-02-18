@@ -10,10 +10,12 @@ class AutoSaveInterval extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final autoSave =
-        ref.watch(settingsControllerProvider.select((s) => s.autoSave));
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.autoSaveInterval));
+    final autoSave = ref.watch(
+      settingsControllerProvider.select((s) => s.autoSave),
+    );
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.autoSaveInterval),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     final current = setting ?? 0;

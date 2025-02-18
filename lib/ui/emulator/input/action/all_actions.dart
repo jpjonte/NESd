@@ -1,4 +1,4 @@
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 const menuActions = [
   openMenu,

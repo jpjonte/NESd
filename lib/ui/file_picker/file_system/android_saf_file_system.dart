@@ -24,9 +24,10 @@ class AndroidSafFileSystem extends FileSystem {
           for (final path in filePaths)
             FileSystemFile(
               path: path,
-              type: ((await Saf.isDirectory(path)) ?? false)
-                  ? FileSystemFileType.directory
-                  : FileSystemFileType.file,
+              type:
+                  ((await Saf.isDirectory(path)) ?? false)
+                      ? FileSystemFileType.directory
+                      : FileSystemFileType.file,
             ),
         ],
       );

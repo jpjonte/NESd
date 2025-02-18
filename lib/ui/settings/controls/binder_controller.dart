@@ -3,15 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nesd/extension/iterable_extension.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'binder_controller.g.dart';
@@ -29,7 +30,7 @@ class BinderController {
     _subscription = gamepadInputMapper.stream.listen(_handleGamepadEvent);
   }
 
-  final NesAction action;
+  final InputAction action;
   final int profileIndex;
   final SettingsController settingsController;
   final BinderState state;
@@ -82,10 +83,7 @@ class BinderController {
 
     if (event is KeyDownEvent) {
       state.input = updatedBinding.copyWith(
-        keys: {
-          ...updatedBinding.keys,
-          event.logicalKey,
-        },
+        keys: {...updatedBinding.keys, event.logicalKey},
       );
 
       return KeyEventResult.handled;
@@ -105,7 +103,8 @@ class BinderController {
       return;
     }
 
-    final updatedBinding = state.input ??
+    final updatedBinding =
+        state.input ??
         InputCombination.gamepad(
           gamepadId: event.gamepadId,
           gamepadName: event.gamepadName,
@@ -144,15 +143,16 @@ class BinderController {
 }
 
 @riverpod
-BinderController binderController(BinderControllerRef ref, NesAction action) {
+BinderController binderController(Ref ref, InputAction action) {
   final controller = BinderController(
     action: action,
     profileIndex: ref.watch(profileIndexProvider),
     settingsController: ref.watch(settingsControllerProvider.notifier),
     state: ref.watch(binderStateProvider(action).notifier),
     inputs: ref.watch(
-      settingsControllerProvider
-          .select((settings) => settings.bindings[action] ?? []),
+      settingsControllerProvider.select(
+        (settings) => settings.bindings[action] ?? [],
+      ),
     ),
     actionHandler: ref.watch(actionHandlerProvider),
     gamepadInputMapper: ref.watch(gamepadInputMapperProvider),

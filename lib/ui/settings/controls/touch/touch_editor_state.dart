@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/ui/emulator/input/action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,8 +33,11 @@ class TouchEditorNotifier extends _$TouchEditorNotifier {
 
   void add(Orientation orientation) {
     state = state.copyWith(
-      editingConfig:
-          const RectangleButtonConfig(action: controller1A, x: 0, y: 0),
+      editingConfig: const RectangleButtonConfig(
+        action: controller1A,
+        x: 0,
+        y: 0,
+      ),
       editingOrientation: orientation,
     );
   }
@@ -159,20 +162,16 @@ class TouchEditorMoveIndex extends _$TouchEditorMoveIndex {
       return;
     }
 
-    final normalized = _normalize(
-      viewport,
-      offset,
-    );
+    final normalized = _normalize(viewport, offset);
 
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    final config =
-        controller.touchInputConfigForOrientation(orientation, index);
-
-    final newConfig = config.copyWith(
-      x: normalized.dx,
-      y: normalized.dy,
+    final config = controller.touchInputConfigForOrientation(
+      orientation,
+      index,
     );
+
+    final newConfig = config.copyWith(x: normalized.dx, y: normalized.dy);
 
     controller.setTouchInputConfig(orientation, index, newConfig);
   }

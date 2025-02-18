@@ -10,10 +10,7 @@ import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 class DisassemblyList extends ConsumerWidget {
-  const DisassemblyList({
-    required this.scrollController,
-    super.key,
-  });
+  const DisassemblyList({required this.scrollController, super.key});
 
   final ScrollController scrollController;
 
@@ -32,8 +29,9 @@ class DisassemblyList extends ConsumerWidget {
         return DisassemblyRow(
           line: line,
           highlight: line.address == state.PC,
-          breakpoint: state.breakpoints
-              .firstWhereOrNull((b) => b.address == line.address && !b.hidden),
+          breakpoint: state.breakpoints.firstWhereOrNull(
+            (b) => b.address == line.address && !b.hidden,
+          ),
           onTap: () => debugger.toggleBreakpointExists(line.address),
           onLongPress: () => debugger.toggleBreakpointEnabled(line.address),
         );
@@ -78,9 +76,10 @@ class DisassemblyRow extends StatelessWidget {
         height: debuggerRowHeight,
         decoration: BoxDecoration(
           color: highlight ? Colors.teal[800] : null,
-          borderRadius: start
-              ? const BorderRadius.vertical(top: Radius.circular(4))
-              : end
+          borderRadius:
+              start
+                  ? const BorderRadius.vertical(top: Radius.circular(4))
+                  : end
                   ? const BorderRadius.vertical(bottom: Radius.circular(4))
                   : null,
           border: Border(
@@ -108,10 +107,7 @@ class DisassemblyRow extends StatelessWidget {
             ),
             const VerticalDivider(),
             const SizedBox(width: 12),
-            Text(
-              instruction,
-              style: TextStyle(color: Colors.greenAccent[200]),
-            ),
+            Text(instruction, style: TextStyle(color: Colors.greenAccent[200])),
             const SizedBox(width: 12),
             Text(
               line.disassembledOperands,
@@ -125,10 +121,7 @@ class DisassemblyRow extends StatelessWidget {
 }
 
 class BreakpointDot extends StatelessWidget {
-  const BreakpointDot(
-    this.breakpoint, {
-    super.key,
-  });
+  const BreakpointDot(this.breakpoint, {super.key});
 
   final Breakpoint? breakpoint;
 
@@ -138,19 +131,20 @@ class BreakpointDot extends StatelessWidget {
 
     return SizedBox(
       width: debuggerRowHeight,
-      child: breakpoint != null
-          ? Center(
-              child: Container(
-                width: 13,
-                height: 13,
-                decoration: BoxDecoration(
-                  color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: nesdRed, width: 2),
+      child:
+          breakpoint != null
+              ? Center(
+                child: Container(
+                  width: 13,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: nesdRed, width: 2),
+                  ),
                 ),
-              ),
-            )
-          : null,
+              )
+              : null,
     );
   }
 }

@@ -10,10 +10,10 @@ class MMC1 extends Mapper {
   String name = 'MMC1';
 
   @override
-  int prgBankSize = 0x4000;
+  int prgRomPageSize = 0x4000;
 
   @override
-  int chrBankSize = 0x1000;
+  int chrPageSize = 0x1000;
 
   int _shift = 0x10;
 
@@ -32,12 +32,12 @@ class MMC1 extends Mapper {
 
   @override
   MMC1State get state => MMC1State(
-        shift: _shift,
-        control: _control,
-        chrBank0: _chrBank0,
-        chrBank1: _chrBank1,
-        prgBank: _prgBank,
-      );
+    shift: _shift,
+    control: _control,
+    chrBank0: _chrBank0,
+    chrBank1: _chrBank1,
+    prgBank: _prgBank,
+  );
 
   @override
   set state(covariant MMC1State state) {
@@ -52,12 +52,14 @@ class MMC1 extends Mapper {
 
   @override
   void reset() {
+    super.reset();
+
     final mirroring = switch (cartridge.nametableLayout) {
-      NametableLayout.vertical => 3,
-      NametableLayout.horizontal => 2,
-      NametableLayout.four => 0,
-      NametableLayout.singleUpper => 0,
       NametableLayout.singleLower => 0,
+      NametableLayout.singleUpper => 1,
+      NametableLayout.horizontal => 2,
+      NametableLayout.vertical => 3,
+      _ => 0,
     };
 
     _shift = 0x10;
@@ -70,7 +72,13 @@ class MMC1 extends Mapper {
   }
 
   @override
-  void writePrg(int address, int value) {
+  void cpuWrite(int address, int value) {
+    super.cpuWrite(address, value);
+
+    if (address < 0x8000) {
+      return;
+    }
+
     // TODO ignore consecutive cycle writes
     if (value.bit(7) == 1) {
       _shift = 0x10;
@@ -119,25 +127,29 @@ class MMC1 extends Mapper {
     switch (_controlPrgMode) {
       case 0: // switchable 32k bank
       case 1:
-        setPrgPage(0, _prgBankValue & 0xe);
-        setPrgPage(1, _prgBankValue | 0x1);
+        mapCpu(0x8000, 0xbfff, _prgBankValue & 0xe);
+        mapCpu(0xc000, 0xffff, _prgBankValue | 0x1);
       case 2:
-        setPrgPage(0, 0); // fixed first bank at 0x8000
-        setPrgPage(1, _prgBankValue & 0xf); // switchable 16k bank at 0xc000
+        // fixed first bank at 0x8000
+        mapCpu(0x8000, 0xbfff, 0);
+        // switchable 16k bank at 0xc000
+        mapCpu(0xc000, 0xffff, _prgBankValue & 0xf);
       case 3:
-        setPrgPage(0, _prgBankValue & 0xf); // switchable 16k bank at 0x9000
-        setPrgPage(1, -1); // fixed last bank at 0xc000
+        // switchable 16k bank at 0x8000
+        mapCpu(0x8000, 0xbfff, _prgBankValue & 0xf);
+        // fixed last bank at 0xc000
+        mapCpu(0xc000, 0xffff, -1);
     }
   }
 
   void _updateChrPages() {
     switch (_controlChrMode) {
       case 0:
-        setChrPage(0, _chrBank0 & 0x1e);
-        setChrPage(1, _chrBank0 | 1);
+        mapPpu(0x0000, 0x0fff, _chrBank0 & 0x1e);
+        mapPpu(0x1000, 0x1fff, _chrBank0 | 1);
       case 1:
-        setChrPage(0, _chrBank0);
-        setChrPage(1, _chrBank1);
+        mapPpu(0x0000, 0x0fff, _chrBank0);
+        mapPpu(0x1000, 0x1fff, _chrBank1);
     }
   }
 
@@ -147,7 +159,7 @@ class MMC1 extends Mapper {
       1 => NametableLayout.singleUpper,
       2 => NametableLayout.horizontal,
       3 => NametableLayout.vertical,
-      _ => nametableLayout,
+      _ => NametableLayout.horizontal,
     };
   }
 }

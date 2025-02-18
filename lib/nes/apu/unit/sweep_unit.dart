@@ -20,14 +20,14 @@ class SweepUnit {
   bool reload = false;
 
   SweepUnitState get state => SweepUnitState(
-        enabled: enabled,
-        muting: muting,
-        value: value,
-        period: period,
-        shift: shift,
-        negate: negate,
-        reload: reload,
-      );
+    enabled: enabled,
+    muting: muting,
+    value: value,
+    period: period,
+    shift: shift,
+    negate: negate,
+    reload: reload,
+  );
 
   set state(SweepUnitState state) {
     enabled = state.enabled;
@@ -67,7 +67,8 @@ class SweepUnit {
 
   int calculateTargetPeriod() {
     final delta = channel.timerPeriod >> shift;
-    final result = channel.timerPeriod +
+    final result =
+        channel.timerPeriod +
         (negate ? -delta - (onesComplement ? 1 : 0) : delta);
 
     return max(0, result);

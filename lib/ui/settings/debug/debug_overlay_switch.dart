@@ -9,8 +9,9 @@ class DebugOverlaySwitch extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setting =
-        ref.watch(settingsControllerProvider.select((s) => s.showDebugOverlay));
+    final setting = ref.watch(
+      settingsControllerProvider.select((s) => s.showDebugOverlay),
+    );
     final controller = ref.read(settingsControllerProvider.notifier);
 
     return FocusOnHover(

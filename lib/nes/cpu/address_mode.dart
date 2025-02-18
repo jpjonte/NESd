@@ -62,6 +62,7 @@ class Relative extends AddressMode {
   (int, bool) read(CPU cpu, int pc) {
     final offset = cpu.read(pc);
     final offsetSigned = offset >= 0x80 ? offset - 0x100 : offset;
+
     return (pc + 1 + offsetSigned, false);
   }
 
@@ -82,6 +83,7 @@ class AbsoluteX extends AddressMode {
   (int, bool) read(CPU cpu, int pc) {
     final address = cpu.read16(pc);
     final targetAddress = (address + cpu.X) & 0xffff;
+
     return (targetAddress, wasPageCrossed(address, targetAddress));
   }
 
@@ -94,6 +96,7 @@ class AbsoluteY extends AddressMode {
   (int, bool) read(CPU cpu, int pc) {
     final address = cpu.read16(pc);
     final targetAddress = (address + cpu.Y) & 0xffff;
+
     return (targetAddress, wasPageCrossed(address, targetAddress));
   }
 
@@ -106,6 +109,7 @@ class Indirect extends AddressMode {
   (int, bool) read(CPU cpu, int pc) {
     final address = cpu.read16(pc);
     final targetAddress = cpu.read16(address, wrap: true);
+
     return (targetAddress, false);
   }
 
@@ -118,6 +122,7 @@ class IndexedIndirect extends AddressMode {
   (int, bool) read(CPU cpu, int pc) {
     final address = (cpu.read(pc) + cpu.X) & 0xff;
     final targetAddress = cpu.read16(address, wrap: true);
+
     return (targetAddress, false);
   }
 
@@ -131,6 +136,7 @@ class IndirectIndexed extends AddressMode {
     final zeroPageAddress = cpu.read(pc);
     final address = cpu.read16(zeroPageAddress, wrap: true);
     final targetAddress = (address + cpu.Y) & 0xffff;
+
     return (targetAddress, wasPageCrossed(address, targetAddress));
   }
 

@@ -1,3 +1,4 @@
+// register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:async';
@@ -11,12 +12,13 @@ import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'execution_log.g.dart';
 
 @riverpod
-ExecutionLog executionLog(ExecutionLogRef ref) {
+ExecutionLog executionLog(Ref ref) {
   final executionLog = ExecutionLog(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(executionLogNotifierProvider.notifier),
@@ -75,22 +77,23 @@ class ExecutionLog {
   }
 
   String printLine(ExecutionLogLine line) {
-    final result = StringBuffer()
-      ..write('${line.address.toHex(width: 4)}  ')
-      ..write(line.instruction.padRight(4))
-      ..write('${line.disassembly.padRight(28)} ')
-      ..write('A:${line.A.toHex()} ')
-      ..write('X:${line.X.toHex()} ')
-      ..write('Y:${line.Y.toHex()} ')
-      ..write('S:${line.SP.toHex()} ')
-      ..write('P:')
-      ..write(line.P.bit(7) == 1 ? 'N' : 'n')
-      ..write(line.P.bit(6) == 1 ? 'V' : 'v')
-      ..write('--')
-      ..write(line.P.bit(3) == 1 ? 'D' : 'd')
-      ..write(line.P.bit(2) == 1 ? 'I' : 'i')
-      ..write(line.P.bit(1) == 1 ? 'Z' : 'z')
-      ..write(line.P.bit(0) == 1 ? 'C' : 'c');
+    final result =
+        StringBuffer()
+          ..write('${line.address.toHex(width: 4)}  ')
+          ..write(line.instruction.padRight(4))
+          ..write('${line.disassembly.padRight(28)} ')
+          ..write('A:${line.A.toHex()} ')
+          ..write('X:${line.X.toHex()} ')
+          ..write('Y:${line.Y.toHex()} ')
+          ..write('S:${line.SP.toHex()} ')
+          ..write('P:')
+          ..write(line.P.bit(7) == 1 ? 'N' : 'n')
+          ..write(line.P.bit(6) == 1 ? 'V' : 'v')
+          ..write('--')
+          ..write(line.P.bit(3) == 1 ? 'D' : 'd')
+          ..write(line.P.bit(2) == 1 ? 'I' : 'i')
+          ..write(line.P.bit(1) == 1 ? 'Z' : 'z')
+          ..write(line.P.bit(0) == 1 ? 'C' : 'c');
 
     return result.toString();
   }

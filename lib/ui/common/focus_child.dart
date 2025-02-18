@@ -3,11 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/extension/iterable_extension.dart';
 
 class FocusChild extends HookWidget {
-  const FocusChild({
-    required this.child,
-    required this.autofocus,
-    super.key,
-  });
+  const FocusChild({required this.child, required this.autofocus, super.key});
 
   final Widget child;
 
@@ -17,24 +13,18 @@ class FocusChild extends HookWidget {
   Widget build(BuildContext context) {
     final focusScopeNode = useFocusScopeNode();
 
-    useEffect(
-      () {
-        if (autofocus) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            focusScopeNode.descendants
-                .firstWhereOrNull((d) => d.canRequestFocus)
-                ?.requestFocus();
-          });
-        }
+    useEffect(() {
+      if (autofocus) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          focusScopeNode.descendants
+              .firstWhereOrNull((d) => d.canRequestFocus)
+              ?.requestFocus();
+        });
+      }
 
-        return null;
-      },
-      [autofocus],
-    );
+      return null;
+    }, [autofocus]);
 
-    return FocusScope(
-      node: focusScopeNode,
-      child: child,
-    );
+    return FocusScope(node: focusScopeNode, child: child);
   }
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -11,12 +9,13 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger.g.dart';
 
 @riverpod
-Debugger debugger(DebuggerRef ref) {
+Debugger debugger(Ref ref) {
   final nes = ref.watch(nesStateProvider);
   final notifier = ref.watch(debuggerNotifierProvider.notifier);
   final disassembler = ref.watch(disassemblerProvider);
@@ -55,12 +54,10 @@ class Debugger {
     final breakpoints =
         settingsController.breakpoints[nes.bus.cartridge.hash] ?? [];
 
-    nes.setBreakpoints(breakpoints);
+    nes.breakpoints = breakpoints;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifier.debuggerState = DebuggerState(
-        breakpoints: breakpoints,
-      );
+      notifier.debuggerState = DebuggerState(breakpoints: breakpoints);
     });
   }
 
@@ -129,9 +126,7 @@ class Debugger {
   }
 
   void hideStack() {
-    notifier.debuggerState = notifier.debuggerState.copyWith(
-      showStack: false,
-    );
+    notifier.debuggerState = notifier.debuggerState.copyWith(showStack: false);
   }
 
   void _handleEvent(NesEvent event) {
@@ -140,6 +135,8 @@ class Debugger {
       case SuspendNesEvent():
         final stack = <int>[];
 
+        // register names don't follow dart naming conventions
+        // ignore: non_constant_identifier_names
         var SP = nes.cpu.SP;
 
         while (SP < 0xff) {
@@ -194,8 +191,8 @@ class Debugger {
 
 class DummyDebugger implements Debugger {
   @override
-  StreamSubscription<NesEvent> _subscription =
-      const Stream<NesEvent>.empty().listen((event) {});
+  StreamSubscription<NesEvent> _subscription = const Stream<NesEvent>.empty()
+      .listen((event) {});
 
   @override
   Disassembler get disassembler => throw UnimplementedError();

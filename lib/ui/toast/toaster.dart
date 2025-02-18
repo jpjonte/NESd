@@ -1,14 +1,13 @@
 import 'dart:async';
 
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'toaster.g.dart';
 
 @riverpod
-Toaster toaster(ToasterRef ref) {
-  final toaster = Toaster(
-    state: ref.watch(toastStateProvider.notifier),
-  );
+Toaster toaster(Ref ref) {
+  final toaster = Toaster(state: ref.watch(toastStateProvider.notifier));
 
   ref.onDispose(toaster.dispose);
 
@@ -88,11 +87,7 @@ class ToastState extends _$ToastState {
   }
 }
 
-enum ToastType {
-  info,
-  warning,
-  error,
-}
+enum ToastType { info, warning, error }
 
 class Toast {
   Toast({required this.type, required this.message});
