@@ -29,7 +29,9 @@ class AddressDialog extends HookWidget {
             text = text.replaceAll(RegExp(r'[^0-9a-fA-F]'), '');
           }
 
-          controller.text = text.toUpperCase();
+          controller
+            ..value = TextEditingValue(text: text.toUpperCase())
+            ..selection = TextSelection.collapsed(offset: text.length);
         },
         decoration: const InputDecoration(
           label: Text('Address'),
