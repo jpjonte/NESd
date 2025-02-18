@@ -61,12 +61,9 @@ class CPU {
 
   int _irq = 0;
 
-  bool _doIrq = false;
-  bool _previousDoIrq = false;
   bool _nmi = false;
-  bool _previousNmi = false;
   bool _doNmi = false;
-  bool _previousDoNmi = false;
+  bool _previousNmi = false;
 
   bool _oamDma = false;
   bool _oamDmaStarted = false;
@@ -179,12 +176,9 @@ class CPU {
     Y = 0x00;
 
     _irq = 0;
-    _doIrq = false;
-    _previousDoIrq = false;
     _nmi = false;
-    _previousNmi = false;
     _doNmi = false;
-    _previousDoNmi = false;
+    _previousNmi = false;
 
     _oamDma = false;
     _oamDmaStarted = false;
@@ -249,23 +243,17 @@ class CPU {
   }
 
   void _handleInterrupts() {
-    _previousDoNmi = _doNmi;
-
     if (!_previousNmi && _nmi) {
       _doNmi = true;
     }
 
     _previousNmi = _nmi;
 
-    _previousDoIrq = _doIrq;
-
-    _doIrq = _irq > 0 && I == 0;
-
-    if (_previousDoNmi) {
+    if (_doNmi) {
       _doNmi = false;
 
       _handleIrq(nmiVector);
-    } else if (_previousDoIrq) {
+    } else if (_irq > 0 && I == 0) {
       _handleIrq(irqVector);
     }
   }
@@ -373,8 +361,6 @@ class CPU {
     } else {
       PC = read16(irqVector);
     }
-
-    _previousDoNmi = false;
   }
 
   void _updateCallStack(Operation op) {
