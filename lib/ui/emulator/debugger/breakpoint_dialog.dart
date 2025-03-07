@@ -146,12 +146,15 @@ class AddBreakpointWidget extends HookConsumerWidget {
 
     final controller = useTextEditingController();
 
+    final focusNode = useFocusNode();
+
     void submit() {
       final address = int.tryParse(controller.text, radix: 16);
 
       if (address != null) {
         debugger.addBreakpoint(Breakpoint(address));
         controller.clear();
+        focusNode.requestFocus();
       }
     }
 
@@ -160,6 +163,8 @@ class AddBreakpointWidget extends HookConsumerWidget {
         Expanded(
           child: TextField(
             controller: controller,
+            autofocus: true,
+            focusNode: focusNode,
             onChanged: (_) {
               var text = controller.text;
 
