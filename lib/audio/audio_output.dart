@@ -2,8 +2,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
-import 'package:nesd/audio/audio_buffer.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/util/ring_buffer.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -33,7 +33,10 @@ class AudioOutput {
 
   final AudioStream audioStream;
 
-  final _audioBuffer = AudioBuffer(2400); // 50 ms
+  final _audioBuffer = RingBuffer(
+    bufferConstructor: (size) => Float32List(size),
+    size: 2400, // 50 ms
+  );
 
   var _buffering = false;
 
