@@ -40,6 +40,14 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 - BR909x (71)
 - Namco108 (206)
 
+## Acknowledgements
+
+Thank you to the following projects and people for their amazing work:
+
+- The [Nesdev Wiki](https://wiki.nesdev.com/w/index.php/Nesdev_Wiki) for the invaluable documentation
+- SourMesen for the excellent [Mesen](https://github.com/SourMesen/Mesen2/) emulator
+- [Modern Vintage Gamer](https://www.youtube.com/@ModernVintageGamer) for the inspiration to write my own emulator
+
 ## Screenshots
 
 ## Android
