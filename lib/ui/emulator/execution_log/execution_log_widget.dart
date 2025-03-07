@@ -16,18 +16,21 @@ class ExecutionLogWidget extends ConsumerWidget {
     return DefaultTextStyle(
       style: monoStyle,
       child: SizedBox(
-        width: 512,
+        width: 560,
         child: Column(
           children: [
             const ActionBar(),
             Expanded(
-              child: ListView.builder(
-                itemCount: state.lines.length,
-                itemExtent: 20,
-                itemBuilder:
-                    (context, index) => ExecutionLogLineWidget(
-                      line: log.printLine(state.lines[index]),
-                    ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: ListView.builder(
+                  itemCount: state.lines.length,
+                  itemExtent: 20,
+                  itemBuilder:
+                      (context, index) => ExecutionLogLineWidget(
+                        line: log.printLine(state.lines[index]),
+                      ),
+                ),
               ),
             ),
           ],
