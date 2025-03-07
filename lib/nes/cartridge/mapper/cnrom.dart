@@ -19,7 +19,7 @@ class CNROM extends Mapper {
   set state(covariant CNROMState state) {
     chrBank = state.chrBank;
 
-    _updateChrPages();
+    _updateState();
   }
 
   @override
@@ -31,7 +31,7 @@ class CNROM extends Mapper {
 
     chrBank = 0;
 
-    _updateChrPages();
+    _updateState();
   }
 
   @override
@@ -45,6 +45,15 @@ class CNROM extends Mapper {
     chrBank = value & 0x0f;
 
     _updateChrPages();
+  }
+
+  void _updateState() {
+    _updatePrgPages();
+    _updateChrPages();
+  }
+
+  void _updatePrgPages() {
+    mapCpu(0x8000, 0xffff, 0, type: CpuMemoryType.prgRom);
   }
 
   void _updateChrPages() {
