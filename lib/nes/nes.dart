@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
@@ -119,7 +120,13 @@ class NES {
 
       final vblankBefore = ppu.PPUSTATUS_V;
 
-      step();
+      try {
+        step();
+      } on NesdException catch (e) {
+        eventBus.add(ErrorNesEvent(e));
+
+        pause();
+      }
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
         eventBus.add(

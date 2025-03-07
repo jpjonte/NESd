@@ -32,3 +32,9 @@ class StepNesEvent extends NesEvent {
   final int opcode;
   final Operation operation;
 }
+
+class ErrorNesEvent extends NesEvent {
+  const ErrorNesEvent(this.error);
+
+  final Object error;
+}

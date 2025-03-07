@@ -276,8 +276,13 @@ class NesController {
   }
 
   void _handleNesEvent(NesEvent event) {
-    if (event is FrameNesEvent) {
-      audioOutput.processSamples(event.samples);
+    switch (event) {
+      case FrameNesEvent():
+        audioOutput.processSamples(event.samples);
+      case ErrorNesEvent():
+        toaster.send(Toast.error(event.error.toString()));
+      default:
+      // do nothing
     }
   }
 
