@@ -109,7 +109,6 @@ class PPU {
 
   set v_coarseX(int value) => v = (v & 0xFFE0) | (value & 0x1F);
   set v_coarseY(int value) => v = (v & 0xFC1F) | ((value & 0x1F) << 5);
-  set v_nametable(int value) => v = (v & 0xF3FF) | ((value & 0x3) << 10);
   set v_nametableX(int value) => v = v.setBit(10, value);
   set v_nametableY(int value) => v = v.setBit(11, value);
   set v_fineY(int value) => v = (v & 0x0FFF) | ((value & 0x7) << 12);
@@ -132,17 +131,6 @@ class PPU {
   int get PPUCTRL_X => PPUCTRL.bit(0); // scroll X high bit
   int get PPUCTRL_Y => PPUCTRL.bit(1); // scroll Y high bit
 
-  set PPUCTRL_N(int value) => PPUCTRL |= value & 0x3;
-  set PPUCTRL_I(int value) => PPUCTRL = PPUCTRL.setBit(2, value);
-  set PPUCTRL_S(int value) => PPUCTRL = PPUCTRL.setBit(3, value);
-  set PPUCTRL_B(int value) => PPUCTRL = PPUCTRL.setBit(4, value);
-  set PPUCTRL_H(int value) => PPUCTRL = PPUCTRL.setBit(5, value);
-  set PPUCTRL_P(int value) => PPUCTRL = PPUCTRL.setBit(6, value);
-  set PPUCTRL_V(int value) => PPUCTRL = PPUCTRL.setBit(7, value);
-
-  set PPUCTRL_X(int value) => PPUCTRL = PPUCTRL.setBit(0, value);
-  set PPUCTRL_Y(int value) => PPUCTRL = PPUCTRL.setBit(1, value);
-
   int get PPUMASK_Gr => PPUMASK.bit(0); // greyscale
   int get PPUMASK_m => PPUMASK.bit(1); // show background in leftmost 8 pixels
   int get PPUMASK_M => PPUMASK.bit(2); // show sprites in leftmost 8 pixels
@@ -151,15 +139,6 @@ class PPU {
   int get PPUMASK_ER => PPUMASK.bit(5); // emphasize red
   int get PPUMASK_EG => PPUMASK.bit(6); // emphasize green
   int get PPUMASK_EB => PPUMASK.bit(7); // emphasize blue
-
-  set PPUMASK_Gr(int value) => PPUMASK = PPUMASK.setBit(0, value);
-  set PPUMASK_m(int value) => PPUMASK = PPUMASK.setBit(1, value);
-  set PPUMASK_M(int value) => PPUMASK = PPUMASK.setBit(2, value);
-  set PPUMASK_b(int value) => PPUMASK = PPUMASK.setBit(3, value);
-  set PPUMASK_s(int value) => PPUMASK = PPUMASK.setBit(4, value);
-  set PPUMASK_ER(int value) => PPUMASK = PPUMASK.setBit(5, value);
-  set PPUMASK_EG(int value) => PPUMASK = PPUMASK.setBit(6, value);
-  set PPUMASK_EB(int value) => PPUMASK = PPUMASK.setBit(7, value);
 
   int get PPUSTATUS_O => PPUSTATUS.bit(5); // sprite overflow
   int get PPUSTATUS_S => PPUSTATUS.bit(6); // sprite 0 hit
@@ -634,45 +613,46 @@ class PPU {
     final blue = (color >> 16) & 0xff;
 
     // TODO implement an accurate algorithm
-    final resultRed = (PPUMASK_EG == 1 || PPUMASK_EB == 1) ? 2 * red ~/ 3 : red;
+    final resultRed = (PPUMASK_EG == 1 || PPUMASK_EB == 1) ? (red >> 2) : red;
     final resultGreen =
-        (PPUMASK_ER == 1 || PPUMASK_EB == 1) ? 2 * green ~/ 3 : green;
+        (PPUMASK_ER == 1 || PPUMASK_EB == 1) ? (green >> 2) : green;
     final resultBlue =
-        (PPUMASK_ER == 1 || PPUMASK_EG == 1) ? 2 * blue ~/ 3 : blue;
+        (PPUMASK_ER == 1 || PPUMASK_EG == 1) ? (blue >> 2) : blue;
 
     return (resultBlue << 16) | (resultGreen << 8) | resultRed;
   }
 
   int _getPixelColor() {
-    final backgroundColor = _getBackgroundPixelColor();
-
-    final spriteColor = _getSpritePixelColor(backgroundColor);
-    final spritePriority = spriteColor.bit(4);
-
-    // if the sprite color is selected, bit 4 is set
-    final spriteColorValue = (spriteColor & 0xf).setBit(4, 1);
-
     if (PPUMASK_b == 0 && PPUMASK_s == 0) {
       return 0;
     }
+
+    final backgroundColor = _getBackgroundPixelColor();
 
     if (PPUMASK_s == 0) {
       return backgroundColor;
     }
 
+    final spriteColor = _getSpritePixelColor(backgroundColor);
+
+    // if the sprite color is selected, bit 4 is set
+    final spriteColorValue = spriteColor | 0x10;
+
     if (PPUMASK_b == 0) {
       return spriteColorValue;
     }
 
-    if (backgroundColor & 0x3 == 0) {
+    if (backgroundColor == 0) {
       return spriteColorValue;
     }
 
-    if (spriteColorValue & 0x3 == 0) {
+    if (spriteColor == 0) {
       return backgroundColor;
     }
 
-    if (spritePriority == 1) {
+    final spritePriority = spriteColor & 0x10;
+
+    if (spritePriority > 0) {
       return backgroundColor;
     }
 
@@ -691,45 +671,39 @@ class PPU {
     final patternHigh = (patternTableHighShift >> (15 - x)) & 0x1;
     final patternLow = (patternTableLowShift >> (15 - x)) & 0x1;
 
-    final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
-    final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
+    final pattern = patternHigh << 1 | patternLow;
 
-    final address =
-        paletteIndexHigh << 3 |
-        paletteIndexLow << 2 |
-        patternHigh << 1 |
-        patternLow;
-
-    return address;
-  }
-
-  int _getSpritePixelColor(int backgroundColor) {
-    if (PPUMASK_s == 0) {
+    if (pattern == 0) {
       return 0;
     }
 
+    final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
+    final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
+
+    return paletteIndexHigh << 3 | paletteIndexLow << 2 | pattern;
+  }
+
+  int _getSpritePixelColor(int backgroundColor) {
     if (PPUMASK_M == 0 && currentX < 8) {
       return 0;
     }
 
     for (var sprite = 0; sprite < spriteCount; sprite++) {
-      final xOffset = currentX - _spriteOutputs[sprite].x;
+      final spriteOutput = _spriteOutputs[sprite];
+      final xOffset = currentX - spriteOutput.x;
 
       if (xOffset < 0 || xOffset > 7) {
         continue;
       }
 
-      final attribute = _spriteOutputs[sprite].attribute;
-      final palette = attribute & 0x3;
-      final priority = attribute.bit(5);
+      final attribute = spriteOutput.attribute;
       final flipH = attribute.bit(6);
 
       final fineX = flipH == 1 ? xOffset : 7 - xOffset;
 
-      final patternLow = _spriteOutputs[sprite].patternLow;
-      final patternHigh = _spriteOutputs[sprite].patternHigh;
-      final pattern =
-          ((patternHigh.bit(fineX) << 1) | patternLow.bit(fineX)) & 0x3;
+      final patternLow = spriteOutput.patternLow;
+      final patternHigh = spriteOutput.patternHigh;
+      final pattern = (patternHigh.bit(fineX) << 1) | patternLow.bit(fineX);
 
       if (pattern == 0) {
         continue;
@@ -743,6 +717,9 @@ class PPU {
           pattern != 0) {
         PPUSTATUS_S = 1;
       }
+
+      final priority = attribute.bit(5);
+      final palette = attribute & 0x3;
 
       return priority << 4 | palette << 2 | pattern;
     }
