@@ -17,6 +17,7 @@ class AddressDialog extends HookWidget {
     return AlertDialog(
       title: Text(title),
       content: TextField(
+        autofocus: true,
         controller: controller,
         onChanged: (_) {
           var text = controller.text;
@@ -37,7 +38,11 @@ class AddressDialog extends HookWidget {
           label: Text('Address'),
           hintText: '0000',
         ),
-        onSubmitted: _submit,
+        onSubmitted: (text) {
+          _submit(text);
+
+          Navigator.of(context).pop();
+        },
       ),
       actions: <Widget>[
         TextButton(
