@@ -30,6 +30,8 @@ class MMC1 extends Mapper {
 
   int get _prgBankValue => _prgBank & 0xf;
 
+  int _lastWrite = 0;
+
   @override
   MMC1State get state => MMC1State(
     shift: _shift,
@@ -68,6 +70,8 @@ class MMC1 extends Mapper {
     _chrBank1 = 1;
     _prgBank = 0;
 
+    _lastWrite = 0;
+
     _updateState();
   }
 
@@ -79,7 +83,13 @@ class MMC1 extends Mapper {
       return;
     }
 
-    // TODO ignore consecutive cycle writes
+    // ignore writes in consecutive cycles
+    if (bus.cpu.cycles - _lastWrite < 2) {
+      return;
+    }
+
+    _lastWrite = bus.cpu.cycles;
+
     if (value.bit(7) == 1) {
       _shift = 0x10;
       _control = _control | 0xc;
