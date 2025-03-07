@@ -20,6 +20,7 @@ mixin _$DebugOverlayState {
   double get frameTime => throw _privateConstructorUsedError;
   double get fps => throw _privateConstructorUsedError;
   double get sleepBudget => throw _privateConstructorUsedError;
+  int get frame => throw _privateConstructorUsedError;
 
   /// Create a copy of DebugOverlayState
   /// with the given fields replaced by the non-null parameter values.
@@ -35,7 +36,7 @@ abstract class $DebugOverlayStateCopyWith<$Res> {
     $Res Function(DebugOverlayState) then,
   ) = _$DebugOverlayStateCopyWithImpl<$Res, DebugOverlayState>;
   @useResult
-  $Res call({double frameTime, double fps, double sleepBudget});
+  $Res call({double frameTime, double fps, double sleepBudget, int frame});
 }
 
 /// @nodoc
@@ -56,6 +57,7 @@ class _$DebugOverlayStateCopyWithImpl<$Res, $Val extends DebugOverlayState>
     Object? frameTime = null,
     Object? fps = null,
     Object? sleepBudget = null,
+    Object? frame = null,
   }) {
     return _then(
       _value.copyWith(
@@ -74,6 +76,11 @@ class _$DebugOverlayStateCopyWithImpl<$Res, $Val extends DebugOverlayState>
                     ? _value.sleepBudget
                     : sleepBudget // ignore: cast_nullable_to_non_nullable
                         as double,
+            frame:
+                null == frame
+                    ? _value.frame
+                    : frame // ignore: cast_nullable_to_non_nullable
+                        as int,
           )
           as $Val,
     );
@@ -89,7 +96,7 @@ abstract class _$$DebugOverlayStateImplCopyWith<$Res>
   ) = __$$DebugOverlayStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({double frameTime, double fps, double sleepBudget});
+  $Res call({double frameTime, double fps, double sleepBudget, int frame});
 }
 
 /// @nodoc
@@ -109,6 +116,7 @@ class __$$DebugOverlayStateImplCopyWithImpl<$Res>
     Object? frameTime = null,
     Object? fps = null,
     Object? sleepBudget = null,
+    Object? frame = null,
   }) {
     return _then(
       _$DebugOverlayStateImpl(
@@ -127,6 +135,11 @@ class __$$DebugOverlayStateImplCopyWithImpl<$Res>
                 ? _value.sleepBudget
                 : sleepBudget // ignore: cast_nullable_to_non_nullable
                     as double,
+        frame:
+            null == frame
+                ? _value.frame
+                : frame // ignore: cast_nullable_to_non_nullable
+                    as int,
       ),
     );
   }
@@ -139,6 +152,7 @@ class _$DebugOverlayStateImpl implements _DebugOverlayState {
     this.frameTime = 0,
     this.fps = 0,
     this.sleepBudget = 0,
+    this.frame = 0,
   });
 
   @override
@@ -150,10 +164,13 @@ class _$DebugOverlayStateImpl implements _DebugOverlayState {
   @override
   @JsonKey()
   final double sleepBudget;
+  @override
+  @JsonKey()
+  final int frame;
 
   @override
   String toString() {
-    return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget)';
+    return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget, frame: $frame)';
   }
 
   @override
@@ -165,11 +182,13 @@ class _$DebugOverlayStateImpl implements _DebugOverlayState {
                 other.frameTime == frameTime) &&
             (identical(other.fps, fps) || other.fps == fps) &&
             (identical(other.sleepBudget, sleepBudget) ||
-                other.sleepBudget == sleepBudget));
+                other.sleepBudget == sleepBudget) &&
+            (identical(other.frame, frame) || other.frame == frame));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, frameTime, fps, sleepBudget);
+  int get hashCode =>
+      Object.hash(runtimeType, frameTime, fps, sleepBudget, frame);
 
   /// Create a copy of DebugOverlayState
   /// with the given fields replaced by the non-null parameter values.
@@ -188,6 +207,7 @@ abstract class _DebugOverlayState implements DebugOverlayState {
     final double frameTime,
     final double fps,
     final double sleepBudget,
+    final int frame,
   }) = _$DebugOverlayStateImpl;
 
   @override
@@ -196,6 +216,8 @@ abstract class _DebugOverlayState implements DebugOverlayState {
   double get fps;
   @override
   double get sleepBudget;
+  @override
+  int get frame;
 
   /// Create a copy of DebugOverlayState
   /// with the given fields replaced by the non-null parameter values.

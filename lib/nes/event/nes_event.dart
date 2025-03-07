@@ -10,11 +10,13 @@ class FrameNesEvent extends NesEvent {
   const FrameNesEvent({
     required this.samples,
     required this.frameTime,
+    required this.frame,
     required this.sleepBudget,
   });
 
   final Float32List samples;
   final Duration frameTime;
+  final int frame;
   final Duration sleepBudget;
 }
 

@@ -126,6 +126,7 @@ class NES {
           FrameNesEvent(
             samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
             frameTime: frameTime, // last frame time
+            frame: ppu.frames,
             sleepBudget: _sleepBudget,
           ),
         );
