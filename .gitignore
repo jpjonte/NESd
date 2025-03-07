@@ -28,6 +28,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+devtools_options.yaml
 
 # FVM Version Cache
 .fvm/
