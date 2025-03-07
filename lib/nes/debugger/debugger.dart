@@ -161,6 +161,8 @@ class Debugger {
           V: nes.cpu.V == 1,
           N: nes.cpu.N == 1,
           stack: stack,
+          irq: nes.cpu.irq,
+          nmi: nes.cpu.nmi,
           breakpoints: nes.breakpoints,
           canStepOut: nes.cpu.callStack.isNotEmpty,
           scanline: nes.ppu.scanline,

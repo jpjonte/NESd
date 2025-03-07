@@ -27,6 +27,8 @@ class DebuggerState with _$DebuggerState {
     @Default(false) bool B,
     @Default(false) bool V,
     @Default(false) bool N,
+    @Default(0) int irq,
+    @Default(false) bool nmi,
     @Default([]) List<int> stack,
     @Default([]) List<Breakpoint> breakpoints,
     @Default(false) bool canStepOut,

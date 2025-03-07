@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
@@ -17,7 +18,7 @@ class StatusBar extends ConsumerWidget {
     final debugger = ref.watch(debuggerProvider);
 
     return Container(
-      height: 90,
+      height: 120,
       padding: const EdgeInsets.symmetric(vertical: 8),
       color: nesdRed[800],
       child: Column(
@@ -43,6 +44,30 @@ class StatusBar extends ConsumerWidget {
                 StatusBarItem('B', BoolIcon(value: state.B)),
                 StatusBarItem('V', BoolIcon(value: state.V)),
                 StatusBarItem('N', BoolIcon(value: state.N)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text('IRQs', style: registerHeaderStyle),
+                StatusBarItem(
+                  'Mapper',
+                  BoolIcon(value: state.irq & IrqSource.mapper.value > 0),
+                ),
+                StatusBarItem(
+                  'DMC',
+                  BoolIcon(value: state.irq & IrqSource.apuDmc.value > 0),
+                ),
+                StatusBarItem(
+                  'Frame Counter',
+                  BoolIcon(
+                    value: state.irq & IrqSource.apuFrameCounter.value > 0,
+                  ),
+                ),
+                StatusBarItem('NMI', BoolIcon(value: state.nmi)),
               ],
             ),
           ),
