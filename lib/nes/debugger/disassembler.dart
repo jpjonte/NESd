@@ -218,8 +218,7 @@ class Disassembler {
       }
 
       if (op.instruction.type == InstructionType.branch ||
-          op.instruction.type == InstructionType.jump ||
-          op.instruction == BRK) {
+          op.instruction.type == InstructionType.jump) {
         children.add(
           DisassemblerSearchNode(
             line.readAddress,
@@ -227,6 +226,16 @@ class Disassembler {
                 op.instruction == JSR ||
                 op.instruction == BRK ||
                 op.instruction == JMP,
+            depth: current.depth + 1,
+          ),
+        );
+      }
+
+      if (op.instruction == BRK) {
+        children.add(
+          DisassemblerSearchNode(
+            debugCpu.read16(irqVector),
+            entrypoint: true,
             depth: current.depth + 1,
           ),
         );
