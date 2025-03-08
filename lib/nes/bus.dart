@@ -70,12 +70,24 @@ class Bus {
   }) {
     final low = cpuRead(address, disableSideEffects: disableSideEffects);
 
+    final high = cpuReadHighByte(
+      address,
+      wrap: wrap,
+      disableSideEffects: disableSideEffects,
+    );
+
+    return (high << 8) | low;
+  }
+
+  int cpuReadHighByte(
+    int address, {
+    bool wrap = false,
+    bool disableSideEffects = false,
+  }) {
     final highAddress =
         wrap ? (address & 0xff00 | ((address + 1) & 0xff)) : address + 1;
 
-    final high = cpuRead(highAddress, disableSideEffects: disableSideEffects);
-
-    return low | (high << 8);
+    return cpuRead(highAddress, disableSideEffects: disableSideEffects);
   }
 
   void cpuWrite(int address, int value) {

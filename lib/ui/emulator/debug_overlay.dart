@@ -18,6 +18,7 @@ class DebugOverlayState with _$DebugOverlayState {
     @Default(0) double frameTime,
     @Default(0) double fps,
     @Default(0) double sleepBudget,
+    @Default(0) int frame,
   }) = _DebugOverlayState;
 }
 
@@ -71,6 +72,7 @@ class DebugOverlayController {
 
     notifier.overlayState = notifier.overlayState.copyWith(
       frameTime: frameTime,
+      frame: event.frame,
       fps: fps,
       sleepBudget: sleepBudget,
     );
@@ -109,6 +111,7 @@ class DebugOverlay extends ConsumerWidget {
                 color: color,
               ),
               KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
+              KeyValue('Frame', state.frame.toString()),
               KeyValue(
                 'Sleep Budget',
                 state.sleepBudget.toStringAsFixed(3),

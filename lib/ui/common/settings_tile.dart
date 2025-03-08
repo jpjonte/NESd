@@ -23,7 +23,11 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final wrappedTitle = DefaultTextStyle(
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      style: DefaultTextStyle.of(context).style.copyWith(
+        color: enabled ? null : Colors.grey[800],
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
       child: title ?? const SizedBox(),
     );
 

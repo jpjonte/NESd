@@ -8,16 +8,20 @@ import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
-import 'package:nesd/nes/cpu/instruction.dart' as instr show BRK;
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/util/ring_buffer.dart';
 
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
 const irqVector = 0xfffe;
+
+typedef CpuCycle = void Function(CPU);
+
+const pipelineSize = 20;
 
 class CPU {
   CPU({
@@ -41,6 +45,9 @@ class CPU {
   int Y = 0x00;
   int P = 0x00;
 
+  int address = 0;
+  int operand = 0;
+
   Uint8List ram = Uint8List(0x0800);
 
   int get C => P.bit(0);
@@ -59,11 +66,18 @@ class CPU {
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 
-  int _irq = 0;
+  void zero(int result) => Z = result == 0 ? 1 : 0;
 
-  bool _nmi = false;
-  bool _doNmi = false;
+  void negative(int result) => N = result.bit(7);
+
+  int irq = 0;
+
+  bool _doIrq = false;
+  bool _previousDoIrq = false;
+
+  bool nmi = false;
   bool _previousNmi = false;
+  bool doNmi = false;
 
   bool _oamDma = false;
   bool _oamDmaStarted = false;
@@ -80,6 +94,15 @@ class CPU {
 
   final List<int> callStack = [];
 
+  final RingBuffer<CpuCycle, List<CpuCycle>> _pipeline = RingBuffer(
+    bufferConstructor: (size) => List.filled(size, (cpu) {}),
+    size: pipelineSize,
+  );
+
+  bool get fetching => _pipeline.isEmpty;
+
+  bool get executing => _pipeline.isNotEmpty;
+
   CPUState get state => CPUState(
     PC: PC,
     SP: SP,
@@ -87,8 +110,12 @@ class CPU {
     X: X,
     Y: Y,
     P: P,
-    irq: _irq,
-    nmi: _nmi,
+    irq: irq,
+    doIrq: _doIrq,
+    previousDoIrq: _previousDoIrq,
+    nmi: nmi,
+    previousNmi: _previousNmi,
+    doNmi: doNmi,
     ram: ram,
     oamDma: _oamDma,
     oamDmaStarted: _oamDmaStarted,
@@ -100,6 +127,7 @@ class CPU {
     dmcDmaValue: _dmcDmaValue,
     oamDmaPage: _oamDmaPage,
     cycles: cycles,
+    callStack: callStack,
   );
 
   set state(CPUState state) {
@@ -112,8 +140,13 @@ class CPU {
     Y = state.Y;
     P = state.P;
 
-    _irq = state.irq;
-    _nmi = state.nmi;
+    irq = state.irq;
+    _doIrq = state.doIrq;
+    _previousDoIrq = state.previousDoIrq;
+
+    nmi = state.nmi;
+    _previousNmi = state.previousNmi;
+    doNmi = state.doNmi;
 
     _oamDma = state.oamDma;
     _oamDmaStarted = state.oamDmaStarted;
@@ -127,6 +160,10 @@ class CPU {
     _dmcDmaValue = state.dmcDmaValue;
 
     ram.setAll(0, state.ram);
+
+    callStack
+      ..clear()
+      ..addAll(state.callStack);
   }
 
   int read(int address) =>
@@ -138,16 +175,32 @@ class CPU {
     disableSideEffects: disableSideEffects,
   );
 
+  int readHighByte(int address, {bool wrap = false}) => bus.cpuReadHighByte(
+    address,
+    wrap: wrap,
+    disableSideEffects: disableSideEffects,
+  );
+
   void write(int address, int value) => bus.cpuWrite(address, value);
 
-  void pushStack(int value) => write(0x100 + SP--, value & 0xff);
+  void pushStack(int value) {
+    write(0x100 + SP, value & 0xff);
+
+    SP = (SP - 1) & 0xff;
+  }
 
   void pushStack16(int value) {
     pushStack(value >> 8);
     pushStack(value & 0xff);
   }
 
-  int popStack() => read(0x100 + ++SP);
+  int popStack() {
+    SP = (SP + 1) & 0xff;
+
+    final value = read(0x100 + SP);
+
+    return value;
+  }
 
   int popStack16() {
     final low = popStack();
@@ -175,9 +228,12 @@ class CPU {
     X = 0x00;
     Y = 0x00;
 
-    _irq = 0;
-    _nmi = false;
-    _doNmi = false;
+    irq = 0;
+    _doIrq = false;
+    _previousDoIrq = false;
+
+    nmi = false;
+    doNmi = false;
     _previousNmi = false;
 
     _oamDma = false;
@@ -191,14 +247,42 @@ class CPU {
     _dmcDmaDummy = false;
     _dmcDmaValue = 0;
 
+    _pipeline.clear();
+
+    callStack.clear();
+
     ram.fillRange(0, ram.length, 0);
   }
 
-  int step() {
+  void appendCycles(List<CpuCycle> cycles) {
+    for (final cycle in cycles) {
+      _pipeline.append(cycle);
+    }
+  }
+
+  void prependCycles(List<CpuCycle> cycles) {
+    for (var i = cycles.length - 1; i >= 0; i--) {
+      _pipeline.prepend(cycles[i]);
+    }
+  }
+
+  void step() {
     if (_handleDMA()) {
-      return 1;
+      return;
     }
 
+    if (_pipeline.isEmpty) {
+      _fillPipeline();
+    } else {
+      _executePipeline();
+    }
+
+    cycles++;
+
+    _triggerInterrupts();
+  }
+
+  void _fillPipeline() {
     final opcode = read(PC);
 
     final op = ops[opcode];
@@ -213,50 +297,43 @@ class CPU {
 
     PC++;
 
-    final (address, pageCrossed) = op.addressMode.read(this, PC);
-
-    PC += op.addressMode.operandCount;
+    op.pipeline(this);
 
     _updateCallStack(op);
+  }
 
-    final start = PC;
+  void _executePipeline() {
+    final cycle = _pipeline.popStart();
 
-    op.instruction.execute(this, address);
+    cycle(this);
 
-    var additionalCycles = 0;
+    if (_pipeline.isEmpty) {
+      _handleInterrupts();
+    }
+  }
 
-    if (op.instruction.type == InstructionType.branch && start != PC) {
-      additionalCycles = wasPageCrossed(start, PC) ? 2 : 1;
+  void _triggerInterrupts() {
+    if (!_previousNmi && nmi) {
+      doNmi = true;
     }
 
-    if (op.pageCrossAddsCycle && pageCrossed) {
-      additionalCycles++;
-    }
+    _previousNmi = nmi;
 
-    final executedCycles = op.cycles + additionalCycles;
-
-    cycles += executedCycles;
-
-    _handleInterrupts();
-
-    return executedCycles;
+    _previousDoIrq = _doIrq;
+    _doIrq = irq > 0 && I == 0;
   }
 
   void _handleInterrupts() {
-    if (!_previousNmi && _nmi) {
-      _doNmi = true;
-    }
-
-    _previousNmi = _nmi;
-
-    if (_doNmi) {
-      _doNmi = false;
+    if (doNmi) {
+      doNmi = false;
 
       _handleIrq(nmiVector);
-    } else if (_irq > 0 && I == 0) {
+    } else if (_previousDoIrq) {
       _handleIrq(irqVector);
     }
   }
+
+  bool get runningDma => _oamDma || _dmcDma;
 
   bool _handleDMA() {
     if (!_oamDma && !_dmcDma) {
@@ -313,29 +390,39 @@ class CPU {
   }
 
   void _handleIrq(int address) {
-    pushStack16(PC);
-    pushStack(P.setBit(5, 1));
-
     callStack.add(PC);
 
-    I = 1;
-    PC = read16(address);
+    var low = 0;
+
+    appendCycles([
+      (cpu) => cpu.read(cpu.PC),
+      (cpu) => cpu.read(cpu.PC),
+      (cpu) => cpu.pushStack(cpu.PC >> 8),
+      (cpu) => cpu.pushStack(cpu.PC & 0xff),
+      (cpu) {
+        cpu
+          ..pushStack(cpu.P.setBit(5, 1))
+          ..I = 1;
+      },
+      (cpu) => low = cpu.read(address),
+      (cpu) => cpu.PC = (cpu.readHighByte(address) << 8) | low,
+    ]);
   }
 
   void triggerIrq(IrqSource source) {
-    _irq = _irq | (1 << source.bit);
+    irq = irq | source.value;
   }
 
   void clearIrq(IrqSource source) {
-    _irq = _irq & ~(1 << source.bit);
+    irq = irq & ~source.value;
   }
 
   void triggerNmi() {
-    _nmi = true;
+    nmi = true;
   }
 
   void clearNmi() {
-    _nmi = false;
+    nmi = false;
   }
 
   void triggerDmcDma() {
@@ -348,29 +435,24 @@ class CPU {
     _oamDmaOffset = 0;
   }
 
-  void BRK() {
-    pushStack16(PC + 1);
-    pushStack(P.setBit(4, 1).setBit(5, 1));
-
-    I = 1;
-
-    if (_doNmi) {
-      _doNmi = false;
-
-      PC = read16(nmiVector);
-    } else {
-      PC = read16(irqVector);
-    }
-  }
-
   void _updateCallStack(Operation op) {
     if (op.instruction == JSR) {
-      callStack.add(PC);
-    } else if (op.instruction == instr.BRK) {
+      callStack.add(PC + 2);
+    } else if (op.instruction == BRK) {
       callStack.add(PC + 1);
     } else if (callStack.isNotEmpty &&
         (op.instruction == RTI || op.instruction == RTS)) {
       callStack.removeLast();
+    }
+  }
+
+  void branch({required bool doBranch}) {
+    if (doBranch) {
+      prependCycles([
+        if (wasPageCrossed(PC, address))
+          (cpu) => cpu.read(cpu.PC), // dummy read
+        (cpu) => cpu.PC = cpu.address,
+      ]);
     }
   }
 }

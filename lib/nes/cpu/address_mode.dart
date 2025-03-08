@@ -1,41 +1,73 @@
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 
+typedef Reader = void Function(CPU);
+typedef Writer = void Function(CPU, int, {bool dummy});
+
 sealed class AddressMode {
-  (int, bool) read(CPU cpu, int pc);
+  List<CpuCycle> pipeline({required bool read, required bool write});
 
   int get operandCount;
+
+  CpuCycle get preInstruction => (cpu) {};
+
+  Writer get writer {
+    return (cpu, value, {bool dummy = false}) {
+      cpu.prependCycles([
+        if (dummy) (cpu) => cpu.write(cpu.address, cpu.operand),
+        (cpu) => cpu.write(cpu.address, value),
+      ]);
+    };
+  }
 }
 
 bool wasPageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
 
 class Implicit extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => (addressNone, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) => [
+    (cpu) => cpu.read(cpu.PC), // dummy read
+  ];
 
   @override
   int get operandCount => 0;
+
+  @override
+  Writer get writer => (_, _, {dummy = false}) {};
 }
 
 class Accumulator extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => (addressA, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) => [];
 
   @override
   int get operandCount => 0;
+
+  @override
+  CpuCycle get preInstruction => (cpu) => cpu.operand = cpu.A;
+
+  @override
+  Writer get writer => (cpu, value, {dummy = false}) => cpu.A = value;
 }
 
 class Immediate extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => (pc, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) => [
+    if (read) (cpu) => cpu.operand = cpu.read(cpu.PC++),
+  ];
 
   @override
   int get operandCount => 1;
+
+  @override
+  Writer get writer => (_, _, {dummy = false}) {};
 }
 
 class ZeroPage extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => (cpu.read(pc) & 0xff, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) => [
+    (cpu) => cpu.address = cpu.read(cpu.PC++) & 0xff,
+    if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+  ];
 
   @override
   int get operandCount => 1;
@@ -43,7 +75,19 @@ class ZeroPage extends AddressMode {
 
 class ZeroPageX extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => ((cpu.read(pc) + cpu.X) & 0xff, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var base = 0;
+
+    return [
+      (cpu) => base = cpu.read(cpu.PC++),
+      (cpu) {
+        cpu
+          ..read(base)
+          ..address = (base + cpu.X) & 0xff;
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
+  }
 
   @override
   int get operandCount => 1;
@@ -51,7 +95,19 @@ class ZeroPageX extends AddressMode {
 
 class ZeroPageY extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => ((cpu.read(pc) + cpu.Y) & 0xff, false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var base = 0;
+
+    return [
+      (cpu) => base = cpu.read(cpu.PC++),
+      (cpu) {
+        cpu
+          ..read(base)
+          ..address = (base + cpu.Y) & 0xff;
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
+  }
 
   @override
   int get operandCount => 1;
@@ -59,11 +115,15 @@ class ZeroPageY extends AddressMode {
 
 class Relative extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final offset = cpu.read(pc);
-    final offsetSigned = offset >= 0x80 ? offset - 0x100 : offset;
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    return [
+      (cpu) {
+        final offset = cpu.read(cpu.PC++);
+        final offsetSigned = offset >= 0x80 ? offset - 0x100 : offset;
 
-    return (pc + 1 + offsetSigned, false);
+        cpu.address = cpu.PC + offsetSigned;
+      },
+    ];
   }
 
   @override
@@ -72,7 +132,15 @@ class Relative extends AddressMode {
 
 class Absolute extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) => (cpu.read16(pc), false);
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var addressLow = 0;
+
+    return [
+      (cpu) => addressLow = cpu.read(cpu.PC++),
+      (cpu) => cpu.address = cpu.read(cpu.PC++) << 8 | addressLow,
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
+  }
 
   @override
   int get operandCount => 2;
@@ -80,11 +148,22 @@ class Absolute extends AddressMode {
 
 class AbsoluteX extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final address = cpu.read16(pc);
-    final targetAddress = (address + cpu.X) & 0xffff;
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var addressLow = 0;
 
-    return (targetAddress, wasPageCrossed(address, targetAddress));
+    return [
+      (cpu) => addressLow = cpu.read(cpu.PC++),
+      (cpu) {
+        final base = cpu.read(cpu.PC++) << 8 | addressLow;
+
+        cpu.address = base + cpu.X;
+
+        if (write || wasPageCrossed(base, cpu.address)) {
+          cpu.prependCycles([(cpu) => cpu.read(cpu.address)]); // dummy read
+        }
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
   }
 
   @override
@@ -93,11 +172,22 @@ class AbsoluteX extends AddressMode {
 
 class AbsoluteY extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final address = cpu.read16(pc);
-    final targetAddress = (address + cpu.Y) & 0xffff;
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var addressLow = 0;
 
-    return (targetAddress, wasPageCrossed(address, targetAddress));
+    return [
+      (cpu) => addressLow = cpu.read(cpu.PC++),
+      (cpu) {
+        final base = cpu.read(cpu.PC++) << 8 | addressLow;
+
+        cpu.address = base + cpu.Y;
+
+        if (write || wasPageCrossed(base, cpu.address)) {
+          cpu.prependCycles([(cpu) => cpu.read(cpu.address)]); // dummy read
+        }
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
   }
 
   @override
@@ -106,11 +196,22 @@ class AbsoluteY extends AddressMode {
 
 class Indirect extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final address = cpu.read16(pc);
-    final targetAddress = cpu.read16(address, wrap: true);
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var readAddressLow = 0;
+    var readAddress = 0;
+    var addressLow = 0;
 
-    return (targetAddress, false);
+    return [
+      (cpu) => readAddressLow = cpu.read(cpu.PC++),
+      (cpu) => readAddress = (cpu.read(cpu.PC++) << 8) | readAddressLow,
+      (cpu) => addressLow = cpu.read(readAddress),
+      (cpu) {
+        final addressHigh = cpu.readHighByte(readAddress, wrap: true);
+
+        cpu.address = (addressHigh << 8) | addressLow;
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
   }
 
   @override
@@ -119,11 +220,25 @@ class Indirect extends AddressMode {
 
 class IndexedIndirect extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final address = (cpu.read(pc) + cpu.X) & 0xff;
-    final targetAddress = cpu.read16(address, wrap: true);
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var baseAddress = 0;
+    var readAddress = 0;
+    var addressLow = 0;
 
-    return (targetAddress, false);
+    return [
+      (cpu) {
+        baseAddress = cpu.read(cpu.PC++);
+        readAddress = (baseAddress + cpu.X) & 0xff;
+      },
+      (cpu) => cpu.read(readAddress), // dummy read
+      (cpu) => addressLow = cpu.read(readAddress),
+      (cpu) {
+        final addressHigh = cpu.readHighByte(readAddress, wrap: true);
+
+        cpu.address = (addressHigh << 8) | addressLow;
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
   }
 
   @override
@@ -132,12 +247,25 @@ class IndexedIndirect extends AddressMode {
 
 class IndirectIndexed extends AddressMode {
   @override
-  (int, bool) read(CPU cpu, int pc) {
-    final zeroPageAddress = cpu.read(pc);
-    final address = cpu.read16(zeroPageAddress, wrap: true);
-    final targetAddress = (address + cpu.Y) & 0xffff;
+  List<CpuCycle> pipeline({required bool read, required bool write}) {
+    var readAddress = 0;
+    var baseLow = 0;
 
-    return (targetAddress, wasPageCrossed(address, targetAddress));
+    return [
+      (cpu) => readAddress = cpu.read(cpu.PC++),
+      (cpu) => baseLow = cpu.read(readAddress),
+      (cpu) {
+        final baseHigh = cpu.readHighByte(readAddress, wrap: true);
+        final base = (baseHigh << 8) | baseLow;
+
+        cpu.address = (base + cpu.Y) & 0xffff;
+
+        if (write || wasPageCrossed(base, cpu.address)) {
+          cpu.prependCycles([(cpu) => cpu.read(cpu.address)]); // dummy read
+        }
+      },
+      if (read) (cpu) => cpu.operand = cpu.read(cpu.address),
+    ];
   }
 
   @override

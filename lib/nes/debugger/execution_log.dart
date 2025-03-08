@@ -143,6 +143,8 @@ class ExecutionLog {
         Y: state.Y,
         SP: state.SP,
         P: state.P,
+        scanline: nes.ppu.scanline,
+        cycle: nes.ppu.cycle,
       ),
     );
 

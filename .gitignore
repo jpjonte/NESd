@@ -28,12 +28,14 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+devtools_options.yaml
 
 # FVM Version Cache
 .fvm/
 
 roms/
 !roms/test/nestest/nestest.nes
+!roms/test/cpu_timing_test6/cpu_timing_test.nes
 logs/
 dist/**/*
 !dist/.gitkeep

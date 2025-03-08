@@ -61,6 +61,7 @@ class DisassemblyRow extends StatelessWidget {
     final address = line.address.toHex(width: 4);
     final opcode = line.opcode.toHex();
     final instruction = line.operation.instruction.name;
+    final unofficial = line.operation.unofficial;
     final operands = line.operands.map((e) => e.toHex()).join(' ');
 
     final start = line.sectionStart;
@@ -107,7 +108,15 @@ class DisassemblyRow extends StatelessWidget {
             ),
             const VerticalDivider(),
             const SizedBox(width: 12),
-            Text(instruction, style: TextStyle(color: Colors.greenAccent[200])),
+            Text(
+              instruction,
+              style: TextStyle(
+                color:
+                    unofficial
+                        ? Colors.redAccent[100]
+                        : Colors.greenAccent[200],
+              ),
+            ),
             const SizedBox(width: 12),
             Text(
               line.disassembledOperands,

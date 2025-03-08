@@ -1,6 +1,8 @@
 // raw strings are used to avoid escaping backslashes in regexes
 // ignore_for_file: unnecessary_raw_strings
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,28 +21,38 @@ class BreakpointDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final debuggerState = ref.watch(debuggerNotifierProvider);
 
+    final breakpoints = debuggerState.breakpoints;
+    final nonHiddenBreakpoints = breakpoints.where((b) => !b.hidden);
+
     return AlertDialog(
       title: const Text('Breakpoints'),
-      content: SizedBox(
-        width: 300,
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 350,
+          maxWidth: 350,
+          maxHeight: max(nonHiddenBreakpoints.length * 160.0, 50),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            for (final breakpoint in debuggerState.breakpoints)
-              if (!breakpoint.hidden)
-                BreakpointRow(
-                  breakpoint: breakpoint,
-                  scrollController: scrollController,
-                ),
+            Expanded(
+              child: ListView(
+                children: [
+                  for (final breakpoint in breakpoints)
+                    if (!breakpoint.hidden)
+                      BreakpointRow(
+                        breakpoint: breakpoint,
+                        scrollController: scrollController,
+                      ),
+                ],
+              ),
+            ),
             const AddBreakpointWidget(),
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('Close'),
         ),
       ],
@@ -146,12 +158,15 @@ class AddBreakpointWidget extends HookConsumerWidget {
 
     final controller = useTextEditingController();
 
+    final focusNode = useFocusNode();
+
     void submit() {
       final address = int.tryParse(controller.text, radix: 16);
 
       if (address != null) {
         debugger.addBreakpoint(Breakpoint(address));
         controller.clear();
+        focusNode.requestFocus();
       }
     }
 
@@ -160,6 +175,8 @@ class AddBreakpointWidget extends HookConsumerWidget {
         Expanded(
           child: TextField(
             controller: controller,
+            autofocus: true,
+            focusNode: focusNode,
             onChanged: (_) {
               var text = controller.text;
 

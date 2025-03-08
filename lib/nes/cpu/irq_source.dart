@@ -3,7 +3,7 @@ enum IrqSource {
   apuDmc(2),
   mapper(4);
 
-  const IrqSource(this.bit);
+  const IrqSource(this.value);
 
-  final int bit;
+  final int value;
 }

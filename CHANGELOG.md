@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- MMC1: Improved accuracy by ignoring writes in consecutive cycles
+- Show interrupt status in debugger
+- Added frame count in the debug overlay
+- Unofficial operations are now highlighted in red
+- When an error occurs during emulation, an error toast message is shown
+
+### Changed
+
+- Made the CPU implementation cycle accurate
+  - Should improve compatibility in general
+  - Battletoads is now playable
+- Increased the limit of operations the disassembler will disassemble in one go from 100 to 200
+- Improved usability of breakpoint dialogs
+- Improved performance of the PPU code
+
+### Fixed
+
+- Fixed CNROM ROMs not starting up
+- Fixed an issue where the disassembler would disassemble non-code data when encountering a BRK instruction
+
 ## [0.8.0] - 2025-02-18
 
 ### Added

@@ -1,496 +1,1000 @@
 // instruction names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:nesd/exception/stop.dart';
 import 'package:nesd/extension/bit_extension.dart';
-import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 
 enum InstructionType { jump, branch, other }
 
-typedef Executor = void Function(CPU, int);
-
 class Instruction {
-  Instruction(this.name, this.execute, {this.type = InstructionType.other});
+  Instruction(
+    this.name,
+    this.pipeline, {
+    this.isRead = false,
+    this.isWrite = false,
+    this.merge = false,
+    this.type = InstructionType.other,
+  });
 
   final String name;
-  final Executor execute;
+  final List<CpuCycle> Function(void Function(CPU, int, {bool dummy})) pipeline;
   final InstructionType type;
+  final bool isRead;
+  final bool isWrite;
+  final bool merge;
 }
 
-final BRK = Instruction('BRK', (cpu, address) {
-  cpu.BRK();
-});
+final BRK = Instruction('BRK', (write) {
+  var low = 0;
+  var address = 0;
 
-final ORA = Instruction('ORA', (cpu, address) {
-  final value = cpu.read(address);
+  return [
+    (cpu) {
+      cpu
+        ..read(cpu.PC)
+        ..callStack.add(cpu.PC + 1);
+    },
+    (cpu) => cpu.pushStack((cpu.PC + 1) >> 8),
+    (cpu) => cpu.pushStack((cpu.PC + 1) & 0xff),
+    (cpu) => cpu.pushStack(cpu.P.setBit(4, 1).setBit(5, 1)),
+    (cpu) {
+      if (cpu.doNmi) {
+        cpu.doNmi = false;
 
-  cpu
-    ..A |= value
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A & 0x80 == 0 ? 0 : 1;
-});
+        address = nmiVector;
+      } else {
+        address = irqVector;
+      }
 
-final ASL = Instruction('ASL', (cpu, address) {
-  final value = cpu.read(address);
-  final result = (value << 1) & 0xff;
+      cpu.I = 1;
 
-  cpu
-    ..C = value.bit(7)
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..write(address, result);
-});
+      low = cpu.read(address);
+    },
+    (cpu) => cpu.PC = (cpu.readHighByte(address) << 8) | low,
+  ];
+}, merge: true);
+
+final ORA = Instruction(
+  'ORA',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A |= cpu.operand
+        ..zero(cpu.A)
+        ..negative(cpu.A);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
+
+final ASL = Instruction(
+  'ASL',
+  (write) {
+    return [
+      (cpu) {
+        final result = (cpu.operand << 1) & 0xff;
+
+        cpu
+          ..C = cpu.operand.bit(7)
+          ..zero(result)
+          ..negative(result);
+
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
 final PHP = Instruction(
   'PHP',
-  (cpu, address) => cpu.pushStack(cpu.P.setBit(4, 1)),
+  (write) => [(cpu) => cpu.pushStack(cpu.P.setBit(4, 1))],
 );
 
-final BPL = Instruction('BPL', (cpu, address) {
-  if (cpu.N == 0) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+final BPL = Instruction(
+  'BPL',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.N == 0)],
+  type: InstructionType.branch,
+  merge: true,
+);
 
-final CLC = Instruction('CLC', (cpu, address) => cpu.C = 0);
+final CLC = Instruction('CLC', (write) => [(cpu) => cpu.C = 0], merge: true);
 
-final JSR = Instruction('JSR', (cpu, address) {
-  cpu
-    ..pushStack16(cpu.PC - 1)
-    ..PC = address;
-}, type: InstructionType.jump);
-
-final AND = Instruction('AND', (cpu, address) {
-  final value = cpu.read(address);
-
-  cpu
-    ..A &= value
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
-
-final BIT = Instruction('BIT', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.A & value;
-
-  cpu
-    ..Z = result == 0 ? 1 : 0
-    ..V = value.bit(6)
-    ..N = value.bit(7);
-});
-
-final ROL = Instruction('ROL', (cpu, address) {
-  final value = cpu.read(address);
-
-  final result = ((value << 1) | cpu.C) & 0xff;
-
-  cpu
-    ..C = value.bit(7)
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..write(address, result);
-});
-
-final PLP = Instruction('PLP', (cpu, address) {
-  final result = cpu.popStack();
-
-  cpu
-    ..C = result.bit(0)
-    ..Z = result.bit(1)
-    ..I = result.bit(2)
-    ..D = result.bit(3)
-    ..V = result.bit(6)
-    ..N = result.bit(7);
-});
-
-final BMI = Instruction('BMI', (cpu, address) {
-  if (cpu.N == 1) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
-
-final SEC = Instruction('SEC', (cpu, address) => cpu.C = 1);
-
-final RTI = Instruction('RTI', (cpu, address) {
-  cpu
-    ..P = cpu.popStack().setBit(5, 1)
-    ..PC = cpu.popStack16();
-});
-
-final EOR = Instruction('EOR', (cpu, address) {
-  final value = cpu.read(address);
-
-  cpu
-    ..A ^= value
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
-
-final LSR = Instruction('LSR', (cpu, address) {
-  final value = cpu.read(address);
-  final result = value >> 1;
-
-  cpu
-    ..C = value.bit(0)
-    ..Z = result == 0 ? 1 : 0
-    ..N = 0
-    ..write(address, result);
-});
-
-final PHA = Instruction('PHA', (cpu, address) => cpu.pushStack(cpu.A));
-
-final JMP = Instruction(
-  'JMP',
-  (cpu, address) => cpu.PC = address,
+final JSR = Instruction(
+  'JSR',
+  (write) => [
+    (cpu) => cpu.read(cpu.PC), // dummy read
+    (cpu) => cpu.pushStack((cpu.PC - 1) >> 8),
+    (cpu) {
+      cpu
+        ..pushStack((cpu.PC - 1) & 0xff)
+        ..PC = cpu.address;
+    },
+  ],
   type: InstructionType.jump,
 );
 
-final BVC = Instruction('BVC', (cpu, address) {
-  if (cpu.V == 0) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+final AND = Instruction(
+  'AND',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A &= cpu.operand
+        ..zero(cpu.A)
+        ..negative(cpu.A);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final CLI = Instruction('CLI', (cpu, address) => cpu.I = 0);
+final BIT = Instruction(
+  'BIT',
+  (write) => [
+    (cpu) {
+      final result = cpu.A & cpu.operand;
 
-final RTS = Instruction('RTS', (cpu, address) => cpu.PC = cpu.popStack16() + 1);
+      cpu
+        ..zero(result)
+        ..V = cpu.operand.bit(6)
+        ..negative(cpu.operand);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final ADC = Instruction('ADC', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.A + value + cpu.C;
+final ROL = Instruction(
+  'ROL',
+  (write) {
+    return [
+      (cpu) {
+        final result = ((cpu.operand << 1) | cpu.C) & 0xff;
 
-  cpu
-    ..C = result > 0xff ? 1 : 0
-    ..Z = result & 0xff == 0 ? 1 : 0
-    ..V = (~(cpu.A ^ value) & (cpu.A ^ result) & 0x80) != 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..A = result & 0xff;
+        cpu
+          ..C = cpu.operand.bit(7)
+          ..zero(result)
+          ..negative(result);
+
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
+
+final PLP = Instruction(
+  'PLP',
+  (write) => [
+    (cpu) => cpu.read(cpu.PC),
+    (cpu) {
+      final result = cpu.popStack();
+
+      cpu
+        ..C = result.bit(0)
+        ..Z = result.bit(1)
+        ..I = result.bit(2)
+        ..D = result.bit(3)
+        ..V = result.bit(6)
+        ..negative(result);
+    },
+  ],
+);
+
+final BMI = Instruction(
+  'BMI',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.N == 1)],
+  type: InstructionType.branch,
+  merge: true,
+);
+
+final SEC = Instruction('SEC', (write) => [(cpu) => cpu.C = 1], merge: true);
+
+final RTI = Instruction('RTI', (write) {
+  var pcLow = 0;
+
+  return [
+    (cpu) => cpu.read(cpu.PC),
+    (cpu) => cpu.P = cpu.popStack().setBit(5, 1),
+    (cpu) => pcLow = cpu.popStack(),
+    (cpu) => cpu.PC = (cpu.popStack() << 8) | pcLow,
+  ];
 });
 
-final ROR = Instruction('ROR', (cpu, address) {
-  final value = cpu.read(address);
-  final result = (value >> 1) | (cpu.C << 7);
+final EOR = Instruction(
+  'EOR',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A ^= cpu.operand
+        ..zero(cpu.A)
+        ..negative(cpu.A);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-  cpu
-    ..C = value.bit(0)
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..write(address, result);
+final LSR = Instruction(
+  'LSR',
+  (write) {
+    return [
+      (cpu) {
+        final result = cpu.operand >> 1;
+
+        cpu
+          ..C = cpu.operand.bit(0)
+          ..zero(result)
+          ..N = 0;
+
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
+
+final PHA = Instruction('PHA', (write) => [(cpu) => cpu.pushStack(cpu.A)]);
+
+final JMP = Instruction(
+  'JMP',
+  (write) => [(cpu) => cpu.PC = cpu.address],
+  type: InstructionType.jump,
+  merge: true,
+);
+
+final BVC = Instruction(
+  'BVC',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.V == 0)],
+  type: InstructionType.branch,
+  merge: true,
+);
+
+final CLI = Instruction('CLI', (write) => [(cpu) => cpu.I = 0], merge: true);
+
+final RTS = Instruction('RTS', (write) {
+  var pcLow = 0;
+  var target = 0;
+
+  return [
+    (cpu) => pcLow = cpu.popStack(),
+    (cpu) => target = ((cpu.popStack() << 8) | pcLow) + 1,
+    (cpu) => cpu.read(cpu.PC),
+    (cpu) {
+      cpu
+        ..read(cpu.PC)
+        ..PC = target;
+    },
+  ];
 });
 
-final PLA = Instruction('PLA', (cpu, address) {
-  final result = cpu.popStack();
+final ADC = Instruction(
+  'ADC',
+  (write) => [
+    (cpu) {
+      final result = cpu.A + cpu.operand + cpu.C;
+      final maskedResult = result & 0xff;
 
-  cpu
-    ..A = result
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7);
-});
+      cpu
+        ..C = result > 0xff ? 1 : 0
+        ..zero(maskedResult)
+        ..V = (~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80) != 0 ? 1 : 0
+        ..negative(result)
+        ..A = maskedResult;
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final BVS = Instruction('BVS', (cpu, address) {
-  if (cpu.V == 1) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+final ROR = Instruction(
+  'ROR',
+  (write) {
+    return [
+      (cpu) {
+        final result = (cpu.operand >> 1) | (cpu.C << 7);
 
-final SEI = Instruction('SEI', (cpu, address) => cpu.I = 1);
+        cpu
+          ..C = cpu.operand.bit(0)
+          ..zero(result)
+          ..negative(result);
 
-final STA = Instruction('STA', (cpu, address) => cpu.write(address, cpu.A));
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final STY = Instruction('STY', (cpu, address) => cpu.write(address, cpu.Y));
+final PLA = Instruction(
+  'PLA',
+  (write) => [
+    (cpu) => cpu.read(cpu.PC), // dummy read
+    (cpu) {
+      final result = cpu.popStack();
 
-final STX = Instruction('STX', (cpu, address) => cpu.write(address, cpu.X));
+      cpu
+        ..A = result
+        ..zero(result)
+        ..negative(result);
+    },
+  ],
+);
 
-final DEY = Instruction('DEY', (cpu, address) {
-  cpu
-    ..Y = (cpu.Y - 1) & 0xff
-    ..Z = cpu.Y == 0 ? 1 : 0
-    ..N = cpu.Y.bit(7);
-});
+final BVS = Instruction(
+  'BVS',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.V == 1)],
+  type: InstructionType.branch,
+  merge: true,
+);
 
-final TXA = Instruction('TXA', (cpu, address) {
-  cpu
-    ..A = cpu.X
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
+final SEI = Instruction('SEI', (write) => [(cpu) => cpu.I = 1], merge: true);
 
-final BCC = Instruction('BCC', (cpu, address) {
-  if (cpu.C == 0) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+final STA = Instruction(
+  'STA',
+  (write) => [(cpu) => write(cpu, cpu.A)],
+  isWrite: true,
+  merge: true,
+);
 
-final TYA = Instruction('TYA', (cpu, address) {
-  cpu
-    ..A = cpu.Y
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
+final STY = Instruction(
+  'STY',
+  (write) => [(cpu) => write(cpu, cpu.Y)],
+  isWrite: true,
+  merge: true,
+);
 
-final TXS = Instruction('TXS', (cpu, address) => cpu.SP = cpu.X);
+final STX = Instruction(
+  'STX',
+  (write) => [(cpu) => write(cpu, cpu.X)],
+  isWrite: true,
+  merge: true,
+);
 
-final LDY = Instruction('LDY', (cpu, address) {
-  final value = cpu.read(address);
+final DEY = Instruction(
+  'DEY',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..Y = (cpu.Y - 1) & 0xff
+          ..zero(cpu.Y)
+          ..negative(cpu.Y),
+  ],
+  merge: true,
+);
 
-  cpu
-    ..Y = value
-    ..Z = cpu.Y == 0 ? 1 : 0
-    ..N = cpu.Y.bit(7);
-});
+final TXA = Instruction(
+  'TXA',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..A = cpu.X
+          ..zero(cpu.A)
+          ..negative(cpu.A),
+  ],
+  merge: true,
+);
 
-final LDA = Instruction('LDA', (cpu, address) {
-  final value = cpu.read(address);
+final BCC = Instruction(
+  'BCC',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.C == 0)],
+  type: InstructionType.branch,
+  merge: true,
+);
 
-  cpu
-    ..A = value
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
+final TYA = Instruction(
+  'TYA',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..A = cpu.Y
+          ..zero(cpu.A)
+          ..negative(cpu.A),
+  ],
+  merge: true,
+);
 
-final LDX = Instruction('LDX', (cpu, address) {
-  final value = cpu.read(address);
+final TXS = Instruction(
+  'TXS',
+  (write) => [(cpu) => cpu.SP = cpu.X],
+  merge: true,
+);
 
-  cpu
-    ..X = value
-    ..Z = cpu.X == 0 ? 1 : 0
-    ..N = cpu.X.bit(7);
-});
+final LDY = Instruction(
+  'LDY',
+  (write) => [
+    (cpu) {
+      cpu
+        ..Y = cpu.operand
+        ..zero(cpu.Y)
+        ..negative(cpu.Y);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final TAY = Instruction('TAY', (cpu, address) {
-  cpu
-    ..Y = cpu.A
-    ..Z = cpu.Y == 0 ? 1 : 0
-    ..N = cpu.Y.bit(7);
-});
+final LDA = Instruction(
+  'LDA',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A = cpu.operand
+        ..zero(cpu.A)
+        ..negative(cpu.A);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final TAX = Instruction('TAX', (cpu, address) {
-  cpu
-    ..X = cpu.A
-    ..Z = cpu.X == 0 ? 1 : 0
-    ..N = cpu.X.bit(7);
-});
+final LDX = Instruction(
+  'LDX',
+  (write) => [
+    (cpu) {
+      cpu
+        ..X = cpu.operand
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final BCS = Instruction('BCS', (cpu, address) {
-  if (cpu.C == 1) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+final TAY = Instruction(
+  'TAY',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..Y = cpu.A
+          ..zero(cpu.Y)
+          ..negative(cpu.Y),
+  ],
+  merge: true,
+);
 
-final CLV = Instruction('CLV', (cpu, address) => cpu.V = 0);
+final TAX = Instruction(
+  'TAX',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..X = cpu.A
+          ..zero(cpu.X)
+          ..negative(cpu.X),
+  ],
+  merge: true,
+);
 
-final TSX = Instruction('TSX', (cpu, address) {
-  cpu
-    ..X = cpu.SP
-    ..Z = cpu.X == 0 ? 1 : 0
-    ..N = cpu.X.bit(7);
-});
+final BCS = Instruction(
+  'BCS',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.C == 1)],
+  type: InstructionType.branch,
+  merge: true,
+);
 
-final CPY = Instruction('CPY', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.Y - value;
+final CLV = Instruction('CLV', (write) => [(cpu) => cpu.V = 0], merge: true);
 
-  cpu
-    ..C = result >= 0 ? 1 : 0
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7);
-});
+final TSX = Instruction(
+  'TSX',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..X = cpu.SP
+          ..zero(cpu.X)
+          ..negative(cpu.X),
+  ],
+  merge: true,
+);
 
-final CMP = Instruction('CMP', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.A - value;
+final CPY = Instruction(
+  'CPY',
+  (write) => [
+    (cpu) {
+      final result = cpu.Y - cpu.operand;
 
-  cpu
-    ..C = result >= 0 ? 1 : 0
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7);
-});
+      cpu
+        ..C = result >= 0 ? 1 : 0
+        ..zero(result)
+        ..negative(result);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final DEC = Instruction('DEC', (cpu, address) {
-  final value = cpu.read(address);
-  final result = (value - 1) & 0xff;
+final CMP = Instruction(
+  'CMP',
+  (write) => [
+    (cpu) {
+      final result = cpu.A - cpu.operand;
 
-  cpu
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..write(address, result);
-});
+      cpu
+        ..C = result >= 0 ? 1 : 0
+        ..zero(result)
+        ..negative(result);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final INY = Instruction('INY', (cpu, address) {
-  cpu
-    ..Y = (cpu.Y + 1) & 0xff
-    ..Z = cpu.Y == 0 ? 1 : 0
-    ..N = cpu.Y.bit(7);
-});
+final DEC = Instruction(
+  'DEC',
+  (write) {
+    return [
+      (cpu) {
+        final result = (cpu.operand - 1) & 0xff;
 
-final DEX = Instruction('DEX', (cpu, address) {
-  cpu
-    ..X = (cpu.X - 1) & 0xff
-    ..Z = cpu.X == 0 ? 1 : 0
-    ..N = cpu.X.bit(7);
-});
+        cpu
+          ..zero(result)
+          ..negative(result);
 
-final BNE = Instruction('BNE', (cpu, address) {
-  if (cpu.Z == 0) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final CLD = Instruction('CLD', (cpu, address) => cpu.D = 0);
+final INY = Instruction(
+  'INY',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..Y = (cpu.Y + 1) & 0xff
+          ..zero(cpu.Y)
+          ..negative(cpu.Y),
+  ],
+  merge: true,
+);
 
-final CPX = Instruction('CPX', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.X - value;
+final DEX = Instruction(
+  'DEX',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..X = (cpu.X - 1) & 0xff
+          ..zero(cpu.X)
+          ..negative(cpu.X),
+  ],
+  merge: true,
+);
 
-  cpu
-    ..C = result >= 0 ? 1 : 0
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7);
-});
+final BNE = Instruction(
+  'BNE',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.Z == 0)],
+  type: InstructionType.branch,
+  merge: true,
+);
 
-final SBC = Instruction('SBC', (cpu, address) {
-  final value = cpu.read(address);
-  final result = cpu.A - value - (1 - cpu.C);
+final CLD = Instruction('CLD', (write) => [(cpu) => cpu.D = 0], merge: true);
 
-  cpu
-    ..C = result >= 0 ? 1 : 0
-    ..Z = result & 0xff == 0 ? 1 : 0
-    ..V = ((cpu.A ^ result) & (cpu.A ^ value) & 0x80) != 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..A = result & 0xff;
-});
+final CPX = Instruction(
+  'CPX',
+  (write) => [
+    (cpu) {
+      final result = cpu.X - cpu.operand;
 
-final INC = Instruction('INC', (cpu, address) {
-  final value = cpu.read(address);
-  final result = (value + 1) & 0xff;
+      cpu
+        ..C = result >= 0 ? 1 : 0
+        ..zero(result)
+        ..negative(result);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-  cpu
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7)
-    ..write(address, result);
-});
+final SBC = Instruction(
+  'SBC',
+  (write) => [
+    (cpu) {
+      final result = cpu.A - cpu.operand - (1 - cpu.C);
+      final maskedResult = result & 0xff;
 
-final INX = Instruction('INX', (cpu, address) {
-  cpu
-    ..X = (cpu.X + 1) & 0xff
-    ..Z = cpu.X == 0 ? 1 : 0
-    ..N = cpu.X.bit(7);
-});
+      cpu
+        ..C = result >= 0 ? 1 : 0
+        ..zero(maskedResult)
+        ..V = ((cpu.A ^ result) & (cpu.A ^ cpu.operand) & 0x80) != 0 ? 1 : 0
+        ..negative(result)
+        ..A = maskedResult;
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
-final NOP = Instruction('NOP', (cpu, address) {});
+final INC = Instruction(
+  'INC',
+  (write) {
+    return [
+      (cpu) {
+        final result = (cpu.operand + 1) & 0xff;
 
-final BEQ = Instruction('BEQ', (cpu, address) {
-  if (cpu.Z == 1) {
-    cpu.PC = address;
-  }
-}, type: InstructionType.branch);
+        cpu
+          ..zero(result)
+          ..negative(result);
 
-final SED = Instruction('SED', (cpu, address) => cpu.D = 1);
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final LAX = Instruction('LAX', (cpu, address) {
-  LDA.execute(cpu, address);
-  LDX.execute(cpu, address);
-});
+final INX = Instruction(
+  'INX',
+  (write) => [
+    (cpu) =>
+        cpu
+          ..X = (cpu.X + 1) & 0xff
+          ..zero(cpu.X)
+          ..negative(cpu.X),
+  ],
+  merge: true,
+);
+
+final NOP = Instruction(
+  'NOP',
+  (write) => [(cpu) {}],
+  merge: true,
+  isRead: true,
+);
+
+final BEQ = Instruction(
+  'BEQ',
+  (write) => [(cpu) => cpu.branch(doBranch: cpu.Z == 1)],
+  type: InstructionType.branch,
+  merge: true,
+);
+
+final SED = Instruction('SED', (write) => [(cpu) => cpu.D = 1], merge: true);
+
+final LAX = Instruction(
+  'LAX',
+  (write) => [
+    (cpu) {
+      cpu
+        // LDA
+        ..A = cpu.operand
+        // LDX
+        ..X = cpu.operand
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
 
 final SAX = Instruction(
   'SAX',
-  (cpu, address) => cpu.write(address, cpu.A & cpu.X),
+  (write) => [(cpu) => write(cpu, cpu.A & cpu.X)],
+  isWrite: true,
+  merge: true,
 );
 
-final DCP = Instruction('DCP', (cpu, address) {
-  DEC.execute(cpu, address);
-  CMP.execute(cpu, address);
-});
+final DCP = Instruction(
+  'DCP',
+  (write) {
+    return [
+      (cpu) {
+        // DEC
+        final decResult = (cpu.operand - 1) & 0xff;
 
-final ISC = Instruction('ISC', (cpu, address) {
-  INC.execute(cpu, address);
-  SBC.execute(cpu, address);
-});
+        // CMP
+        final result = cpu.A - decResult;
 
-final SLO = Instruction('SLO', (cpu, address) {
-  ASL.execute(cpu, address);
-  ORA.execute(cpu, address);
-});
+        cpu
+          ..C = result >= 0 ? 1 : 0
+          ..zero(result)
+          ..negative(result);
 
-final RLA = Instruction('RLA', (cpu, address) {
-  ROL.execute(cpu, address);
-  AND.execute(cpu, address);
-});
+        write(cpu, decResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final SRE = Instruction('SRE', (cpu, address) {
-  LSR.execute(cpu, address);
-  EOR.execute(cpu, address);
-});
+final ISC = Instruction(
+  'ISC',
+  (write) {
+    return [
+      (cpu) {
+        // INC
+        final incResult = (cpu.operand + 1) & 0xff;
 
-final RRA = Instruction('RRA', (cpu, address) {
-  ROR.execute(cpu, address);
-  ADC.execute(cpu, address);
-});
+        // SBC
+        final result = cpu.A - incResult - (1 - cpu.C);
+        final maskedResult = result & 0xff;
 
-final STP = Instruction('STP', (cpu, address) {
-  // TODO stops the CPU
-  // throw UnimplementedError();
-});
+        cpu
+          ..C = result >= 0 ? 1 : 0
+          ..zero(maskedResult)
+          ..V = ((cpu.A ^ result) & (cpu.A ^ incResult) & 0x80) != 0 ? 1 : 0
+          ..negative(result)
+          ..A = maskedResult;
 
-final ANC = Instruction('ANC', (cpu, address) {
-  AND.execute(cpu, address);
-  cpu.C = cpu.N;
-});
+        write(cpu, incResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final ALR = Instruction('ALR', (cpu, address) {
-  AND.execute(cpu, address);
-  LSR.execute(cpu, addressA);
-});
+final SLO = Instruction(
+  'SLO',
+  (write) {
+    return [
+      (cpu) {
+        final aslResult = (cpu.operand << 1) & 0xff;
 
-final ARR = Instruction('ARR', (cpu, address) {
-  AND.execute(cpu, address);
-  ROR.execute(cpu, addressA);
+        cpu
+          // ASL, ORA
+          ..A |= aslResult
+          ..C = cpu.operand.bit(7)
+          ..zero(cpu.A)
+          ..negative(cpu.A);
 
-  cpu
-    ..C = cpu.A.bit(6)
-    ..V = cpu.A.bit(6) ^ cpu.A.bit(5);
-});
+        write(cpu, aslResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final XAA = Instruction('XAA', (cpu, address) {
-  // unpredictable
-  throw UnimplementedError();
-});
+final RLA = Instruction(
+  'RLA',
+  (write) {
+    return [
+      (cpu) {
+        // ROL
+        final result = ((cpu.operand << 1) | cpu.C) & 0xff;
 
-final AHX = Instruction('AHX', (cpu, address) {
-  cpu.write(address, cpu.A & cpu.X & ((address >> 8) + 1));
-});
+        cpu
+          // AND
+          ..C = cpu.operand.bit(7)
+          ..A &= result
+          ..zero(cpu.A)
+          ..negative(cpu.A);
 
-final TAS = Instruction('TAS', (cpu, address) {
-  cpu
-    ..SP = cpu.A & cpu.X
-    ..write(address, cpu.SP & ((address >> 8) + 1));
-});
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final SHY = Instruction('SHY', (cpu, address) {
-  cpu.write(address, cpu.Y & ((address >> 8) + 1));
-});
+final SRE = Instruction(
+  'SRE',
+  (write) {
+    return [
+      (cpu) {
+        // LSR
+        final lsrResult = cpu.operand >> 1;
 
-final SHX = Instruction('SHX', (cpu, address) {
-  cpu.write(address, cpu.X & ((address >> 8) + 1));
-});
+        // EOR
+        cpu
+          ..A ^= lsrResult
+          ..C = cpu.operand.bit(0)
+          ..zero(cpu.A)
+          ..negative(cpu.A);
 
-final LAS = Instruction('LAS', (cpu, address) {
-  cpu
-    ..A = cpu.SP & cpu.read(address)
-    ..X = cpu.A
-    ..SP = cpu.A
-    ..Z = cpu.A == 0 ? 1 : 0
-    ..N = cpu.A.bit(7);
-});
+        write(cpu, lsrResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
 
-final AXS = Instruction('AXS', (cpu, address) {
-  final operand = cpu.read(address) & 0xff;
-  final ax = cpu.A & cpu.X;
-  final result = (ax - operand) & 0xff;
+final RRA = Instruction(
+  'RRA',
+  (write) {
+    return [
+      (cpu) {
+        // ROR
+        final rorResult = (cpu.operand >> 1) | (cpu.C << 7);
 
-  cpu
-    ..C = ax >= operand ? 1 : 0
-    ..X = result
-    ..Z = result == 0 ? 1 : 0
-    ..N = result.bit(7);
-});
+        cpu
+          ..C = cpu.operand.bit(0)
+          ..zero(rorResult)
+          ..negative(rorResult);
+
+        // ADC
+        final result = cpu.A + rorResult + cpu.C;
+        final maskedResult = result & 0xff;
+
+        cpu
+          ..C = result > 0xff ? 1 : 0
+          ..zero(maskedResult)
+          ..V = (~(cpu.A ^ rorResult) & (cpu.A ^ result)).bit(7)
+          ..negative(result)
+          ..A = maskedResult;
+
+        write(cpu, rorResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
+
+final STP = Instruction('STP', (write) => [(cpu) => throw Stop()], merge: true);
+
+final ANC = Instruction(
+  'ANC',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A &= cpu.operand
+        ..zero(cpu.A)
+        ..negative(cpu.A)
+        ..C = cpu.N;
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
+
+final ALR = Instruction(
+  'ALR',
+  (write) {
+    return [
+      (cpu) {
+        // AND
+        cpu
+          ..A &= cpu.operand
+          ..zero(cpu.A)
+          ..negative(cpu.A);
+
+        // LSR
+        final result = cpu.A >> 1;
+
+        cpu
+          ..C = cpu.A.bit(0)
+          ..zero(result)
+          ..N = 0;
+
+        write(cpu, result, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
+
+final ARR = Instruction(
+  'ARR',
+  (write) {
+    return [
+      (cpu) {
+        // AND
+        cpu.A &= cpu.operand;
+
+        // ROR
+        final rorResult = (cpu.A >> 1) | (cpu.C << 7);
+
+        cpu
+          ..zero(rorResult)
+          ..negative(rorResult)
+          ..C = cpu.A.bit(6)
+          ..V = cpu.A.bit(6) ^ cpu.A.bit(5);
+
+        write(cpu, rorResult, dummy: true);
+      },
+    ];
+  },
+  isRead: true,
+  isWrite: true,
+  merge: true,
+);
+
+final XAA = Instruction(
+  'XAA',
+  (write) => [
+    (cpu) {
+      cpu
+        ..negative(cpu.A)
+        ..zero(cpu.A)
+        ..A = (cpu.A | 0xee) & cpu.X & cpu.operand;
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
+
+final AHX = Instruction(
+  'AHX',
+  (write) => [(cpu) => write(cpu, cpu.A & cpu.X & ((cpu.address >> 8) + 1))],
+  isWrite: true,
+  merge: true,
+);
+
+final TAS = Instruction(
+  'TAS',
+  (write) => [
+    (cpu) {
+      cpu.SP = cpu.A & cpu.X;
+
+      write(cpu, cpu.SP & ((cpu.address >> 8) + 1));
+    },
+  ],
+  isWrite: true,
+  merge: true,
+);
+
+final SHY = Instruction(
+  'SHY',
+  (write) => [(cpu) => write(cpu, cpu.Y & ((cpu.address >> 8) + 1))],
+  isWrite: true,
+  merge: true,
+);
+
+final SHX = Instruction(
+  'SHX',
+  (write) => [(cpu) => write(cpu, cpu.X & ((cpu.address >> 8) + 1))],
+  isWrite: true,
+  merge: true,
+);
+
+final LAS = Instruction(
+  'LAS',
+  (write) => [
+    (cpu) {
+      cpu
+        ..A = cpu.SP & cpu.operand
+        ..X = cpu.A
+        ..SP = cpu.A
+        ..zero(cpu.A)
+        ..negative(cpu.A);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);
+
+final AXS = Instruction(
+  'AXS',
+  (write) => [
+    (cpu) {
+      final ax = cpu.A & cpu.X;
+      final result = (ax - cpu.operand) & 0xff;
+
+      cpu
+        ..C = ax >= cpu.operand ? 1 : 0
+        ..X = result
+        ..zero(result)
+        ..negative(result);
+    },
+  ],
+  isRead: true,
+  merge: true,
+);

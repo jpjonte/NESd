@@ -253,7 +253,13 @@ class NesController {
 
   void saveState(int slot) {
     if (nes case final nes?) {
-      final data = nes.state.serialize();
+      final data = nes.state?.serialize();
+
+      if (data == null) {
+        toaster.send(Toast.error('Failed to save state'));
+
+        return;
+      }
 
       romManager.saveState(nes.bus.cartridge.romInfo, slot, data);
 
@@ -276,8 +282,13 @@ class NesController {
   }
 
   void _handleNesEvent(NesEvent event) {
-    if (event is FrameNesEvent) {
-      audioOutput.processSamples(event.samples);
+    switch (event) {
+      case FrameNesEvent():
+        audioOutput.processSamples(event.samples);
+      case ErrorNesEvent():
+        toaster.send(Toast.error(event.error.toString()));
+      default:
+      // do nothing
     }
   }
 
@@ -394,7 +405,13 @@ class NesController {
   void _autoSave() {
     if (nes case final nes?) {
       if (nes.running) {
-        final data = nes.state.serialize();
+        final data = nes.state?.serialize();
+
+        if (data == null) {
+          toaster.send(Toast.error('Failed to save state'));
+
+          return;
+        }
 
         romManager.saveState(nes.bus.cartridge.romInfo, 0, data);
 

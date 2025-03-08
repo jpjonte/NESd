@@ -27,6 +27,8 @@ class ExecutionLogLine {
     required this.Y,
     required this.SP,
     required this.P,
+    required this.scanline,
+    required this.cycle,
   });
 
   final int address;
@@ -39,6 +41,8 @@ class ExecutionLogLine {
   final int Y;
   final int SP;
   final int P;
+  final int scanline;
+  final int cycle;
 }
 
 @riverpod

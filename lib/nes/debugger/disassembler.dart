@@ -56,6 +56,8 @@ class Disassembler {
     ]);
   }
 
+  static const depthLimit = 200;
+
   final EventBus eventBus;
   final CPU cpu;
   late final CPU debugCpu;
@@ -98,17 +100,11 @@ class Disassembler {
       growable: false,
     );
 
-    final (readAddress, _) = op.addressMode.read(debugCpu, address + 1);
+    final readAddress = _getReadAddress(op, address);
 
     final value = debugCpu.read(readAddress);
 
-    final disassembledOperands = _disassemble(
-      op,
-      address + 1,
-      operands,
-      readAddress,
-      value,
-    );
+    final disassembledOperands = _disassemble(op, operands, readAddress, value);
 
     final line = DisassemblyLine(
       address: address,
@@ -138,9 +134,27 @@ class Disassembler {
     return line;
   }
 
+  int _getReadAddress(Operation op, int address) {
+    final previousPc = debugCpu.PC;
+
+    debugCpu.PC = address + 1;
+
+    final pipeline = op.addressMode.pipeline(
+      read: op.instruction.isRead,
+      write: op.instruction.isWrite,
+    );
+
+    for (final cycle in pipeline) {
+      cycle(debugCpu);
+    }
+
+    debugCpu.PC = previousPc;
+
+    return debugCpu.address;
+  }
+
   String _disassemble(
     Operation op,
-    int address,
     List<int> operands,
     int readAddress,
     int value,
@@ -171,8 +185,9 @@ class Disassembler {
             ' [\$${readAddress.toHex(width: 4)}]'
             ' = \$${value.toHex()}',
       Indirect() =>
-        '(\$${operands[1].toHex()}${operands[0].toHex()}) ='
-            ' \$${readAddress.toHex(width: 4)}',
+        '(\$${operands[1].toHex()}${operands[0].toHex()})'
+            ' [\$${readAddress.toHex(width: 4)}]'
+            ' = \$${value.toHex()}',
       IndexedIndirect() =>
         '(\$${operands[0].toHex()},X)'
             ' [\$${readAddress.toHex(width: 4)}]'
@@ -222,8 +237,7 @@ class Disassembler {
       }
 
       if (op.instruction.type == InstructionType.branch ||
-          op.instruction.type == InstructionType.jump ||
-          op.instruction == BRK) {
+          op.instruction.type == InstructionType.jump) {
         children.add(
           DisassemblerSearchNode(
             line.readAddress,
@@ -236,8 +250,18 @@ class Disassembler {
         );
       }
 
+      if (op.instruction == BRK) {
+        children.add(
+          DisassemblerSearchNode(
+            debugCpu.read16(irqVector),
+            entrypoint: true,
+            depth: current.depth + 1,
+          ),
+        );
+      }
+
       for (final child in children) {
-        if (child.depth < 100 &&
+        if (child.depth < depthLimit &&
             !visited.contains(child.pc) &&
             child.pc <= 0xffff) {
           visited.add(child.pc);
@@ -278,9 +302,13 @@ class DummyDisassembler implements Disassembler {
   Map<int, DisassemblyLine> get lines => throw UnimplementedError();
 
   @override
+  int _getReadAddress(Operation op, int address) {
+    throw UnimplementedError();
+  }
+
+  @override
   String _disassemble(
     Operation op,
-    int address,
     List<int> operands,
     int readAddress,
     int value,

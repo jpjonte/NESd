@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:binarize/binarize.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
@@ -41,6 +42,8 @@ class NES {
 
   late DateTime _frameStart;
 
+  Duration _frameTime = Duration.zero;
+
   int cycles = 0;
 
   var _sleepBudget = Duration.zero;
@@ -63,15 +66,19 @@ class NES {
     _breakpoints.removeWhere((b) => b.address == address);
   }
 
-  NESState get state => NESState(
-    cpuState: cpu.state,
-    ppuState: ppu.state,
-    apuState: apu.state,
-    cartridgeState: bus.cartridge.state,
-    cycles: cycles,
-  );
+  NESState? _lastState;
 
-  set state(NESState state) {
+  NESState? get state => _lastState;
+
+  set state(NESState? state) {
+    _lastState = state;
+
+    if (state == null) {
+      return;
+    }
+
+    reset();
+
     cpu.state = state.cpuState;
     ppu.state = state.ppuState;
     apu.state = state.apuState;
@@ -99,6 +106,10 @@ class NES {
     cpu.reset();
     apu.reset();
     ppu.reset();
+
+    if (paused) {
+      eventBus.add(DebuggerNesEvent());
+    }
   }
 
   Future<void> run() async {
@@ -108,10 +119,10 @@ class NES {
 
     _frameStart = DateTime.now();
 
-    var frameTime = Duration.zero;
+    _frameTime = Duration.zero;
 
     while (on) {
-      if (!running) {
+      if (cpu.fetching && !running) {
         await wait(const Duration(milliseconds: 10));
 
         continue;
@@ -119,40 +130,59 @@ class NES {
 
       final vblankBefore = ppu.PPUSTATUS_V;
 
-      step();
+      try {
+        step();
+      } on NesdException catch (e) {
+        eventBus.add(ErrorNesEvent(e));
+
+        pause();
+      }
 
       if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        eventBus.add(
-          FrameNesEvent(
-            samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
-            frameTime: frameTime, // last frame time
-            sleepBudget: _sleepBudget,
-          ),
-        );
-
-        if (stopAfterNextFrame) {
-          stopAfterNextFrame = false;
-
-          pause();
-        }
-
-        frameTime = DateTime.now().difference(_frameStart);
-
-        _frameStart = DateTime.now();
-
-        final sleepTime = _calculateSleepTime(frameTime, apu.sampleIndex);
-
-        apu.sampleIndex = 0;
-
-        _sleepBudget += sleepTime;
-
-        if (_sleepBudget.isNegative) {
-          _sleepBudget = Duration.zero;
-        }
-
-        await wait(_sleepBudget);
+        await _sendFrame();
       }
     }
+  }
+
+  Future<void> _sendFrame() async {
+    eventBus.add(
+      FrameNesEvent(
+        samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
+        frameTime: _frameTime, // last frame time
+        frame: ppu.frames,
+        sleepBudget: _sleepBudget,
+      ),
+    );
+
+    _lastState = NESState(
+      cpuState: cpu.state,
+      ppuState: ppu.state,
+      apuState: apu.state,
+      cartridgeState: bus.cartridge.state,
+      cycles: cycles,
+    );
+
+    if (stopAfterNextFrame) {
+      stopAfterNextFrame = false;
+
+      pause();
+    }
+
+    _frameTime = DateTime.now().difference(_frameStart);
+
+    _frameStart = DateTime.now();
+
+    final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
+
+    apu.sampleIndex = 0;
+
+    _sleepBudget += sleepTime;
+
+    if (_sleepBudget.isNegative) {
+      _sleepBudget = Duration.zero;
+    }
+
+    await wait(_sleepBudget);
   }
 
   Duration _calculateSleepTime(Duration elapsedTime, int samples) {
@@ -230,59 +260,33 @@ class NES {
   }
 
   void step() {
-    final diff = cycles - cpu.cycles * 12;
+    cpu.step();
 
-    if (diff > 0) {
-      cycles += diff;
-    }
+    cycles += 12;
 
-    final cpuCycles = cpu.step();
+    bus.cartridge.step();
 
-    cycles += cpuCycles * 12;
+    var iterations = cycles - ppu.cycles * 4;
 
-    for (var i = 0; i < cpuCycles; i++) {
-      bus.cartridge.step();
-    }
-
-    final ppuDiff = cycles - ppu.cycles * 4;
-
-    for (var i = 0; i < ppuDiff; i++) {
+    do {
       ppu.step();
-    }
 
-    final apuDiff = cycles - apu.cycles * 12;
+      iterations -= 4;
+    } while (iterations > 0);
 
-    for (var i = 0; i < apuDiff; i++) {
-      apu.step();
-    }
+    apu.step();
 
-    if (_breakpoints.isNotEmpty) {
-      final breakpoint =
-          _breakpoints
-              .where((b) => b.enabled && b.address == cpu.PC)
-              .firstOrNull;
-
-      if (breakpoint != null) {
-        pause();
-
-        if (breakpoint.removeOnHit) {
-          _breakpoints.remove(breakpoint);
-        }
-
-        if (breakpoint.disableOnHit) {
-          breakpoint.enabled = false;
-        }
-      }
+    if (cpu.fetching && _breakpoints.isNotEmpty) {
+      _checkBreakpoints();
     }
   }
 
   void stepInto() {
-    final start = cpu.PC;
-
     do {
       step();
+
       apu.sampleIndex = 0;
-    } while (start == cpu.PC);
+    } while (cpu.executing || cpu.runningDma);
 
     eventBus.add(DebuggerNesEvent());
   }
@@ -302,13 +306,9 @@ class NES {
 
     final next = cpu.PC + op.addressMode.operandCount + 1;
 
-    do {
-      step();
+    _breakpoints.add(Breakpoint(next, hidden: true, removeOnHit: true));
 
-      apu.sampleIndex = 0;
-    } while (cpu.PC != next);
-
-    eventBus.add(DebuggerNesEvent());
+    unpause();
   }
 
   void stepOut() {
@@ -320,12 +320,36 @@ class NES {
 
     final returnAddress = cpu.callStack.last;
 
-    do {
-      step();
+    _breakpoints.add(
+      Breakpoint(returnAddress, hidden: true, removeOnHit: true),
+    );
 
-      apu.sampleIndex = 0;
-    } while (cpu.PC != returnAddress);
+    unpause();
+  }
 
-    eventBus.add(DebuggerNesEvent());
+  void _checkBreakpoints() {
+    final toRemove = <Breakpoint>[];
+
+    for (final breakpoint in _breakpoints) {
+      if (!breakpoint.enabled) {
+        continue;
+      }
+
+      if (breakpoint.address != cpu.PC) {
+        continue;
+      }
+
+      pause();
+
+      if (breakpoint.removeOnHit) {
+        toRemove.add(breakpoint);
+      }
+
+      if (breakpoint.disableOnHit) {
+        breakpoint.enabled = false;
+      }
+    }
+
+    _breakpoints.removeWhere((b) => toRemove.contains(b));
   }
 }
