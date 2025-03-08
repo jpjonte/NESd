@@ -100,7 +100,7 @@ class Disassembler {
       growable: false,
     );
 
-    final (readAddress, _) = op.addressMode.read(debugCpu, address + 1);
+    final readAddress = _getReadAddress(op, address);
 
     final value = debugCpu.read(readAddress);
 
@@ -132,6 +132,25 @@ class Disassembler {
     }
 
     return line;
+  }
+
+  int _getReadAddress(Operation op, int address) {
+    final previousPc = debugCpu.PC;
+
+    debugCpu.PC = address + 1;
+
+    final pipeline = op.addressMode.pipeline(
+      read: op.instruction.isRead,
+      write: op.instruction.isWrite,
+    );
+
+    for (final cycle in pipeline) {
+      cycle(debugCpu);
+    }
+
+    debugCpu.PC = previousPc;
+
+    return debugCpu.address;
   }
 
   String _disassemble(
@@ -281,6 +300,11 @@ class DummyDisassembler implements Disassembler {
 
   @override
   Map<int, DisassemblyLine> get lines => throw UnimplementedError();
+
+  @override
+  int _getReadAddress(Operation op, int address) {
+    throw UnimplementedError();
+  }
 
   @override
   String _disassemble(

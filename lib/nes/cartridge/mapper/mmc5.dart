@@ -202,8 +202,7 @@ class MMC5 extends Mapper {
 
     _handleNtReadCounter(address);
 
-    // TODO this should be 3, but that only works with proper cycle accuracy
-    _ppuIdleCountdown = 30;
+    _ppuIdleCountdown = 3;
     _lastPpuAddress = address;
 
     if (_extendedRamMode <= 1 && _ppuInFrame) {

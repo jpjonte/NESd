@@ -35,6 +35,7 @@ devtools_options.yaml
 
 roms/
 !roms/test/nestest/nestest.nes
+!roms/test/cpu_timing_test6/cpu_timing_test.nes
 logs/
 dist/**/*
 !dist/.gitkeep
