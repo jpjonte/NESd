@@ -20,6 +20,11 @@ import 'package:path_provider/path_provider.dart';
 class MainMenu extends ConsumerWidget {
   const MainMenu({super.key});
 
+  static const openRomKey = Key('openRom');
+  static const settingsKey = Key('settings');
+  static const aboutKey = Key('about');
+  static const quitKey = Key('quit');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
@@ -35,13 +40,13 @@ class MainMenu extends ConsumerWidget {
                 const RecentRomList(),
                 if (settings.recentRomPaths.isNotEmpty)
                   const NesdVerticalDivider(),
-                const OpenRomButton(),
+                const OpenRomButton(key: openRomKey),
                 const NesdVerticalDivider(),
-                const SettingsButton(),
+                const SettingsButton(key: settingsKey),
                 const NesdVerticalDivider(),
-                const AboutButton(),
+                const AboutButton(key: aboutKey),
                 const NesdVerticalDivider(),
-                const QuitButton(),
+                const QuitButton(key: quitKey),
               ],
             ),
           ),
