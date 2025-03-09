@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Increased the limit of operations the disassembler will disassemble in one go from 100 to 200
 - Improved usability of breakpoint dialogs
 - Improved performance of the PPU code
+- Improved test coverage and fixed some small bugs
 
 ### Fixed
 

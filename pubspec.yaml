@@ -58,6 +58,7 @@ dev_dependencies:
   freezed: ^2.5.2
   json_serializable: ^6.8.0
   lint: ^2.1.2
+  mocktail: ^1.0.4
   riverpod_lint: ^2.3.10
 
 dependency_overrides:

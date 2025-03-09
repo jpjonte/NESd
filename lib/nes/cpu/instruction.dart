@@ -3,6 +3,7 @@
 
 import 'package:nesd/exception/stop.dart';
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 
 enum InstructionType { jump, branch, other }
@@ -868,26 +869,18 @@ final ALR = Instruction(
   (write) {
     return [
       (cpu) {
-        // AND
         cpu
+          // AND
           ..A &= cpu.operand
+          // LSR
+          ..C = cpu.A.bit(0)
+          ..A = cpu.A >> 1
           ..zero(cpu.A)
           ..negative(cpu.A);
-
-        // LSR
-        final result = cpu.A >> 1;
-
-        cpu
-          ..C = cpu.A.bit(0)
-          ..zero(result)
-          ..N = 0;
-
-        write(cpu, result, dummy: true);
       },
     ];
   },
   isRead: true,
-  isWrite: true,
   merge: true,
 );
 
@@ -895,21 +888,16 @@ final ARR = Instruction(
   'ARR',
   (write) {
     return [
-      (cpu) {
-        // AND
-        cpu.A &= cpu.operand;
-
-        // ROR
-        final rorResult = (cpu.A >> 1) | (cpu.C << 7);
-
-        cpu
-          ..zero(rorResult)
-          ..negative(rorResult)
-          ..C = cpu.A.bit(6)
-          ..V = cpu.A.bit(6) ^ cpu.A.bit(5);
-
-        write(cpu, rorResult, dummy: true);
-      },
+      (cpu) =>
+          cpu
+            // AND
+            ..A &= cpu.operand
+            // ROR
+            ..A = (cpu.C << 7) | (cpu.A >> 1)
+            ..zero(cpu.A)
+            ..negative(cpu.A)
+            ..C = cpu.A.bit(6)
+            ..V = cpu.C ^ cpu.A.bit(5),
     ];
   },
   isRead: true,
@@ -953,14 +941,48 @@ final TAS = Instruction(
 
 final SHY = Instruction(
   'SHY',
-  (write) => [(cpu) => write(cpu, cpu.Y & ((cpu.address >> 8) + 1))],
+  (write) => [
+    (cpu) {
+      final address = cpu.address;
+      final baseAddress = cpu.address - cpu.X;
+
+      final addressLow = address & 0xff;
+
+      var addressHigh = address >> 8;
+
+      if (wasPageCrossed(baseAddress, address)) {
+        addressHigh &= cpu.Y;
+      }
+
+      cpu.address = (addressHigh << 8) | addressLow;
+
+      write(cpu, cpu.Y & ((cpu.address >> 8) + 1));
+    },
+  ],
   isWrite: true,
   merge: true,
 );
 
 final SHX = Instruction(
   'SHX',
-  (write) => [(cpu) => write(cpu, cpu.X & ((cpu.address >> 8) + 1))],
+  (write) => [
+    (cpu) {
+      final address = cpu.address;
+      final baseAddress = cpu.address - cpu.Y;
+
+      final addressLow = address & 0xff;
+
+      var addressHigh = address >> 8;
+
+      if (wasPageCrossed(baseAddress, address)) {
+        addressHigh &= cpu.X;
+      }
+
+      cpu.address = (addressHigh << 8) | addressLow;
+
+      write(cpu, cpu.X & ((cpu.address >> 8) + 1));
+    },
+  ],
   isWrite: true,
   merge: true,
 );
