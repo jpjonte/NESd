@@ -15,7 +15,8 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 ## Features
 
 - Runs on macOS, Linux, Windows, and Android
-- CPU, PPU, and APU emulation
+- Cycle accurate CPU emulation
+- PPU, and APU emulation
 - SRAM saves
 - Save states
 - Customizable controls with multiple bindings per action
