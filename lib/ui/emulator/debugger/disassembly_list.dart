@@ -6,7 +6,9 @@ import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
+import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 class DisassemblyList extends ConsumerWidget {
@@ -18,6 +20,7 @@ class DisassemblyList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final debugger = ref.watch(debuggerProvider);
     final state = ref.watch(debuggerNotifierProvider);
+    final nesController = ref.read(nesControllerProvider);
 
     return ListView.builder(
       controller: scrollController,
@@ -32,8 +35,21 @@ class DisassemblyList extends ConsumerWidget {
           breakpoint: state.breakpoints.firstWhereOrNull(
             (b) => b.address == line.address && !b.hidden,
           ),
-          onTap: () => debugger.toggleBreakpointExists(line.address),
-          onLongPress: () => debugger.toggleBreakpointEnabled(line.address),
+          toggleBreakpoint: () => debugger.toggleBreakpointExists(line.address),
+          toggleBreakpointEnabled:
+              () => debugger.toggleBreakpointEnabled(line.address),
+          jumpTo:
+              (address) => jumpTo(
+                scrollController,
+                calculateAddressScrollOffset(state, address),
+              ),
+          runTo: (address) {
+            debugger.addBreakpoint(
+              Breakpoint(address, hidden: true, removeOnHit: true),
+            );
+
+            nesController.unpause();
+          },
         );
       },
     );
@@ -43,8 +59,10 @@ class DisassemblyList extends ConsumerWidget {
 class DisassemblyRow extends StatelessWidget {
   const DisassemblyRow({
     required this.line,
-    this.onTap,
-    this.onLongPress,
+    this.toggleBreakpoint,
+    this.toggleBreakpointEnabled,
+    this.jumpTo,
+    this.runTo,
     this.breakpoint,
     this.highlight = false,
     super.key,
@@ -53,8 +71,10 @@ class DisassemblyRow extends StatelessWidget {
   final DisassemblyLine line;
   final bool highlight;
   final Breakpoint? breakpoint;
-  final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
+  final VoidCallback? toggleBreakpoint;
+  final VoidCallback? toggleBreakpointEnabled;
+  final void Function(int)? jumpTo;
+  final void Function(int)? runTo;
 
   @override
   Widget build(BuildContext context) {
@@ -71,58 +91,100 @@ class DisassemblyRow extends StatelessWidget {
     final sectionBorder = BorderSide(color: nesdRed[700]!, width: 2);
 
     return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: Container(
-        height: debuggerRowHeight,
-        decoration: BoxDecoration(
-          color: highlight ? Colors.teal[800] : null,
-          borderRadius:
-              start
-                  ? const BorderRadius.vertical(top: Radius.circular(4))
-                  : end
-                  ? const BorderRadius.vertical(bottom: Radius.circular(4))
-                  : null,
-          border: Border(
-            top: start ? sectionBorder : BorderSide.none,
-            bottom: end ? sectionBorder : BorderSide.none,
-            left: start || end ? sectionBorder : defaultBorder,
-            right: start || end ? sectionBorder : defaultBorder,
-          ),
-        ),
-        child: Row(
-          children: [
-            BreakpointDot(breakpoint),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 40,
-              child: Text(address, style: TextStyle(color: Colors.grey[400])),
-            ),
-            const VerticalDivider(),
-            const SizedBox(width: 12),
-            SizedBox(width: 16, child: Text(opcode)),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 70,
-              child: Text(operands, style: TextStyle(color: Colors.grey[400])),
-            ),
-            const VerticalDivider(),
-            const SizedBox(width: 12),
-            Text(
-              instruction,
-              style: TextStyle(
-                color:
-                    unofficial
-                        ? Colors.redAccent[100]
-                        : Colors.greenAccent[200],
+      onTap: toggleBreakpoint,
+      child: ContextMenu(
+        contextMenuBuilder:
+            (context, close) => [
+              ListTile(
+                title: Text(
+                  breakpoint != null ? 'Remove breakpoint' : 'Add breakpoint',
+                ),
+                onTap: () {
+                  close();
+                  toggleBreakpoint?.call();
+                },
               ),
+              if (breakpoint case final breakpoint?)
+                ListTile(
+                  title: Text(
+                    breakpoint.enabled
+                        ? 'Disable breakpoint'
+                        : 'Enable breakpoint',
+                  ),
+                  onTap: () {
+                    close();
+                    toggleBreakpointEnabled?.call();
+                  },
+                ),
+              ListTile(
+                title: Text('Jump to ${line.readAddress.toHex(width: 4)}'),
+                onTap: () {
+                  close();
+                  jumpTo?.call(line.readAddress);
+                },
+              ),
+              ListTile(
+                title: Text('Run to ${line.address.toHex(width: 4)}'),
+                onTap: () {
+                  close();
+                  runTo?.call(line.address);
+                },
+              ),
+            ],
+        child: Container(
+          height: debuggerRowHeight,
+          decoration: BoxDecoration(
+            color: highlight ? Colors.teal[800] : null,
+            borderRadius:
+                start
+                    ? const BorderRadius.vertical(top: Radius.circular(4))
+                    : end
+                    ? const BorderRadius.vertical(bottom: Radius.circular(4))
+                    : null,
+            border: Border(
+              top: start ? sectionBorder : BorderSide.none,
+              bottom: end ? sectionBorder : BorderSide.none,
+              left: start || end ? sectionBorder : defaultBorder,
+              right: start || end ? sectionBorder : defaultBorder,
             ),
-            const SizedBox(width: 12),
-            Text(
-              line.disassembledOperands,
-              style: const TextStyle(color: Colors.orange),
-            ),
-          ],
+          ),
+          child: Row(
+            children: [
+              BreakpointDot(breakpoint),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 40,
+                child: Text(address, style: TextStyle(color: Colors.grey[400])),
+              ),
+              const VerticalDivider(),
+              const SizedBox(width: 12),
+              SizedBox(width: 16, child: Text(opcode)),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 70,
+                child: Text(
+                  operands,
+                  style: TextStyle(color: Colors.grey[400]),
+                ),
+              ),
+              const VerticalDivider(),
+              const SizedBox(width: 12),
+              Text(
+                instruction,
+                style: TextStyle(
+                  color:
+                      unofficial
+                          ? Colors.redAccent[100]
+                          : Colors.greenAccent[200],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                line.disassembledOperands,
+                style: const TextStyle(color: Colors.orange),
+              ),
+            ],
+          ),
         ),
       ),
     );
