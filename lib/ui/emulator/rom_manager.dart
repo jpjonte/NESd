@@ -5,10 +5,11 @@ import 'dart:ui' as ui;
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/ui/common/rom_list.dart';
 import 'package:nesd/ui/emulator/display.dart';
-import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -149,16 +150,36 @@ class RomManager {
 
     final data = saveStateFile.readAsBytesSync();
 
-    final state = NESState.fromBytes(data);
+    try {
+      final state = NESState.fromBytes(data);
 
-    final lastModified = saveStateFile.lastModifiedSync();
+      final lastModified = saveStateFile.lastModifiedSync();
 
-    return RomTileData(
-      romInfo: romInfo,
-      title: 'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
-      thumbnail: await _getStateThumbnail(state),
-      state: state,
-    );
+      return RomTileData(
+        romInfo: romInfo,
+        title:
+            'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
+        thumbnail: await _getStateThumbnail(state),
+        state: state,
+        slot: slot,
+      );
+    } on NesdException {
+      return null;
+    }
+  }
+
+  void deleteSaveState(RomTileData romTileData) {
+    final slot = romTileData.slot;
+
+    if (slot == null) {
+      return;
+    }
+
+    final saveStateFile = _getSaveStateFile(romTileData.romInfo, slot);
+
+    if (saveStateFile.existsSync()) {
+      saveStateFile.deleteSync();
+    }
   }
 
   Future<ui.Image> _getStateThumbnail(NESState state) async {
