@@ -16,7 +16,7 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
 
 - Runs on macOS, Linux, Windows, and Android
 - Cycle accurate CPU emulation
-- PPU, and APU emulation
+- PPU and APU emulation
 - SRAM saves
 - Save states
 - Customizable controls with multiple bindings per action

@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added frame count in the debug overlay
 - Unofficial operations are now highlighted in red
 - When an error occurs during emulation, an error toast message is shown
+- Added a button to remove a ROM from the recent ROM list
+- Added a button to delete a save state from the save states menu
 
 ### Changed
 
