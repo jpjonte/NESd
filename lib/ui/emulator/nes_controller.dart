@@ -128,6 +128,8 @@ class NesController {
 
   StreamSubscription<NesEvent>? _nesEventSubscription;
 
+  bool get isOn => nesState.nes != null;
+
   Future<Cartridge> loadCartridge(String path) async {
     final loaded = nes != null;
 

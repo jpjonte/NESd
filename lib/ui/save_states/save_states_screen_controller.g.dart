@@ -7,7 +7,7 @@ part of 'save_states_screen_controller.dart';
 // **************************************************************************
 
 String _$saveStatesScreenControllerHash() =>
-    r'1af0d109862f428a3b1049e8a8e6121c4734e1b3';
+    r'792be9e91109fd344d9f48755510b75f1d459488';
 
 /// Copied from Dart SDK
 class _SystemHash {

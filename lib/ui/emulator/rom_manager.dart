@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod/riverpod.dart';
