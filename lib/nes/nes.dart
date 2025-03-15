@@ -59,6 +59,10 @@ class NES {
   }
 
   void addBreakpoint(Breakpoint breakpoint) {
+    if (_breakpoints.any((b) => b.address == breakpoint.address)) {
+      return;
+    }
+
     _breakpoints.add(breakpoint);
   }
 

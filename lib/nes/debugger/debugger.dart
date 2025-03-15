@@ -24,7 +24,7 @@ Debugger debugger(Ref ref) {
     return DummyDebugger();
   }
 
-  final subscription = ref.listen(debuggerNotifierProvider, (_, __) {});
+  final subscription = ref.listen(debuggerNotifierProvider, (_, _) {});
 
   final debugger = Debugger(
     eventBus: ref.watch(eventBusProvider),

@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Fixed CNROM ROMs not starting up
 - Fixed an issue where the disassembler would disassemble non-code data when encountering a BRK instruction
+- Fixed an issue where multiple breakpoints could be added for the same address
 
 ## [0.8.0] - 2025-02-18
 
