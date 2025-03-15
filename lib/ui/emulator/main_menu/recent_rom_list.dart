@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router.dart';
@@ -52,30 +53,37 @@ class RecentRomList extends HookConsumerWidget {
       }
     }
 
-    return RomList(
-      roms: roms,
+    return PaginatedGrid(
       skipRows: 1, // skip 1 row to leave room for menu
-      onPressed: (romTileData) => controller.loadRom(romTileData.romInfo.path),
-      onRemove: (data) async => await remove(context, data),
-      contextMenuBuilder:
-          (context, romTileData, close) => [
-            ListTile(
-              title: const Text('Save states'),
-              onTap: () {
-                close();
-                ref
-                    .read(routerProvider)
-                    .navigate(SaveStatesRoute(romInfo: romTileData.romInfo));
-              },
-            ),
-            ListTile(
-              title: const Text('Remove from list'),
-              onTap: () async {
-                close();
-                await remove(context, romTileData);
-              },
-            ),
-          ],
+      children: [
+        for (final romTileData in roms)
+          RomTile(
+            onPressed: () => controller.loadRom(romTileData.romInfo.path),
+            onRemove: () async => remove(context, romTileData),
+            contextMenuBuilder:
+                (context, close) => [
+                  ListTile(
+                    title: const Text('Save states'),
+                    onTap: () {
+                      close();
+                      ref
+                          .read(routerProvider)
+                          .navigate(
+                            SaveStatesRoute(romInfo: romTileData.romInfo),
+                          );
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Remove from list'),
+                    onTap: () async {
+                      close();
+                      await remove(context, romTileData);
+                    },
+                  ),
+                ],
+            romTileData: romTileData,
+          ),
+      ],
     );
   }
 

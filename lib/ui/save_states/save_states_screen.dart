@@ -6,6 +6,7 @@ import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router.dart';
@@ -23,17 +24,29 @@ class SaveStatesScreen extends HookConsumerWidget {
     final nesController = ref.watch(nesControllerProvider);
     final controller = ref.watch(saveStatesScreenControllerProvider(romInfo));
 
-    final romsSnapshot = useStream(controller.stream);
+    final statesSnapshot = useStream(controller.stream);
 
-    if (romsSnapshot.hasError) {
+    if (statesSnapshot.hasError) {
       return const Center(child: Text('Error loading ROMs'));
     }
 
-    if (!romsSnapshot.hasData) {
+    if (!statesSnapshot.hasData) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final roms = romsSnapshot.data!;
+    final states = statesSnapshot.data!;
+
+    final nextOpenSlot = useMemoized(() {
+      var openSlot = 1;
+
+      for (final state in states) {
+        if (state.slot == openSlot) {
+          openSlot++;
+        }
+      }
+
+      return openSlot;
+    }, [states]);
 
     Future<void> delete(BuildContext context, RomTileData romTileData) async {
       final confirmed = await ConfirmationDialog.show(
@@ -50,6 +63,12 @@ class SaveStatesScreen extends HookConsumerWidget {
       }
     }
 
+    final saveRomTileData = RomTileData(
+      romInfo: romInfo,
+      title: 'New Save State',
+      slot: nextOpenSlot,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -64,28 +83,42 @@ class SaveStatesScreen extends HookConsumerWidget {
         child: NesdMenuWrapper(
           child: FocusChild(
             autofocus: true,
-            child: RomList(
-              roms: roms,
-              onPressed: (romTileData) {
-                nesController.loadRom(
-                  romTileData.romInfo.path,
-                  state: romTileData.state,
-                );
-                ref.read(routerProvider).navigate(const MainRoute());
-              },
-              onRemove:
-                  (romTileData) async => await delete(context, romTileData),
-              contextMenuBuilder:
-                  (context, romTileData, close) => [
-                    ListTile(
-                      title: const Text('Delete save state'),
-                      onTap: () async {
-                        close();
+            child: PaginatedGrid(
+              children: [
+                if (nextOpenSlot < 10 && nesController.isOn)
+                  RomTile(
+                    romTileData: saveRomTileData,
+                    onPressed: () {
+                      controller.save(saveRomTileData);
 
-                        await delete(context, romTileData);
-                      },
-                    ),
-                  ],
+                      ref.read(routerProvider).navigate(const MainRoute());
+                    },
+                  ),
+                for (final romTileData in states)
+                  RomTile(
+                    romTileData: romTileData,
+                    onPressed: () {
+                      nesController.loadRom(
+                        romTileData.romInfo.path,
+                        state: romTileData.state,
+                      );
+
+                      ref.read(routerProvider).navigate(const MainRoute());
+                    },
+                    onRemove: () async => await delete(context, romTileData),
+                    contextMenuBuilder:
+                        (context, close) => [
+                          ListTile(
+                            title: const Text('Delete save state'),
+                            onTap: () async {
+                              close();
+
+                              await delete(context, romTileData);
+                            },
+                          ),
+                        ],
+                  ),
+              ],
             ),
           ),
         ),

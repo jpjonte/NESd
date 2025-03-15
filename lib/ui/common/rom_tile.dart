@@ -1,10 +1,32 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/common/custom_button.dart';
 import 'package:nesd/ui/common/outline_text.dart';
-import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/nesd_theme.dart';
+
+const gameTileWidth = 272.0;
+const gameTileHeight = 256.0;
+
+class RomTileData {
+  const RomTileData({
+    required this.romInfo,
+    required this.title,
+    this.thumbnail,
+    this.state,
+    this.slot,
+  });
+
+  final RomInfo romInfo;
+  final String title;
+  final ui.Image? thumbnail;
+  final NESState? state;
+  final int? slot;
+}
 
 class RomTile extends ConsumerWidget {
   const RomTile({

@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - When an error occurs during emulation, an error toast message is shown
 - Added a button to remove a ROM from the recent ROM list
 - Added a button to delete a save state from the save states menu
+- Added a button to create a new save state from the save states menu
 
 ### Changed
 
@@ -30,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Fixed CNROM ROMs not starting up
 - Fixed an issue where the disassembler would disassemble non-code data when encountering a BRK instruction
+- Fixed an issue where multiple breakpoints could be added for the same address
 
 ## [0.8.0] - 2025-02-18
 
