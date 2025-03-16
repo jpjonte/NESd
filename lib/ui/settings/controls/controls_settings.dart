@@ -26,8 +26,8 @@ class ControlsSettings extends StatelessWidget {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            const ShowTouchControlsSwitch(),
             const ResetBindingsButton(),
+            const ShowTouchControlsSwitch(),
             const TouchEditorButton(),
             const ProfileSelectionHeader(),
             for (final action in allActions) BindingTile(action: action),

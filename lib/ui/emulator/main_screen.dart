@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
+import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
@@ -59,7 +60,7 @@ class MainScreen extends HookConsumerWidget {
         _audioMenu(settingsController),
       ],
       child: SafeArea(
-        child: Scaffold(
+        child: NesdScaffold(
           body: Builder(
             builder: (context) {
               if (nes == null) {

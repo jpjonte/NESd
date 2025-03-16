@@ -11,6 +11,10 @@ const menuActions = [
   nextTab,
   previousInput,
   nextInput,
+  inputUp,
+  inputDown,
+  inputLeft,
+  inputRight,
 ];
 
 const emulatorActions = [

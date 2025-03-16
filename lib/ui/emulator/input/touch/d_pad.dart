@@ -53,11 +53,10 @@ class DPad extends HookConsumerWidget {
         return;
       }
 
-      if (rect.contains(previous) != rect.contains(current)) {
-        actionStream.add((
-          action: action,
-          value: rect.contains(current) ? 1.0 : 0.0,
-        ));
+      final inside = rect.contains(current);
+
+      if (inside != rect.contains(previous)) {
+        actionStream.add((action: action, value: inside ? 1.0 : 0.0));
       }
     }
 

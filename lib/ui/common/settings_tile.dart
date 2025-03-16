@@ -5,6 +5,7 @@ class SettingsTile extends StatelessWidget {
   const SettingsTile({
     required this.child,
     this.title,
+    this.subtitle,
     this.enabled = true,
     this.adaptive = false,
     this.onTap,
@@ -12,6 +13,7 @@ class SettingsTile extends StatelessWidget {
   });
 
   final Widget? title;
+  final Widget? subtitle;
   final Widget child;
 
   final bool enabled;
@@ -39,6 +41,31 @@ class SettingsTile extends StatelessWidget {
           final column = adaptive && narrow;
           final height = column ? 140.0 : 70.0;
 
+          final titles = [
+            if (title != null) wrappedTitle,
+            if (subtitle != null)
+              DefaultTextStyle(
+                style: DefaultTextStyle.of(context).style.copyWith(
+                  color: enabled ? Colors.grey[400] : Colors.grey[800],
+                  fontSize: 14,
+                ),
+                child: subtitle!,
+              ),
+          ];
+
+          final wrappedTitles =
+              column
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: titles,
+                  )
+                  : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: titles,
+                  );
+
           final wrappedChild = SizedBox(
             height: 70,
             child: ConstrainedBox(
@@ -50,7 +77,7 @@ class SettingsTile extends StatelessWidget {
             ),
           );
 
-          final children = [if (title != null) wrappedTitle, wrappedChild];
+          final children = [if (title != null) wrappedTitles, wrappedChild];
 
           return SizedBox(
             height: height,

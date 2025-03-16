@@ -166,12 +166,20 @@ class ActionHandler {
         _sendIntent(const NextFocusIntent());
       case PreviousInput():
         _sendIntent(const PreviousFocusIntent());
+      case InputUp():
+        _sendIntent(const DirectionalFocusIntent(TraversalDirection.up));
+      case InputDown():
+        _sendIntent(const DirectionalFocusIntent(TraversalDirection.down));
+      case InputLeft():
+        _sendIntent(const DirectionalFocusIntent(TraversalDirection.left));
+      case InputRight():
+        _sendIntent(const DirectionalFocusIntent(TraversalDirection.right));
       case Confirm():
         _sendIntent(const ActivateIntent());
       case SecondaryAction():
         _sendIntent(const SecondaryActionIntent());
       case Cancel():
-        router.maybePop();
+        _sendIntent(const DismissIntent());
       case MenuDecrease():
         _sendIntent(const DecreaseIntent());
       case MenuIncrease():
@@ -202,12 +210,20 @@ class ActionHandler {
 
     final context = focus?.context;
 
-    if (context != null) {
-      final flutterAction = Actions.maybeFind(context, intent: intent);
-
-      if (flutterAction != null) {
-        Actions.of(context).invokeAction(flutterAction, intent);
-      }
+    if (context == null) {
+      return;
     }
+
+    final flutterAction = Actions.maybeFind(context, intent: intent);
+
+    if (flutterAction == null) {
+      return;
+    }
+
+    if (!flutterAction.isEnabled(intent)) {
+      return;
+    }
+
+    Actions.of(context).invokeAction(flutterAction, intent);
   }
 }

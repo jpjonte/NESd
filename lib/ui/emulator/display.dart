@@ -8,7 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/ui/emulator/input/keyboard_input_handler.dart';
+import 'package:nesd/ui/emulator/input/keyboard/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/router.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
