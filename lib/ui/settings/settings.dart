@@ -10,6 +10,7 @@ import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
+import 'package:nesd/util/decorate.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,14 +61,10 @@ List<InputCombination?> inputsFromJson(dynamic value) {
     ];
   }
 
-  return value
-      .map(
-        (e) =>
-            e != null
-                ? InputCombination.fromJson(e as Map<String, dynamic>)
-                : null,
-      )
-      .toList();
+  return [
+    for (final e in value)
+      decorate(e, (e) => InputCombination.fromJson(e as Map<String, dynamic>)),
+  ];
 }
 
 Map<String, dynamic> bindingsToJson(BindingMap bindings) {
@@ -261,7 +258,7 @@ class SettingsController extends _$SettingsController {
   }
 
   void updateBinding(InputAction action, int index, InputCombination input) {
-    final bindings = state.bindings[action] ?? <InputCombination?>[];
+    final bindings = List<InputCombination?>.of(state.bindings[action] ?? []);
 
     if (index < bindings.length) {
       bindings[index] = input;

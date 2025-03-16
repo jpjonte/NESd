@@ -57,6 +57,9 @@ class GamepadInputHandler {
 
   late final GamepadMap _bindings;
 
+  Timer? _delayTimer;
+  Timer? _repeatTimer;
+
   void dispose() {
     _subscription.cancel();
   }
@@ -81,9 +84,15 @@ class GamepadInputHandler {
         previousActions,
         highesPriorityOnly: true,
       );
+
+      _startRepeatDelay();
     } else if (value < _inputOffThreshold) {
       // handle all actions that are no longer active
       _addActions(value, previousActions, currentActions);
+    }
+
+    if (currentActions.isEmpty) {
+      _stopRepeat();
     }
   }
 
@@ -152,5 +161,36 @@ class GamepadInputHandler {
           if (input case final GamepadInputCombination input)
             (gamepadId: input.gamepadId, state: input.inputs): action,
     };
+  }
+
+  void _startRepeatDelay() {
+    _repeatTimer?.cancel();
+    _delayTimer?.cancel();
+
+    if (_state.entries.any((e) => e.value.isNotEmpty)) {
+      _delayTimer = Timer(const Duration(milliseconds: 500), _startRepeat);
+    }
+  }
+
+  void _startRepeat() {
+    _repeatTimer?.cancel();
+    _repeatTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      final actions = _getActions();
+
+      if (actions.isEmpty) {
+        _repeatTimer?.cancel();
+
+        return;
+      }
+
+      for (final action in actions) {
+        actionStream.add((action: action.action, value: 1.0));
+      }
+    });
+  }
+
+  void _stopRepeat() {
+    _delayTimer?.cancel();
+    _repeatTimer?.cancel();
   }
 }
