@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 
 // making the parameter `focused` a named parameter would be overkill
 // ignore: avoid_positional_boolean_parameters
@@ -27,9 +26,6 @@ class CustomButton extends HookWidget {
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
           onInvoke: (intent) => onPressed(),
-        ),
-        SecondaryActionIntent: CallbackAction<SecondaryActionIntent>(
-          onInvoke: (intent) => onLongPress?.call(),
         ),
       },
       child: FocusOnHover(

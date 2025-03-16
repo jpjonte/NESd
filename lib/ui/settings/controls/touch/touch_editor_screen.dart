@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/settings/controls/touch/action_buttons.dart';
 import 'package:nesd/ui/settings/controls/touch/editing_hint.dart';
@@ -18,7 +19,7 @@ class TouchEditorScreen extends ConsumerWidget {
     final state = ref.watch(touchEditorNotifierProvider);
 
     return SafeArea(
-      child: Scaffold(
+      child: NesdScaffold(
         body: OrientationBuilder(
           builder: (context, orientation) {
             return LayoutBuilder(

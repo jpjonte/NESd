@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
+import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/router.dart';
@@ -14,7 +15,7 @@ class MenuScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+    return NesdScaffold(
       backgroundColor: Colors.black.withAlpha(200),
       appBar: AppBar(
         title: Text(

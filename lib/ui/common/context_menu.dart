@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/hooks/use_context_menu_controller.dart';
+import 'package:nesd/ui/common/focus_child.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
 
 typedef ContextMenuBuilder = List<Widget> Function(BuildContext, VoidCallback);
 
@@ -49,13 +51,20 @@ class ContextMenu extends HookWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Material(
-                        child: Builder(
-                          builder:
-                              (context) => Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: contextMenuBuilder!(context, close),
-                              ),
+                        child: Actions(
+                          actions: {
+                            DismissIntent: CallbackAction<DismissIntent>(
+                              onInvoke: (_) => close(),
+                            ),
+                          },
+                          child: FocusChild(
+                            autofocus: true,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: contextMenuBuilder!(context, close),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -66,12 +75,34 @@ class ContextMenu extends HookWidget {
       );
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onLongPressStart: (details) => offset.value = details.globalPosition,
-      onLongPress: () => open(offset.value),
-      onSecondaryTapUp: (details) => open(details.globalPosition),
-      child: child,
+    return Actions(
+      actions: {
+        SecondaryActionIntent: CallbackAction<SecondaryActionIntent>(
+          onInvoke: (intent) {
+            final renderObject = context.findRenderObject();
+
+            if (renderObject == null) {
+              return;
+            }
+
+            final transform = renderObject.getTransformTo(null);
+            final offset = transform.getTranslation();
+
+            final localOffset = renderObject.paintBounds.center;
+
+            open(Offset(offset.x, offset.y) + localOffset);
+
+            return null;
+          },
+        ),
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onLongPressStart: (details) => offset.value = details.globalPosition,
+        onLongPress: () => open(offset.value),
+        onSecondaryTapUp: (details) => open(details.globalPosition),
+        child: child,
+      ),
     );
   }
 }

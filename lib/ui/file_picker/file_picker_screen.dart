@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
+import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
@@ -71,7 +72,7 @@ class FilePickerScreen extends HookConsumerWidget {
           ),
         ),
       ),
-      FilePickerData(path: final path, files: final files) => Scaffold(
+      FilePickerData(path: final path, files: final files) => NesdScaffold(
         appBar: AppBar(
           title: Text(
             title,

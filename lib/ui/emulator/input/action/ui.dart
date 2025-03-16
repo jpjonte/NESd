@@ -12,6 +12,22 @@ class NextInput extends InputAction {
   const NextInput({required super.title, required super.code});
 }
 
+class InputUp extends InputAction {
+  const InputUp({required super.title, required super.code});
+}
+
+class InputDown extends InputAction {
+  const InputDown({required super.title, required super.code});
+}
+
+class InputLeft extends InputAction {
+  const InputLeft({required super.title, required super.code});
+}
+
+class InputRight extends InputAction {
+  const InputRight({required super.title, required super.code});
+}
+
 class Confirm extends InputAction {
   const Confirm({required super.title, required super.code});
 }
@@ -48,6 +64,14 @@ const previousInput = PreviousInput(
 );
 
 const nextInput = NextInput(title: 'Next Input', code: 'ui.nextInput');
+
+const inputUp = InputUp(title: 'Input Up', code: 'ui.inputUp');
+
+const inputDown = InputDown(title: 'Input Down', code: 'ui.inputDown');
+
+const inputLeft = InputLeft(title: 'Input Left', code: 'ui.inputLeft');
+
+const inputRight = InputRight(title: 'Input Right', code: 'ui.inputRight');
 
 const confirm = Confirm(title: 'Confirm', code: 'ui.confirm');
 
