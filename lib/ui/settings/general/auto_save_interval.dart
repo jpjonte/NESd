@@ -33,6 +33,7 @@ class AutoSaveInterval extends ConsumerWidget {
         child: SettingsTile(
           enabled: autoSave,
           title: const Text('Auto Save Interval'),
+          subtitle: const Text('Minutes between auto saves'),
           onTap: () {},
           child: ExcludeFocusTraversal(
             child: Container(
