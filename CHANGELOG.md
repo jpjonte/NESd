@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added a button to delete a save state from the save states menu
 - Added a button to create a new save state from the save states menu
 - Gamepad inputs are now repeated when held down for easier menu navigation
+- Added the option to remove a ROM from the recent ROM list if it could not be found while loading
 
 ### Changed
 

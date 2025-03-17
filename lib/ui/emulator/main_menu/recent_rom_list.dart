@@ -58,7 +58,41 @@ class RecentRomList extends HookConsumerWidget {
       children: [
         for (final romTileData in roms)
           RomTile(
-            onPressed: () => controller.loadRom(romTileData.romInfo.path),
+            onPressed: () async {
+              final success = await controller.loadRom(
+                romTileData.romInfo.path,
+              );
+
+              if (success || !context.mounted) {
+                return;
+              }
+
+              final confirmed = await ConfirmationDialog.show(
+                context,
+                title: const Text('Remove ROM?'),
+                content: RichText(
+                  text: TextSpan(
+                    children: [
+                      const TextSpan(text: 'The ROM '),
+                      TextSpan(
+                        text: romTileData.romInfo.path,
+                        style: DefaultTextStyle.of(
+                          context,
+                        ).style.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const TextSpan(text: ' was not found.'),
+                      const TextSpan(
+                        text: ' Do you want to remove it from the list?',
+                      ),
+                    ],
+                  ),
+                ),
+              );
+
+              if (confirmed == true) {
+                settingsController.removeRecentRom(romTileData.romInfo);
+              }
+            },
             onRemove: () async => remove(context, romTileData),
             contextMenuBuilder:
                 (context, close) => [
