@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
@@ -222,7 +223,7 @@ class NesController {
     await loadRom(path);
   }
 
-  Future<void> loadRom(String path, {NESState? state}) async {
+  Future<bool> loadRom(String path, {NESState? state}) async {
     suspend();
 
     try {
@@ -246,11 +247,15 @@ class NesController {
       settingsController.addRecentRom(cartridge.romInfo);
 
       _load();
+    } on PathNotFoundException {
+      return false;
     } on Exception catch (e) {
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       resume();
     }
+
+    return true;
   }
 
   void saveState(int slot) {

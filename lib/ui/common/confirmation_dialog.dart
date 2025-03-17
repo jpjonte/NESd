@@ -39,7 +39,10 @@ class ConfirmationDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return AlertDialog(
       title: title,
-      content: content,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: content,
+      ),
       actions: [
         TextButton(
           autofocus: true,
