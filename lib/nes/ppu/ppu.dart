@@ -155,6 +155,8 @@ class PPU {
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
 
+  int consoleCyclesPerCycle = 4;
+  int consoleCycles = 0;
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -203,6 +205,7 @@ class PPU {
     secondaryOam: secondaryOam,
     palette: palette,
     frameBuffer: frameBuffer,
+    consoleCycles: consoleCycles,
     cycles: cycles,
     cycle: cycle,
     scanline: scanline,
@@ -242,6 +245,7 @@ class PPU {
     secondaryOam.setAll(0, state.secondaryOam);
     palette.setAll(0, state.palette);
     frameBuffer.setPixels(state.frameBuffer.pixels);
+    consoleCycles = state.consoleCycles;
     cycles = state.cycles;
     cycle = state.cycle;
     scanline = state.scanline;
@@ -268,6 +272,7 @@ class PPU {
   }
 
   void reset() {
+    consoleCycles = 0;
     cycles = 0;
     cycle = 0;
     scanline = 0;
@@ -380,6 +385,12 @@ class PPU {
 
   bool get fetching => lineFetch && cycleFetch;
 
+  void stepUntil(int targetCycles) {
+    do {
+      step();
+    } while (consoleCycles < targetCycles);
+  }
+
   void step() {
     _handleRendering();
 
@@ -407,7 +418,9 @@ class PPU {
 
     _shiftRegisters();
 
-    _fetch();
+    if (fetching) {
+      _fetch();
+    }
 
     _copyHorizontalBits();
 
@@ -557,6 +570,7 @@ class PPU {
   }
 
   void _updateCounters() {
+    consoleCycles += consoleCyclesPerCycle;
     cycles++;
     cycle++;
 
@@ -776,10 +790,6 @@ class PPU {
   }
 
   void _fetch() {
-    if (!fetching) {
-      return;
-    }
-
     final subcycle = cycle & 7;
 
     if (subcycle == 0) {

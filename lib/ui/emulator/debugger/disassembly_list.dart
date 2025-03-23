@@ -117,17 +117,17 @@ class DisassemblyRow extends StatelessWidget {
                   },
                 ),
               ListTile(
-                title: Text('Jump to ${line.readAddress.toHex(width: 4)}'),
-                onTap: () {
-                  close();
-                  jumpTo?.call(line.readAddress);
-                },
-              ),
-              ListTile(
                 title: Text('Run to ${line.address.toHex(width: 4)}'),
                 onTap: () {
                   close();
                   runTo?.call(line.address);
+                },
+              ),
+              ListTile(
+                title: Text('Jump to ${line.readAddress.toHex(width: 4)}'),
+                onTap: () {
+                  close();
+                  jumpTo?.call(line.readAddress);
                 },
               ),
             ],
