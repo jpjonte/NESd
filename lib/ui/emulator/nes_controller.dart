@@ -14,6 +14,7 @@ import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/nes_state.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
@@ -236,6 +237,8 @@ class NesController {
       if (newState != null) {
         newNes.state = newState;
       }
+
+      newNes.region = settingsController.region ?? Region.ntsc;
 
       nesState.run(newNes);
 

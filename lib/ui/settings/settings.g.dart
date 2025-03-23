@@ -55,6 +55,7 @@ _$SettingsImpl _$$SettingsImplFromJson(Map<String, dynamic> json) =>
             ),
           ) ??
           const {},
+      region: $enumDecodeNullable(_$RegionEnumMap, json['region']) ?? null,
     );
 
 Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
@@ -78,6 +79,7 @@ Map<String, dynamic> _$$SettingsImplToJson(_$SettingsImpl instance) =>
       'narrowTouchInputConfig': instance.narrowTouchInputConfig,
       'wideTouchInputConfig': instance.wideTouchInputConfig,
       'breakpoints': instance.breakpoints,
+      'region': _$RegionEnumMap[instance.region],
     };
 
 const _$ScalingEnumMap = {
@@ -89,12 +91,14 @@ const _$ScalingEnumMap = {
   Scaling.x4: 'x4',
 };
 
+const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'0693c7056026ac4637a3fcf90a9691febb1f2752';
+    r'64f9c8f46375dc0a3c6292ea0dd89e80d2a47471';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

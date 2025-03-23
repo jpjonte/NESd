@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nesd/ui/settings/general/auto_load_switch.dart';
 import 'package:nesd/ui/settings/general/auto_save_interval.dart';
 import 'package:nesd/ui/settings/general/auto_save_switch.dart';
+import 'package:nesd/ui/settings/general/region_selector.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 
 class GeneralSettings extends StatelessWidget {
@@ -13,7 +14,12 @@ class GeneralSettings extends StatelessWidget {
       index: 0,
       child: SingleChildScrollView(
         child: Column(
-          children: [AutoSaveSwitch(), AutoSaveInterval(), AutoLoadSwitch()],
+          children: [
+            AutoSaveSwitch(),
+            AutoSaveInterval(),
+            AutoLoadSwitch(),
+            RegionSelector(),
+          ],
         ),
       ),
     );

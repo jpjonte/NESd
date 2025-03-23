@@ -8,6 +8,7 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
+import 'package:nesd/nes/region.dart';
 
 const systemPalette = [
   0x626262,
@@ -75,6 +76,12 @@ const systemPalette = [
   0x000000,
   0x000000,
 ];
+
+const ntscConsoleCyclesPerCycle = 4;
+const palConsoleCyclesPerCycle = 5;
+
+const ntscPreRenderScanline = 261;
+const palPreRenderScanline = 311;
 
 class PPU {
   PPU(this.bus);
@@ -155,12 +162,14 @@ class PPU {
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
 
-  int consoleCyclesPerCycle = 4;
+  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
   int frames = 0;
+
+  int _preRenderScanline = ntscPreRenderScanline;
 
   int nametableLatch = 0;
 
@@ -271,6 +280,19 @@ class PPU {
     }
   }
 
+  // we don't need a getter from this
+  // ignore: avoid_setters_without_getters
+  set region(Region region) {
+    switch (region) {
+      case Region.ntsc:
+        _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+        _preRenderScanline = ntscPreRenderScanline;
+      case Region.pal:
+        _consoleCyclesPerCycle = palConsoleCyclesPerCycle;
+        _preRenderScanline = palPreRenderScanline;
+    }
+  }
+
   void reset() {
     consoleCycles = 0;
     cycles = 0;
@@ -372,7 +394,7 @@ class PPU {
   int get currentX => cycle - 1;
 
   bool get lineVisible => scanline < 240;
-  bool get linePreRender => scanline == 261;
+  bool get linePreRender => scanline == _preRenderScanline;
   bool get lineVblank => scanline == 241;
   bool get lineFetch => lineVisible || linePreRender;
 
@@ -428,7 +450,7 @@ class PPU {
   }
 
   void _handleGarbageFetches() {
-    if (scanline <= 239 || scanline == 261) {
+    if (scanline <= 239 || scanline == _preRenderScanline) {
       if (cycle == 337 || cycle == 339) {
         readPpuMemory(_nametableAddress());
       }
@@ -570,11 +592,11 @@ class PPU {
   }
 
   void _updateCounters() {
-    consoleCycles += consoleCyclesPerCycle;
+    consoleCycles += _consoleCyclesPerCycle;
     cycles++;
     cycle++;
 
-    if (scanline == 261 && cycle == 340 && frames.isOdd) {
+    if (scanline == _preRenderScanline && cycle == 340 && frames.isOdd) {
       scanline = 0;
       cycle = 0;
       frames++;
@@ -586,7 +608,7 @@ class PPU {
       cycle = 0;
       scanline++;
 
-      if (scanline > 261) {
+      if (scanline > _preRenderScanline) {
         scanline = 0;
         frames++;
       }

@@ -1,0 +1,1 @@
+enum Region { ntsc, pal }

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Added support for PAL ROMs
+
 ### Changed
 
 - Improved performance by completely changing the implementation of cycle accuracy

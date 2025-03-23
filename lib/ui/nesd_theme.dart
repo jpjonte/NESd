@@ -64,6 +64,14 @@ final inputDecorationTheme = InputDecorationTheme(
   hintStyle: TextStyle(color: Colors.grey[500]),
 );
 
+final segmentedButtonThemeLight = SegmentedButtonThemeData(
+  style: SegmentedButton.styleFrom(
+    foregroundColor: Colors.black,
+    selectedBackgroundColor: nesdRed[600],
+    selectedForegroundColor: Colors.white,
+  ),
+);
+
 final focusColor = nesdRed[700]!;
 
 final surfaceContainerColor = nesdRed[800]!;
@@ -82,12 +90,21 @@ final nesdThemeLight = ThemeData(
   sliderTheme: sliderTheme,
   filledButtonTheme: filledButtonTheme,
   dividerTheme: dividerTheme,
+  segmentedButtonTheme: segmentedButtonThemeLight,
 );
 
 final dialogThemeDark = DialogTheme(
   backgroundColor: nesdRed[900],
   shadowColor: nesdRed[600],
   elevation: 4,
+);
+
+final segmentedButtonThemeDark = SegmentedButtonThemeData(
+  style: SegmentedButton.styleFrom(
+    foregroundColor: Colors.white,
+    selectedBackgroundColor: nesdRed[600],
+    selectedForegroundColor: Colors.white,
+  ),
 );
 
 final nesdThemeDark = ThemeData(
@@ -106,4 +123,5 @@ final nesdThemeDark = ThemeData(
   dividerTheme: dividerTheme,
   dialogTheme: dialogThemeDark,
   inputDecorationTheme: inputDecorationTheme,
+  segmentedButtonTheme: segmentedButtonThemeDark,
 );

@@ -10,10 +10,12 @@ import 'package:nesd/nes/apu/frame_counter/frame_counter.dart';
 import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
+import 'package:nesd/nes/region.dart';
+
+const ntscCpuFrequency = 1789773;
+const palCpuFrequency = 1662607;
 
 const apuSampleRate = 48000;
-const cyclesPerSample =
-    1789773 / apuSampleRate; // cpu frequency / audio sample rate
 
 class APU {
   APU(this.bus);
@@ -42,6 +44,8 @@ class APU {
   int _triangleSamples = 0;
   int _dmcSamples = 0;
   int _sampleStart = 0;
+
+  double _cyclesPerSample = ntscCpuFrequency / apuSampleRate;
 
   APUState get state => APUState(
     cycles: cycles,
@@ -78,6 +82,19 @@ class APU {
     pulse2.state = state.pulse2State;
 
     sampleIndex = 0;
+  }
+
+  // we don't need a getter from this
+  // ignore: avoid_setters_without_getters
+  set region(Region region) {
+    _frameCounter.region = region;
+
+    switch (region) {
+      case Region.ntsc:
+        _cyclesPerSample = ntscCpuFrequency / apuSampleRate;
+      case Region.pal:
+        _cyclesPerSample = palCpuFrequency / apuSampleRate;
+    }
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
@@ -204,8 +221,8 @@ class APU {
     _gatherSamples();
 
     // if this cycle crossed the sample rate boundary, output a new sample
-    final before = (cycles - 1) / cyclesPerSample;
-    final after = cycles / cyclesPerSample;
+    final before = (cycles - 1) / _cyclesPerSample;
+    final after = cycles / _cyclesPerSample;
 
     if (before.truncate() != after.truncate()) {
       sampleBuffer[sampleIndex++] = _output();
