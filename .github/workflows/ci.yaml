@@ -3,6 +3,7 @@ on: [push]
 
 env:
   GH_TOKEN: ${{ github.token }}
+  FLAVOR: prod
 
 jobs:
   lint:
@@ -70,9 +71,11 @@ jobs:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - run: ci/build/macos/build.sh
       - id: env
         run: ci/build/env.sh
+      - run: ci/build/macos/build.sh
+        env:
+          FLAVOR: ${{ steps.env.outputs.flavor }}
       - run: mv ${{ steps.env.outputs.dist_path }}/*.dmg ./${{ steps.env.outputs.macos_artifact }}
       - uses: actions/upload-artifact@v4
         with:
@@ -95,9 +98,11 @@ jobs:
             ${{ secrets.MP_AUDIO_STREAM_PRIVATE_KEY }}
       - run: ci/build/prepare.sh
       - run: ci/build/linux/prepare.sh
-      - run: ci/build/linux/build.sh
       - id: env
         run: ci/build/env.sh
+      - run: ci/build/linux/build.sh
+        env:
+          FLAVOR: ${{ steps.env.outputs.flavor }}
       - run: |
           mv ${{ steps.env.outputs.dist_path }}/*.deb ./${{ steps.env.outputs.linux_deb_artifact }}
           mv ${{ steps.env.outputs.dist_path }}/*.rpm ./${{ steps.env.outputs.linux_rpm_artifact }}
@@ -121,12 +126,14 @@ jobs:
         with:
           channel: "stable"
       - run: ci/build/windows/prepare.ps1
-      - run: ci/build/windows/build.ps1
       - id: env
         shell: bash
         run: |
           alias yq="/C/ProgramData/chocolatey/lib/yq/tools/yq.exe"
           ci/build/env.sh
+      - run: ci/build/windows/build.ps1
+        env:
+          FLAVOR: ${{ steps.env.outputs.flavor }}
       - uses: thedoctor0/zip-release@0.7.5
         with:
           directory: ${{ steps.env.outputs.windows_path }}
@@ -155,9 +162,11 @@ jobs:
         env:
           KEY_STORE_BASE64: ${{ secrets.ANDROID_KEY_STORE }}
           KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
-      - run: ci/build/android/build.sh
       - id: env
         run: ci/build/env.sh
+      - run: ci/build/android/build.sh
+        env:
+          FLAVOR: ${{ steps.env.outputs.flavor }}
       - run: mv ${{ steps.env.outputs.android_path }} ./${{ steps.env.outputs.android_artifact }}
       - uses: actions/upload-artifact@v4
         with:
