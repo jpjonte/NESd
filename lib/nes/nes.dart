@@ -37,14 +37,13 @@ class NES {
   bool running = false;
   bool paused = false;
   bool stopAfterNextFrame = false;
+  bool _done = false;
 
   bool fastForward = false;
 
   late DateTime _frameStart;
 
   Duration _frameTime = Duration.zero;
-
-  int cycles = 0;
 
   var _sleepBudget = Duration.zero;
 
@@ -87,7 +86,6 @@ class NES {
     ppu.state = state.ppuState;
     apu.state = state.apuState;
     bus.cartridge.state = state.cartridgeState;
-    cycles = state.cycles;
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
@@ -98,10 +96,14 @@ class NES {
   void load(Uint8List save) => bus.cartridge.load(save);
 
   void reset() {
-    cycles = 0;
-
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
+
+    if (_done) {
+      run();
+    }
+
+    _done = false;
 
     fastForward = false;
 
@@ -126,7 +128,7 @@ class NES {
     _frameTime = Duration.zero;
 
     while (on) {
-      if (cpu.fetching && !running) {
+      if (!running) {
         await wait(const Duration(milliseconds: 10));
 
         continue;
@@ -146,6 +148,8 @@ class NES {
         await _sendFrame();
       }
     }
+
+    _done = true;
   }
 
   Future<void> _sendFrame() async {
@@ -163,7 +167,7 @@ class NES {
       ppuState: ppu.state,
       apuState: apu.state,
       cartridgeState: bus.cartridge.state,
-      cycles: cycles,
+      cycles: 0,
     );
 
     if (stopAfterNextFrame) {
@@ -174,8 +178,6 @@ class NES {
 
     _frameTime = DateTime.now().difference(_frameStart);
 
-    _frameStart = DateTime.now();
-
     final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
 
     apu.sampleIndex = 0;
@@ -185,6 +187,8 @@ class NES {
     if (_sleepBudget.isNegative) {
       _sleepBudget = Duration.zero;
     }
+
+    _frameStart = DateTime.now();
 
     await wait(_sleepBudget);
   }
@@ -266,31 +270,15 @@ class NES {
   void step() {
     cpu.step();
 
-    cycles += 12;
-
-    bus.cartridge.step();
-
-    var iterations = cycles - ppu.cycles * 4;
-
-    do {
-      ppu.step();
-
-      iterations -= 4;
-    } while (iterations > 0);
-
-    apu.step();
-
-    if (cpu.fetching && _breakpoints.isNotEmpty) {
+    if (_breakpoints.isNotEmpty) {
       _checkBreakpoints();
     }
   }
 
   void stepInto() {
-    do {
-      step();
+    step();
 
-      apu.sampleIndex = 0;
-    } while (cpu.executing || cpu.runningDma);
+    apu.sampleIndex = 0;
 
     eventBus.add(DebuggerNesEvent());
   }
@@ -302,7 +290,7 @@ class NES {
       return;
     }
 
-    if (op.instruction != JSR && op.instruction != BRK) {
+    if (op.instruction is! JSR && op.instruction is! BRK) {
       stepInto();
 
       return;

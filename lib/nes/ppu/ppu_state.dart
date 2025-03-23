@@ -24,6 +24,7 @@ class PPUState {
     required this.secondaryOam,
     required this.palette,
     required this.frameBuffer,
+    required this.consoleCycles,
     required this.cycles,
     required this.cycle,
     required this.scanline,
@@ -51,6 +52,7 @@ class PPUState {
 
     return switch (version) {
       0 => PPUState.version0(reader),
+      1 => PPUState.version1(reader),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -73,6 +75,49 @@ class PPUState {
       secondaryOam: reader.get(uint8List(lengthType: uint32)),
       palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
+      consoleCycles: 0,
+      cycles: reader.get(uint64),
+      cycle: reader.get(uint8),
+      scanline: reader.get(uint8),
+      frames: reader.get(uint8),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHighShift: reader.get(uint8),
+      patternTableLowShift: reader.get(uint8),
+      attributeTableLatch: reader.get(uint8),
+      attributeTableHighShift: reader.get(uint8),
+      attributeTableLowShift: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamAddress: reader.get(uint8),
+      oamBuffer: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+    );
+  }
+
+  factory PPUState.version1(PayloadReader reader) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
+      frameBuffer: FrameBuffer.deserialize(reader),
+      consoleCycles: reader.get(uint64),
       cycles: reader.get(uint64),
       cycle: reader.get(uint8),
       scanline: reader.get(uint8),
@@ -116,6 +161,7 @@ class PPUState {
 
   final FrameBuffer frameBuffer;
 
+  final int consoleCycles;
   final int cycles;
   final int cycle;
   final int scanline;
@@ -149,7 +195,7 @@ class PPUState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -169,6 +215,7 @@ class PPUState {
     frameBuffer.serialize(writer);
 
     writer
+      ..set(uint64, consoleCycles)
       ..set(uint64, cycles)
       ..set(uint8, cycle)
       ..set(uint8, scanline)

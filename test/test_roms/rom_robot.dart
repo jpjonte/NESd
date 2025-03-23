@@ -38,13 +38,11 @@ class RomRobot {
 
       nes.apu.sampleIndex = 0;
 
-      if (nes.cpu.fetching) {
-        expect?.call(nes);
-      }
+      expect?.call(nes);
 
       cycles++;
 
-      if (nes.cpu.PC == breakAddress && nes.cpu.fetching) {
+      if (nes.cpu.PC == breakAddress) {
         break;
       }
 

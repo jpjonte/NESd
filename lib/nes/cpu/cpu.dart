@@ -3,7 +3,6 @@
 
 import 'dart:typed_data';
 
-import 'package:nesd/exception/invalid_opcode.dart';
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';
@@ -13,7 +12,6 @@ import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/util/ring_buffer.dart';
 
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
@@ -24,17 +22,16 @@ typedef CpuCycle = void Function(CPU);
 const pipelineSize = 20;
 
 class CPU {
-  CPU({
-    required this.eventBus,
-    required this.bus,
-    this.disableSideEffects = false,
-  });
+  CPU({required this.eventBus, required this.bus});
 
   final EventBus eventBus;
   final Bus bus;
-  final bool disableSideEffects;
 
   bool executionLogEnabled = false;
+
+  int consoleCycles = 0;
+
+  int consoleCyclesPerCycle = 12;
 
   int cycles = 0;
 
@@ -46,7 +43,9 @@ class CPU {
   int P = 0x00;
 
   int address = 0;
-  int operand = 0;
+  int result = 0;
+
+  late Operation operation;
 
   Uint8List ram = Uint8List(0x0800);
 
@@ -94,15 +93,6 @@ class CPU {
 
   final List<int> callStack = [];
 
-  final RingBuffer<CpuCycle, List<CpuCycle>> _pipeline = RingBuffer(
-    bufferConstructor: (size) => List.filled(size, (cpu) {}),
-    size: pipelineSize,
-  );
-
-  bool get fetching => _pipeline.isEmpty;
-
-  bool get executing => _pipeline.isNotEmpty;
-
   CPUState get state => CPUState(
     PC: PC,
     SP: SP,
@@ -127,10 +117,12 @@ class CPU {
     dmcDmaValue: _dmcDmaValue,
     oamDmaPage: _oamDmaPage,
     cycles: cycles,
+    consoleCycles: consoleCycles,
     callStack: callStack,
   );
 
   set state(CPUState state) {
+    consoleCycles = state.consoleCycles;
     cycles = state.cycles;
 
     PC = state.PC;
@@ -166,22 +158,41 @@ class CPU {
       ..addAll(state.callStack);
   }
 
-  int read(int address) =>
-      bus.cpuRead(address, disableSideEffects: disableSideEffects);
+  int read(int address) {
+    _handleDMA();
 
-  int read16(int address, {bool wrap = false}) => bus.cpuRead16(
-    address,
-    wrap: wrap,
-    disableSideEffects: disableSideEffects,
-  );
+    _startCycle();
 
-  int readHighByte(int address, {bool wrap = false}) => bus.cpuReadHighByte(
-    address,
-    wrap: wrap,
-    disableSideEffects: disableSideEffects,
-  );
+    final value = bus.cpuRead(address);
 
-  void write(int address, int value) => bus.cpuWrite(address, value);
+    _endCycle();
+
+    return value;
+  }
+
+  int read16(int address, {bool wrap = false}) {
+    final low = read(address);
+
+    final pageAddress = address & 0xff00;
+    final highByteAddress = address + 1;
+
+    final highAddress = switch (wrap) {
+      true => pageAddress | (highByteAddress & 0xff),
+      false => highByteAddress,
+    };
+
+    final high = read(highAddress);
+
+    return (high << 8) | low;
+  }
+
+  void write(int address, int value) {
+    _startCycle();
+
+    bus.cpuWrite(address, value);
+
+    _endCycle();
+  }
 
   void pushStack(int value) {
     write(0x100 + SP, value & 0xff);
@@ -197,9 +208,7 @@ class CPU {
   int popStack() {
     SP = (SP + 1) & 0xff;
 
-    final value = read(0x100 + SP);
-
-    return value;
+    return read(0x100 + SP);
   }
 
   int popStack16() {
@@ -209,16 +218,8 @@ class CPU {
     return (high << 8) | low;
   }
 
-  int peekStack() => read(0x100 + SP);
-
-  int peekStack16() {
-    final low = read(0x100 + SP + 1);
-    final high = read(0x100 + SP);
-
-    return (high << 8) | low;
-  }
-
   void reset() {
+    consoleCycles = 0;
     cycles = 0;
 
     SP = 0xfd;
@@ -247,49 +248,17 @@ class CPU {
     _dmcDmaDummy = false;
     _dmcDmaValue = 0;
 
-    _pipeline.clear();
-
     callStack.clear();
 
     ram.fillRange(0, ram.length, 0);
   }
 
-  void appendCycles(List<CpuCycle> cycles) {
-    for (final cycle in cycles) {
-      _pipeline.append(cycle);
-    }
-  }
-
-  void prependCycles(List<CpuCycle> cycles) {
-    for (var i = cycles.length - 1; i >= 0; i--) {
-      _pipeline.prepend(cycles[i]);
-    }
-  }
-
   void step() {
-    if (_handleDMA()) {
-      return;
-    }
-
-    if (_pipeline.isEmpty) {
-      _fillPipeline();
-    } else {
-      _executePipeline();
-    }
-
-    cycles++;
-
-    _triggerInterrupts();
-  }
-
-  void _fillPipeline() {
     final opcode = read(PC);
 
-    final op = ops[opcode];
+    final op = ops[opcode]!;
 
-    if (op == null) {
-      throw InvalidOpcode(PC, opcode);
-    }
+    operation = op;
 
     if (executionLogEnabled) {
       eventBus.add(StepNesEvent(opcode, op));
@@ -297,19 +266,11 @@ class CPU {
 
     PC++;
 
-    op.pipeline(this);
-
     _updateCallStack(op);
-  }
 
-  void _executePipeline() {
-    final cycle = _pipeline.popStart();
+    op.execute(this);
 
-    cycle(this);
-
-    if (_pipeline.isEmpty) {
-      _handleInterrupts();
-    }
+    _handleInterrupts();
   }
 
   void _triggerInterrupts() {
@@ -335,26 +296,28 @@ class CPU {
 
   bool get runningDma => _oamDma || _dmcDma;
 
-  bool _handleDMA() {
+  void _handleDMA() {
     if (!_oamDma && !_dmcDma) {
-      return false;
+      return;
     }
 
-    if (_dmcDma) {
-      _handleDMCDMA();
-    } else if (_oamDma) {
-      _handleOAMDMA();
+    while (runningDma) {
+      _startCycle();
+
+      if (_dmcDma) {
+        handleDMCDMA();
+      } else if (_oamDma) {
+        handleOAMDMA();
+      }
+
+      _endCycle();
     }
-
-    cycles += 1;
-
-    return true;
   }
 
-  void _handleOAMDMA() {
+  void handleOAMDMA() {
     if (cycles.isEven) {
       // read
-      _oamDmaValue = read(_oamDmaPage << 8 | _oamDmaOffset);
+      _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
       _oamDmaStarted = true;
     } else if (_oamDmaStarted) {
       // write
@@ -368,7 +331,7 @@ class CPU {
     }
   }
 
-  void _handleDMCDMA() {
+  void handleDMCDMA() {
     if (!_dmcDmaDummy) {
       _dmcDmaDummy = true;
 
@@ -377,7 +340,7 @@ class CPU {
 
     if (cycles.isEven) {
       // read
-      _dmcDmaValue = read(bus.apu.dmc.address);
+      _dmcDmaValue = bus.cpuRead(bus.apu.dmc.address);
       _dmcDmaRead = true;
     } else if (_dmcDmaRead) {
       // write
@@ -392,21 +355,16 @@ class CPU {
   void _handleIrq(int address) {
     callStack.add(PC);
 
-    var low = 0;
+    read(PC); // dummy read
+    read(PC); // dummy read
 
-    appendCycles([
-      (cpu) => cpu.read(cpu.PC),
-      (cpu) => cpu.read(cpu.PC),
-      (cpu) => cpu.pushStack(cpu.PC >> 8),
-      (cpu) => cpu.pushStack(cpu.PC & 0xff),
-      (cpu) {
-        cpu
-          ..pushStack(cpu.P.setBit(5, 1))
-          ..I = 1;
-      },
-      (cpu) => low = cpu.read(address),
-      (cpu) => cpu.PC = (cpu.readHighByte(address) << 8) | low,
-    ]);
+    pushStack16(PC);
+
+    pushStack(P.setBit(5, 1));
+
+    I = 1;
+
+    PC = read16(address);
   }
 
   void triggerIrq(IrqSource source) {
@@ -436,23 +394,40 @@ class CPU {
   }
 
   void _updateCallStack(Operation op) {
-    if (op.instruction == JSR) {
+    if (op.instruction is JSR) {
       callStack.add(PC + 2);
-    } else if (op.instruction == BRK) {
+    } else if (op.instruction is BRK) {
       callStack.add(PC + 1);
     } else if (callStack.isNotEmpty &&
-        (op.instruction == RTI || op.instruction == RTS)) {
+        (op.instruction is RTI || op.instruction is RTS)) {
       callStack.removeLast();
     }
   }
 
   void branch({required bool doBranch}) {
     if (doBranch) {
-      prependCycles([
-        if (wasPageCrossed(PC, address))
-          (cpu) => cpu.read(cpu.PC), // dummy read
-        (cpu) => cpu.PC = cpu.address,
-      ]);
+      read(PC); // dummy read
+
+      if (wasPageCrossed(PC, address)) {
+        read(PC); // dummy read
+      }
+
+      PC = address;
     }
+  }
+
+  void _startCycle() {
+    cycles++;
+
+    consoleCycles += consoleCyclesPerCycle;
+
+    bus.ppu.stepUntil(consoleCycles);
+
+    bus.cartridge.step();
+    bus.apu.step();
+  }
+
+  void _endCycle() {
+    _triggerInterrupts();
   }
 }

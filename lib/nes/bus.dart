@@ -63,33 +63,6 @@ class Bus {
     return cartridge.cpuRead(address, disableSideEffects: disableSideEffects);
   }
 
-  int cpuRead16(
-    int address, {
-    bool wrap = false,
-    bool disableSideEffects = false,
-  }) {
-    final low = cpuRead(address, disableSideEffects: disableSideEffects);
-
-    final high = cpuReadHighByte(
-      address,
-      wrap: wrap,
-      disableSideEffects: disableSideEffects,
-    );
-
-    return (high << 8) | low;
-  }
-
-  int cpuReadHighByte(
-    int address, {
-    bool wrap = false,
-    bool disableSideEffects = false,
-  }) {
-    final highAddress =
-        wrap ? (address & 0xff00 | ((address + 1) & 0xff)) : address + 1;
-
-    return cpuRead(highAddress, disableSideEffects: disableSideEffects);
-  }
-
   void cpuWrite(int address, int value) {
     value &= 0xff;
 
@@ -102,7 +75,7 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      cpu.ram[address % 0x800] = value;
+      cpu.ram[address & 0x7ff] = value;
 
       return;
     }
@@ -185,11 +158,12 @@ class Bus {
   void triggerDmcDma() => cpu.triggerDmcDma();
 
   int _readController(int controller, {bool disableSideEffects = false}) {
-    final value =
-        _controllerShift[controller] < 8
-            ? (_controllerStatus[controller] >> _controllerShift[controller]) &
-                1
-            : 1;
+    final index = _controllerShift[controller];
+
+    final value = switch (index) {
+      < 8 => (_controllerStatus[controller] >> index) & 1,
+      _ => 1,
+    };
 
     if (!_inputStrobe && !disableSideEffects) {
       _controllerShift[controller]++;

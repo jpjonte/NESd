@@ -220,15 +220,15 @@ class APU {
   }
 
   double _output() {
-    final diff = cycles - _sampleStart;
+    final sampledCycles = cycles - _sampleStart;
 
-    // average samples over the last [diff] cycles
-    final pulse1Sample = (_pulse1Samples / diff).floor();
-    final pulse2Sample = (_pulse2Samples / diff).floor();
+    // average samples over the last [sampledCycles] cycles
+    final pulse1Sample = (_pulse1Samples / sampledCycles).floor();
+    final pulse2Sample = (_pulse2Samples / sampledCycles).floor();
     final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
 
-    final triangleSample = (_triangleSamples / diff).floor();
-    final dmcSample = (_dmcSamples / diff).floor();
+    final triangleSample = (_triangleSamples / sampledCycles).floor();
+    final dmcSample = (_dmcSamples / sampledCycles).floor();
 
     final tndOut = tndTable[3 * triangleSample + 2 * noise.output + dmcSample];
 

@@ -8,1015 +8,1163 @@ import 'package:nesd/nes/cpu/cpu.dart';
 
 enum InstructionType { jump, branch, other }
 
-class Instruction {
-  Instruction(
-    this.name,
-    this.pipeline, {
-    this.isRead = false,
-    this.isWrite = false,
-    this.merge = false,
-    this.type = InstructionType.other,
-  });
+abstract class Instruction {
+  String get name;
 
-  final String name;
-  final List<CpuCycle> Function(void Function(CPU, int, {bool dummy})) pipeline;
-  final InstructionType type;
-  final bool isRead;
-  final bool isWrite;
-  final bool merge;
+  void execute(CPU cpu);
+
+  bool get isWrite => false;
+
+  InstructionType get type => InstructionType.other;
+
+  int read(CPU cpu) => cpu.operation.addressMode.read(cpu);
+
+  void write(CPU cpu, int result) =>
+      cpu.operation.addressMode.write(cpu, result);
 }
 
-final BRK = Instruction('BRK', (write) {
-  var low = 0;
-  var address = 0;
+class BRK extends Instruction {
+  @override
+  String get name => 'BRK';
 
-  return [
-    (cpu) {
+  @override
+  void execute(CPU cpu) {
+    cpu
+      ..callStack.add(cpu.PC + 1)
+      ..pushStack16(cpu.PC + 1)
+      ..pushStack(cpu.P.setBit(4, 1).setBit(5, 1));
+
+    if (cpu.doNmi) {
       cpu
-        ..read(cpu.PC)
-        ..callStack.add(cpu.PC + 1);
-    },
-    (cpu) => cpu.pushStack((cpu.PC + 1) >> 8),
-    (cpu) => cpu.pushStack((cpu.PC + 1) & 0xff),
-    (cpu) => cpu.pushStack(cpu.P.setBit(4, 1).setBit(5, 1)),
-    (cpu) {
-      if (cpu.doNmi) {
-        cpu.doNmi = false;
+        ..doNmi = false
+        ..address = nmiVector;
+    } else {
+      cpu.address = irqVector;
+    }
 
-        address = nmiVector;
-      } else {
-        address = irqVector;
-      }
+    cpu
+      ..I = 1
+      ..PC = cpu.read16(cpu.address);
+  }
+}
 
-      cpu.I = 1;
+class ORA extends Instruction {
+  @override
+  String get name => 'ORA';
 
-      low = cpu.read(address);
-    },
-    (cpu) => cpu.PC = (cpu.readHighByte(address) << 8) | low,
-  ];
-}, merge: true);
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
 
-final ORA = Instruction(
-  'ORA',
-  (write) => [
-    (cpu) {
+    cpu
+      ..A |= operand
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class ASL extends Instruction {
+  @override
+  String get name => 'ASL';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = (operand << 1) & 0xff;
+
+    cpu
+      ..C = operand.bit(7)
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class PHP extends Instruction {
+  @override
+  String get name => 'PHP';
+
+  @override
+  void execute(CPU cpu) => cpu.pushStack(cpu.P.setBit(4, 1));
+}
+
+class BPL extends Instruction {
+  @override
+  String get name => 'BPL';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.N == 0);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class CLC extends Instruction {
+  @override
+  String get name => 'CLC';
+
+  @override
+  void execute(CPU cpu) => cpu.C = 0;
+}
+
+class JSR extends Instruction {
+  @override
+  String get name => 'JSR';
+
+  @override
+  void execute(CPU cpu) {
+    cpu
+      ..read(cpu.PC) // dummy read
+      ..pushStack16(cpu.PC - 1)
+      ..PC = cpu.address;
+  }
+
+  @override
+  InstructionType get type => InstructionType.jump;
+}
+
+class AND extends Instruction {
+  @override
+  String get name => 'AND';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..A &= operand
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class BIT extends Instruction {
+  @override
+  String get name => 'BIT';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.A & operand;
+
+    cpu
+      ..zero(result)
+      ..V = operand.bit(6)
+      ..negative(operand);
+  }
+}
+
+class ROL extends Instruction {
+  @override
+  String get name => 'ROL';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = ((operand << 1) | cpu.C) & 0xff;
+
+    cpu
+      ..C = operand.bit(7)
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class PLP extends Instruction {
+  @override
+  String get name => 'PLP';
+
+  @override
+  void execute(CPU cpu) {
+    cpu.read(cpu.PC); // dummy read
+
+    final result = cpu.popStack();
+
+    cpu
+      ..C = result.bit(0)
+      ..Z = result.bit(1)
+      ..I = result.bit(2)
+      ..D = result.bit(3)
+      ..V = result.bit(6)
+      ..negative(result);
+  }
+}
+
+class BMI extends Instruction {
+  @override
+  String get name => 'BMI';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.N == 1);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class SEC extends Instruction {
+  @override
+  String get name => 'SEC';
+
+  @override
+  void execute(CPU cpu) => cpu.C = 1;
+}
+
+class RTI extends Instruction {
+  @override
+  String get name => 'RTI';
+
+  @override
+  void execute(CPU cpu) {
+    cpu
+      ..read(cpu.PC) // dummy read
+      ..P = cpu.popStack().setBit(5, 1)
+      ..PC = cpu.popStack16();
+  }
+}
+
+class EOR extends Instruction {
+  @override
+  String get name => 'EOR';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..A ^= operand
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class LSR extends Instruction {
+  @override
+  String get name => 'LSR';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = operand >> 1;
+
+    cpu
+      ..C = operand.bit(0)
+      ..zero(result)
+      ..N = 0;
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class PHA extends Instruction {
+  @override
+  String get name => 'PHA';
+
+  @override
+  void execute(CPU cpu) => cpu.pushStack(cpu.A);
+}
+
+class JMP extends Instruction {
+  @override
+  String get name => 'JMP';
+
+  @override
+  void execute(CPU cpu) => cpu.PC = cpu.address;
+
+  @override
+  InstructionType get type => InstructionType.jump;
+}
+
+class BVC extends Instruction {
+  @override
+  String get name => 'BVC';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.V == 0);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class CLI extends Instruction {
+  @override
+  String get name => 'CLI';
+
+  @override
+  void execute(CPU cpu) => cpu.I = 0;
+}
+
+class RTS extends Instruction {
+  @override
+  String get name => 'RTS';
+
+  @override
+  void execute(CPU cpu) {
+    final target = cpu.popStack16();
+
+    cpu
+      ..read(cpu.PC) // dummy read
+      ..read(cpu.PC) // dummy read
+      ..PC = target + 1;
+  }
+}
+
+class ADC extends Instruction {
+  @override
+  String get name => 'ADC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.A + operand + cpu.C;
+    final maskedResult = result & 0xff;
+
+    cpu
+      ..C = result > 0xff ? 1 : 0
+      ..zero(maskedResult)
+      ..V = (~(cpu.A ^ operand) & (cpu.A ^ result) & 0x80) != 0 ? 1 : 0
+      ..negative(result)
+      ..A = maskedResult;
+  }
+}
+
+class ROR extends Instruction {
+  @override
+  String get name => 'ROR';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = (cpu.C << 7) | (operand >> 1);
+
+    cpu
+      ..C = operand.bit(0)
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class PLA extends Instruction {
+  @override
+  String get name => 'PLA';
+
+  @override
+  void execute(CPU cpu) {
+    cpu.read(cpu.PC); // dummy read
+
+    final result = cpu.popStack();
+
+    cpu
+      ..A = result
+      ..zero(result)
+      ..negative(result);
+  }
+}
+
+class BVS extends Instruction {
+  @override
+  String get name => 'BVS';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.V == 1);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class SEI extends Instruction {
+  @override
+  String get name => 'SEI';
+
+  @override
+  void execute(CPU cpu) => cpu.I = 1;
+}
+
+class STA extends Instruction {
+  @override
+  String get name => 'STA';
+
+  @override
+  void execute(CPU cpu) => write(cpu, cpu.A);
+
+  @override
+  bool get isWrite => true;
+}
+
+class STY extends Instruction {
+  @override
+  String get name => 'STY';
+
+  @override
+  void execute(CPU cpu) => write(cpu, cpu.Y);
+
+  @override
+  bool get isWrite => true;
+}
+
+class STX extends Instruction {
+  @override
+  String get name => 'STX';
+
+  @override
+  void execute(CPU cpu) => write(cpu, cpu.X);
+
+  @override
+  bool get isWrite => true;
+}
+
+class DEY extends Instruction {
+  @override
+  String get name => 'DEY';
+
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..A |= cpu.operand
-        ..zero(cpu.A)
-        ..negative(cpu.A);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final ASL = Instruction(
-  'ASL',
-  (write) {
-    return [
-      (cpu) {
-        final result = (cpu.operand << 1) & 0xff;
-
-        cpu
-          ..C = cpu.operand.bit(7)
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final PHP = Instruction(
-  'PHP',
-  (write) => [(cpu) => cpu.pushStack(cpu.P.setBit(4, 1))],
-);
-
-final BPL = Instruction(
-  'BPL',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.N == 0)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final CLC = Instruction('CLC', (write) => [(cpu) => cpu.C = 0], merge: true);
-
-final JSR = Instruction(
-  'JSR',
-  (write) => [
-    (cpu) => cpu.read(cpu.PC), // dummy read
-    (cpu) => cpu.pushStack((cpu.PC - 1) >> 8),
-    (cpu) {
-      cpu
-        ..pushStack((cpu.PC - 1) & 0xff)
-        ..PC = cpu.address;
-    },
-  ],
-  type: InstructionType.jump,
-);
-
-final AND = Instruction(
-  'AND',
-  (write) => [
-    (cpu) {
-      cpu
-        ..A &= cpu.operand
-        ..zero(cpu.A)
-        ..negative(cpu.A);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final BIT = Instruction(
-  'BIT',
-  (write) => [
-    (cpu) {
-      final result = cpu.A & cpu.operand;
-
-      cpu
-        ..zero(result)
-        ..V = cpu.operand.bit(6)
-        ..negative(cpu.operand);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final ROL = Instruction(
-  'ROL',
-  (write) {
-    return [
-      (cpu) {
-        final result = ((cpu.operand << 1) | cpu.C) & 0xff;
-
-        cpu
-          ..C = cpu.operand.bit(7)
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final PLP = Instruction(
-  'PLP',
-  (write) => [
-    (cpu) => cpu.read(cpu.PC),
-    (cpu) {
-      final result = cpu.popStack();
-
-      cpu
-        ..C = result.bit(0)
-        ..Z = result.bit(1)
-        ..I = result.bit(2)
-        ..D = result.bit(3)
-        ..V = result.bit(6)
-        ..negative(result);
-    },
-  ],
-);
-
-final BMI = Instruction(
-  'BMI',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.N == 1)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final SEC = Instruction('SEC', (write) => [(cpu) => cpu.C = 1], merge: true);
-
-final RTI = Instruction('RTI', (write) {
-  var pcLow = 0;
-
-  return [
-    (cpu) => cpu.read(cpu.PC),
-    (cpu) => cpu.P = cpu.popStack().setBit(5, 1),
-    (cpu) => pcLow = cpu.popStack(),
-    (cpu) => cpu.PC = (cpu.popStack() << 8) | pcLow,
-  ];
-});
-
-final EOR = Instruction(
-  'EOR',
-  (write) => [
-    (cpu) {
-      cpu
-        ..A ^= cpu.operand
-        ..zero(cpu.A)
-        ..negative(cpu.A);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final LSR = Instruction(
-  'LSR',
-  (write) {
-    return [
-      (cpu) {
-        final result = cpu.operand >> 1;
-
-        cpu
-          ..C = cpu.operand.bit(0)
-          ..zero(result)
-          ..N = 0;
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final PHA = Instruction('PHA', (write) => [(cpu) => cpu.pushStack(cpu.A)]);
-
-final JMP = Instruction(
-  'JMP',
-  (write) => [(cpu) => cpu.PC = cpu.address],
-  type: InstructionType.jump,
-  merge: true,
-);
-
-final BVC = Instruction(
-  'BVC',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.V == 0)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final CLI = Instruction('CLI', (write) => [(cpu) => cpu.I = 0], merge: true);
-
-final RTS = Instruction('RTS', (write) {
-  var pcLow = 0;
-  var target = 0;
-
-  return [
-    (cpu) => pcLow = cpu.popStack(),
-    (cpu) => target = ((cpu.popStack() << 8) | pcLow) + 1,
-    (cpu) => cpu.read(cpu.PC),
-    (cpu) {
-      cpu
-        ..read(cpu.PC)
-        ..PC = target;
-    },
-  ];
-});
-
-final ADC = Instruction(
-  'ADC',
-  (write) => [
-    (cpu) {
-      final result = cpu.A + cpu.operand + cpu.C;
-      final maskedResult = result & 0xff;
-
-      cpu
-        ..C = result > 0xff ? 1 : 0
-        ..zero(maskedResult)
-        ..V = (~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80) != 0 ? 1 : 0
-        ..negative(result)
-        ..A = maskedResult;
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final ROR = Instruction(
-  'ROR',
-  (write) {
-    return [
-      (cpu) {
-        final result = (cpu.operand >> 1) | (cpu.C << 7);
-
-        cpu
-          ..C = cpu.operand.bit(0)
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final PLA = Instruction(
-  'PLA',
-  (write) => [
-    (cpu) => cpu.read(cpu.PC), // dummy read
-    (cpu) {
-      final result = cpu.popStack();
-
-      cpu
-        ..A = result
-        ..zero(result)
-        ..negative(result);
-    },
-  ],
-);
-
-final BVS = Instruction(
-  'BVS',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.V == 1)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final SEI = Instruction('SEI', (write) => [(cpu) => cpu.I = 1], merge: true);
-
-final STA = Instruction(
-  'STA',
-  (write) => [(cpu) => write(cpu, cpu.A)],
-  isWrite: true,
-  merge: true,
-);
-
-final STY = Instruction(
-  'STY',
-  (write) => [(cpu) => write(cpu, cpu.Y)],
-  isWrite: true,
-  merge: true,
-);
-
-final STX = Instruction(
-  'STX',
-  (write) => [(cpu) => write(cpu, cpu.X)],
-  isWrite: true,
-  merge: true,
-);
-
-final DEY = Instruction(
-  'DEY',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..Y = (cpu.Y - 1) & 0xff
-          ..zero(cpu.Y)
-          ..negative(cpu.Y),
-  ],
-  merge: true,
-);
-
-final TXA = Instruction(
-  'TXA',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..A = cpu.X
-          ..zero(cpu.A)
-          ..negative(cpu.A),
-  ],
-  merge: true,
-);
-
-final BCC = Instruction(
-  'BCC',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.C == 0)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final TYA = Instruction(
-  'TYA',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..A = cpu.Y
-          ..zero(cpu.A)
-          ..negative(cpu.A),
-  ],
-  merge: true,
-);
-
-final TXS = Instruction(
-  'TXS',
-  (write) => [(cpu) => cpu.SP = cpu.X],
-  merge: true,
-);
-
-final LDY = Instruction(
-  'LDY',
-  (write) => [
-    (cpu) {
-      cpu
-        ..Y = cpu.operand
+        ..Y = (cpu.Y - 1) & 0xff
         ..zero(cpu.Y)
         ..negative(cpu.Y);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+}
 
-final LDA = Instruction(
-  'LDA',
-  (write) => [
-    (cpu) {
+class TXA extends Instruction {
+  @override
+  String get name => 'TXA';
+
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..A = cpu.operand
+        ..A = cpu.X
         ..zero(cpu.A)
         ..negative(cpu.A);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+}
 
-final LDX = Instruction(
-  'LDX',
-  (write) => [
-    (cpu) {
+class BCC extends Instruction {
+  @override
+  String get name => 'BCC';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.C == 0);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class TYA extends Instruction {
+  @override
+  String get name => 'TYA';
+
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..X = cpu.operand
-        ..zero(cpu.X)
-        ..negative(cpu.X);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final TAY = Instruction(
-  'TAY',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..Y = cpu.A
-          ..zero(cpu.Y)
-          ..negative(cpu.Y),
-  ],
-  merge: true,
-);
-
-final TAX = Instruction(
-  'TAX',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..X = cpu.A
-          ..zero(cpu.X)
-          ..negative(cpu.X),
-  ],
-  merge: true,
-);
-
-final BCS = Instruction(
-  'BCS',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.C == 1)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final CLV = Instruction('CLV', (write) => [(cpu) => cpu.V = 0], merge: true);
-
-final TSX = Instruction(
-  'TSX',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..X = cpu.SP
-          ..zero(cpu.X)
-          ..negative(cpu.X),
-  ],
-  merge: true,
-);
-
-final CPY = Instruction(
-  'CPY',
-  (write) => [
-    (cpu) {
-      final result = cpu.Y - cpu.operand;
-
-      cpu
-        ..C = result >= 0 ? 1 : 0
-        ..zero(result)
-        ..negative(result);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final CMP = Instruction(
-  'CMP',
-  (write) => [
-    (cpu) {
-      final result = cpu.A - cpu.operand;
-
-      cpu
-        ..C = result >= 0 ? 1 : 0
-        ..zero(result)
-        ..negative(result);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final DEC = Instruction(
-  'DEC',
-  (write) {
-    return [
-      (cpu) {
-        final result = (cpu.operand - 1) & 0xff;
-
-        cpu
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final INY = Instruction(
-  'INY',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..Y = (cpu.Y + 1) & 0xff
-          ..zero(cpu.Y)
-          ..negative(cpu.Y),
-  ],
-  merge: true,
-);
-
-final DEX = Instruction(
-  'DEX',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..X = (cpu.X - 1) & 0xff
-          ..zero(cpu.X)
-          ..negative(cpu.X),
-  ],
-  merge: true,
-);
-
-final BNE = Instruction(
-  'BNE',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.Z == 0)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final CLD = Instruction('CLD', (write) => [(cpu) => cpu.D = 0], merge: true);
-
-final CPX = Instruction(
-  'CPX',
-  (write) => [
-    (cpu) {
-      final result = cpu.X - cpu.operand;
-
-      cpu
-        ..C = result >= 0 ? 1 : 0
-        ..zero(result)
-        ..negative(result);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final SBC = Instruction(
-  'SBC',
-  (write) => [
-    (cpu) {
-      final result = cpu.A - cpu.operand - (1 - cpu.C);
-      final maskedResult = result & 0xff;
-
-      cpu
-        ..C = result >= 0 ? 1 : 0
-        ..zero(maskedResult)
-        ..V = ((cpu.A ^ result) & (cpu.A ^ cpu.operand) & 0x80) != 0 ? 1 : 0
-        ..negative(result)
-        ..A = maskedResult;
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final INC = Instruction(
-  'INC',
-  (write) {
-    return [
-      (cpu) {
-        final result = (cpu.operand + 1) & 0xff;
-
-        cpu
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final INX = Instruction(
-  'INX',
-  (write) => [
-    (cpu) =>
-        cpu
-          ..X = (cpu.X + 1) & 0xff
-          ..zero(cpu.X)
-          ..negative(cpu.X),
-  ],
-  merge: true,
-);
-
-final NOP = Instruction(
-  'NOP',
-  (write) => [(cpu) {}],
-  merge: true,
-  isRead: true,
-);
-
-final BEQ = Instruction(
-  'BEQ',
-  (write) => [(cpu) => cpu.branch(doBranch: cpu.Z == 1)],
-  type: InstructionType.branch,
-  merge: true,
-);
-
-final SED = Instruction('SED', (write) => [(cpu) => cpu.D = 1], merge: true);
-
-final LAX = Instruction(
-  'LAX',
-  (write) => [
-    (cpu) {
-      cpu
-        // LDA
-        ..A = cpu.operand
-        // LDX
-        ..X = cpu.operand
-        ..zero(cpu.X)
-        ..negative(cpu.X);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
-
-final SAX = Instruction(
-  'SAX',
-  (write) => [(cpu) => write(cpu, cpu.A & cpu.X)],
-  isWrite: true,
-  merge: true,
-);
-
-final DCP = Instruction(
-  'DCP',
-  (write) {
-    return [
-      (cpu) {
-        // DEC
-        final decResult = (cpu.operand - 1) & 0xff;
-
-        // CMP
-        final result = cpu.A - decResult;
-
-        cpu
-          ..C = result >= 0 ? 1 : 0
-          ..zero(result)
-          ..negative(result);
-
-        write(cpu, decResult, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final ISC = Instruction(
-  'ISC',
-  (write) {
-    return [
-      (cpu) {
-        // INC
-        final incResult = (cpu.operand + 1) & 0xff;
-
-        // SBC
-        final result = cpu.A - incResult - (1 - cpu.C);
-        final maskedResult = result & 0xff;
-
-        cpu
-          ..C = result >= 0 ? 1 : 0
-          ..zero(maskedResult)
-          ..V = ((cpu.A ^ result) & (cpu.A ^ incResult) & 0x80) != 0 ? 1 : 0
-          ..negative(result)
-          ..A = maskedResult;
-
-        write(cpu, incResult, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final SLO = Instruction(
-  'SLO',
-  (write) {
-    return [
-      (cpu) {
-        final aslResult = (cpu.operand << 1) & 0xff;
-
-        cpu
-          // ASL, ORA
-          ..A |= aslResult
-          ..C = cpu.operand.bit(7)
-          ..zero(cpu.A)
-          ..negative(cpu.A);
-
-        write(cpu, aslResult, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final RLA = Instruction(
-  'RLA',
-  (write) {
-    return [
-      (cpu) {
-        // ROL
-        final result = ((cpu.operand << 1) | cpu.C) & 0xff;
-
-        cpu
-          // AND
-          ..C = cpu.operand.bit(7)
-          ..A &= result
-          ..zero(cpu.A)
-          ..negative(cpu.A);
-
-        write(cpu, result, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final SRE = Instruction(
-  'SRE',
-  (write) {
-    return [
-      (cpu) {
-        // LSR
-        final lsrResult = cpu.operand >> 1;
-
-        // EOR
-        cpu
-          ..A ^= lsrResult
-          ..C = cpu.operand.bit(0)
-          ..zero(cpu.A)
-          ..negative(cpu.A);
-
-        write(cpu, lsrResult, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final RRA = Instruction(
-  'RRA',
-  (write) {
-    return [
-      (cpu) {
-        // ROR
-        final rorResult = (cpu.operand >> 1) | (cpu.C << 7);
-
-        cpu
-          ..C = cpu.operand.bit(0)
-          ..zero(rorResult)
-          ..negative(rorResult);
-
-        // ADC
-        final result = cpu.A + rorResult + cpu.C;
-        final maskedResult = result & 0xff;
-
-        cpu
-          ..C = result > 0xff ? 1 : 0
-          ..zero(maskedResult)
-          ..V = (~(cpu.A ^ rorResult) & (cpu.A ^ result)).bit(7)
-          ..negative(result)
-          ..A = maskedResult;
-
-        write(cpu, rorResult, dummy: true);
-      },
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
-
-final STP = Instruction('STP', (write) => [(cpu) => throw Stop()], merge: true);
-
-final ANC = Instruction(
-  'ANC',
-  (write) => [
-    (cpu) {
-      cpu
-        ..A &= cpu.operand
+        ..A = cpu.Y
         ..zero(cpu.A)
-        ..negative(cpu.A)
-        ..C = cpu.N;
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+        ..negative(cpu.A);
+}
 
-final ALR = Instruction(
-  'ALR',
-  (write) {
-    return [
-      (cpu) {
-        cpu
-          // AND
-          ..A &= cpu.operand
-          // LSR
-          ..C = cpu.A.bit(0)
-          ..A = cpu.A >> 1
-          ..zero(cpu.A)
-          ..negative(cpu.A);
-      },
-    ];
-  },
-  isRead: true,
-  merge: true,
-);
+class TXS extends Instruction {
+  @override
+  String get name => 'TXS';
 
-final ARR = Instruction(
-  'ARR',
-  (write) {
-    return [
-      (cpu) =>
-          cpu
-            // AND
-            ..A &= cpu.operand
-            // ROR
-            ..A = (cpu.C << 7) | (cpu.A >> 1)
-            ..zero(cpu.A)
-            ..negative(cpu.A)
-            ..C = cpu.A.bit(6)
-            ..V = cpu.C ^ cpu.A.bit(5),
-    ];
-  },
-  isRead: true,
-  isWrite: true,
-  merge: true,
-);
+  @override
+  void execute(CPU cpu) => cpu.SP = cpu.X;
+}
 
-final XAA = Instruction(
-  'XAA',
-  (write) => [
-    (cpu) {
+class LDY extends Instruction {
+  @override
+  String get name => 'LDY';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..Y = operand
+      ..zero(cpu.Y)
+      ..negative(cpu.Y);
+  }
+}
+
+class LDA extends Instruction {
+  @override
+  String get name => 'LDA';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..A = operand
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class LDX extends Instruction {
+  @override
+  String get name => 'LDX';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..X = operand
+      ..zero(cpu.X)
+      ..negative(cpu.X);
+  }
+}
+
+class TAY extends Instruction {
+  @override
+  String get name => 'TAY';
+
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..negative(cpu.A)
-        ..zero(cpu.A)
-        ..A = (cpu.A | 0xee) & cpu.X & cpu.operand;
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+        ..Y = cpu.A
+        ..zero(cpu.Y)
+        ..negative(cpu.Y);
+}
 
-final AHX = Instruction(
-  'AHX',
-  (write) => [(cpu) => write(cpu, cpu.A & cpu.X & ((cpu.address >> 8) + 1))],
-  isWrite: true,
-  merge: true,
-);
+class TAX extends Instruction {
+  @override
+  String get name => 'TAX';
 
-final TAS = Instruction(
-  'TAS',
-  (write) => [
-    (cpu) {
-      cpu.SP = cpu.A & cpu.X;
-
-      write(cpu, cpu.SP & ((cpu.address >> 8) + 1));
-    },
-  ],
-  isWrite: true,
-  merge: true,
-);
-
-final SHY = Instruction(
-  'SHY',
-  (write) => [
-    (cpu) {
-      final address = cpu.address;
-      final baseAddress = cpu.address - cpu.X;
-
-      final addressLow = address & 0xff;
-
-      var addressHigh = address >> 8;
-
-      if (wasPageCrossed(baseAddress, address)) {
-        addressHigh &= cpu.Y;
-      }
-
-      cpu.address = (addressHigh << 8) | addressLow;
-
-      write(cpu, cpu.Y & ((cpu.address >> 8) + 1));
-    },
-  ],
-  isWrite: true,
-  merge: true,
-);
-
-final SHX = Instruction(
-  'SHX',
-  (write) => [
-    (cpu) {
-      final address = cpu.address;
-      final baseAddress = cpu.address - cpu.Y;
-
-      final addressLow = address & 0xff;
-
-      var addressHigh = address >> 8;
-
-      if (wasPageCrossed(baseAddress, address)) {
-        addressHigh &= cpu.X;
-      }
-
-      cpu.address = (addressHigh << 8) | addressLow;
-
-      write(cpu, cpu.X & ((cpu.address >> 8) + 1));
-    },
-  ],
-  isWrite: true,
-  merge: true,
-);
-
-final LAS = Instruction(
-  'LAS',
-  (write) => [
-    (cpu) {
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..A = cpu.SP & cpu.operand
         ..X = cpu.A
-        ..SP = cpu.A
-        ..zero(cpu.A)
-        ..negative(cpu.A);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+}
 
-final AXS = Instruction(
-  'AXS',
-  (write) => [
-    (cpu) {
-      final ax = cpu.A & cpu.X;
-      final result = (ax - cpu.operand) & 0xff;
+class BCS extends Instruction {
+  @override
+  String get name => 'BCS';
 
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.C == 1);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class CLV extends Instruction {
+  @override
+  String get name => 'CLV';
+
+  @override
+  void execute(CPU cpu) => cpu.V = 0;
+}
+
+class TSX extends Instruction {
+  @override
+  String get name => 'TSX';
+
+  @override
+  void execute(CPU cpu) =>
       cpu
-        ..C = ax >= cpu.operand ? 1 : 0
-        ..X = result
-        ..zero(result)
-        ..negative(result);
-    },
-  ],
-  isRead: true,
-  merge: true,
-);
+        ..X = cpu.SP
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+}
+
+class CPY extends Instruction {
+  @override
+  String get name => 'CPY';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.Y - operand;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(result)
+      ..negative(result);
+  }
+}
+
+class CMP extends Instruction {
+  @override
+  String get name => 'CMP';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.A - operand;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(result)
+      ..negative(result);
+  }
+}
+
+class DEC extends Instruction {
+  @override
+  String get name => 'DEC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = (operand - 1) & 0xff;
+
+    cpu
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class INY extends Instruction {
+  @override
+  String get name => 'INY';
+
+  @override
+  void execute(CPU cpu) =>
+      cpu
+        ..Y = (cpu.Y + 1) & 0xff
+        ..zero(cpu.Y)
+        ..negative(cpu.Y);
+}
+
+class DEX extends Instruction {
+  @override
+  String get name => 'DEX';
+
+  @override
+  void execute(CPU cpu) =>
+      cpu
+        ..X = (cpu.X - 1) & 0xff
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+}
+
+class BNE extends Instruction {
+  @override
+  String get name => 'BNE';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.Z == 0);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class CLD extends Instruction {
+  @override
+  String get name => 'CLD';
+
+  @override
+  void execute(CPU cpu) => cpu.D = 0;
+}
+
+class CPX extends Instruction {
+  @override
+  String get name => 'CPX';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.X - operand;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(result)
+      ..negative(result);
+  }
+}
+
+class SBC extends Instruction {
+  @override
+  String get name => 'SBC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = cpu.A - operand - (1 - cpu.C);
+    final maskedResult = result & 0xff;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(maskedResult)
+      ..V = ((cpu.A ^ result) & (cpu.A ^ operand) & 0x80) != 0 ? 1 : 0
+      ..negative(result)
+      ..A = maskedResult;
+  }
+}
+
+class INC extends Instruction {
+  @override
+  String get name => 'INC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final result = (operand + 1) & 0xff;
+
+    cpu
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class INX extends Instruction {
+  @override
+  String get name => 'INX';
+
+  @override
+  void execute(CPU cpu) =>
+      cpu
+        ..X = (cpu.X + 1) & 0xff
+        ..zero(cpu.X)
+        ..negative(cpu.X);
+}
+
+class NOP extends Instruction {
+  @override
+  String get name => 'NOP';
+
+  @override
+  void execute(CPU cpu) => read(cpu); // dummy read
+}
+
+class BEQ extends Instruction {
+  @override
+  String get name => 'BEQ';
+
+  @override
+  void execute(CPU cpu) => cpu.branch(doBranch: cpu.Z == 1);
+
+  @override
+  InstructionType get type => InstructionType.branch;
+}
+
+class SED extends Instruction {
+  @override
+  String get name => 'SED';
+
+  @override
+  void execute(CPU cpu) => cpu.D = 1;
+}
+
+class LAX extends Instruction {
+  @override
+  String get name => 'LAX';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      // LDA
+      ..A = operand
+      // LDX
+      ..X = operand
+      ..zero(cpu.X)
+      ..negative(cpu.X);
+  }
+}
+
+class SAX extends Instruction {
+  @override
+  String get name => 'SAX';
+
+  @override
+  void execute(CPU cpu) => write(cpu, cpu.A & cpu.X);
+
+  @override
+  bool get isWrite => true;
+}
+
+class DCP extends Instruction {
+  @override
+  String get name => 'DCP';
+
+  @override
+  void execute(CPU cpu) {
+    // DEC
+    final operand = read(cpu);
+    final decResult = (operand - 1) & 0xff;
+
+    // CMP
+    final result = cpu.A - decResult;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(result)
+      ..negative(result);
+
+    write(cpu, operand); // dummy write
+    write(cpu, decResult);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class ISC extends Instruction {
+  @override
+  String get name => 'ISC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    // INC
+    final incResult = (operand + 1) & 0xff;
+
+    // SBC
+    final result = cpu.A - incResult - (1 - cpu.C);
+    final maskedResult = result & 0xff;
+
+    cpu
+      ..C = result >= 0 ? 1 : 0
+      ..zero(maskedResult)
+      ..V = ((cpu.A ^ result) & (cpu.A ^ incResult) & 0x80) != 0 ? 1 : 0
+      ..negative(result)
+      ..A = maskedResult;
+
+    write(cpu, operand); // dummy write
+    write(cpu, incResult);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class SLO extends Instruction {
+  @override
+  String get name => 'SLO';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+    final aslResult = (operand << 1) & 0xff;
+
+    cpu
+      // ASL, ORA
+      ..A |= aslResult
+      ..C = operand.bit(7)
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+
+    write(cpu, operand); // dummy write
+    write(cpu, aslResult);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class RLA extends Instruction {
+  @override
+  String get name => 'RLA';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    // ROL
+    final result = ((operand << 1) | cpu.C) & 0xff;
+
+    cpu
+      // AND
+      ..C = operand.bit(7)
+      ..A &= result
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+
+    write(cpu, operand); // dummy write
+    write(cpu, result);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class SRE extends Instruction {
+  @override
+  String get name => 'SRE';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    // LSR
+    final lsrResult = operand >> 1;
+
+    // EOR
+    cpu
+      ..A ^= lsrResult
+      ..C = operand.bit(0)
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+
+    write(cpu, operand); // dummy write
+    write(cpu, lsrResult);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class RRA extends Instruction {
+  @override
+  String get name => 'RRA';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    // ROR
+    final rorResult = (operand >> 1) | (cpu.C << 7);
+
+    cpu
+      ..C = operand.bit(0)
+      ..zero(rorResult)
+      ..negative(rorResult);
+
+    // ADC
+    final result = cpu.A + rorResult + cpu.C;
+    final maskedResult = result & 0xff;
+
+    cpu
+      ..C = result > 0xff ? 1 : 0
+      ..zero(maskedResult)
+      ..V = (~(cpu.A ^ rorResult) & (cpu.A ^ result)).bit(7)
+      ..negative(result)
+      ..A = maskedResult;
+
+    write(cpu, operand); // dummy write
+    write(cpu, rorResult);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class STP extends Instruction {
+  @override
+  String get name => 'STP';
+
+  @override
+  void execute(CPU cpu) => throw Stop();
+}
+
+class ANC extends Instruction {
+  @override
+  String get name => 'ANC';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..A &= operand
+      ..zero(cpu.A)
+      ..negative(cpu.A)
+      ..C = cpu.N;
+  }
+}
+
+class ALR extends Instruction {
+  @override
+  String get name => 'ALR';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      // AND
+      ..A &= operand
+      // LSR
+      ..C = cpu.A.bit(0)
+      ..A = cpu.A >> 1
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class ARR extends Instruction {
+  @override
+  String get name => 'ARR';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      // AND
+      ..A &= operand
+      // ROR
+      ..A = (cpu.C << 7) | (cpu.A >> 1)
+      ..zero(cpu.A)
+      ..negative(cpu.A)
+      ..C = cpu.A.bit(6)
+      ..V = cpu.C ^ cpu.A.bit(5);
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class XAA extends Instruction {
+  @override
+  String get name => 'XAA';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..negative(cpu.A)
+      ..zero(cpu.A)
+      ..A = (cpu.A | 0xee) & cpu.X & operand;
+  }
+}
+
+class AHX extends Instruction {
+  @override
+  String get name => 'AHX';
+
+  @override
+  void execute(CPU cpu) => write(cpu, cpu.A & cpu.X & ((cpu.address >> 8) + 1));
+
+  @override
+  bool get isWrite => true;
+}
+
+class TAS extends Instruction {
+  @override
+  String get name => 'TAS';
+
+  @override
+  void execute(CPU cpu) {
+    cpu.SP = cpu.A & cpu.X;
+
+    write(cpu, cpu.SP & ((cpu.address >> 8) + 1));
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class SHY extends Instruction {
+  @override
+  String get name => 'SHY';
+
+  @override
+  void execute(CPU cpu) {
+    final address = cpu.address;
+    final baseAddress = cpu.address - cpu.X;
+
+    final addressLow = address & 0xff;
+
+    var addressHigh = address >> 8;
+
+    if (wasPageCrossed(baseAddress, address)) {
+      addressHigh &= cpu.Y;
+    }
+
+    cpu.address = (addressHigh << 8) | addressLow;
+
+    write(cpu, cpu.Y & ((cpu.address >> 8) + 1));
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class SHX extends Instruction {
+  @override
+  String get name => 'SHX';
+
+  @override
+  void execute(CPU cpu) {
+    final address = cpu.address;
+    final baseAddress = cpu.address - cpu.Y;
+
+    final addressLow = address & 0xff;
+
+    var addressHigh = address >> 8;
+
+    if (wasPageCrossed(baseAddress, address)) {
+      addressHigh &= cpu.X;
+    }
+
+    cpu.address = (addressHigh << 8) | addressLow;
+
+    write(cpu, cpu.X & ((cpu.address >> 8) + 1));
+  }
+
+  @override
+  bool get isWrite => true;
+}
+
+class LAS extends Instruction {
+  @override
+  String get name => 'LAS';
+
+  @override
+  void execute(CPU cpu) {
+    final operand = read(cpu);
+
+    cpu
+      ..A = cpu.SP & operand
+      ..X = cpu.A
+      ..SP = cpu.A
+      ..zero(cpu.A)
+      ..negative(cpu.A);
+  }
+}
+
+class AXS extends Instruction {
+  @override
+  String get name => 'AXS';
+
+  @override
+  void execute(CPU cpu) {
+    final ax = cpu.A & cpu.X;
+    final operand = read(cpu);
+    final result = (ax - operand) & 0xff;
+
+    cpu
+      ..C = ax >= operand ? 1 : 0
+      ..X = result
+      ..zero(result)
+      ..negative(result);
+  }
+}

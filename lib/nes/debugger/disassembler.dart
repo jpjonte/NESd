@@ -1,3 +1,4 @@
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/extension/hex_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';
@@ -44,8 +45,7 @@ class Disassembler {
           ..ppu = cpu.bus.ppu
           ..apu = cpu.bus.apu;
 
-    debugCpu = CPU(eventBus: eventBus, bus: bus, disableSideEffects: true)
-      ..state = cpu.state;
+    debugCpu = DebugCPU(bus: bus)..state = cpu.state;
 
     bus.cpu = debugCpu;
 
@@ -60,7 +60,7 @@ class Disassembler {
 
   final EventBus eventBus;
   final CPU cpu;
-  late final CPU debugCpu;
+  late final DebugCPU debugCpu;
 
   final Map<int, DisassemblyLine> lines = {};
 
@@ -100,7 +100,11 @@ class Disassembler {
       growable: false,
     );
 
-    final readAddress = _getReadAddress(op, address);
+    final readAddress = _getReadAddress(address);
+
+    if (readAddress == null) {
+      return null;
+    }
 
     final value = debugCpu.read(readAddress);
 
@@ -115,9 +119,9 @@ class Disassembler {
       readAddress: readAddress,
       sectionStart: isEntrypoint || lines[address]?.sectionStart == true,
       sectionEnd:
-          op.instruction == RTS ||
-          op.instruction == RTI ||
-          op.instruction == JMP ||
+          op.instruction is RTS ||
+          op.instruction is RTI ||
+          op.instruction is JMP ||
           lines[address]?.sectionEnd == true,
     );
 
@@ -134,21 +138,18 @@ class Disassembler {
     return line;
   }
 
-  int _getReadAddress(Operation op, int address) {
+  int? _getReadAddress(int address) {
     final previousPc = debugCpu.PC;
 
-    debugCpu.PC = address + 1;
+    debugCpu.PC = address;
 
-    final pipeline = op.addressMode.pipeline(
-      read: op.instruction.isRead,
-      write: op.instruction.isWrite,
-    );
-
-    for (final cycle in pipeline) {
-      cycle(debugCpu);
+    try {
+      debugCpu.step();
+    } on NesdException {
+      return null;
+    } finally {
+      debugCpu.PC = previousPc;
     }
-
-    debugCpu.PC = previousPc;
 
     return debugCpu.address;
   }
@@ -202,7 +203,7 @@ class Disassembler {
   String _disassembleAbsolute(int address, Operation op) {
     final buffer = StringBuffer('\$${address.toHex(width: 4)}');
 
-    if (op.instruction != JSR && op.instruction != JMP) {
+    if (op.instruction is! JSR && op.instruction is! JMP) {
       buffer.write(' = \$${debugCpu.read(address).toHex()}');
     }
 
@@ -230,9 +231,9 @@ class Disassembler {
 
       final next = pc + 1 + operandCount;
 
-      if (op.instruction != JMP &&
-          op.instruction != RTS &&
-          op.instruction != RTI) {
+      if (op.instruction is! JMP &&
+          op.instruction is! RTS &&
+          op.instruction is! RTI) {
         children.add(DisassemblerSearchNode(next, depth: current.depth + 1));
       }
 
@@ -242,15 +243,15 @@ class Disassembler {
           DisassemblerSearchNode(
             line.readAddress,
             entrypoint:
-                op.instruction == JSR ||
-                op.instruction == BRK ||
-                op.instruction == JMP,
+                op.instruction is JSR ||
+                op.instruction is BRK ||
+                op.instruction is JMP,
             depth: current.depth + 1,
           ),
         );
       }
 
-      if (op.instruction == BRK) {
+      if (op.instruction is BRK) {
         children.add(
           DisassemblerSearchNode(
             debugCpu.read16(irqVector),
@@ -285,7 +286,7 @@ class DummyDisassembler implements Disassembler {
   CPU get cpu => throw UnimplementedError();
 
   @override
-  CPU get debugCpu => throw UnimplementedError();
+  DebugCPU get debugCpu => throw UnimplementedError();
 
   @override
   DisassemblyLine? disassembleLine(
@@ -302,7 +303,7 @@ class DummyDisassembler implements Disassembler {
   Map<int, DisassemblyLine> get lines => throw UnimplementedError();
 
   @override
-  int _getReadAddress(Operation op, int address) {
+  int _getReadAddress(int address) {
     throw UnimplementedError();
   }
 
@@ -348,4 +349,20 @@ class DisassemblyLine {
   final int readAddress;
   final bool sectionStart;
   final bool sectionEnd;
+}
+
+class DebugCPU extends CPU {
+  DebugCPU({required super.bus}) : super(eventBus: EventBus());
+
+  @override
+  int read(int address) => bus.cpuRead(address, disableSideEffects: true);
+
+  @override
+  void write(int address, int value) {}
+
+  @override
+  void handleOAMDMA() {}
+
+  @override
+  void handleDMCDMA() {}
 }
