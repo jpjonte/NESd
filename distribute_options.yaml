@@ -19,4 +19,4 @@ releases:
           platform: macos
           target: dmg
           build_args:
-              release: true
+            release: true

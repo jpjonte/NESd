@@ -2,7 +2,11 @@
 
 set -eux
 
-flutter build apk --release
+if [ "$FLAVOR" = "prod" ]; then
+  flutter build apk --release --flavor prod
+elif [ "$FLAVOR" = "dev" ]; then
+  flutter build apk --release --flavor dev
+fi
 
 rm /tmp/upload-keystore.jks
 rm android/key.properties

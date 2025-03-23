@@ -29,6 +29,7 @@ migrate_working_dir/
 .pub/
 /build/
 devtools_options.yaml
+android/app/.cxx
 
 # FVM Version Cache
 .fvm/
