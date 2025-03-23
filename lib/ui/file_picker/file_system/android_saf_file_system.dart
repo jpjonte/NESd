@@ -3,11 +3,18 @@ import 'dart:typed_data';
 
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/native_file_system.dart';
 import 'package:saf/saf.dart';
 
 class AndroidSafFileSystem extends FileSystem {
+  final _nativeFileSystem = NativeFileSystem();
+
   @override
   Future<(String, List<FileSystemFile>)> list(String path) async {
+    if (isNativePath(path)) {
+      return _nativeFileSystem.list(path);
+    }
+
     final saf = Saf(_fixPath(path));
 
     final isGranted = await saf.getDirectoryPermission(
@@ -38,6 +45,10 @@ class AndroidSafFileSystem extends FileSystem {
 
   @override
   Future<Uint8List> read(String path) async {
+    if (isNativePath(path)) {
+      return _nativeFileSystem.read(path);
+    }
+
     final saf = Saf(path);
 
     final cached = await saf.singleCache(filePath: _fixPath(path));
@@ -51,21 +62,37 @@ class AndroidSafFileSystem extends FileSystem {
 
   @override
   Future<bool> exists(String path) async {
+    if (isNativePath(path)) {
+      return _nativeFileSystem.exists(path);
+    }
+
     return (await Saf.exists(_fixPath(path))) ?? false;
   }
 
   @override
   Future<bool> isFile(String path) async {
+    if (isNativePath(path)) {
+      return _nativeFileSystem.isFile(path);
+    }
+
     return (await Saf.isFile(_fixPath(path))) ?? false;
   }
 
   @override
   Future<bool> isDirectory(String path) async {
+    if (isNativePath(path)) {
+      return _nativeFileSystem.isDirectory(path);
+    }
+
     return (await Saf.isDirectory(_fixPath(path))) ?? false;
   }
 
   @override
   Future<String?> chooseDirectory(String initialDirectory) async {
+    if (isNativePath(initialDirectory)) {
+      return _nativeFileSystem.chooseDirectory(initialDirectory);
+    }
+
     return Saf.getDynamicDirectoryPermission(grantWritePermission: false);
   }
 
@@ -73,5 +100,10 @@ class AndroidSafFileSystem extends FileSystem {
   // hopefully temporary
   String _fixPath(String path) {
     return path.replaceFirst('/storage/emulated/0/', '');
+  }
+
+  // yet another dirty hack
+  bool isNativePath(String path) {
+    return path.startsWith('/data/user');
   }
 }

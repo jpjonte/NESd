@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Improved performance by completely changing the implementation of cycle accuracy
 
+### Fixed
+
+- Android: Fixed an issue where the file picker would always crash with an error
+
 ## [0.9.0] - 2025-03-17
 
 ### Added
