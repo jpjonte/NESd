@@ -48,6 +48,7 @@ Thank you to the following projects and people for their amazing work:
 - The [Nesdev Wiki](https://wiki.nesdev.com/w/index.php/Nesdev_Wiki) for the invaluable documentation
 - SourMesen for the excellent [Mesen](https://github.com/SourMesen/Mesen2/) emulator
 - [Modern Vintage Gamer](https://www.youtube.com/@ModernVintageGamer) for the inspiration to write my own emulator
+- NewRisingSun for the [NES 2.0 XML Database](https://forums.nesdev.org/viewtopic.php?t=19940) of known ROMs
 
 ## Screenshots
 

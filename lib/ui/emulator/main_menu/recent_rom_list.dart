@@ -60,7 +60,7 @@ class RecentRomList extends HookConsumerWidget {
           RomTile(
             onPressed: () async {
               final success = await controller.loadRom(
-                romTileData.romInfo.path,
+                romTileData.romInfo.path!,
               );
 
               if (success || !context.mounted) {

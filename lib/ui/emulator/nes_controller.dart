@@ -9,7 +9,9 @@ import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
+import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
@@ -59,11 +61,12 @@ NesController nesController(Ref ref) {
     toaster: ref.watch(toasterProvider),
     romManager: ref.watch(romManagerProvider),
     fileSystem: ref.read(fileSystemProvider),
+    database: ref.watch(databaseProvider),
   );
 
   ref.onDispose(controller._dispose);
 
-  final settingsSubscription = ref.listen(
+  final autoSaveSubscription = ref.listen(
     settingsControllerProvider.select(
       (settings) => (settings.autoSave, settings.autoSaveInterval),
     ),
@@ -72,7 +75,19 @@ NesController nesController(Ref ref) {
     fireImmediately: true,
   );
 
-  ref.onDispose(settingsSubscription.close);
+  ref.onDispose(autoSaveSubscription.close);
+
+  final regionSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.region),
+    (_, region) {
+      if (controller.nes case final nes?) {
+        controller._setRegion(nes, region);
+      }
+    },
+    fireImmediately: true,
+  );
+
+  ref.onDispose(regionSubscription.close);
 
   return controller;
 }
@@ -87,6 +102,7 @@ class NesController {
     required this.toaster,
     required this.romManager,
     required this.fileSystem,
+    required this.database,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -119,6 +135,8 @@ class NesController {
   final RomManager romManager;
 
   final FileSystem fileSystem;
+
+  final NesDatabase database;
 
   NES? get nes => nesState.nes;
 
@@ -238,7 +256,7 @@ class NesController {
         newNes.state = newState;
       }
 
-      newNes.region = settingsController.region ?? Region.ntsc;
+      _setRegion(newNes, settingsController.region);
 
       nesState.run(newNes);
 
@@ -259,6 +277,11 @@ class NesController {
     }
 
     return true;
+  }
+
+  void _setRegion(NES nes, Region? region) {
+    nes.region =
+        region ?? _autoDetectRegion(nes.bus.cartridge.romInfo) ?? Region.ntsc;
   }
 
   void saveState(int slot) {
@@ -428,5 +451,29 @@ class NesController {
         toaster.send(Toast.info('Saved state to slot 0'));
       }
     }
+  }
+
+  Region? _autoDetectRegion(RomInfo romInfo) {
+    final databaseEntry = database.find(romInfo);
+
+    if (databaseEntry != null) {
+      return databaseEntry.region;
+    }
+
+    final filename = romInfo.name?.toUpperCase();
+
+    if (filename == null) {
+      return null;
+    }
+
+    if (filename.containsAny(['(U)', '(USA)', '(J)', '(JU)', '(NTSC)'])) {
+      return Region.ntsc;
+    }
+
+    if (filename.containsAny(['(E)', '(EUR)', '(EUROPE)', '(PAL)'])) {
+      return Region.pal;
+    }
+
+    return null;
   }
 }

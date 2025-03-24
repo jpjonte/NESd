@@ -1,6 +1,6 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:nesd/extension/iterable_extension.dart';
 
 class FocusChild extends HookWidget {
   const FocusChild({required this.child, required this.autofocus, super.key});

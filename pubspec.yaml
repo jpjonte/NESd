@@ -48,6 +48,7 @@ dependencies:
       ref: feature/nesd
   shared_preferences: ^2.2.3
   url_launcher: ^6.3.0
+  xml: ^6.5.0
 
 dev_dependencies:
   auto_route_generator: ^9.0.0

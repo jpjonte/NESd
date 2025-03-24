@@ -98,7 +98,7 @@ const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'64f9c8f46375dc0a3c6292ea0dd89e80d2a47471';
+    r'905e00efb7623b89ffe5799bf4d0bfe4de22bec3';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

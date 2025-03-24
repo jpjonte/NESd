@@ -52,7 +52,7 @@ class Debugger {
     _subscription = eventBus.stream.listen(_handleEvent);
 
     final breakpoints =
-        settingsController.breakpoints[nes.bus.cartridge.hash] ?? [];
+        settingsController.breakpoints[nes.bus.cartridge.fileHash] ?? [];
 
     nes.breakpoints = breakpoints;
 
@@ -187,7 +187,10 @@ class Debugger {
       breakpoints: nes.breakpoints,
     );
 
-    settingsController.setBreakpoints(nes.bus.cartridge.hash, nes.breakpoints);
+    settingsController.setBreakpoints(
+      nes.bus.cartridge.fileHash,
+      nes.breakpoints,
+    );
   }
 }
 
