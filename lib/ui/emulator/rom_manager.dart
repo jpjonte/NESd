@@ -27,16 +27,20 @@ RomManager romManager(Ref ref) =>
 @immutable
 class RomInfo {
   const RomInfo({
-    required this.name,
-    required this.path,
-    required this.hash,
-    this.slot,
+    this.name,
+    this.path,
+    this.hash,
+    this.romHash,
+    this.chrHash,
+    this.prgHash,
   });
 
-  final String name;
-  final String path;
-  final String hash;
-  final int? slot;
+  final String? name;
+  final String? path;
+  final String? hash;
+  final String? romHash;
+  final String? chrHash;
+  final String? prgHash;
 
   factory RomInfo.fromJson(Map<String, dynamic> json) =>
       _$RomInfoFromJson(json);
@@ -49,11 +53,12 @@ class RomInfo {
       return true;
     }
 
-    return other is RomInfo && (other.name == name || other.hash == hash);
+    return other is RomInfo &&
+        (other.name == name || other.romHash == romHash || other.hash == hash);
   }
 
   @override
-  int get hashCode => Object.hash(name, hash);
+  int get hashCode => Object.hash(name, romHash);
 }
 
 class RomManager {
@@ -136,7 +141,7 @@ class RomManager {
   Future<RomTileData> getRomTileData(RomInfo romInfo) async {
     return RomTileData(
       romInfo: romInfo,
-      title: p.basenameWithoutExtension(romInfo.name),
+      title: p.basenameWithoutExtension(romInfo.name ?? ''),
       thumbnail: await _getLastThumbnail(romInfo),
     );
   }
@@ -249,7 +254,7 @@ class RomManager {
   String _getDirectory(String component) => p.join(baseDirectory, component);
 
   String _getFilename(String component, RomInfo romInfo, String extension) {
-    final romName = p.basename(romInfo.path);
+    final romName = p.basename(romInfo.path ?? '');
     final newFilename = p.setExtension(romName, extension);
     final fullPath = p.join(_getDirectory(component), newFilename);
 

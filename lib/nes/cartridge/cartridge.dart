@@ -32,7 +32,10 @@ class Cartridge {
     required this.romFormat,
     required this.prgRamSize,
     required this.tvSystem,
-    required this.hash,
+    required this.fileHash,
+    required this.romHash,
+    required this.chrHash,
+    required this.prgHash,
   }) {
     mapper.cartridge = this;
   }
@@ -42,11 +45,14 @@ class Cartridge {
       throw InvalidRomHeader(rom.sublist(0, 4));
     }
 
+    final chr = _parseChr(rom);
+    final prg = _parsePrgRom(rom);
+
     return Cartridge._internal(
       file: path,
       rom: rom,
-      prgRom: _parsePrgRom(rom),
-      chr: _parseChr(rom),
+      prgRom: prg,
+      chr: chr,
       prgRomSize: _parsePrgRomSize(rom),
       chrRomSize: _parseChrRomSize(rom),
       nametableLayout: _parseNametableLayout(rom),
@@ -58,7 +64,10 @@ class Cartridge {
       romFormat: _parseRomFormat(rom),
       prgRamSize: _parsePrgRamSize(rom),
       tvSystem: _parseTvSystem(rom),
-      hash: sha1.convert(rom).toString(),
+      fileHash: sha1.convert(rom).toString(),
+      romHash: sha1.convert(rom.sublist(16)).toString(),
+      chrHash: sha1.convert(chr).toString(),
+      prgHash: sha1.convert(prg).toString(),
     );
   }
 
@@ -77,7 +86,10 @@ class Cartridge {
   final RomFormat romFormat;
   final int prgRamSize;
   final TvSystem tvSystem;
-  final String hash;
+  final String fileHash;
+  final String romHash;
+  final String chrHash;
+  final String prgHash;
 
   final Uint8List sram = Uint8List(0x10000);
 
@@ -97,8 +109,14 @@ class Cartridge {
     mapper.state = state.mapperState;
   }
 
-  RomInfo get romInfo =>
-      RomInfo(name: p.basename(file), path: file, hash: hash);
+  RomInfo get romInfo => RomInfo(
+    name: p.basename(file),
+    path: file,
+    hash: fileHash,
+    romHash: romHash,
+    chrHash: chrHash,
+    prgHash: prgHash,
+  );
 
   static Uint8List _parsePrgRom(Uint8List rom) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;

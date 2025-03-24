@@ -12,6 +12,7 @@ import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/region.dart';
 
 const nmiVector = 0xfffa;
 const resetVector = 0xfffc;
@@ -20,6 +21,9 @@ const irqVector = 0xfffe;
 typedef CpuCycle = void Function(CPU);
 
 const pipelineSize = 20;
+
+const ntscConsoleCyclesPerCycle = 12;
+const palConsoleCyclesPerCycle = 16;
 
 class CPU {
   CPU({required this.eventBus, required this.bus});
@@ -31,7 +35,7 @@ class CPU {
 
   int consoleCycles = 0;
 
-  int consoleCyclesPerCycle = 12;
+  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
 
   int cycles = 0;
 
@@ -156,6 +160,17 @@ class CPU {
     callStack
       ..clear()
       ..addAll(state.callStack);
+  }
+
+  // we don't need a getter for this
+  // ignore: avoid_setters_without_getters
+  set region(Region region) {
+    switch (region) {
+      case Region.ntsc:
+        _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+      case Region.pal:
+        _consoleCyclesPerCycle = palConsoleCyclesPerCycle;
+    }
   }
 
   int read(int address) {
@@ -419,7 +434,7 @@ class CPU {
   void _startCycle() {
     cycles++;
 
-    consoleCycles += consoleCyclesPerCycle;
+    consoleCycles += _consoleCyclesPerCycle;
 
     bus.ppu.stepUntil(consoleCycles);
 

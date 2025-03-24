@@ -2,6 +2,29 @@ import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
+import 'package:nesd/nes/region.dart';
+
+const ntsc4Step0 = 3728; // 3728.5
+const ntsc4Step1 = 7456; // 7456.5
+const ntsc4Step2 = 11185; // 11185.5
+const ntsc4Step3 = 14914; // 14914.5
+
+const pal4Step0 = 4156; // 4156.5
+const pal4Step1 = 8313; // 8313.5
+const pal4Step2 = 12469; // 12469.5
+const pal4Step3 = 16626; // 16626.5
+
+const ntsc5Step0 = 3728; // 3728.5
+const ntsc5Step1 = 7456; // 7456.5
+const ntsc5Step2 = 11185; // 11185.5
+const ntsc5Step3 = 14914; // 14914.5
+const ntsc5Step4 = 18640; // 18640.5
+
+const pal5Step0 = 4156; // 4156.5
+const pal5Step1 = 8313; // 8313.5
+const pal5Step2 = 12469; // 12469.5
+const pal5Step3 = 16626; // 16626.5
+const pal5Step4 = 20782; // 20782.5
 
 class FrameCounter {
   FrameCounter(this.apu);
@@ -15,6 +38,17 @@ class FrameCounter {
   bool interrupt = false;
   bool interruptInhibit = false;
 
+  int _fourStep0 = ntsc4Step0;
+  int _fourStep1 = ntsc4Step1;
+  int _fourStep2 = ntsc4Step2;
+  int _fourStep3 = ntsc4Step3;
+
+  int _fiveStep0 = ntsc5Step0;
+  int _fiveStep1 = ntsc5Step1;
+  int _fiveStep2 = ntsc5Step2;
+  int _fiveStep3 = ntsc5Step3;
+  int _fiveStep4 = ntsc5Step4;
+
   FrameCounterState get state => FrameCounterState(
     counter: counter,
     fiveStep: fiveStep,
@@ -27,6 +61,35 @@ class FrameCounter {
     fiveStep = value.fiveStep;
     interrupt = value.interrupt;
     interruptInhibit = value.interruptInhibit;
+  }
+
+  // we don't need a getter
+  // ignore: avoid_setters_without_getters
+  set region(Region region) {
+    switch (region) {
+      case Region.ntsc:
+        _fourStep0 = ntsc4Step0;
+        _fourStep1 = ntsc4Step1;
+        _fourStep2 = ntsc4Step2;
+        _fourStep3 = ntsc4Step3;
+
+        _fiveStep0 = ntsc5Step0;
+        _fiveStep1 = ntsc5Step1;
+        _fiveStep2 = ntsc5Step2;
+        _fiveStep3 = ntsc5Step3;
+        _fiveStep4 = ntsc5Step4;
+      case Region.pal:
+        _fourStep0 = pal4Step0;
+        _fourStep1 = pal4Step1;
+        _fourStep2 = pal4Step2;
+        _fourStep3 = pal4Step3;
+
+        _fiveStep0 = pal5Step0;
+        _fiveStep1 = pal5Step1;
+        _fiveStep2 = pal5Step2;
+        _fiveStep3 = pal5Step3;
+        _fiveStep4 = pal5Step4;
+    }
   }
 
   void reset() {
@@ -93,16 +156,15 @@ class FrameCounter {
   }
 
   void _stepFrameCounter4StepMode() {
-    switch (counter) {
-      case 3728: // 3728.5
-        _doFrameCounter4Step(0);
-      case 7456: // 7456.5
-        _doFrameCounter4Step(1);
-      case 11185: // 11185.5
-        _doFrameCounter4Step(2);
-      case 14914: // 14914.5
-        _doFrameCounter4Step(3);
-        counter = 0;
+    if (counter == _fourStep0) {
+      _doFrameCounter4Step(0);
+    } else if (counter == _fourStep1) {
+      _doFrameCounter4Step(1);
+    } else if (counter == _fourStep2) {
+      _doFrameCounter4Step(2);
+    } else if (counter == _fourStep3) {
+      _doFrameCounter4Step(3);
+      counter = 0;
     }
   }
 
@@ -132,18 +194,17 @@ class FrameCounter {
   }
 
   void _stepFrameCounter5StepMode() {
-    switch (counter) {
-      case 3728: // 3728.5
-        _doFrameCounter5Step(0);
-      case 7456: // 7456.5
-        _doFrameCounter5Step(1);
-      case 11185: // 11185.5
-        _doFrameCounter5Step(2);
-      case 14914: // 14914.5
-        _doFrameCounter5Step(3);
-      case 18640: // 18640.5
-        _doFrameCounter5Step(4);
-        counter = 0;
+    if (counter == _fiveStep0) {
+      _doFrameCounter5Step(0);
+    } else if (counter == _fiveStep1) {
+      _doFrameCounter5Step(1);
+    } else if (counter == _fiveStep2) {
+      _doFrameCounter5Step(2);
+    } else if (counter == _fiveStep3) {
+      _doFrameCounter5Step(3);
+    } else if (counter == _fiveStep4) {
+      _doFrameCounter5Step(4);
+      counter = 0;
     }
   }
 

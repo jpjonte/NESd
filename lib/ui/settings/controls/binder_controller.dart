@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nesd/extension/iterable_extension.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';

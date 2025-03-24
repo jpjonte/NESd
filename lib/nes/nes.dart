@@ -13,6 +13,7 @@ import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/util/wait.dart';
 
 class NES {
@@ -89,6 +90,14 @@ class NES {
 
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
+  }
+
+  // we don't need a getter
+  // ignore: avoid_setters_without_getters
+  set region(Region region) {
+    cpu.region = region;
+    apu.region = region;
+    ppu.region = region;
   }
 
   Uint8List? save() => bus.cartridge.save();

@@ -47,6 +47,7 @@ mixin _$Settings {
       throw _privateConstructorUsedError;
   Map<String, List<Breakpoint>> get breakpoints =>
       throw _privateConstructorUsedError;
+  Region? get region => throw _privateConstructorUsedError;
 
   /// Serializes this Settings to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -86,6 +87,7 @@ abstract class $SettingsCopyWith<$Res> {
     @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     List<TouchInputConfig> wideTouchInputConfig,
     Map<String, List<Breakpoint>> breakpoints,
+    Region? region,
   });
 }
 
@@ -123,6 +125,7 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
     Object? breakpoints = null,
+    Object? region = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -221,6 +224,11 @@ class _$SettingsCopyWithImpl<$Res, $Val extends Settings>
                     ? _value.breakpoints
                     : breakpoints // ignore: cast_nullable_to_non_nullable
                         as Map<String, List<Breakpoint>>,
+            region:
+                freezed == region
+                    ? _value.region
+                    : region // ignore: cast_nullable_to_non_nullable
+                        as Region?,
           )
           as $Val,
     );
@@ -259,6 +267,7 @@ abstract class _$$SettingsImplCopyWith<$Res>
     @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     List<TouchInputConfig> wideTouchInputConfig,
     Map<String, List<Breakpoint>> breakpoints,
+    Region? region,
   });
 }
 
@@ -295,6 +304,7 @@ class __$$SettingsImplCopyWithImpl<$Res>
     Object? narrowTouchInputConfig = null,
     Object? wideTouchInputConfig = null,
     Object? breakpoints = null,
+    Object? region = freezed,
   }) {
     return _then(
       _$SettingsImpl(
@@ -393,6 +403,11 @@ class __$$SettingsImplCopyWithImpl<$Res>
                 ? _value._breakpoints
                 : breakpoints // ignore: cast_nullable_to_non_nullable
                     as Map<String, List<Breakpoint>>,
+        region:
+            freezed == region
+                ? _value.region
+                : region // ignore: cast_nullable_to_non_nullable
+                    as Region?,
       ),
     );
   }
@@ -424,6 +439,7 @@ class _$SettingsImpl implements _Settings {
     @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     final List<TouchInputConfig> wideTouchInputConfig = const [],
     final Map<String, List<Breakpoint>> breakpoints = const {},
+    this.region = null,
   }) : _bindings = bindings,
        _recentRomPaths = recentRomPaths,
        _recentRoms = recentRoms,
@@ -530,8 +546,12 @@ class _$SettingsImpl implements _Settings {
   }
 
   @override
+  @JsonKey()
+  final Region? region;
+
+  @override
   String toString() {
-    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, autoLoad: $autoLoad, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, recentRoms: $recentRoms, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints)';
+    return 'Settings(volume: $volume, stretch: $stretch, showBorder: $showBorder, showTiles: $showTiles, showCartridgeInfo: $showCartridgeInfo, showDebugOverlay: $showDebugOverlay, showDebugger: $showDebugger, scaling: $scaling, autoSave: $autoSave, autoSaveInterval: $autoSaveInterval, autoLoad: $autoLoad, bindings: $bindings, lastRomPath: $lastRomPath, recentRomPaths: $recentRomPaths, recentRoms: $recentRoms, showTouchControls: $showTouchControls, narrowTouchInputConfig: $narrowTouchInputConfig, wideTouchInputConfig: $wideTouchInputConfig, breakpoints: $breakpoints, region: $region)';
   }
 
   @override
@@ -582,7 +602,8 @@ class _$SettingsImpl implements _Settings {
             const DeepCollectionEquality().equals(
               other._breakpoints,
               _breakpoints,
-            ));
+            ) &&
+            (identical(other.region, region) || other.region == region));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -608,6 +629,7 @@ class _$SettingsImpl implements _Settings {
     const DeepCollectionEquality().hash(_narrowTouchInputConfig),
     const DeepCollectionEquality().hash(_wideTouchInputConfig),
     const DeepCollectionEquality().hash(_breakpoints),
+    region,
   ]);
 
   /// Create a copy of Settings
@@ -648,6 +670,7 @@ abstract class _Settings implements Settings {
     @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     final List<TouchInputConfig> wideTouchInputConfig,
     final Map<String, List<Breakpoint>> breakpoints,
+    final Region? region,
   }) = _$SettingsImpl;
 
   factory _Settings.fromJson(Map<String, dynamic> json) =
@@ -694,6 +717,8 @@ abstract class _Settings implements Settings {
   List<TouchInputConfig> get wideTouchInputConfig;
   @override
   Map<String, List<Breakpoint>> get breakpoints;
+  @override
+  Region? get region;
 
   /// Create a copy of Settings
   /// with the given fields replaced by the non-null parameter values.

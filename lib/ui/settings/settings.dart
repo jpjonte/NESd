@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -131,6 +132,7 @@ class Settings with _$Settings {
     @Default([])
     List<TouchInputConfig> wideTouchInputConfig,
     @Default({}) Map<String, List<Breakpoint>> breakpoints,
+    @Default(null) Region? region,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -411,6 +413,12 @@ class SettingsController extends _$SettingsController {
     _update(
       state.copyWith(breakpoints: {...state.breakpoints, hash: breakpoints}),
     );
+  }
+
+  Region? get region => state.region;
+
+  set region(Region? region) {
+    _update(state.copyWith(region: region));
   }
 
   void _update(Settings settings) {
