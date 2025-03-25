@@ -10,13 +10,21 @@
 
 A NES Emulator written in Dart and Flutter.
 Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
-If you sponsor an iOS device and the Apple developer account fee, I'll add iOS support ;) 
+Coming to the Google Play Store and the web in 2025.  
+If you sponsor an iOS device and the Apple developer account fee, I'll publish it to the App Store ;) 
+
+## Installation
+
+### macOS, Windows, Linux (deb / rpm), Android
+
+Download NESd from the [latest release](https://github.com/jpjonte/NESd/releases/latest).
 
 ## Features
 
 - Runs on macOS, Linux, Windows, and Android
 - Cycle accurate CPU emulation
 - PPU and APU emulation
+- Support for NTSC and PAL games
 - SRAM saves
 - Save states
 - Customizable controls with multiple bindings per action
@@ -28,38 +36,42 @@ If you sponsor an iOS device and the Apple developer account fee, I'll add iOS s
   - Debugger
   - Execution Log
 
-## Supported mappers
+## Supported games and mappers
 
-- NROM (0)
-- MMC1 (1)
-- UNROM (2)
-- CNROM (3)
-- MMC3 (4)
-- AxROM (7)
-- MMC2 (9)
-- GxROM (66)
-- BR909x (71)
-- Namco108 (206)
+NESd supports 2.480 games.
+
+- 0: NROM (319 games)
+- 1: MMC1 (734 games)
+- 2: UNROM (303 games)
+- 3: CNROM (191 games)
+- 4: MMC3 (737 games)
+- 5: MMC5 (31 games)
+- 7: AxROM (59 games)
+- 9: MMC2 (9 games)
+- 66: GxROM (17 games)
+- 71: BR909x (19 games)
+- 206: Namco108 (61 games)
 
 ## Acknowledgements
 
 Thank you to the following projects and people for their amazing work:
 
 - The [Nesdev Wiki](https://wiki.nesdev.com/w/index.php/Nesdev_Wiki) for the invaluable documentation
+- The [Nesdev Forums](https://forums.nesdev.com/) for the in-depth discussions on hardware behaviors
 - SourMesen for the excellent [Mesen](https://github.com/SourMesen/Mesen2/) emulator
 - [Modern Vintage Gamer](https://www.youtube.com/@ModernVintageGamer) for the inspiration to write my own emulator
 - NewRisingSun for the [NES 2.0 XML Database](https://forums.nesdev.org/viewtopic.php?t=19940) of known ROMs
 
 ## Screenshots
 
-## Android
+### Android
 <img src="docs/android_kirby.png" style="width: 100%;" />
 <p>
   <img src="docs/android_smb.png" style="width: 49%" />
   <img src="docs/android_menu.png" style="width: 49%" />
 </p>
 
-## macOS
+### macOS
 
 <img src="docs/smb.png" style="width: 49%" /> <img src="docs/zelda.png" style="width: 49%" />
 <img src="docs/kirby.png" style="width: 49%" /> <img src="docs/punch_out.png" style="width: 49%" />
