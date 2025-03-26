@@ -19,6 +19,10 @@ If you sponsor an iOS device and the Apple developer account fee, I'll publish i
 
 Download NESd from the [latest release](https://github.com/jpjonte/NESd/releases/latest).
 
+### Linux (Flatpak)
+
+Add my Flatpak repo (https://jpjonte.github.io/flatpak/jpj.flatpakrepo) and install NESd (`dev.jpj.NESd`) from there.
+
 ## Features
 
 - Runs on macOS, Linux, Windows, and Android

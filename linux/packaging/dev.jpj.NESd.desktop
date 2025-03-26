@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=0.9.0
+Type=Application
+
+Name=NESd
+Comment=NES emulator
+Categories=Game;Emulator;
+
+Icon=dev.jpj.NESd
+Exec=nesd
+Terminal=false
+StartupWMClass=nesd

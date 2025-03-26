@@ -103,6 +103,10 @@ jobs:
       - run: ci/build/linux/build.sh
         env:
           FLAVOR: ${{ steps.env.outputs.flavor }}
+      - uses: actions/cache/save@v4
+        with:
+          path: build/linux/x64/release/bundle
+          key: linux
       - run: |
           mv ${{ steps.env.outputs.dist_path }}/*.deb ./${{ steps.env.outputs.linux_deb_artifact }}
           mv ${{ steps.env.outputs.dist_path }}/*.rpm ./${{ steps.env.outputs.linux_rpm_artifact }}
@@ -116,6 +120,58 @@ jobs:
           name: ${{ steps.env.outputs.linux_rpm_artifact }}
           path: ${{ steps.env.outputs.linux_rpm_artifact }}
           if-no-files-found: error
+
+  build-linux-flatpak:
+    runs-on: ubuntu-latest
+    needs: [test, build-linux]
+    container:
+      image: ghcr.io/andyholmes/flatter/freedesktop:24.08
+      options: --privileged
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        with:
+          path: build/linux/x64/release/bundle
+          key: linux
+      - uses: actions/checkout@v4
+        with:
+          repository: jpjonte/flatpak
+          ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
+          ref: main
+          path: flatpak
+      - if: startsWith(github.ref, 'refs/tags/')
+        run: ln -s flatpak/stable repo
+      - if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
+        run: ln -s flatpak/nightly repo
+      - id: gpg-key
+        run: ci/build/linux/select_gpg_key.sh
+        env:
+          FLATPAK_STABLE_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
+          FLATPAK_STABLE_GPG_PASSPHRASE: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
+          FLATPAK_NIGHTLY_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_NIGHTLY_GPG_PRIVATE_KEY }}
+          FLATPAK_NIGHTLY_GPG_PASSPHRASE: ${{ secrets.FLATPAK_NIGHTLY_GPG_PASSPHRASE }}
+      - id: gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ steps.gpg-key.outputs.gpg_private_key }}
+          passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
+      - uses: andyholmes/flatter@main
+        with:
+          files: linux/packaging/dev.jpj.NESd.json
+          arch: x86_64
+          gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
+          upload-bundles: true
+          cache-key: flatter-${{ github.sha }}
+      - uses: actions/cache/save@v4
+        with:
+          path: flatpak/stable
+          key: flatpak-stable-${{ github.sha }}
+      - uses: actions/cache/save@v4
+        with:
+          path: flatpak/nightly
+          key: flatpak-nightly-${{ github.sha }}
 
   build-windows:
     runs-on: windows-latest
@@ -177,11 +233,30 @@ jobs:
   release_nightly:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [build-macos, build-linux, build-windows, build-android]
+    needs: [build-macos, build-linux, build-linux-flatpak, build-windows, build-android]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: jpjonte/flatpak
+          ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
+          ref: main
+          path: flatpak
+      - uses: actions/cache/restore@v4
+        with:
+          path: flatpak/nightly
+          key: flatpak-nightly-${{ github.sha }}
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update NESd nightly
+          commit_user_name: NESd CI Pipeline
+          commit_user_email: nesd@jpj.dev
+          commit_author: NESd CI Pipeline <nesd@jpj.dev>
+          repository: flatpak
+          skip_fetch: true
+          skip_checkout: true
       - id: env
         run: ci/release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v4
@@ -203,11 +278,30 @@ jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    needs: [build-macos, build-linux, build-windows, build-android]
+    needs: [build-macos, build-linux, build-linux-flatpak, build-windows, build-android]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: jpjonte/flatpak
+          ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
+          ref: main
+          path: flatpak
+      - uses: actions/cache/restore@v4
+        with:
+          path: flatpak/stable
+          key: flatpak-stable-${{ github.sha }}
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update NESd stable
+          commit_user_name: NESd CI Pipeline
+          commit_user_email: nesd@jpj.dev
+          commit_author: NESd CI Pipeline <nesd@jpj.dev>
+          repository: flatpak
+          skip_fetch: true
+          skip_checkout: true
       - id: env
         run: ci/release/extract_changelog.sh
       - uses: actions/download-artifact@v4
