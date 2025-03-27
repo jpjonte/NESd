@@ -1,0 +1,41 @@
+{
+  "app-id": "dev.jpj.NESd",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "24.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "nesd",
+  "separate-locales": false,
+  "finish-args": [
+    "--share=ipc",
+    "--socket=fallback-x11",
+    "--socket=wayland",
+    "--socket=pulseaudio",
+    "--device=dri",
+    "--device=input",
+    "--filesystem=home"
+  ],
+  "modules": [
+    {
+      "name": "nesd",
+      "buildsystem": "simple",
+      "only-arches": [
+        "x86_64"
+      ],
+      "build-commands": [
+        "cp -r build/linux/x64/release/bundle/* /app",
+        "chmod +x /app/nesd",
+        "mkdir -p /app/bin",
+        "ln -s /app/nesd /app/bin/nesd",
+        "install -Dm644 assets/logo.svg /app/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg",
+        "install -Dm644 linux/packaging/dev.jpj.NESd.desktop /app/share/applications/dev.jpj.NESd.desktop",
+        "install -Dm644 linux/packaging/dev.jpj.NESd.metainfo.xml /app/share/metainfo/dev.jpj.NESd.metainfo.xml"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../.."
+        }
+      ]
+    }
+  ]
+}

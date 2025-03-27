@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Added support for PAL ROMs
 - Added region auto-detection
+- Added a flatpak build for linux
+- Created a flatpak repo: https://jpjonte.github.io/flatpak/jpj.flatpakrepo
 
 ### Changed
 
