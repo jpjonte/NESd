@@ -1,22 +1,50 @@
 output: dist/
 releases:
-  - name: release
+  - name: prod-linux
     jobs:
-      - name: linux-deb
+      - name: prod-linux-deb
         package:
           platform: linux
           target: deb
           build_args:
             release: true
-      - name: linux-rpm
+      - name: prod-linux-rpm
         package:
           platform: linux
           target: rpm
           build_args:
             release: true
-      - name: macos
+  - name: dev-linux
+    jobs:
+      - name: dev-linux-deb
+        package:
+          platform: linux
+          target: deb
+          build_args:
+            release: true
+      - name: dev-linux-rpm
+        package:
+          platform: linux
+          target: rpm
+          build_args:
+            release: true
+  - name: prod-macos
+    jobs:
+      - name: prod-macos
         package:
           platform: macos
           target: dmg
+          channel: prod
           build_args:
+            flavor: prod
+            release: true
+  - name: dev-macos
+    jobs:
+      - name: dev-macos
+        package:
+          platform: macos
+          target: dmg
+          channel: dev
+          build_args:
+            flavor: dev
             release: true
