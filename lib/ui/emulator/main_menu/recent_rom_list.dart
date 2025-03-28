@@ -93,7 +93,7 @@ class RecentRomList extends HookConsumerWidget {
                 settingsController.removeRecentRom(romTileData.romInfo);
               }
             },
-            onRemove: () async => remove(context, romTileData),
+            onRemove: () async => await remove(context, romTileData),
             contextMenuBuilder:
                 (context, close) => [
                   ListTile(

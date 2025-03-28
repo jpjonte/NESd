@@ -6,9 +6,9 @@ part of 'touch_input_config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$RectangleButtonConfigImpl _$$RectangleButtonConfigImplFromJson(
+RectangleButtonConfig _$RectangleButtonConfigFromJson(
   Map<String, dynamic> json,
-) => _$RectangleButtonConfigImpl(
+) => RectangleButtonConfig(
   x: (json['x'] as num).toDouble(),
   y: (json['y'] as num).toDouble(),
   action: InputAction.fromCode(json['action'] as String?),
@@ -18,8 +18,8 @@ _$RectangleButtonConfigImpl _$$RectangleButtonConfigImplFromJson(
   $type: json['type'] as String?,
 );
 
-Map<String, dynamic> _$$RectangleButtonConfigImplToJson(
-  _$RectangleButtonConfigImpl instance,
+Map<String, dynamic> _$RectangleButtonConfigToJson(
+  RectangleButtonConfig instance,
 ) => <String, dynamic>{
   'x': instance.x,
   'y': instance.y,
@@ -30,30 +30,28 @@ Map<String, dynamic> _$$RectangleButtonConfigImplToJson(
   'type': instance.$type,
 };
 
-_$CircleButtonConfigImpl _$$CircleButtonConfigImplFromJson(
-  Map<String, dynamic> json,
-) => _$CircleButtonConfigImpl(
-  x: (json['x'] as num).toDouble(),
-  y: (json['y'] as num).toDouble(),
-  action: InputAction.fromCode(json['action'] as String?),
-  size: (json['size'] as num?)?.toDouble() ?? 75,
-  label: json['label'] as String? ?? '',
-  $type: json['type'] as String?,
-);
+CircleButtonConfig _$CircleButtonConfigFromJson(Map<String, dynamic> json) =>
+    CircleButtonConfig(
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+      action: InputAction.fromCode(json['action'] as String?),
+      size: (json['size'] as num?)?.toDouble() ?? 75,
+      label: json['label'] as String? ?? '',
+      $type: json['type'] as String?,
+    );
 
-Map<String, dynamic> _$$CircleButtonConfigImplToJson(
-  _$CircleButtonConfigImpl instance,
-) => <String, dynamic>{
-  'x': instance.x,
-  'y': instance.y,
-  'action': InputAction.toJson(instance.action),
-  'size': instance.size,
-  'label': instance.label,
-  'type': instance.$type,
-};
+Map<String, dynamic> _$CircleButtonConfigToJson(CircleButtonConfig instance) =>
+    <String, dynamic>{
+      'x': instance.x,
+      'y': instance.y,
+      'action': InputAction.toJson(instance.action),
+      'size': instance.size,
+      'label': instance.label,
+      'type': instance.$type,
+    };
 
-_$JoyStickConfigImpl _$$JoyStickConfigImplFromJson(Map<String, dynamic> json) =>
-    _$JoyStickConfigImpl(
+JoyStickConfig _$JoyStickConfigFromJson(Map<String, dynamic> json) =>
+    JoyStickConfig(
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
       upAction: InputAction.fromCode(json['upAction'] as String?),
@@ -66,35 +64,33 @@ _$JoyStickConfigImpl _$$JoyStickConfigImplFromJson(Map<String, dynamic> json) =>
       $type: json['type'] as String?,
     );
 
-Map<String, dynamic> _$$JoyStickConfigImplToJson(
-  _$JoyStickConfigImpl instance,
-) => <String, dynamic>{
-  'x': instance.x,
-  'y': instance.y,
-  'upAction': InputAction.toJson(instance.upAction),
-  'downAction': InputAction.toJson(instance.downAction),
-  'leftAction': InputAction.toJson(instance.leftAction),
-  'rightAction': InputAction.toJson(instance.rightAction),
-  'size': instance.size,
-  'innerSize': instance.innerSize,
-  'deadZone': instance.deadZone,
-  'type': instance.$type,
-};
+Map<String, dynamic> _$JoyStickConfigToJson(JoyStickConfig instance) =>
+    <String, dynamic>{
+      'x': instance.x,
+      'y': instance.y,
+      'upAction': InputAction.toJson(instance.upAction),
+      'downAction': InputAction.toJson(instance.downAction),
+      'leftAction': InputAction.toJson(instance.leftAction),
+      'rightAction': InputAction.toJson(instance.rightAction),
+      'size': instance.size,
+      'innerSize': instance.innerSize,
+      'deadZone': instance.deadZone,
+      'type': instance.$type,
+    };
 
-_$DPadConfigImpl _$$DPadConfigImplFromJson(Map<String, dynamic> json) =>
-    _$DPadConfigImpl(
-      x: (json['x'] as num).toDouble(),
-      y: (json['y'] as num).toDouble(),
-      upAction: InputAction.fromCode(json['upAction'] as String?),
-      downAction: InputAction.fromCode(json['downAction'] as String?),
-      leftAction: InputAction.fromCode(json['leftAction'] as String?),
-      rightAction: InputAction.fromCode(json['rightAction'] as String?),
-      size: (json['size'] as num?)?.toDouble() ?? 150,
-      deadZone: (json['deadZone'] as num?)?.toDouble() ?? 0.25,
-      $type: json['type'] as String?,
-    );
+DPadConfig _$DPadConfigFromJson(Map<String, dynamic> json) => DPadConfig(
+  x: (json['x'] as num).toDouble(),
+  y: (json['y'] as num).toDouble(),
+  upAction: InputAction.fromCode(json['upAction'] as String?),
+  downAction: InputAction.fromCode(json['downAction'] as String?),
+  leftAction: InputAction.fromCode(json['leftAction'] as String?),
+  rightAction: InputAction.fromCode(json['rightAction'] as String?),
+  size: (json['size'] as num?)?.toDouble() ?? 150,
+  deadZone: (json['deadZone'] as num?)?.toDouble() ?? 0.25,
+  $type: json['type'] as String?,
+);
 
-Map<String, dynamic> _$$DPadConfigImplToJson(_$DPadConfigImpl instance) =>
+Map<String, dynamic> _$DPadConfigToJson(DPadConfig instance) =>
     <String, dynamic>{
       'x': instance.x,
       'y': instance.y,

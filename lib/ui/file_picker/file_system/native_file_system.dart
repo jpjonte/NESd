@@ -28,7 +28,7 @@ class NativeFileSystem extends FileSystem {
 
   @override
   Future<Uint8List> read(String path) async {
-    return File(path).readAsBytes();
+    return await File(path).readAsBytes();
   }
 
   @override
@@ -48,7 +48,7 @@ class NativeFileSystem extends FileSystem {
 
   @override
   Future<String?> chooseDirectory(String initialDirectory) async {
-    return FilePicker.platform.getDirectoryPath(
+    return await FilePicker.platform.getDirectoryPath(
       initialDirectory: initialDirectory,
     );
   }

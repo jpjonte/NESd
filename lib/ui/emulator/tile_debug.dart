@@ -156,7 +156,7 @@ class TileDebugWidget extends HookConsumerWidget {
       }
     }
 
-    return convertFrameBufferToImage(buffer);
+    return await convertFrameBufferToImage(buffer);
   }
 }
 

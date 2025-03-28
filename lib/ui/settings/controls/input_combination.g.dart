@@ -6,23 +6,23 @@ part of 'input_combination.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$KeyboardInputCombinationImpl _$$KeyboardInputCombinationImplFromJson(
+KeyboardInputCombination _$KeyboardInputCombinationFromJson(
   Map<String, dynamic> json,
-) => _$KeyboardInputCombinationImpl(
+) => KeyboardInputCombination(
   keysFromJson(json['keys'] as List),
   $type: json['type'] as String?,
 );
 
-Map<String, dynamic> _$$KeyboardInputCombinationImplToJson(
-  _$KeyboardInputCombinationImpl instance,
+Map<String, dynamic> _$KeyboardInputCombinationToJson(
+  KeyboardInputCombination instance,
 ) => <String, dynamic>{
   'keys': keysToJson(instance.keys),
   'type': instance.$type,
 };
 
-_$GamepadInputCombinationImpl _$$GamepadInputCombinationImplFromJson(
+GamepadInputCombination _$GamepadInputCombinationFromJson(
   Map<String, dynamic> json,
-) => _$GamepadInputCombinationImpl(
+) => GamepadInputCombination(
   gamepadId: json['gamepadId'] as String,
   inputs:
       (json['inputs'] as List<dynamic>)
@@ -32,8 +32,8 @@ _$GamepadInputCombinationImpl _$$GamepadInputCombinationImplFromJson(
   $type: json['type'] as String?,
 );
 
-Map<String, dynamic> _$$GamepadInputCombinationImplToJson(
-  _$GamepadInputCombinationImpl instance,
+Map<String, dynamic> _$GamepadInputCombinationToJson(
+  GamepadInputCombination instance,
 ) => <String, dynamic>{
   'gamepadId': instance.gamepadId,
   'inputs': instance.inputs.toList(),
