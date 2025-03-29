@@ -13,7 +13,7 @@ part 'debug_overlay.freezed.dart';
 part 'debug_overlay.g.dart';
 
 @freezed
-class DebugOverlayState with _$DebugOverlayState {
+sealed class DebugOverlayState with _$DebugOverlayState {
   const factory DebugOverlayState({
     @Default(0) double frameTime,
     @Default(0) double fps,

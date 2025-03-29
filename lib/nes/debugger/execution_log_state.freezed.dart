@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,178 +10,142 @@ part of 'execution_log_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
 /// @nodoc
 mixin _$ExecutionLogState {
-  bool get enabled => throw _privateConstructorUsedError;
-  List<ExecutionLogLine> get lines => throw _privateConstructorUsedError;
 
-  /// Create a copy of ExecutionLogState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExecutionLogStateCopyWith<ExecutionLogState> get copyWith =>
-      throw _privateConstructorUsedError;
+ bool get enabled; List<ExecutionLogLine> get lines;
+/// Create a copy of ExecutionLogState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ExecutionLogStateCopyWith<ExecutionLogState> get copyWith => _$ExecutionLogStateCopyWithImpl<ExecutionLogState>(this as ExecutionLogState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExecutionLogState&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other.lines, lines));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(lines));
+
+@override
+String toString() {
+  return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ExecutionLogStateCopyWith<$Res> {
-  factory $ExecutionLogStateCopyWith(
-    ExecutionLogState value,
-    $Res Function(ExecutionLogState) then,
-  ) = _$ExecutionLogStateCopyWithImpl<$Res, ExecutionLogState>;
-  @useResult
-  $Res call({bool enabled, List<ExecutionLogLine> lines});
-}
+abstract mixin class $ExecutionLogStateCopyWith<$Res>  {
+  factory $ExecutionLogStateCopyWith(ExecutionLogState value, $Res Function(ExecutionLogState) _then) = _$ExecutionLogStateCopyWithImpl;
+@useResult
+$Res call({
+ bool enabled, List<ExecutionLogLine> lines
+});
 
+
+
+
+}
 /// @nodoc
-class _$ExecutionLogStateCopyWithImpl<$Res, $Val extends ExecutionLogState>
+class _$ExecutionLogStateCopyWithImpl<$Res>
     implements $ExecutionLogStateCopyWith<$Res> {
-  _$ExecutionLogStateCopyWithImpl(this._value, this._then);
+  _$ExecutionLogStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final ExecutionLogState _self;
+  final $Res Function(ExecutionLogState) _then;
 
-  /// Create a copy of ExecutionLogState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? enabled = null, Object? lines = null}) {
-    return _then(
-      _value.copyWith(
-            enabled:
-                null == enabled
-                    ? _value.enabled
-                    : enabled // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            lines:
-                null == lines
-                    ? _value.lines
-                    : lines // ignore: cast_nullable_to_non_nullable
-                        as List<ExecutionLogLine>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of ExecutionLogState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? lines = null,}) {
+  return _then(_self.copyWith(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,lines: null == lines ? _self.lines : lines // ignore: cast_nullable_to_non_nullable
+as List<ExecutionLogLine>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$ExecutionLogStateImplCopyWith<$Res>
-    implements $ExecutionLogStateCopyWith<$Res> {
-  factory _$$ExecutionLogStateImplCopyWith(
-    _$ExecutionLogStateImpl value,
-    $Res Function(_$ExecutionLogStateImpl) then,
-  ) = __$$ExecutionLogStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({bool enabled, List<ExecutionLogLine> lines});
 }
 
-/// @nodoc
-class __$$ExecutionLogStateImplCopyWithImpl<$Res>
-    extends _$ExecutionLogStateCopyWithImpl<$Res, _$ExecutionLogStateImpl>
-    implements _$$ExecutionLogStateImplCopyWith<$Res> {
-  __$$ExecutionLogStateImplCopyWithImpl(
-    _$ExecutionLogStateImpl _value,
-    $Res Function(_$ExecutionLogStateImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of ExecutionLogState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? enabled = null, Object? lines = null}) {
-    return _then(
-      _$ExecutionLogStateImpl(
-        enabled:
-            null == enabled
-                ? _value.enabled
-                : enabled // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        lines:
-            null == lines
-                ? _value._lines
-                : lines // ignore: cast_nullable_to_non_nullable
-                    as List<ExecutionLogLine>,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 
-class _$ExecutionLogStateImpl implements _ExecutionLogState {
-  const _$ExecutionLogStateImpl({
-    this.enabled = false,
-    final List<ExecutionLogLine> lines = const [],
-  }) : _lines = lines;
 
-  @override
-  @JsonKey()
-  final bool enabled;
-  final List<ExecutionLogLine> _lines;
-  @override
-  @JsonKey()
-  List<ExecutionLogLine> get lines {
-    if (_lines is EqualUnmodifiableListView) return _lines;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_lines);
-  }
+class _ExecutionLogState implements ExecutionLogState {
+  const _ExecutionLogState({this.enabled = false, final  List<ExecutionLogLine> lines = const []}): _lines = lines;
+  
 
-  @override
-  String toString() {
-    return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ExecutionLogStateImpl &&
-            (identical(other.enabled, enabled) || other.enabled == enabled) &&
-            const DeepCollectionEquality().equals(other._lines, _lines));
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    enabled,
-    const DeepCollectionEquality().hash(_lines),
-  );
-
-  /// Create a copy of ExecutionLogState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ExecutionLogStateImplCopyWith<_$ExecutionLogStateImpl> get copyWith =>
-      __$$ExecutionLogStateImplCopyWithImpl<_$ExecutionLogStateImpl>(
-        this,
-        _$identity,
-      );
+@override@JsonKey() final  bool enabled;
+ final  List<ExecutionLogLine> _lines;
+@override@JsonKey() List<ExecutionLogLine> get lines {
+  if (_lines is EqualUnmodifiableListView) return _lines;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_lines);
 }
 
-abstract class _ExecutionLogState implements ExecutionLogState {
-  const factory _ExecutionLogState({
-    final bool enabled,
-    final List<ExecutionLogLine> lines,
-  }) = _$ExecutionLogStateImpl;
 
-  @override
-  bool get enabled;
-  @override
-  List<ExecutionLogLine> get lines;
+/// Create a copy of ExecutionLogState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ExecutionLogStateCopyWith<_ExecutionLogState> get copyWith => __$ExecutionLogStateCopyWithImpl<_ExecutionLogState>(this, _$identity);
 
-  /// Create a copy of ExecutionLogState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExecutionLogStateImplCopyWith<_$ExecutionLogStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExecutionLogState&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other._lines, _lines));
 }
+
+
+@override
+int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(_lines));
+
+@override
+String toString() {
+  return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ExecutionLogStateCopyWith<$Res> implements $ExecutionLogStateCopyWith<$Res> {
+  factory _$ExecutionLogStateCopyWith(_ExecutionLogState value, $Res Function(_ExecutionLogState) _then) = __$ExecutionLogStateCopyWithImpl;
+@override @useResult
+$Res call({
+ bool enabled, List<ExecutionLogLine> lines
+});
+
+
+
+
+}
+/// @nodoc
+class __$ExecutionLogStateCopyWithImpl<$Res>
+    implements _$ExecutionLogStateCopyWith<$Res> {
+  __$ExecutionLogStateCopyWithImpl(this._self, this._then);
+
+  final _ExecutionLogState _self;
+  final $Res Function(_ExecutionLogState) _then;
+
+/// Create a copy of ExecutionLogState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? enabled = null,Object? lines = null,}) {
+  return _then(_ExecutionLogState(
+enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,lines: null == lines ? _self._lines : lines // ignore: cast_nullable_to_non_nullable
+as List<ExecutionLogLine>,
+  ));
+}
+
+
+}
+
+// dart format on

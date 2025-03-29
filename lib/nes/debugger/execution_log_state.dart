@@ -8,7 +8,7 @@ part 'execution_log_state.freezed.dart';
 part 'execution_log_state.g.dart';
 
 @freezed
-class ExecutionLogState with _$ExecutionLogState {
+sealed class ExecutionLogState with _$ExecutionLogState {
   const factory ExecutionLogState({
     @Default(false) bool enabled,
     @Default([]) List<ExecutionLogLine> lines,

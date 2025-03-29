@@ -90,10 +90,10 @@ class AndroidSafFileSystem extends FileSystem {
   @override
   Future<String?> chooseDirectory(String initialDirectory) async {
     if (isNativePath(initialDirectory)) {
-      return _nativeFileSystem.chooseDirectory(initialDirectory);
+      return await _nativeFileSystem.chooseDirectory(initialDirectory);
     }
 
-    return Saf.getDynamicDirectoryPermission(grantWritePermission: false);
+    return await Saf.getDynamicDirectoryPermission(grantWritePermission: false);
   }
 
   // dirty hack to fix paths before passing them to the SAF plugin

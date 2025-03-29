@@ -10,7 +10,7 @@ part 'debugger_state.freezed.dart';
 part 'debugger_state.g.dart';
 
 @freezed
-class DebuggerState with _$DebuggerState {
+sealed class DebuggerState with _$DebuggerState {
   const factory DebuggerState({
     @Default(false) bool enabled,
     @Default([]) Disassembly disassembly,

@@ -162,13 +162,13 @@ class FilePickerScreen extends HookConsumerWidget {
                             title: Text(p.basename(file.path)),
                             onTap: () async {
                               if (isDirectory) {
-                                controller.go(file.path);
+                                await controller.go(file.path);
 
                                 onChangeDirectory?.call(Directory(file.path));
                               } else if (fileIsZip) {
-                                controller.go(file.path);
+                                await controller.go(file.path);
                               } else {
-                                context.router.maybePop(file);
+                                await context.router.maybePop(file);
                               }
                             },
                           ),

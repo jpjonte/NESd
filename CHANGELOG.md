@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- Added support for Namco 163 (Mapper 19; without additional audio for now)
+
+### Changed
+
+- Upgraded dependencies
+
 ## [0.10.0] - 2025-03-27
 
 ### Added

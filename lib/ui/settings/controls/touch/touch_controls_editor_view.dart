@@ -20,7 +20,7 @@ class TouchControlsEditorView extends HookConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return GestureDetector(
-          onTapUp: (details) async {
+          onTapUp: (details) {
             editorController.edit(
               orientation,
               constraints.biggest,

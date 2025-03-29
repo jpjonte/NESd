@@ -44,9 +44,6 @@ class MMC2State extends MapperState {
   final int mirroring;
 
   @override
-  int get byteLength => 9;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

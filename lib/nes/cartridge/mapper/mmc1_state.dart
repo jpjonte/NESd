@@ -41,9 +41,6 @@ class MMC1State extends MapperState {
   final int prgBank;
 
   @override
-  int get byteLength => 5;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
