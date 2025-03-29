@@ -52,9 +52,10 @@ NESd supports 2.480 games.
 - 5: MMC5 (31 games)
 - 7: AxROM (59 games)
 - 9: MMC2 (9 games)
+- 19: Namco 163 (31 games)
 - 66: GxROM (17 games)
 - 71: BR909x (19 games)
-- 206: Namco108 (61 games)
+- 206: Namco 108 (61 games)
 
 ## Acknowledgements
 
