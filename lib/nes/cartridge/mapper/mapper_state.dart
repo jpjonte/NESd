@@ -45,8 +45,6 @@ abstract class MapperState {
 
   final int id;
 
-  int get byteLength;
-
   void serialize(PayloadWriter writer) {
     writer
       ..set(uint8, 0) // version

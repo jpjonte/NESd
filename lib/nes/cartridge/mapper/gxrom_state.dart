@@ -26,9 +26,6 @@ class GxROMState extends MapperState {
   final int prgBank;
 
   @override
-  int get byteLength => 3;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

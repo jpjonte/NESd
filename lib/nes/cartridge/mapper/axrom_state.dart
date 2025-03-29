@@ -27,9 +27,6 @@ class AXROMState extends MapperState {
   final int vramBank;
 
   @override
-  int get byteLength => 2;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
