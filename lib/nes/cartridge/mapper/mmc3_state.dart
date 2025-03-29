@@ -80,9 +80,6 @@ class MMC3State extends MapperState {
   final int a12LowStart;
 
   @override
-  int get byteLength => 24;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

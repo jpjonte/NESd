@@ -21,9 +21,6 @@ class CNROMState extends MapperState {
   final int chrBank;
 
   @override
-  int get byteLength => 1;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

@@ -51,9 +51,6 @@ class Namco108State extends MapperState {
   final int r7;
 
   @override
-  int get byteLength => 10;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
