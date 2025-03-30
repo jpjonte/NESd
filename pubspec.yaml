@@ -102,12 +102,3 @@ flutter:
         - asset: assets/fonts/UbuntuMono-BoldItalic.ttf
           weight: 700
           style: italic
-
-flutter_launcher_icons:
-  image_path: "assets/logo.png"
-  macos:
-    generate: true
-  windows:
-    generate: true
-  android: true
-

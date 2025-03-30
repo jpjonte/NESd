@@ -1,0 +1,396 @@
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+    width="100%" viewBox="0 0 1024 1024" enable-background="new 0 0 1024 1024" xml:space="preserve">
+    <!-- background -->
+    <rect x="64" y="64" fill="#112244" width="896" height="896" rx="128" ry="128"/>
+    <!-- N -->
+    <path fill="#AA0000"
+          d="
+            M 135 230
+            l 25 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 5
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 10
+            l 5 0
+            l 0 -140
+            l 5 0
+            l 0 -5
+            l 25 0
+            l 0 5
+            l 5 0
+            l 0 230
+            l -5 0
+            l 0 5
+            l -25 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -5
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 -10
+            l -5 0
+            l 0 140
+            l -5 0
+            l 0 5
+            l -25 0
+            l 0 -5
+            l -5 0
+            l 0 -230
+            l 5 0
+            z"
+    />
+    <!-- E -->
+    <path fill="#AA0000"
+        d="
+            M 340 230
+            l 150 0
+            l 0 5
+            l 5 0
+            l 0 25
+            l -5 0
+            l 0 5
+            l -110 0
+            l 0 5
+            l -5 0
+            l 0 50
+            l 5 0
+            l 0 5
+            l 95 0
+            l 0 5
+            l 5 0
+            l 0 25
+            l -5 0
+            l 0 5
+            l -95 0
+            l 0 5
+            l -5 0
+            l 0 65
+            l 5 0
+            l 0 5
+            l 110 0
+            l 0 5
+            l 5 0
+            l 0 25
+            l -5 0
+            l 0 5
+            l -150 0
+            l 0 -5
+            l -5 0
+            l 0 -230
+            l 5 0
+            z"
+    />
+    <!-- S -->
+    <path fill="#AA0000"
+        d="
+            M 540 230
+            l 150 0
+            l 0 5
+            l 5 0
+            l 0 25
+            l -5 0
+            l 0 5
+            l -110 0
+            l 0 5
+            l -5 0
+            l 0 50
+            l 5 0
+            l 0 5
+            l 110 0
+            l 0 5
+            l 5 0
+            l 0 135
+            l -5 0
+            l 0 5
+            l -150 0
+            l 0 -5
+            l -5 0
+            l 0 -25
+            l 5 0
+            l 0 -5
+            l 110 0
+            l 0 -5
+            l 5 0
+            l 0 -65
+            l -5 0
+            l 0 -5
+            l -110 0
+            l 0 -5
+            l -5 0
+            l 0 -120
+            l 5 0
+            z"
+    />
+    <!-- d -->
+    <path fill="#AA0000"
+        d="
+            M 865 230
+            l 25 0
+            l 0 5
+            l 5 0
+            l 0 230
+            l -5 0
+            l 0 5
+            l -145 0
+            l 0 -5
+            l -5 0
+            l 0 -135
+            l 5 0
+            l 0 -5
+            l 110 0
+            l 0 -5
+            l 5 0
+            l 0 -85
+            l 5 0
+            z"
+        mask="url(#d-mask)"
+    />
+    <!-- hole in the d -->
+    <path fill="#112244"
+        d="
+        M 780 360
+        l 75 0
+        l 0 5
+        l 5 0
+        l 0 65
+        l -5 0
+        l 0 5
+        l -75 0
+        l 0 -5
+        l -5 0
+        l 0 -65
+        l 5 0
+        z"
+    />
+    <!-- D-pad -->
+    <path fill="#DDDDDD"
+        d="
+        M 170 615
+        l 60 0
+        l 0 60
+        l 60 0
+        l 0 60
+        l -60 0
+        l 0 60
+        l -60 0
+        l 0 -60
+        l -60 0
+        l 0 -60
+        l 60 0
+        z"
+    />
+    <!-- Select -->
+    <rect fill="#DDDDDD" x="385" y="740" width="90" height="30" rx="15" ry="30" />
+    <!-- Start -->
+    <rect fill="#DDDDDD" x="515" y="740" width="90" height="30" rx="15" ry="30" />
+    <!-- B -->
+    <circle cx="740" cy="755" r="48" fill="#AA0000"/>
+    <!-- A -->
+    <circle cx="870" cy="755" r="48" fill="#AA0000"/>
+    <!-- DEV background -->
+    <rect x="64" y="832" width="896" height="128" fill="#AA0000" mask="url(#badge-mask)"/>
+    <defs>
+        <mask id="badge-mask" maskContentUnits="userSpaceOnUse">
+            <rect x="64" y="704" width="896" height="256" fill="#FFFFFF" rx="128" ry="128" />
+        </mask>
+    </defs>
+    <!-- D -->
+    <path fill="#DDDDDD"
+        d="
+        M 375 848
+        l 50 0
+        l 0 5
+        l 10 0
+        l 0 5
+        l 5 0
+        l 0 5
+        l 5 0
+        l 0 10
+        l 5 0
+        l 0 45
+        l -5 0
+        l 0 10
+        l -5 0
+        l 0 5
+        l -5 0
+        l 0 5
+        l -10 0
+        l 0 5
+        l -50 0
+        l 0 -5
+        l -5 0
+        l 0 -85
+        l 5 0
+        z"
+    />
+    <!-- D hole -->
+    <path fill="#AA0000"
+        d="
+        M 390 863
+        l 25 0
+        l 0 5
+        l 10 0
+        l 0 5
+        l 5 0
+        l 0 10
+        l 5 0
+        l 0 25
+        l -5 0
+        l 0 10
+        l -5 0
+        l 0 5
+        l -10 0
+        l 0 5
+        l -25 0
+        l 0 -5
+        l -5 0
+        l 0 -55
+        l 5 0
+        z"
+    />
+    <!-- E -->
+    <path fill="#DDDDDD"
+        d="
+        M 475 848
+        l 65 0
+        l 0 5
+        l 5 0
+        l 0 10
+        l -55 0
+        l 0 5
+        l -5 0
+        l 0 15
+        l 5 0
+        l 0 5
+        l 45 0
+        l 0 15
+        l -45 0
+        l 0 5
+        l -5 0
+        l 0 15
+        l 5 0
+        l 0 5
+        l 55 0
+        l 0 10
+        l -5 0
+        l 0 5
+        l -65 0
+        l 0 -5
+        l -5 0
+        l 0 -85
+        l 5 0
+        z"
+    />
+    <!-- V -->
+    <path fill="#DDDDDD"
+        d="
+        M 570 848
+        l 5 0
+        l 0 5
+        l 5 0
+        l 0 20
+        l 5 0
+        l 0 20
+        l 5 0
+        l 0 20
+        l 5 0
+        l 0 15
+        l 5 0
+        l 0 -15
+        l 5 0
+        l 0 -20
+        l 5 0
+        l 0 -20
+        l 5 0
+        l 0 -20
+        l 5 0
+        l 0 -5
+        l 15 0
+
+        l -5 0
+        l 0 30
+        l -5 0
+        l 0 20
+        l -5 0
+        l 0 20
+        l -5 0
+        l 0 20
+        l -5 0
+        l 0 5
+        l -25 0
+        l 0 -5
+        l -5 0
+        l 0 -20
+        l -5 0
+        l 0 -20
+        l -5 0
+        l 0 -20
+        l -5 0
+        l 0 -30
+        z"
+    />
+</svg>

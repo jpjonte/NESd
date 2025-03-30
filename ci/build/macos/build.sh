@@ -4,4 +4,4 @@ set -eux
 
 flutter build macos --release --flavor "$FLAVOR"
 
-dmgbuild -s ci/build/macos/dmg-settings.py "$FLAVORED_NAME" "$FLAVORED_NAME".dmg
+dmgbuild -s ci/build/macos/dmg-settings.py "$FLAVORED_NAME" "$MACOS_ARTIFACT"
