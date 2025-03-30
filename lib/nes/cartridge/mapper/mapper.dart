@@ -13,6 +13,7 @@ import 'package:nesd/nes/cartridge/mapper/mmc2.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5.dart';
 import 'package:nesd/nes/cartridge/mapper/namco108.dart';
+import 'package:nesd/nes/cartridge/mapper/namco163.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 
@@ -67,6 +68,7 @@ abstract class Mapper {
       5 => MMC5(),
       7 => AxROM(),
       9 => MMC2(),
+      19 => Namco163(),
       66 => GxROM(),
       71 => BR909x(),
       206 => Namco108(),

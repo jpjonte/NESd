@@ -23,7 +23,7 @@ class ConfirmationDialog extends ConsumerWidget {
     Widget? confirmLabel,
     Widget? cancelLabel,
   }) async {
-    return showDialog<bool>(
+    return await showDialog<bool>(
       context: context,
       builder:
           (context) => ConfirmationDialog(

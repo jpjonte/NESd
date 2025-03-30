@@ -28,8 +28,12 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+macos/build/
 devtools_options.yaml
 android/app/.cxx
+
+# Python (dmgbuild)
+.venv/
 
 # FVM Version Cache
 .fvm/

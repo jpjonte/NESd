@@ -190,7 +190,7 @@ class RomManager {
   Future<ui.Image> _getStateThumbnail(NESState state) async {
     final frameBuffer = state.ppuState.frameBuffer;
 
-    return convertFrameBufferToImage(frameBuffer);
+    return await convertFrameBufferToImage(frameBuffer);
   }
 
   Future<ui.Image?> _getLastThumbnail(RomInfo romInfo) async {

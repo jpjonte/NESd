@@ -105,7 +105,7 @@ List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
 }
 
 @freezed
-class Settings with _$Settings {
+sealed class Settings with _$Settings {
   factory Settings({
     @Default(1.0) double volume,
     @Default(true) bool stretch,

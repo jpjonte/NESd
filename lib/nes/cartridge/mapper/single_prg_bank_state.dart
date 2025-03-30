@@ -25,9 +25,6 @@ class SinglePrgBankState extends MapperState {
   final int prgBank;
 
   @override
-  int get byteLength => 1;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

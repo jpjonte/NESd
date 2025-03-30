@@ -150,9 +150,6 @@ class MMC5State extends MapperState {
   final int extendedAttributeChrBank;
 
   @override
-  int get byteLength => 2065;
-
-  @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 

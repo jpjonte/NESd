@@ -11,7 +11,7 @@ part 'touch_editor_state.freezed.dart';
 part 'touch_editor_state.g.dart';
 
 @freezed
-class TouchEditorState with _$TouchEditorState {
+sealed class TouchEditorState with _$TouchEditorState {
   const factory TouchEditorState({
     @Default(true) bool showHint,
     @Default(null) int? editingIndex,

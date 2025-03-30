@@ -2,7 +2,7 @@
 
 set -eux
 
-npm install -g appdmg
+pipx install dmgbuild
 
 # create variables
 CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
