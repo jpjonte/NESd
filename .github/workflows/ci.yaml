@@ -3,7 +3,6 @@ on: [push]
 
 env:
   GH_TOKEN: ${{ github.token }}
-  FLAVOR: prod
 
 jobs:
   lint:
@@ -74,9 +73,6 @@ jobs:
       - id: env
         run: ci/build/env.sh
       - run: ci/build/macos/build.sh
-        env:
-          FLAVOR: ${{ steps.env.outputs.flavor }}
-      - run: mv ${{ steps.env.outputs.dist_path }}/*.dmg ./${{ steps.env.outputs.macos_artifact }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.macos_artifact }}
@@ -101,8 +97,6 @@ jobs:
       - id: env
         run: ci/build/env.sh
       - run: ci/build/linux/build.sh
-        env:
-          FLAVOR: ${{ steps.env.outputs.flavor }}
       - uses: actions/cache/save@v4
         with:
           path: build/linux/x64/release/bundle
@@ -188,8 +182,6 @@ jobs:
           alias yq="/C/ProgramData/chocolatey/lib/yq/tools/yq.exe"
           ci/build/env.sh
       - run: ci/build/windows/build.ps1
-        env:
-          FLAVOR: ${{ steps.env.outputs.flavor }}
       - uses: thedoctor0/zip-release@0.7.5
         with:
           directory: ${{ steps.env.outputs.windows_path }}
@@ -221,8 +213,6 @@ jobs:
       - id: env
         run: ci/build/env.sh
       - run: ci/build/android/build.sh
-        env:
-          FLAVOR: ${{ steps.env.outputs.flavor }}
       - run: mv ${{ steps.env.outputs.android_path }} ./${{ steps.env.outputs.android_artifact }}
       - uses: actions/upload-artifact@v4
         with:

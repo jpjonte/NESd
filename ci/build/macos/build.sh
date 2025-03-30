@@ -2,10 +2,6 @@
 
 set -eux
 
-flavor=dev
+flutter build macos --release --flavor "$FLAVOR"
 
-if [ "$GITHUB_REF_TYPE" == "tag" ]; then
-  flavor="prod"
-fi
-
-fastforge release --name $flavor-macos --skip-clean
+dmgbuild -s ci/build/macos/dmg-settings.py "$FLAVORED_NAME" "$FLAVORED_NAME".dmg

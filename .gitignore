@@ -31,6 +31,9 @@ migrate_working_dir/
 devtools_options.yaml
 android/app/.cxx
 
+# Python (dmgbuild)
+.venv/
+
 # FVM Version Cache
 .fvm/
 

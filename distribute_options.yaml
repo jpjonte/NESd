@@ -28,23 +28,3 @@ releases:
           target: rpm
           build_args:
             release: true
-  - name: prod-macos
-    jobs:
-      - name: prod-macos
-        package:
-          platform: macos
-          target: dmg
-          channel: prod
-          build_args:
-            flavor: prod
-            release: true
-  - name: dev-macos
-    jobs:
-      - name: dev-macos
-        package:
-          platform: macos
-          target: dmg
-          channel: dev
-          build_args:
-            flavor: dev
-            release: true
