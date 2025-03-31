@@ -27,7 +27,7 @@ final filePickerControllerProvider =
 // ignore: unused_element
 typedef FilePickerControllerRef = AutoDisposeProviderRef<FilePickerController>;
 String _$filePickerNotifierHash() =>
-    r'508f30b03c0f29782d4c328faeab38568bece883';
+    r'46a033fd9a5beb73cd9e8c1481601d186d118613';
 
 /// See also [FilePickerNotifier].
 @ProviderFor(FilePickerNotifier)

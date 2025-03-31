@@ -20,6 +20,8 @@ class FilePickerNotifier extends _$FilePickerNotifier {
   void update(FilePickerState state) {
     this.state = state;
   }
+
+  FilePickerState get current => state;
 }
 
 @riverpod
@@ -31,13 +33,21 @@ FilePickerController filePickerController(Ref ref) {
 }
 
 class FilePickerController {
-  const FilePickerController({
-    required this.filesystem,
-    required this.notifier,
-  });
+  FilePickerController({required this.filesystem, required this.notifier});
 
   final FileSystem filesystem;
   final FilePickerNotifier notifier;
+
+  String? _filter;
+
+  // ignore: avoid_setters_without_getters
+  set filter(String? value) {
+    _filter = value;
+
+    if (notifier.current case final FilePickerData data) {
+      go(data.path);
+    }
+  }
 
   Future<void> go(String path) async {
     notifier.update(FilePickerLoading());
@@ -83,9 +93,17 @@ class FilePickerController {
     }
 
     final children =
-        allFiles
-            .where((file) => !p.basename(file.path).startsWith('.'))
-            .toList()
+        allFiles.where((file) => !p.basename(file.path).startsWith('.')).where((
+            file,
+          ) {
+            if (_filter case final filter?) {
+              final filename = p.basename(file.path);
+
+              return filename.toLowerCase().contains(filter.toLowerCase());
+            }
+
+            return true;
+          }).toList()
           ..sort((a, b) {
             final aType = a.type;
             final bType = b.type;
