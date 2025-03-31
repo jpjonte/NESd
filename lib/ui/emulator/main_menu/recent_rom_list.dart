@@ -22,6 +22,16 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
+    if (recentRoms.isEmpty) {
+      return Center(
+        child: SizedBox(
+          width: 256,
+          height: 256,
+          child: Image.asset('assets/logo.png'),
+        ),
+      );
+    }
+
     final future = useMemoized(
       () => _getRomTileDataForRoms(romManager, recentRoms),
       [recentRoms],
