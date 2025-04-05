@@ -9,7 +9,8 @@ class RomRobot {
   RomRobot(this.path) {
     final file = File(path);
 
-    final cartridge = Cartridge.fromFile(path, file.readAsBytesSync());
+    final cartridge = Cartridge.fromFile(path, file.readAsBytesSync())
+      ..databaseEntry = null;
 
     nes = NES(cartridge: cartridge, eventBus: EventBus())..reset();
   }

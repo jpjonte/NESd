@@ -165,6 +165,8 @@ class NesController {
 
     final cartridge = Cartridge.fromFile(path, rom);
 
+    cartridge.databaseEntry = database.find(cartridge.romInfo);
+
     if (loaded) {
       // give the existing loop a chance to end
       await Future.delayed(const Duration(milliseconds: 500));
@@ -280,8 +282,7 @@ class NesController {
   }
 
   void _setRegion(NES nes, Region? region) {
-    nes.region =
-        region ?? _autoDetectRegion(nes.bus.cartridge.romInfo) ?? Region.ntsc;
+    nes.region = region ?? _autoDetectRegion(nes.bus.cartridge) ?? Region.ntsc;
   }
 
   void saveState(int slot) {
@@ -453,14 +454,14 @@ class NesController {
     }
   }
 
-  Region? _autoDetectRegion(RomInfo romInfo) {
-    final databaseEntry = database.find(romInfo);
+  Region? _autoDetectRegion(Cartridge cartridge) {
+    final databaseEntry = cartridge.databaseEntry;
 
     if (databaseEntry != null) {
       return databaseEntry.region;
     }
 
-    final filename = romInfo.name?.toUpperCase();
+    final filename = cartridge.romInfo.name?.toUpperCase();
 
     if (filename == null) {
       return null;

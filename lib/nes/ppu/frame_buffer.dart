@@ -23,9 +23,24 @@ class FrameBuffer {
   final int height;
   final Uint8List pixels;
 
+  int getPixelBrightness(int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+      return 0;
+    }
+
+    final base = (y * width + x) * 4;
+
+    final red = pixels[base];
+    final green = pixels[base + 1];
+    final blue = pixels[base + 2];
+
+    return red + green + blue;
+  }
+
   void setPixel(int x, int y, int color) {
     final index = (y * width + x) * 4;
 
+    // no need to mask with 0xff because we are using Uint8List
     pixels[index] = color >> 16;
     pixels[index + 1] = color >> 8;
     pixels[index + 2] = color;

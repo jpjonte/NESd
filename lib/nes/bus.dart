@@ -1,10 +1,15 @@
 // we need to mask the addresses a lot
 // ignore_for_file: parameter_assignments
 
+import 'dart:ui';
+
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
+import 'package:nesd/nes/input/controller.dart';
+import 'package:nesd/nes/input/input_device.dart';
+import 'package:nesd/nes/input/zapper.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 
 const addressNone = -1;
@@ -13,7 +18,11 @@ const addressA = -2;
 enum NesButton { a, b, select, start, up, down, left, right }
 
 class Bus {
-  Bus(this.cartridge);
+  Bus(this.cartridge) {
+    if (cartridge.databaseEntry?.hasZapper ?? false) {
+      _inputs[1] = _zapper;
+    }
+  }
 
   final Cartridge cartridge;
 
@@ -21,10 +30,9 @@ class Bus {
   late final PPU ppu;
   late final APU apu;
 
-  bool _inputStrobe = false;
+  final List<InputDevice> _inputs = [Controller(), Controller()];
 
-  final _controllerStatus = [0, 0];
-  final _controllerShift = [0, 0];
+  late final Zapper _zapper = Zapper(bus: this);
 
   int cpuRead(int address, {bool disableSideEffects = false}) {
     if (address == addressA) {
@@ -49,11 +57,11 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      return _readController(0, disableSideEffects: disableSideEffects);
+      return _inputs[0].read(address, disableSideEffects: disableSideEffects);
     }
 
     if (address == 0x4017) {
-      return _readController(1, disableSideEffects: disableSideEffects);
+      return _inputs[1].read(address, disableSideEffects: disableSideEffects);
     }
 
     if (address < 0x4020) {
@@ -103,7 +111,8 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      _strobeControllers(value);
+      _inputs[0].write(address, value);
+      _inputs[1].write(address, value);
 
       return;
     }
@@ -140,11 +149,15 @@ class Bus {
   }
 
   void buttonDown(int controller, NesButton button) {
-    _controllerStatus[controller] |= 1 << button.index;
+    if (_inputs[controller] case final Controller controller) {
+      controller.buttonDown(button);
+    }
   }
 
   void buttonUp(int controller, NesButton button) {
-    _controllerStatus[0] &= ~(1 << button.index);
+    if (_inputs[controller] case final Controller controller) {
+      controller.buttonUp(button);
+    }
   }
 
   void triggerIrq(IrqSource source) => cpu.triggerIrq(source);
@@ -157,26 +170,13 @@ class Bus {
 
   void triggerDmcDma() => cpu.triggerDmcDma();
 
-  int _readController(int controller, {bool disableSideEffects = false}) {
-    final index = _controllerShift[controller];
+  void zapperPull() => _zapper.trigger = true;
 
-    final value = switch (index) {
-      < 8 => (_controllerStatus[controller] >> index) & 1,
-      _ => 1,
-    };
+  void zapperRelease() => _zapper.trigger = false;
 
-    if (!_inputStrobe && !disableSideEffects) {
-      _controllerShift[controller]++;
-    }
+  Offset? get zapperPosition => _zapper.position;
 
-    return value;
-  }
-
-  void _strobeControllers(int value) {
-    _inputStrobe = (value & 1) == 1;
-    _controllerShift[0] = 0;
-    _controllerShift[1] = 0;
-  }
+  set zapperPosition(Offset? position) => _zapper.position = position;
 
   int _paletteAddress(int address) {
     return switch (address & 0x1f) {

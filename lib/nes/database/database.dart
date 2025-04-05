@@ -69,6 +69,7 @@ class NesDatabase {
           1 => Region.pal,
           _ => null,
         },
+        expansion: int.parse(_getAttribute(child, 'expansion', 'type')!),
       );
     }
   }
@@ -93,6 +94,7 @@ class NesDatabaseEntry {
     required this.chrHash,
     required this.prgHash,
     required this.mapper,
+    required this.expansion,
     this.region,
   });
 
@@ -101,5 +103,8 @@ class NesDatabaseEntry {
   final String? chrHash;
   final String prgHash;
   final int mapper;
+  final int expansion;
   final Region? region;
+
+  bool get hasZapper => expansion == 0x08 || expansion == 0x09;
 }

@@ -338,6 +338,14 @@ class PPU {
     palette.fillRange(0, palette.length, 0);
   }
 
+  int getPixelBrightness(int x, int y) {
+    if (!renderingEnabled) {
+      return 0;
+    }
+
+    return frameBuffer.getPixelBrightness(x, y);
+  }
+
   int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
