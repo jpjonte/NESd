@@ -10,6 +10,7 @@ import 'package:nesd/ui/emulator/debugger/status_bar.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 const debuggerRowHeight = 20.0;
+final debuggerColor = nesdRed[750]!;
 
 void jumpTo(ScrollController scrollController, double offset) {
   if (scrollController.hasClients &&
@@ -69,7 +70,7 @@ class DebuggerWidget extends HookConsumerWidget {
     return DefaultTextStyle(
       style: monoStyle,
       child: DividerTheme(
-        data: Theme.of(context).dividerTheme.copyWith(color: nesdRed[700]),
+        data: Theme.of(context).dividerTheme.copyWith(color: debuggerColor),
         child: Expanded(
           child: Stack(
             children: [

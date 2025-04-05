@@ -88,7 +88,7 @@ class DisassemblyRow extends StatelessWidget {
     final end = line.sectionEnd;
 
     final defaultBorder = BorderSide(color: nesdRed.withAlpha(0), width: 2);
-    final sectionBorder = BorderSide(color: nesdRed[700]!, width: 2);
+    final sectionBorder = BorderSide(color: debuggerColor, width: 2);
 
     return GestureDetector(
       onTap: toggleBreakpoint,
@@ -137,23 +137,28 @@ class DisassemblyRow extends StatelessWidget {
             color: highlight ? Colors.teal[800] : null,
             borderRadius:
                 start
-                    ? const BorderRadius.vertical(top: Radius.circular(4))
+                    ? const BorderRadius.only(topRight: Radius.circular(4))
                     : end
-                    ? const BorderRadius.vertical(bottom: Radius.circular(4))
+                    ? const BorderRadius.only(bottomRight: Radius.circular(4))
                     : null,
             border: Border(
               top: start ? sectionBorder : BorderSide.none,
               bottom: end ? sectionBorder : BorderSide.none,
-              left: start || end ? sectionBorder : defaultBorder,
               right: start || end ? sectionBorder : defaultBorder,
             ),
           ),
           child: Row(
             children: [
               BreakpointDot(breakpoint),
-              const SizedBox(width: 12),
-              SizedBox(
+              Container(
+                width: 12,
+                height: debuggerRowHeight,
+                color: debuggerColor,
+              ),
+              Container(
                 width: 40,
+                height: debuggerRowHeight,
+                color: debuggerColor,
                 child: Text(address, style: TextStyle(color: Colors.grey[400])),
               ),
               const VerticalDivider(),
@@ -200,8 +205,10 @@ class BreakpointDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final breakpoint = this.breakpoint;
 
-    return SizedBox(
+    return Container(
       width: debuggerRowHeight,
+      height: debuggerRowHeight,
+      color: debuggerColor,
       child:
           breakpoint != null
               ? Center(
