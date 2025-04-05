@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Nightly builds can now be installed alongside the stable version on Android
 - Improved the design of the DMG for macOS builds
 
+### Fixed
+
+- Fixed file picker permissions on macOS
+
 ## [0.10.0] - 2025-03-27
 
 ### Added
