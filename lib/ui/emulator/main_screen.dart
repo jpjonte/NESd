@@ -15,7 +15,7 @@ import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toast_overlay.dart';
 import 'package:nesd/ui/toast/toaster.dart';

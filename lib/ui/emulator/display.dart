@@ -10,7 +10,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/input/keyboard/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 

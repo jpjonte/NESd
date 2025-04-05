@@ -7,7 +7,8 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
+import 'package:nesd/ui/router/router_observer.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -53,6 +54,13 @@ ActionHandler actionHandler(Ref ref) {
 
   ref.onDispose(handler.dispose);
 
+  final routeSubscription = ref.listen(
+    routerObserverProvider,
+    (_, route) => handler._currentRoute = route,
+  );
+
+  ref.onDispose(routeSubscription.close);
+
   return handler;
 }
 
@@ -66,8 +74,6 @@ class ActionHandler {
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
-
-    router.addListener(_updateRoute);
   }
 
   final NES? nes;
@@ -82,12 +88,10 @@ class ActionHandler {
 
   bool get _inGame => _currentRoute == MainRoute.name && nes != null;
 
-  String _currentRoute = MainRoute.name;
+  String? _currentRoute = MainRoute.name;
 
   void dispose() {
     _actionSubscription.cancel();
-
-    router.removeListener(_updateRoute);
   }
 
   void handleAction(InputActionEvent event) {
@@ -199,10 +203,6 @@ class ActionHandler {
 
   void _loadState(int slot) {
     nesController.loadState(slot);
-  }
-
-  void _updateRoute() {
-    _currentRoute = router.current.name;
   }
 
   void _sendIntent(Intent intent) {

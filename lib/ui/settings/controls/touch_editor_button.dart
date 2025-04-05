@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class TouchEditorButton extends ConsumerWidget {

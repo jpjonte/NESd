@@ -6,7 +6,7 @@ part of 'nes_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nesControllerHash() => r'c4e909927833c7b6294d0bf5978d9ab796fc022e';
+String _$nesControllerHash() => r'8ad5d3b59b9d8e9d520af4177c9e8e4897543228';
 
 /// See also [nesController].
 @ProviderFor(nesController)

@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed file picker permissions on macOS
+- Fixed an issue where games would not pause when NESd lost focus
 
 ## [0.10.0] - 2025-03-27
 
