@@ -6,7 +6,7 @@ part of 'debugger_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$debuggerNotifierHash() => r'1fa5d98621ce5bde5ff25451603f3b0e93e7f35d';
+String _$debuggerNotifierHash() => r'9814ef5c571fac25e7b2ad1ba0a628150ae7b8ee';
 
 /// See also [DebuggerNotifier].
 @ProviderFor(DebuggerNotifier)

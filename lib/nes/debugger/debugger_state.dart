@@ -42,6 +42,7 @@ sealed class DebuggerState with _$DebuggerState {
     @Default(false) bool vBlank,
     @Default(false) bool executionLogOpen,
     @Default(false) bool showStack,
+    @Default(null) int? selectedAddress,
   }) = _DebuggerState;
 }
 
@@ -56,9 +57,5 @@ class DebuggerNotifier extends _$DebuggerNotifier {
 
   set debuggerState(DebuggerState state) {
     this.state = state;
-  }
-
-  void toggleExecutionLog() {
-    state = state.copyWith(executionLogOpen: !state.executionLogOpen);
   }
 }

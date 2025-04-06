@@ -16,7 +16,7 @@ part 'disassembler.g.dart';
 typedef Disassembly = List<DisassemblyLine>;
 
 @riverpod
-Disassembler disassembler(Ref ref) {
+DisassemblerInterface disassembler(Ref ref) {
   final nes = ref.watch(nesStateProvider);
 
   if (nes == null) {
@@ -38,7 +38,19 @@ class DisassemblerSearchNode {
   final int depth;
 }
 
-class Disassembler {
+abstract class DisassemblerInterface {
+  Disassembly update();
+  DisassemblyLine? disassembleLine(
+    int address, {
+    bool isEntrypoint = false,
+    CPUState? state,
+    int? readAddress,
+    int? value,
+  });
+  Map<int, DisassemblyLine> get lines;
+}
+
+class Disassembler implements DisassemblerInterface {
   Disassembler({required this.eventBus, required this.cpu}) {
     final bus =
         Bus(cpu.bus.cartridge)
@@ -56,14 +68,16 @@ class Disassembler {
     ]);
   }
 
-  static const depthLimit = 200;
+  static const depthLimit = 500;
 
   final EventBus eventBus;
   final CPU cpu;
   late final DebugCPU debugCpu;
 
+  @override
   final Map<int, DisassemblyLine> lines = {};
 
+  @override
   Disassembly update() {
     debugCpu.state = cpu.state;
 
@@ -73,6 +87,7 @@ class Disassembler {
       ..sort((a, b) => a.address.compareTo(b.address));
   }
 
+  @override
   DisassemblyLine? disassembleLine(
     int address, {
     bool isEntrypoint = false,
@@ -108,14 +123,14 @@ class Disassembler {
 
     final value = debugCpu.read(readAddress);
 
-    final disassembledOperands = _disassemble(op, operands, readAddress, value);
+    final disassembly = _disassemble(op, operands, readAddress, value);
 
     final line = DisassemblyLine(
       address: address,
       opcode: opcode,
       operation: op,
       operands: operands,
-      disassembledOperands: disassembledOperands,
+      disassembly: disassembly,
       readAddress: readAddress,
       sectionStart: isEntrypoint || lines[address]?.sectionStart == true,
       sectionEnd:
@@ -164,50 +179,18 @@ class Disassembler {
       Implicit() => '',
       Accumulator() => 'A',
       Immediate() => '#\$${operands[0].toHex()}',
-      ZeroPage() =>
-        '\$${operands[0].toHex()}'
-            ' = \$${value.toHex()}',
-      ZeroPageX() =>
-        '\$${operands[0].toHex()},X'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
-      ZeroPageY() =>
-        '\$${operands[0].toHex()},Y'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
-      Relative() => '\$${readAddress.toHex(width: 4)}',
-      Absolute() => _disassembleAbsolute(readAddress, op),
+      ZeroPage() => '\$${operands[0].toHex()}',
+      ZeroPageX() => '\$${operands[0].toHex()},X',
+      ZeroPageY() => '\$${operands[0].toHex()},Y',
+      Relative() || Absolute() => '\$${readAddress.toHex(width: 4)}',
       AbsoluteX() =>
-        '\$${((readAddress - debugCpu.X) & 0xffff).toHex(width: 4)},X'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
+        '\$${((readAddress - debugCpu.X) & 0xffff).toHex(width: 4)},X',
       AbsoluteY() =>
-        '\$${((readAddress - debugCpu.Y) & 0xffff).toHex(width: 4)},Y'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
-      Indirect() =>
-        '(\$${operands[1].toHex()}${operands[0].toHex()})'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
-      IndexedIndirect() =>
-        '(\$${operands[0].toHex()},X)'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
-      IndirectIndexed() =>
-        '(\$${operands[0].toHex()}),Y'
-            ' [\$${readAddress.toHex(width: 4)}]'
-            ' = \$${value.toHex()}',
+        '\$${((readAddress - debugCpu.Y) & 0xffff).toHex(width: 4)},Y',
+      Indirect() => '(\$${operands[1].toHex()}${operands[0].toHex()})',
+      IndexedIndirect() => '(\$${operands[0].toHex()},X)',
+      IndirectIndexed() => '(\$${operands[0].toHex()}),Y',
     };
-  }
-
-  String _disassembleAbsolute(int address, Operation op) {
-    final buffer = StringBuffer('\$${address.toHex(width: 4)}');
-
-    if (op.instruction is! JSR && op.instruction is! JMP) {
-      buffer.write(' = \$${debugCpu.read(address).toHex()}');
-    }
-
-    return buffer.toString();
   }
 
   void _search(List<DisassemblerSearchNode> queue) {
@@ -251,19 +234,10 @@ class Disassembler {
         );
       }
 
-      if (op.instruction is BRK) {
-        children.add(
-          DisassemblerSearchNode(
-            debugCpu.read16(irqVector),
-            entrypoint: true,
-            depth: current.depth + 1,
-          ),
-        );
-      }
-
       for (final child in children) {
         if (child.depth < depthLimit &&
             !visited.contains(child.pc) &&
+            child.pc >= 0x0000 &&
             child.pc <= 0xffff) {
           visited.add(child.pc);
           queue.add(child);
@@ -273,20 +247,11 @@ class Disassembler {
   }
 }
 
-class DummyDisassembler implements Disassembler {
+class DummyDisassembler implements DisassemblerInterface {
   @override
   Disassembly update() {
     return [];
   }
-
-  @override
-  void _search(List<DisassemblerSearchNode> queue) {}
-
-  @override
-  CPU get cpu => throw UnimplementedError();
-
-  @override
-  DebugCPU get debugCpu => throw UnimplementedError();
 
   @override
   DisassemblyLine? disassembleLine(
@@ -301,32 +266,6 @@ class DummyDisassembler implements Disassembler {
 
   @override
   Map<int, DisassemblyLine> get lines => throw UnimplementedError();
-
-  @override
-  int _getReadAddress(int address) {
-    throw UnimplementedError();
-  }
-
-  @override
-  String _disassemble(
-    Operation op,
-    List<int> operands,
-    int readAddress,
-    int value,
-  ) {
-    throw UnimplementedError();
-  }
-
-  @override
-  String _disassembleAbsolute(int address, Operation op) {
-    throw UnimplementedError();
-  }
-
-  @override
-  set debugCpu(CPU debugCpu) {}
-
-  @override
-  EventBus get eventBus => throw UnimplementedError();
 }
 
 class DisassemblyLine {
@@ -335,7 +274,7 @@ class DisassemblyLine {
     required this.opcode,
     required this.operation,
     required this.operands,
-    required this.disassembledOperands,
+    required this.disassembly,
     required this.readAddress,
     required this.sectionStart,
     required this.sectionEnd,
@@ -345,10 +284,41 @@ class DisassemblyLine {
   final int opcode;
   final Operation operation;
   final List<int> operands;
-  final String disassembledOperands;
+  final String disassembly;
   final int readAddress;
   final bool sectionStart;
   final bool sectionEnd;
+
+  bool get isRead => switch (operation.addressMode) {
+    Implicit() || Accumulator() || Immediate() || Relative() => false,
+    ZeroPage() ||
+    ZeroPageX() ||
+    ZeroPageY() ||
+    AbsoluteX() ||
+    AbsoluteY() ||
+    Indirect() ||
+    IndexedIndirect() ||
+    IndirectIndexed() => true,
+    Absolute() =>
+      operation.instruction is! JSR && operation.instruction is! JMP,
+  };
+
+  bool get addressIsCalculated => switch (operation.addressMode) {
+    Implicit() ||
+    Accumulator() ||
+    Immediate() ||
+    Relative() ||
+    ZeroPage() ||
+    Absolute() => false,
+
+    ZeroPageX() ||
+    ZeroPageY() ||
+    AbsoluteX() ||
+    AbsoluteY() ||
+    Indirect() ||
+    IndexedIndirect() ||
+    IndirectIndexed() => true,
+  };
 }
 
 class DebugCPU extends CPU {

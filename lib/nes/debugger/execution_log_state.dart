@@ -22,6 +22,8 @@ class ExecutionLogLine {
     required this.operands,
     required this.instruction,
     required this.disassembly,
+    required this.effectiveAddress,
+    required this.value,
     required this.A,
     required this.X,
     required this.Y,
@@ -36,6 +38,8 @@ class ExecutionLogLine {
   final List<int> operands;
   final String instruction;
   final String disassembly;
+  final int? effectiveAddress;
+  final int? value;
   final int A;
   final int X;
   final int Y;

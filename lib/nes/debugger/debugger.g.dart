@@ -6,11 +6,11 @@ part of 'debugger.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$debuggerHash() => r'07bb473f62dabdd11410a466496ea49b96ab50e6';
+String _$debuggerHash() => r'4fdd7f6141df10aa715552ec49db4fc20ccf6462';
 
 /// See also [debugger].
 @ProviderFor(debugger)
-final debuggerProvider = AutoDisposeProvider<Debugger>.internal(
+final debuggerProvider = AutoDisposeProvider<DebuggerInterface>.internal(
   debugger,
   name: r'debuggerProvider',
   debugGetCreateSourceHash:
@@ -21,6 +21,6 @@ final debuggerProvider = AutoDisposeProvider<Debugger>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DebuggerRef = AutoDisposeProviderRef<Debugger>;
+typedef DebuggerRef = AutoDisposeProviderRef<DebuggerInterface>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

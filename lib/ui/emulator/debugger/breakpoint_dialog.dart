@@ -102,6 +102,8 @@ class BreakpointRow extends ConsumerWidget {
                   breakpoint.address,
                 );
 
+                debugger.selectAddress(breakpoint.address);
+
                 jumpTo(scrollController, pcOffset);
 
                 Navigator.of(context).pop();
