@@ -10,7 +10,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/emulator/input/keyboard/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -142,6 +142,8 @@ class DisplayBuilder extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
+    final nes = ref.watch(nesStateProvider);
+
     final widthScale = settings.stretch ? 8 / 7 : 1.0;
 
     return LayoutBuilder(
@@ -154,20 +156,78 @@ class DisplayBuilder extends ConsumerWidget {
 
         final narrow = constraints.maxWidth < constraints.maxHeight;
 
+        final width = image.width;
+        final height = (image.height / widthScale).round();
+
+        final screenSize = Size(width.toDouble(), height.toDouble());
+        final scaledSize = screenSize * scale;
+
+        final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
+
+        final anchorAtTop = settings.showTouchControls && narrow;
+
+        final center = Offset(
+          canvasSize.width / 2,
+          anchorAtTop ? canvasSize.height / 4 : canvasSize.height / 2,
+        );
+
+        final topLeft =
+            center - Offset(scaledSize.width / 2, scaledSize.height / 2);
+
         return ConstrainedBox(
           constraints: constraints,
           child: ClipRect(
-            child: CustomPaint(
-              painter: EmulatorPainter(
-                image: image,
-                paused: paused,
-                fastForward: fastForward,
-                scale: scale,
-                widthScale: widthScale,
-                showBorder: settings.showBorder,
-                anchorAtTop: settings.showTouchControls && narrow,
+            child: MouseRegion(
+              onHover: (event) {
+                final displayPosition = event.localPosition - topLeft;
+                final nesPosition = displayPosition / scale;
+
+                if (!screenSize.contains(nesPosition)) {
+                  nes?.bus.zapperPosition = null;
+                } else {
+                  nes?.bus.zapperPosition = nesPosition;
+                }
+              },
+              child: GestureDetector(
+                onTapDown: (details) {
+                  final displayPosition = details.localPosition - topLeft;
+                  final nesPosition = displayPosition / scale;
+
+                  if (!screenSize.contains(nesPosition)) {
+                    return;
+                  }
+
+                  nes?.bus.zapperPosition = nesPosition;
+                  nes?.bus.zapperPull();
+                },
+                onTapUp: (details) {
+                  final displayPosition = details.localPosition - topLeft;
+                  final nesPosition = displayPosition / scale;
+
+                  if (screenSize.contains(nesPosition)) {
+                    nes?.bus.zapperPosition = nesPosition;
+                  }
+
+                  nes?.bus.zapperRelease();
+                },
+                child: CustomPaint(
+                  painter: EmulatorPainter(
+                    center: center,
+                    topLeft: topLeft,
+                    screenSize: scaledSize,
+                    scale: scale,
+                    image: image,
+                    paused: paused,
+                    fastForward: fastForward,
+                    showBorder: settings.showBorder,
+                    crossHairPosition:
+                        nes?.bus.cartridge.databaseEntry?.hasZapper == true
+                            ? nes?.bus.zapperPosition
+                            : null,
+                  ),
+                  child: const SizedBox.expand(),
+                ),
               ),
-              child: const SizedBox.expand(),
             ),
           ),
         );
@@ -196,22 +256,28 @@ class DisplayBuilder extends ConsumerWidget {
 class EmulatorPainter extends CustomPainter {
   EmulatorPainter({
     required this.image,
+    required this.center,
+    required this.topLeft,
+    required this.screenSize,
     required this.scale,
-    required this.widthScale,
     required this.showBorder,
     required this.paused,
     required this.fastForward,
-    required this.anchorAtTop,
+    this.crossHairPosition,
   });
 
   final ui.Image image;
 
+  final Offset center;
+  final Offset topLeft;
+  final Size screenSize;
   final double scale;
-  final double widthScale;
+
   final bool showBorder;
   final bool paused;
   final bool fastForward;
-  final bool anchorAtTop;
+
+  final Offset? crossHairPosition;
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
@@ -232,6 +298,13 @@ class EmulatorPainter extends CustomPainter {
         ..color = Colors.white
         ..style = PaintingStyle.stroke;
 
+  final _crossHairPaint =
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..blendMode = BlendMode.difference
+        ..strokeWidth = 4;
+
   final _framePaint = Paint();
 
   final _fastForwardPath =
@@ -251,19 +324,6 @@ class EmulatorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, _backgroundPaint);
 
-    final width = image.width;
-    final height = (image.height / widthScale).round();
-
-    final screenSize = Size(width * scale, height * scale);
-
-    final center = Offset(
-      size.width / 2,
-      anchorAtTop ? size.height / 4 : size.height / 2,
-    );
-
-    final topLeft =
-        center - Offset(screenSize.width / 2, screenSize.height / 2);
-
     _drawScreen(canvas, topLeft, screenSize);
 
     if (showBorder) {
@@ -272,6 +332,8 @@ class EmulatorPainter extends CustomPainter {
 
     if (paused) {
       _drawPause(canvas, size, center);
+    } else if (crossHairPosition case final crossHairPosition?) {
+      _drawCrossHair(canvas, topLeft + crossHairPosition * scale);
     }
 
     if (fastForward) {
@@ -309,6 +371,22 @@ class EmulatorPainter extends CustomPainter {
     canvas
       ..drawPath(path, _outlinePaint)
       ..drawPath(path, _iconPaint);
+  }
+
+  void _drawCrossHair(Canvas canvas, Offset crossHairPosition) {
+    final size = 6.0 * scale;
+
+    canvas
+      ..drawLine(
+        crossHairPosition - Offset(size, 0),
+        crossHairPosition + Offset(size, 0),
+        _crossHairPaint,
+      )
+      ..drawLine(
+        crossHairPosition - Offset(0, size),
+        crossHairPosition + Offset(0, size),
+        _crossHairPaint,
+      );
   }
 
   @override

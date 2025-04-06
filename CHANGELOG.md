@@ -8,11 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added support for the light gun / Zapper
 - Added support for Namco 163 (Mapper 19; without additional audio for now)
+- Added a search bar to the file picker
+- Added a separate logo for nightly / dev builds
 
 ### Changed
 
 - Upgraded dependencies
+- If the recent ROM list is empty, the NESd logo is shown instead
+- Nightly builds can now be installed alongside the stable version on Android
+- Improved the design of the DMG for macOS builds
+
+### Fixed
+
+- Fixed file picker permissions on macOS
+- Fixed an issue where games would not pause when NESd lost focus
 
 ## [0.10.0] - 2025-03-27
 

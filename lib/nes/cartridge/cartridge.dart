@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:nesd/exception/invalid_rom_header.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:path/path.dart' as p;
 
@@ -90,6 +91,8 @@ class Cartridge {
   final String romHash;
   final String chrHash;
   final String prgHash;
+
+  late final NesDatabaseEntry? databaseEntry;
 
   final Uint8List sram = Uint8List(0x10000);
 

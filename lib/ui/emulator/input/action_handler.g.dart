@@ -22,7 +22,7 @@ final actionStreamProvider = AutoDisposeProvider<ActionStream>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ActionStreamRef = AutoDisposeProviderRef<ActionStream>;
-String _$actionHandlerHash() => r'172d9bb7400aeee456e3e86d8eddd3b34025b35d';
+String _$actionHandlerHash() => r'fedc5dc3214776cc7e171f6009f466e6d97ec98b';
 
 /// See also [actionHandler].
 @ProviderFor(actionHandler)

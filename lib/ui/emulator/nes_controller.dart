@@ -20,7 +20,8 @@ import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
+import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
@@ -56,7 +57,6 @@ NesController nesController(Ref ref) {
     eventBus: ref.watch(eventBusProvider),
     nesState: ref.watch(nesStateProvider.notifier),
     audioOutput: ref.watch(audioOutputProvider),
-    router: ref.read(routerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
     toaster: ref.watch(toasterProvider),
     romManager: ref.watch(romManagerProvider),
@@ -89,6 +89,13 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(regionSubscription.close);
 
+  final routeSubscription = ref.listen(
+    routerObserverProvider,
+    (_, route) => controller._updateRoute(route),
+  );
+
+  ref.onDispose(routeSubscription.close);
+
   return controller;
 }
 
@@ -97,7 +104,6 @@ class NesController {
     required this.eventBus,
     required this.nesState,
     required this.audioOutput,
-    required this.router,
     required this.settingsController,
     required this.toaster,
     required this.romManager,
@@ -111,8 +117,6 @@ class NesController {
       onResume: _appResumed,
     );
 
-    router.addListener(_updateRoute);
-
     _nesEventSubscription = eventBus.stream.listen(_handleNesEvent)
       ..onError((error, stackTrace) {
         toaster.send(Toast.error(error.toString()));
@@ -125,8 +129,6 @@ class NesController {
   final NesState nesState;
 
   final AudioOutput audioOutput;
-
-  final Router router;
 
   final SettingsController settingsController;
 
@@ -164,6 +166,8 @@ class NesController {
     };
 
     final cartridge = Cartridge.fromFile(path, rom);
+
+    cartridge.databaseEntry = database.find(cartridge.romInfo);
 
     if (loaded) {
       // give the existing loop a chance to end
@@ -280,8 +284,7 @@ class NesController {
   }
 
   void _setRegion(NES nes, Region? region) {
-    nes.region =
-        region ?? _autoDetectRegion(nes.bus.cartridge.romInfo) ?? Region.ntsc;
+    nes.region = region ?? _autoDetectRegion(nes.bus.cartridge) ?? Region.ntsc;
   }
 
   void saveState(int slot) {
@@ -329,7 +332,6 @@ class NesController {
     _autoSaveTimer?.cancel();
     audioOutput.dispose();
     _lifecycleListener.dispose();
-    router.removeListener(_updateRoute);
     _nesEventSubscription?.cancel();
   }
 
@@ -399,9 +401,7 @@ class NesController {
     return Uint8List.fromList(roms.single.content as List<int>);
   }
 
-  void _updateRoute() {
-    final route = router.current.name;
-
+  void _updateRoute(String? route) {
     if (route == MainRoute.name) {
       lifeCycleListenerEnabled = true;
 
@@ -453,14 +453,14 @@ class NesController {
     }
   }
 
-  Region? _autoDetectRegion(RomInfo romInfo) {
-    final databaseEntry = database.find(romInfo);
+  Region? _autoDetectRegion(Cartridge cartridge) {
+    final databaseEntry = cartridge.databaseEntry;
 
     if (databaseEntry != null) {
       return databaseEntry.region;
     }
 
-    final filename = romInfo.name?.toUpperCase();
+    final filename = cartridge.romInfo.name?.toUpperCase();
 
     if (filename == null) {
       return null;

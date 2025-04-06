@@ -10,7 +10,7 @@ import 'package:nesd/ui/common/rom_list.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/router.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/save_states/save_states_screen_controller.dart';
 import 'package:path/path.dart' as p;
 
