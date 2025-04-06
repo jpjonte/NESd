@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added support for Namco 163 (Mapper 19; without additional audio for now)
 - Added a search bar to the file picker
 - Added a separate logo for nightly / dev builds
+- Added some more colors to the disassembly in the debugger
+- Added the ability to select lines in the disassembly by clicking
 
 ### Changed
 
@@ -19,11 +21,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - If the recent ROM list is empty, the NESd logo is shown instead
 - Nightly builds can now be installed alongside the stable version on Android
 - Improved the design of the DMG for macOS builds
+- Memory values in the debugger are now always updated when they change
+- Made the debugger more compact
+- Lines in the disassembly are now selected automatically when you go to them (go to PC, go to address, etc.)
 
 ### Fixed
 
 - Fixed file picker permissions on macOS
 - Fixed an issue where games would not pause when NESd lost focus
+- Fixed an issue where the disassembly would jump around when stepping through the code
 
 ## [0.10.0] - 2025-03-27
 

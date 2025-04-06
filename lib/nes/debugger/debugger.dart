@@ -15,7 +15,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'debugger.g.dart';
 
 @riverpod
-Debugger debugger(Ref ref) {
+DebuggerInterface debugger(Ref ref) {
   final nes = ref.watch(nesStateProvider);
   final notifier = ref.watch(debuggerNotifierProvider.notifier);
   final disassembler = ref.watch(disassemblerProvider);
@@ -41,7 +41,31 @@ Debugger debugger(Ref ref) {
   return debugger;
 }
 
-class Debugger {
+abstract class DebuggerInterface {
+  void addBreakpoint(Breakpoint breakpoint);
+
+  void removeBreakpoint(Breakpoint breakpoint);
+
+  void updateBreakpoint(Breakpoint breakpoint);
+
+  bool hasBreakpoint(int address);
+
+  void toggleBreakpointExists(int address);
+
+  void toggleBreakpointEnabled(int address);
+
+  void showStack();
+
+  void hideStack();
+
+  void toggleExecutionLog();
+
+  int read(int address);
+
+  void selectAddress(int address);
+}
+
+class Debugger implements DebuggerInterface {
   Debugger({
     required this.eventBus,
     required this.nes,
@@ -63,7 +87,7 @@ class Debugger {
 
   final EventBus eventBus;
   final NES nes;
-  final Disassembler disassembler;
+  final DisassemblerInterface disassembler;
   final DebuggerNotifier notifier;
   final SettingsController settingsController;
 
@@ -73,28 +97,33 @@ class Debugger {
     _subscription.cancel();
   }
 
+  @override
   void addBreakpoint(Breakpoint breakpoint) {
     nes.addBreakpoint(breakpoint);
 
     _updateBreakpoints();
   }
 
+  @override
   void updateBreakpoint(Breakpoint breakpoint) {
     _updateBreakpoints();
   }
 
+  @override
   void removeBreakpoint(Breakpoint breakpoint) {
     nes.removeBreakpoint(breakpoint.address);
 
     _updateBreakpoints();
   }
 
+  @override
   bool hasBreakpoint(int address) {
     return nes.breakpoints.any(
       (breakpoint) => breakpoint.address == address && !breakpoint.hidden,
     );
   }
 
+  @override
   void toggleBreakpointExists(int address) {
     if (hasBreakpoint(address)) {
       nes.removeBreakpoint(address);
@@ -105,6 +134,7 @@ class Debugger {
     _updateBreakpoints();
   }
 
+  @override
   void toggleBreakpointEnabled(int address) {
     if (!hasBreakpoint(address)) {
       return;
@@ -119,14 +149,39 @@ class Debugger {
     _updateBreakpoints();
   }
 
+  @override
   void showStack() {
     notifier.debuggerState = notifier.debuggerState.copyWith(
       showStack: !notifier.debuggerState.showStack,
     );
   }
 
+  @override
   void hideStack() {
     notifier.debuggerState = notifier.debuggerState.copyWith(showStack: false);
+  }
+
+  @override
+  void toggleExecutionLog() {
+    notifier.debuggerState = notifier.debuggerState.copyWith(
+      executionLogOpen: !notifier.debuggerState.executionLogOpen,
+    );
+  }
+
+  @override
+  int read(int address) => nes.bus.cpuRead(address, disableSideEffects: true);
+
+  @override
+  void selectAddress(int address) {
+    if (notifier.debuggerState.selectedAddress == address) {
+      notifier.debuggerState = notifier.debuggerState.copyWith(
+        selectedAddress: null,
+      );
+    } else {
+      notifier.debuggerState = notifier.debuggerState.copyWith(
+        selectedAddress: address,
+      );
+    }
   }
 
   void _handleEvent(NesEvent event) {
@@ -137,7 +192,7 @@ class Debugger {
 
         // register names don't follow dart naming conventions
         // ignore: non_constant_identifier_names
-        var SP = nes.cpu.SP;
+        var SP = nes.cpu.SP.clamp(0x00, 0xff);
 
         while (SP < 0xff) {
           SP++;
@@ -194,25 +249,7 @@ class Debugger {
   }
 }
 
-class DummyDebugger implements Debugger {
-  @override
-  StreamSubscription<NesEvent> _subscription = const Stream<NesEvent>.empty()
-      .listen((event) {});
-
-  @override
-  Disassembler get disassembler => throw UnimplementedError();
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-  }
-
-  @override
-  NES get nes => throw UnimplementedError();
-
-  @override
-  DebuggerNotifier get notifier => throw UnimplementedError();
-
+class DummyDebugger implements DebuggerInterface {
   @override
   void addBreakpoint(Breakpoint breakpoint) {}
 
@@ -223,21 +260,9 @@ class DummyDebugger implements Debugger {
   void toggleBreakpointExists(int address) {}
 
   @override
-  void _handleEvent(NesEvent event) {}
-
-  @override
-  void _updateBreakpoints() {}
-
-  @override
   bool hasBreakpoint(int address) {
     throw UnimplementedError();
   }
-
-  @override
-  EventBus get eventBus => throw UnimplementedError();
-
-  @override
-  SettingsController get settingsController => throw UnimplementedError();
 
   @override
   void toggleBreakpointEnabled(int address) {}
@@ -250,4 +275,13 @@ class DummyDebugger implements Debugger {
 
   @override
   void showStack() {}
+
+  @override
+  void toggleExecutionLog() {}
+
+  @override
+  int read(int address) => 0;
+
+  @override
+  void selectAddress(int address) {}
 }

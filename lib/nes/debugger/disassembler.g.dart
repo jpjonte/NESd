@@ -6,21 +6,24 @@ part of 'disassembler.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$disassemblerHash() => r'dec2c9cdb8a4677501ff52faed12866bda9b858d';
+String _$disassemblerHash() => r'aecf898fa0e7b33d8fd0c435ec5f85ba28df0d15';
 
 /// See also [disassembler].
 @ProviderFor(disassembler)
-final disassemblerProvider = AutoDisposeProvider<Disassembler>.internal(
-  disassembler,
-  name: r'disassemblerProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$disassemblerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final disassemblerProvider =
+    AutoDisposeProvider<DisassemblerInterface>.internal(
+      disassembler,
+      name: r'disassemblerProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$disassemblerHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DisassemblerRef = AutoDisposeProviderRef<Disassembler>;
+typedef DisassemblerRef = AutoDisposeProviderRef<DisassemblerInterface>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

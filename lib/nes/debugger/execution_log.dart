@@ -44,7 +44,7 @@ class ExecutionLog {
   final EventBus eventBus;
   final ExecutionLogNotifier notifier;
   final NES? nes;
-  final Disassembler disassembler;
+  final DisassemblerInterface disassembler;
   final List<ExecutionLogLine> lines = [];
 
   late final StreamSubscription<NesEvent> _eventSubscription;
@@ -77,11 +77,21 @@ class ExecutionLog {
   }
 
   String printLine(ExecutionLogLine line) {
+    var disassembly = line.disassembly;
+
+    if (line.effectiveAddress case final address?) {
+      disassembly += ' [\$${address.toHex()}]';
+    }
+
+    if (line.value case final value?) {
+      disassembly += ' = \$${value.toHex()}';
+    }
+
     final result =
         StringBuffer()
           ..write('${line.address.toHex(width: 4)}  ')
           ..write(line.instruction.padRight(4))
-          ..write('${line.disassembly.padRight(28)} ')
+          ..write('${disassembly.padRight(28)} ')
           ..write('A:${line.A.toHex()} ')
           ..write('X:${line.X.toHex()} ')
           ..write('Y:${line.Y.toHex()} ')
@@ -137,7 +147,18 @@ class ExecutionLog {
         opcode: opcode,
         operands: disassemblyLine?.operands ?? [],
         instruction: disassemblyLine?.operation.instruction.name ?? '',
-        disassembly: disassemblyLine?.disassembledOperands ?? '',
+        disassembly: disassemblyLine?.disassembly ?? '',
+        effectiveAddress:
+            disassemblyLine?.addressIsCalculated == true
+                ? disassemblyLine?.readAddress
+                : null,
+        value:
+            disassemblyLine?.isRead == true
+                ? nes.bus.cpuRead(
+                  disassemblyLine!.readAddress,
+                  disableSideEffects: true,
+                )
+                : null,
         A: state.A,
         X: state.X,
         Y: state.Y,

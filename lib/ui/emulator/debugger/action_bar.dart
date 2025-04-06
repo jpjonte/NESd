@@ -156,6 +156,7 @@ class GoToPcButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final debugger = ref.read(debuggerProvider);
     final state = ref.watch(debuggerNotifierProvider);
 
     return IconButton(
@@ -163,6 +164,8 @@ class GoToPcButton extends ConsumerWidget {
           state.enabled
               ? () {
                 final pcOffset = calculateAddressScrollOffset(state, state.PC);
+
+                debugger.selectAddress(state.PC);
 
                 jumpTo(scrollController, pcOffset);
               }
@@ -180,6 +183,7 @@ class GoToAddressButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final debugger = ref.read(debuggerProvider);
     final state = ref.watch(debuggerNotifierProvider);
 
     return IconButton(
@@ -191,6 +195,8 @@ class GoToAddressButton extends ConsumerWidget {
                   title: 'Go to address',
                   onSubmitted: (address) {
                     final offset = calculateAddressScrollOffset(state, address);
+
+                    debugger.selectAddress(address);
 
                     jumpTo(scrollController, offset);
                   },
@@ -227,10 +233,10 @@ class OpenExecutionLogButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.watch(debuggerNotifierProvider.notifier);
+    final debugger = ref.watch(debuggerProvider);
 
     return IconButton(
-      onPressed: () => notifier.toggleExecutionLog(),
+      onPressed: () => debugger.toggleExecutionLog(),
       icon: const Icon(Icons.list),
       tooltip: 'Execution log',
     );

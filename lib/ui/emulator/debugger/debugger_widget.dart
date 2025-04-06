@@ -9,26 +9,33 @@ import 'package:nesd/ui/emulator/debugger/disassembly_list.dart';
 import 'package:nesd/ui/emulator/debugger/status_bar.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
-const debuggerRowHeight = 20.0;
+const disassemblyRowHeight = 17.0;
 final debuggerColor = nesdRed[750]!;
 
-void jumpTo(ScrollController scrollController, double offset) {
-  if (scrollController.hasClients &&
+void jumpTo(
+  ScrollController scrollController,
+  double offset, {
+  bool center = true,
+}) {
+  if (center &&
+      scrollController.hasClients &&
       scrollController.position.hasViewportDimension) {
     final halfHeight = scrollController.position.viewportDimension / 2;
 
-    scrollController.jumpTo(offset - halfHeight + debuggerRowHeight);
+    scrollController.jumpTo(offset - halfHeight + disassemblyRowHeight);
   } else {
     scrollController.jumpTo(offset);
   }
 }
 
 double calculateAddressScrollOffset(DebuggerState state, int address) {
-  return debuggerRowHeight *
-      state.disassembly.indexWhere((e) => e.address == address);
+  return disassemblyRowHeight * _addressIndex(state, address);
 }
 
-const monoStyle = TextStyle(fontFamily: 'Ubuntu Mono');
+int _addressIndex(DebuggerState state, int address) =>
+    state.disassembly.indexWhere((e) => e.address == address);
+
+const monoStyle = TextStyle(fontFamily: 'Ubuntu Mono', fontSize: 13);
 
 class DebuggerWidget extends HookConsumerWidget {
   const DebuggerWidget({super.key});
@@ -40,7 +47,7 @@ class DebuggerWidget extends HookConsumerWidget {
     final state = ref.watch(debuggerNotifierProvider);
 
     ref.listen(debuggerNotifierProvider, (old, state) {
-      if (old?.PC == state.PC) {
+      if (!state.enabled) {
         return;
       }
 
@@ -58,12 +65,26 @@ class DebuggerWidget extends HookConsumerWidget {
 
       final offset = scrollController.offset;
       final viewportEnd =
-          offset + position.viewportDimension - debuggerRowHeight;
+          offset + position.viewportDimension - disassemblyRowHeight;
 
-      final update = !pcOffset.inRange(offset, viewportEnd);
+      // previous list index based on scroll offset
+      final scrollIndex = (offset / disassemblyRowHeight).floor();
+      // current list index based on previous PC and current list
+      final lastIndex = _addressIndex(state, old?.PC ?? 0);
+      final indexChanged = scrollIndex != lastIndex;
 
-      if (update) {
+      final pcOutOfBounds = !pcOffset.inRange(offset, viewportEnd);
+
+      if (pcOutOfBounds) {
         jumpTo(scrollController, pcOffset);
+      } else if (indexChanged) {
+        // the list index for the current scroll position changed,
+        // so items were added to the list before the current PC
+        jumpTo(
+          scrollController,
+          scrollIndex * disassemblyRowHeight + 1,
+          center: false,
+        );
       }
     });
 
