@@ -1,30 +1,70 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/nesd_app.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'base_robot.dart';
-import 'emulator/main_menu_robot.dart';
+import 'emulator/emulator_robot.dart';
+import 'emulator/main_menu/main_menu_robot.dart';
+import 'file_picker/file_picker_screen_robot.dart';
+import 'menu/menu_screen_robot.dart';
 import 'mocks.dart';
+import 'save_states/save_states_robot.dart';
+import 'settings/settings_robot.dart';
 
 class Robot extends BaseRobot {
-  Robot(super.tester) : mainMenu = MainMenuRobot(tester);
+  Robot(super.tester)
+    : mainMenu = MainMenuRobot(tester),
+      settingsScreen = SettingsScreenRobot(tester),
+      emulator = EmulatorRobot(tester),
+      menuScreen = MenuScreenRobot(tester),
+      saveStates = SaveStatesRobot(tester),
+      filePickerScreen = FilePickerScreenRobot(tester) {
+    tester.binding.platformDispatcher.platformBrightnessTestValue =
+        Brightness.dark;
+
+    initSettings({});
+  }
 
   final MainMenuRobot mainMenu;
+  final SettingsScreenRobot settingsScreen;
+  final EmulatorRobot emulator;
+  final MenuScreenRobot menuScreen;
+  final SaveStatesRobot saveStates;
+  final FilePickerScreenRobot filePickerScreen;
+
+  ProviderContainer get container =>
+      (tester.widget(find.byType(UncontrolledProviderScope))
+              as UncontrolledProviderScope)
+          .container;
+
+  SettingsController get settings =>
+      container.read(settingsControllerProvider.notifier);
+
+  void initSettings(Map<String, Object> values) =>
+      SharedPreferences.setMockInitialValues({'settings': jsonEncode(values)});
 
   Future<void> pumpApp() async {
-    SharedPreferences.setMockInitialValues({});
-
     final mockAudioStream = MockAudioStream();
-    final fileSystem = MockFileSystem();
+    final fileSystem =
+        MockFileSystem()
+          ..addFile(
+            '/test/roms/nestest.nes',
+            File('roms/test/nestest/nestest.nes').readAsBytesSync(),
+          )
+          ..addFile('/test/roms/z_fake.nes', Uint8List(0));
 
     final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -35,14 +75,8 @@ class Robot extends BaseRobot {
       buildNumber: '1337',
     );
 
-    when(
-      () => mockAudioStream.init(
-        bufferMilliSec: any(named: 'bufferMilliSec'),
-        waitingBufferMilliSec: any(named: 'waitingBufferMilliSec'),
-        channels: any(named: 'channels'),
-        sampleRate: any(named: 'sampleRate'),
-      ),
-    ).thenReturn(0);
+    tester.view.physicalSize =
+        const Size(1920, 1080) * tester.view.devicePixelRatio;
 
     await tester.pumpWidget(
       ProviderScope(
@@ -61,7 +95,16 @@ class Robot extends BaseRobot {
     await tester.pumpAndSettle();
   }
 
-  Future<void> goBack() async {
-    await go(find.byType(BackButton));
+  Future<void> screenshot(String filename) async {
+    await tester.runAsync(() async {
+      final image = await captureImage(
+        tester.element(find.byType(ProviderScope)),
+      );
+      final bytes = await image.toByteData(format: ImageByteFormat.png);
+
+      if (bytes != null) {
+        File(filename).writeAsBytesSync(bytes.buffer.asUint8List());
+      }
+    });
   }
 }

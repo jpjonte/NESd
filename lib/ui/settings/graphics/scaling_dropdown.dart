@@ -24,7 +24,7 @@ class ScalingDropdown extends HookConsumerWidget {
         onTap: () => _activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
-          constraints: const BoxConstraints(maxWidth: 200),
+          constraints: const BoxConstraints(maxWidth: 300),
           child: DropdownButtonHideUnderline(
             child: InputDecorator(
               decoration: const InputDecoration(

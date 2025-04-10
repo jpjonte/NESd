@@ -24,7 +24,7 @@ final nesControllerProvider = AutoDisposeProvider<NesController>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef NesControllerRef = AutoDisposeProviderRef<NesController>;
-String _$nesStateHash() => r'ea3ba4aed4c525e43b78f078a91cb548605231c1';
+String _$nesStateHash() => r'fef68870adec07eca347dae54e58a5e0f1dd6e6c';
 
 /// See also [NesState].
 @ProviderFor(NesState)

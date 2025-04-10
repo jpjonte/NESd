@@ -9,7 +9,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
-import 'package:nesd/ui/emulator/cartridge_info.dart';
+import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 

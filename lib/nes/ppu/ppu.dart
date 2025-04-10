@@ -122,7 +122,6 @@ class PPU {
 
   int get t_coarseX => t & 0x1F;
   int get t_coarseY => (t >> 5) & 0x1F;
-  int get t_nametable => (t >> 10) & 0x3;
   int get t_nametableX => (t >> 10) & 0x1;
   int get t_nametableY => (t >> 11) & 0x1;
   int get t_fineY => (t >> 12) & 0x7;
@@ -132,7 +131,6 @@ class PPU {
   int get PPUCTRL_S => PPUCTRL.bit(3); // sprite pattern table address (8x8)
   int get PPUCTRL_B => PPUCTRL.bit(4); // background pattern table address
   int get PPUCTRL_H => PPUCTRL.bit(5); // sprite size
-  int get PPUCTRL_P => PPUCTRL.bit(6); // PPU master/slave select
   int get PPUCTRL_V => PPUCTRL.bit(7); // enable vblank NMI
 
   int get PPUCTRL_X => PPUCTRL.bit(0); // scroll X high bit

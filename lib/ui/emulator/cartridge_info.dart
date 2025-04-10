@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/ui/common/key_value.dart';
 
 class CartridgeInfoWidget extends StatelessWidget {
   const CartridgeInfoWidget({required this.cartridge, super.key});
@@ -37,28 +38,6 @@ class CartridgeInfoWidget extends StatelessWidget {
             KeyValue('TV system', '${cartridge.tvSystem}'),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class KeyValue extends StatelessWidget {
-  const KeyValue(this.label, this.value, {this.color, super.key});
-
-  final String label;
-  final String value;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(color: color)),
-        ],
       ),
     );
   }

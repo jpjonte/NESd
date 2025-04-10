@@ -38,7 +38,7 @@ class NES {
   bool running = false;
   bool paused = false;
   bool stopAfterNextFrame = false;
-  bool _done = false;
+  bool _inLoop = false;
 
   bool fastForward = false;
 
@@ -108,11 +108,9 @@ class NES {
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
 
-    if (_done) {
+    if (!_inLoop) {
       run();
     }
-
-    _done = false;
 
     fastForward = false;
 
@@ -128,6 +126,12 @@ class NES {
   }
 
   Future<void> run() async {
+    if (_inLoop) {
+      return;
+    }
+
+    _inLoop = true;
+
     on = true;
     running = true;
     paused = false;
@@ -158,7 +162,7 @@ class NES {
       }
     }
 
-    _done = true;
+    _inLoop = false;
   }
 
   Future<void> _sendFrame() async {

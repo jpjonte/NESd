@@ -25,6 +25,9 @@ class _ContextMenuControllerHookState
   @override
   ContextMenuController build(BuildContext context) => controller;
 
+  // This won't be called in normal operation, so we ignore it
+  // coverage:ignore-start
   @override
   String get debugLabel => 'useContextMenuController';
+  // coverage:ignore-end
 }
