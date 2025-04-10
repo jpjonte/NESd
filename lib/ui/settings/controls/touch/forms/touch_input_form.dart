@@ -37,7 +37,10 @@ class TouchInputForm extends ConsumerWidget {
             children: [
               const Text(
                 'Edit Input',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontVariations: [FontVariation.weight(700)],
+                ),
               ),
               IconButton(
                 onPressed: () => controller.close(),

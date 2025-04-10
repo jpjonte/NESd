@@ -89,9 +89,9 @@ class RecentRomList extends HookConsumerWidget {
                       const TextSpan(text: 'The ROM '),
                       TextSpan(
                         text: romTileData.romInfo.path,
-                        style: DefaultTextStyle.of(
-                          context,
-                        ).style.copyWith(fontWeight: FontWeight.w900),
+                        style: DefaultTextStyle.of(context).style.copyWith(
+                          fontVariations: const [FontVariation.weight(900)],
+                        ),
                       ),
                       const TextSpan(text: ' was not found.'),
                       const TextSpan(

@@ -28,7 +28,7 @@ class SettingsTile extends StatelessWidget {
       style: DefaultTextStyle.of(context).style.copyWith(
         color: enabled ? null : Colors.grey[800],
         fontSize: 15,
-        fontWeight: FontWeight.bold,
+        fontVariations: const [FontVariation.weight(700)],
       ),
       child: title ?? const SizedBox(),
     );

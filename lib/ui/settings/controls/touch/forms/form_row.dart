@@ -19,7 +19,10 @@ class FormRow extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 16,
+              fontVariations: [FontVariation.weight(700)],
+            ),
           ),
         ),
         Expanded(child: child),

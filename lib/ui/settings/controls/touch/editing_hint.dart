@@ -67,5 +67,8 @@ class HintText extends StatelessWidget {
 
 class BoldSpan extends TextSpan {
   const BoldSpan(String text)
-    : super(text: text, style: const TextStyle(fontWeight: FontWeight.bold));
+    : super(
+        text: text,
+        style: const TextStyle(fontVariations: [FontVariation.weight(700)]),
+      );
 }

@@ -76,7 +76,7 @@ class SaveStatesScreen extends HookConsumerWidget {
           'Save States - ${p.basenameWithoutExtension(romInfo.name ?? '')}',
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),
