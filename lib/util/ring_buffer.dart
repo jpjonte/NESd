@@ -40,7 +40,7 @@ class RingBuffer<T, S extends List<T>> {
         ..setAll(firstSegmentSize, _buffer.sublist(0, secondSegmentSize));
     }
 
-    _start = (_start + readSize) % size;
+    _start = (_start + readSize) % this.size;
 
     return data;
   }
