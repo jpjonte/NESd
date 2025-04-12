@@ -144,7 +144,7 @@ class StackTooltip extends StatelessWidget {
                 'Empty',
                 style: TextStyle(
                   color: Colors.grey,
-                  fontStyle: FontStyle.italic,
+                  fontVariations: [FontVariation.italic(1.0)],
                 ),
               ),
           ],

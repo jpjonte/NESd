@@ -14,7 +14,7 @@ dependencies:
   build_runner: ^2.4.10
   collection: ^1.18.0
   crypto: ^3.0.5
-  file_picker: ^9.0.0
+  file_picker: ^10.0.0
   flutter:
     sdk: flutter
   flutter_hooks: ^0.21.2
@@ -90,15 +90,16 @@ flutter:
 
   assets:
     - assets/
+    - assets/fonts/
 
   fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Italic.ttf
+          style: italic
     - family: Ubuntu Mono
       fonts:
         - asset: assets/fonts/UbuntuMono-Regular.ttf
-        - asset: assets/fonts/UbuntuMono-Bold.ttf
-          weight: 700
         - asset: assets/fonts/UbuntuMono-Italic.ttf
-          style: italic
-        - asset: assets/fonts/UbuntuMono-BoldItalic.ttf
-          weight: 700
           style: italic

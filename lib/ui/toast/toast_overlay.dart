@@ -44,7 +44,7 @@ class ToastWidget extends ConsumerWidget {
     final themeData = Theme.of(context);
     final textStyle = themeData.textTheme.bodyLarge!.copyWith(
       fontSize: 18,
-      fontWeight: FontWeight.bold,
+      fontVariations: const [FontVariation.weight(700)],
     );
 
     final color = switch (toast.type) {

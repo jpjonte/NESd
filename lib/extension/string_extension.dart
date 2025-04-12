@@ -8,14 +8,4 @@ extension StringExtension on String {
 
     return false;
   }
-
-  bool containsAll(List<String> values) {
-    for (final value in values) {
-      if (!contains(value)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
 }

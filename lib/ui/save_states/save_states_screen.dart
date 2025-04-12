@@ -6,7 +6,7 @@ import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
-import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -76,7 +76,7 @@ class SaveStatesScreen extends HookConsumerWidget {
           'Save States - ${p.basenameWithoutExtension(romInfo.name ?? '')}',
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),

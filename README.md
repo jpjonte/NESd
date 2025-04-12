@@ -66,6 +66,7 @@ Thank you to the following projects and people for their amazing work:
 - SourMesen for the excellent [Mesen](https://github.com/SourMesen/Mesen2/) emulator
 - [Modern Vintage Gamer](https://www.youtube.com/@ModernVintageGamer) for the inspiration to write my own emulator
 - NewRisingSun for the [NES 2.0 XML Database](https://forums.nesdev.org/viewtopic.php?t=19940) of known ROMs
+- [Andrea Bizzotto](https://codewithandrea.com/) for his excellent Flutter tips and tricks
 
 ## Screenshots
 

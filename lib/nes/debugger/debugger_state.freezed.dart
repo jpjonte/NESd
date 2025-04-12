@@ -46,7 +46,7 @@ abstract mixin class $DebuggerStateCopyWith<$Res>  {
   factory $DebuggerStateCopyWith(DebuggerState value, $Res Function(DebuggerState) _then) = _$DebuggerStateCopyWithImpl;
 @useResult
 $Res call({
- bool enabled, List<DisassemblyLine> disassembly, int PC, int A, int X, int Y, int SP, int P, bool C, bool Z, bool I, bool D, bool B, bool V, bool N, int irq, bool nmi, List<int> stack, List<Breakpoint> breakpoints, bool canStepOut, int scanline, int cycle, int v, int t, int x, bool spriteOverflow, bool sprite0Hit, bool vBlank, bool executionLogOpen, bool showStack, int? selectedAddress
+ bool enabled, Disassembly disassembly, int PC, int A, int X, int Y, int SP, int P, bool C, bool Z, bool I, bool D, bool B, bool V, bool N, int irq, bool nmi, List<int> stack, List<Breakpoint> breakpoints, bool canStepOut, int scanline, int cycle, int v, int t, int x, bool spriteOverflow, bool sprite0Hit, bool vBlank, bool executionLogOpen, bool showStack, int? selectedAddress
 });
 
 
@@ -66,8 +66,8 @@ class _$DebuggerStateCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? disassembly = null,Object? PC = null,Object? A = null,Object? X = null,Object? Y = null,Object? SP = null,Object? P = null,Object? C = null,Object? Z = null,Object? I = null,Object? D = null,Object? B = null,Object? V = null,Object? N = null,Object? irq = null,Object? nmi = null,Object? stack = null,Object? breakpoints = null,Object? canStepOut = null,Object? scanline = null,Object? cycle = null,Object? v = null,Object? t = null,Object? x = null,Object? spriteOverflow = null,Object? sprite0Hit = null,Object? vBlank = null,Object? executionLogOpen = null,Object? showStack = null,Object? selectedAddress = freezed,}) {
   return _then(_self.copyWith(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
-as bool,disassembly: null == disassembly ? _self.disassembly! : disassembly // ignore: cast_nullable_to_non_nullable
-as List<DisassemblyLine>,PC: null == PC ? _self.PC : PC // ignore: cast_nullable_to_non_nullable
+as bool,disassembly: null == disassembly ? _self.disassembly : disassembly // ignore: cast_nullable_to_non_nullable
+as Disassembly,PC: null == PC ? _self.PC : PC // ignore: cast_nullable_to_non_nullable
 as int,A: null == A ? _self.A : A // ignore: cast_nullable_to_non_nullable
 as int,X: null == X ? _self.X : X // ignore: cast_nullable_to_non_nullable
 as int,Y: null == Y ? _self.Y : Y // ignore: cast_nullable_to_non_nullable
@@ -107,12 +107,12 @@ as int?,
 
 
 class _DebuggerState implements DebuggerState {
-  const _DebuggerState({this.enabled = false, final  List<DisassemblyLine> disassembly = const [], this.PC = 0, this.A = 0, this.X = 0, this.Y = 0, this.SP = 0, this.P = 0, this.C = false, this.Z = false, this.I = false, this.D = false, this.B = false, this.V = false, this.N = false, this.irq = 0, this.nmi = false, final  List<int> stack = const [], final  List<Breakpoint> breakpoints = const [], this.canStepOut = false, this.scanline = 0, this.cycle = 0, this.v = 0, this.t = 0, this.x = 0, this.spriteOverflow = false, this.sprite0Hit = false, this.vBlank = false, this.executionLogOpen = false, this.showStack = false, this.selectedAddress = null}): _disassembly = disassembly,_stack = stack,_breakpoints = breakpoints;
+  const _DebuggerState({this.enabled = false, final  Disassembly disassembly = const [], this.PC = 0, this.A = 0, this.X = 0, this.Y = 0, this.SP = 0, this.P = 0, this.C = false, this.Z = false, this.I = false, this.D = false, this.B = false, this.V = false, this.N = false, this.irq = 0, this.nmi = false, final  List<int> stack = const [], final  List<Breakpoint> breakpoints = const [], this.canStepOut = false, this.scanline = 0, this.cycle = 0, this.v = 0, this.t = 0, this.x = 0, this.spriteOverflow = false, this.sprite0Hit = false, this.vBlank = false, this.executionLogOpen = false, this.showStack = false, this.selectedAddress = null}): _disassembly = disassembly,_stack = stack,_breakpoints = breakpoints;
   
 
 @override@JsonKey() final  bool enabled;
- final  List<DisassemblyLine> _disassembly;
-@override@JsonKey() List<DisassemblyLine> get disassembly {
+ final  Disassembly _disassembly;
+@override@JsonKey() Disassembly get disassembly {
   if (_disassembly is EqualUnmodifiableListView) return _disassembly;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_disassembly);
@@ -190,7 +190,7 @@ abstract mixin class _$DebuggerStateCopyWith<$Res> implements $DebuggerStateCopy
   factory _$DebuggerStateCopyWith(_DebuggerState value, $Res Function(_DebuggerState) _then) = __$DebuggerStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool enabled, List<DisassemblyLine> disassembly, int PC, int A, int X, int Y, int SP, int P, bool C, bool Z, bool I, bool D, bool B, bool V, bool N, int irq, bool nmi, List<int> stack, List<Breakpoint> breakpoints, bool canStepOut, int scanline, int cycle, int v, int t, int x, bool spriteOverflow, bool sprite0Hit, bool vBlank, bool executionLogOpen, bool showStack, int? selectedAddress
+ bool enabled, Disassembly disassembly, int PC, int A, int X, int Y, int SP, int P, bool C, bool Z, bool I, bool D, bool B, bool V, bool N, int irq, bool nmi, List<int> stack, List<Breakpoint> breakpoints, bool canStepOut, int scanline, int cycle, int v, int t, int x, bool spriteOverflow, bool sprite0Hit, bool vBlank, bool executionLogOpen, bool showStack, int? selectedAddress
 });
 
 
@@ -211,7 +211,7 @@ class __$DebuggerStateCopyWithImpl<$Res>
   return _then(_DebuggerState(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,disassembly: null == disassembly ? _self._disassembly : disassembly // ignore: cast_nullable_to_non_nullable
-as List<DisassemblyLine>,PC: null == PC ? _self.PC : PC // ignore: cast_nullable_to_non_nullable
+as Disassembly,PC: null == PC ? _self.PC : PC // ignore: cast_nullable_to_non_nullable
 as int,A: null == A ? _self.A : A // ignore: cast_nullable_to_non_nullable
 as int,X: null == X ? _self.X : X // ignore: cast_nullable_to_non_nullable
 as int,Y: null == Y ? _self.Y : Y // ignore: cast_nullable_to_non_nullable

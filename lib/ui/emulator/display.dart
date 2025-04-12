@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -69,7 +68,9 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
   }
 }
 
-class DisplayWidget extends ConsumerWidget {
+class DisplayWidget extends HookConsumerWidget {
+  static const menuKey = Key('menu');
+
   const DisplayWidget({
     required this.frameBuffer,
     this.paused = false,
@@ -84,40 +85,27 @@ class DisplayWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final snapshot = useFuture(convertFrameBufferToImage(frameBuffer));
+
     return Stack(
       children: [
-        FutureBuilder(
-          future: convertFrameBufferToImage(frameBuffer),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final image = snapshot.data;
-
-            if (image == null) {
-              return const Center(child: Text('Failed to load image'));
-            }
-
-            return DisplayBuilder(
-              paused: paused,
-              fastForward: fastForward,
-              image: image,
-            );
-          },
-        ),
+        switch (snapshot) {
+          AsyncSnapshot<ui.Image>(data: final image?) => DisplayBuilder(
+            paused: paused,
+            fastForward: fastForward,
+            image: image,
+          ),
+          _ => const Center(child: CircularProgressIndicator()),
+        },
         Align(
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: IconButton(
+              key: menuKey,
               icon: const Icon(Icons.menu),
               onPressed:
-                  () => AutoRouter.of(context).navigate(const MenuRoute()),
+                  () => ref.read(routerProvider).navigate(const MenuRoute()),
             ),
           ),
         ),

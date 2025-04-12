@@ -72,7 +72,11 @@ class RomManager {
   final String baseDirectory;
 
   void save(RomInfo romInfo, Uint8List data) {
-    _getSaveFile(romInfo).writeAsBytesSync(data);
+    final file = _getSaveFile(romInfo);
+
+    _ensureDirectoryExists(file);
+
+    file.writeAsBytesSync(data);
   }
 
   Uint8List? load(RomInfo romInfo) {
@@ -86,7 +90,11 @@ class RomManager {
   }
 
   void saveState(RomInfo romInfo, int slot, Uint8List data) {
-    _getSaveStateFile(romInfo, slot).writeAsBytesSync(data);
+    final file = _getSaveStateFile(romInfo, slot);
+
+    _ensureDirectoryExists(file);
+
+    file.writeAsBytesSync(data);
   }
 
   Uint8List? loadState(RomInfo romInfo, int slot) {
@@ -129,7 +137,11 @@ class RomManager {
 
     final png = img.encodePng(image);
 
-    getThumbnailFile(romInfo).writeAsBytesSync(png);
+    final file = getThumbnailFile(romInfo);
+
+    _ensureDirectoryExists(file);
+
+    file.writeAsBytesSync(png);
   }
 
   File getThumbnailFile(RomInfo romInfo) {
@@ -185,6 +197,10 @@ class RomManager {
     if (saveStateFile.existsSync()) {
       saveStateFile.deleteSync();
     }
+  }
+
+  void _ensureDirectoryExists(File file) {
+    Directory(p.dirname(file.path)).createSync(recursive: true);
   }
 
   Future<ui.Image> _getStateThumbnail(NESState state) async {

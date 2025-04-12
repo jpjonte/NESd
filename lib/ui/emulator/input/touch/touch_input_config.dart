@@ -75,15 +75,6 @@ sealed class TouchInputConfig with _$TouchInputConfig {
     @Default(0.25) double deadZone,
   }) = DPadConfig;
 
-  Offset get position => Offset(x, y);
-
-  Offset denormalizedPosition(Size viewport) {
-    final center = viewport.center(Offset.zero);
-    final relative = Offset(x * center.dx, y * center.dy);
-
-    return center + relative;
-  }
-
   Offset center(Size viewport) {
     final center = viewport.center(Offset.zero);
     final relative = Offset(x * center.dx, y * center.dy);

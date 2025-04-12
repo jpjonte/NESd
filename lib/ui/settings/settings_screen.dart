@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/common/tab_header.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/audio/audio_settings.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
@@ -32,6 +33,12 @@ class SettingsTabIndex extends _$SettingsTabIndex {
 class SettingsScreen extends HookConsumerWidget {
   const SettingsScreen({super.key});
 
+  static const Key generalKey = Key('general');
+  static const Key graphicsKey = Key('graphics');
+  static const Key audioKey = Key('audio');
+  static const Key controlsKey = Key('controls');
+  static const Key debugKey = Key('debug');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabController = useTabController(initialLength: 5);
@@ -54,7 +61,7 @@ class SettingsScreen extends HookConsumerWidget {
           'Settings',
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),
@@ -82,11 +89,11 @@ class SettingsScreen extends HookConsumerWidget {
                   isScrollable: true,
                   tabAlignment: TabAlignment.center,
                   tabs: const [
-                    Tab(child: Center(child: Text('General'))),
-                    Tab(child: Center(child: Text('Graphics'))),
-                    Tab(child: Center(child: Text('Audio'))),
-                    Tab(child: Center(child: Text('Controls'))),
-                    Tab(child: Center(child: Text('Debug'))),
+                    TabHeader(key: generalKey, title: 'General'),
+                    TabHeader(key: graphicsKey, title: 'Graphics'),
+                    TabHeader(key: audioKey, title: 'Audio'),
+                    TabHeader(key: controlsKey, title: 'Controls'),
+                    TabHeader(key: debugKey, title: 'Debug'),
                   ],
                 ),
                 const SizedBox(height: 8.0),

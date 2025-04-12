@@ -66,7 +66,7 @@ class FilePickerScreen extends HookConsumerWidget {
           message,
           style: TextStyle(
             color: Theme.of(context).colorScheme.error,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),
@@ -105,7 +105,7 @@ class FilePicker extends StatelessWidget {
           title,
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),
@@ -168,7 +168,7 @@ class DirectoryPickerButton extends ConsumerWidget {
             path,
             style: TextStyle(
               fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-              fontWeight: FontWeight.bold,
+              fontVariations: const [FontVariation.weight(700)],
             ),
           ),
         ),

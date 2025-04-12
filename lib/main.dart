@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -16,6 +18,8 @@ import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  _addLicenses();
 
   const sharedPreferencesOptions = SharedPreferencesOptions();
 
@@ -45,4 +49,18 @@ void main() async {
       child: const NesdApp(),
     ),
   );
+}
+
+void _addLicenses() {
+  LicenseRegistry.addLicense(() async* {
+    yield await _addLicense(
+      'Ubuntu Mono font',
+      'assets/fonts/UbuntuMono-LICENSE.txt',
+    );
+    yield await _addLicense('Inter font', 'assets/fonts/Inter-LICENSE.txt');
+  });
+}
+
+Future<LicenseEntryWithLineBreaks> _addLicense(String name, String file) async {
+  return LicenseEntryWithLineBreaks([name], await rootBundle.loadString(file));
 }

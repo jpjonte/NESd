@@ -78,7 +78,6 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   };
 }
 
-// ignore: avoid-dynamic
 List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultPortraitConfig;
@@ -87,7 +86,6 @@ List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
-// ignore: avoid-dynamic
 List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultLandscapeConfig;

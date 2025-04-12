@@ -36,31 +36,3 @@ class AXROMState extends MapperState {
       ..set(uint8, vramBank);
   }
 }
-
-class _AXROMState extends PayloadType<AXROMState> {
-  const _AXROMState();
-
-  @override
-  AXROMState get(ByteReader reader, [Endian? endian]) {
-    final version = reader.uint8();
-
-    return switch (version) {
-      0 => _version0(reader),
-      _ => throw InvalidSerializationVersion('AXROM', version),
-    };
-  }
-
-  @override
-  void set(ByteWriter writer, AXROMState value, [Endian? endian]) {
-    writer
-      ..uint8(0) // version
-      ..uint8(value.prgBank)
-      ..uint8(value.vramBank);
-  }
-
-  AXROMState _version0(ByteReader reader) {
-    return AXROMState(prgBank: reader.uint8(), vramBank: reader.uint8());
-  }
-}
-
-const axromStateType = _AXROMState();

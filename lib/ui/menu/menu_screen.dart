@@ -11,6 +11,12 @@ import 'package:nesd/ui/router/router.dart';
 
 @RoutePage()
 class MenuScreen extends ConsumerWidget {
+  static const resumeKey = Key('resume');
+  static const saveStatesKey = Key('saveStates');
+  static const resetGameKey = Key('resetGame');
+  static const quitGameKey = Key('quitGame');
+  static const settingsKey = Key('settings');
+
   const MenuScreen({super.key});
 
   @override
@@ -22,7 +28,7 @@ class MenuScreen extends ConsumerWidget {
           'NESd',
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
+            fontVariations: const [FontVariation.weight(700)],
           ),
         ),
       ),
@@ -33,6 +39,7 @@ class MenuScreen extends ConsumerWidget {
               children: [
                 Center(
                   child: NesdButton(
+                    key: resumeKey,
                     autofocus: true,
                     onPressed:
                         () => ref
@@ -44,6 +51,7 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
+                    key: saveStatesKey,
                     autofocus: true,
                     onPressed:
                         () => ref
@@ -65,6 +73,7 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
+                    key: resetGameKey,
                     onPressed: () {
                       ref.read(nesControllerProvider).reset();
                       ref.read(routerProvider).navigate(const MainRoute());
@@ -75,6 +84,7 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
+                    key: quitGameKey,
                     onPressed: () {
                       ref.read(nesControllerProvider).stop();
                       ref.read(routerProvider).navigate(const MainRoute());
@@ -85,6 +95,7 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
+                    key: settingsKey,
                     onPressed:
                         () => ref
                             .read(routerProvider)

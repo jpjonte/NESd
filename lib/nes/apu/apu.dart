@@ -81,6 +81,10 @@ class APU {
     pulse1.state = state.pulse1State;
     pulse2.state = state.pulse2State;
 
+    triangle.state = state.triangleState;
+    noise.state = state.noiseState;
+    dmc.state = state.dmcState;
+
     sampleIndex = 0;
   }
 

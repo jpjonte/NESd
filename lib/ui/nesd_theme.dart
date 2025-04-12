@@ -81,6 +81,7 @@ final canvasColor = nesdRed[800]!;
 
 final nesdThemeLight = ThemeData(
   useMaterial3: true,
+  fontFamily: 'Inter',
   colorScheme: ColorScheme.light(
     primary: nesdRed,
     surfaceContainer: surfaceContainerColor,
@@ -110,6 +111,7 @@ final segmentedButtonThemeDark = SegmentedButtonThemeData(
 
 final nesdThemeDark = ThemeData(
   useMaterial3: true,
+  fontFamily: 'Inter',
   colorScheme: ColorScheme.dark(
     primary: nesdRed,
     onPrimary: Colors.white,

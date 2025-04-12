@@ -65,7 +65,6 @@ class CPU {
   set Z(int value) => P = P.setBit(1, value);
   set I(int value) => P = P.setBit(2, value);
   set D(int value) => P = P.setBit(3, value);
-  set B(int value) => P = P.setBit(4, value);
   set V(int value) => P = P.setBit(6, value);
   set N(int value) => P = P.setBit(7, value);
 

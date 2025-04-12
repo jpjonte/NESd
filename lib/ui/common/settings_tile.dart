@@ -27,8 +27,8 @@ class SettingsTile extends StatelessWidget {
     final wrappedTitle = DefaultTextStyle(
       style: DefaultTextStyle.of(context).style.copyWith(
         color: enabled ? null : Colors.grey[800],
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+        fontSize: 15,
+        fontVariations: const [FontVariation.weight(700)],
       ),
       child: title ?? const SizedBox(),
     );
@@ -39,7 +39,6 @@ class SettingsTile extends StatelessWidget {
         builder: (_, constraints) {
           final narrow = constraints.maxWidth < 500;
           final column = adaptive && narrow;
-          final height = column ? 140.0 : 70.0;
 
           final titles = [
             if (title != null) wrappedTitle,
@@ -80,7 +79,7 @@ class SettingsTile extends StatelessWidget {
           final children = [if (title != null) wrappedTitles, wrappedChild];
 
           return SizedBox(
-            height: height,
+            height: column ? 140.0 : 70.0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child:

@@ -40,6 +40,8 @@ class NesState extends _$NesState {
   NES? get nes => state;
 
   void run(NES newNes) {
+    state?.stop();
+
     state = newNes;
 
     newNes.run();

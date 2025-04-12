@@ -18,9 +18,6 @@ class RingBuffer<T, S extends List<T>> {
   // (because start == end => size == 0)
   int get remaining => size - current - 1;
 
-  bool get isEmpty => _start == _end;
-  bool get isNotEmpty => !isEmpty;
-
   void clear() {
     _start = 0;
     _end = 0;
@@ -43,22 +40,10 @@ class RingBuffer<T, S extends List<T>> {
         ..setAll(firstSegmentSize, _buffer.sublist(0, secondSegmentSize));
     }
 
-    _updateStart(readSize);
+    _start = (_start + readSize) % size;
 
     return data;
   }
-
-  T popStart() {
-    final data = _buffer[_start];
-
-    _updateStart(1);
-
-    return data;
-  }
-
-  T peek() => _buffer[_start];
-
-  T operator [](int index) => _buffer[(_start + index) % size];
 
   int write(S data) {
     final writeSize = min(data.length, remaining);
@@ -75,28 +60,8 @@ class RingBuffer<T, S extends List<T>> {
         ..setAll(0, data.sublist(firstSegmentSize, writeSize));
     }
 
-    _updateEnd(writeSize);
+    _end = (_end + writeSize) % size;
 
     return writeSize;
-  }
-
-  void append(T data) {
-    _buffer[_end] = data;
-
-    _updateEnd(1);
-  }
-
-  void prepend(T data) {
-    _updateStart(-1);
-
-    _buffer[_start] = data;
-  }
-
-  void _updateStart(int length) {
-    _start = (_start + length) % size;
-  }
-
-  void _updateEnd(int length) {
-    _end = (_end + length) % size;
   }
 }

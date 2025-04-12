@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
-import 'package:nesd/ui/common/rom_list.dart';
+import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -10,6 +10,8 @@ import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class RecentRomList extends HookConsumerWidget {
+  static const logoKey = Key('logo');
+
   const RecentRomList({super.key});
 
   @override
@@ -25,6 +27,7 @@ class RecentRomList extends HookConsumerWidget {
     if (recentRoms.isEmpty) {
       return Center(
         child: SizedBox(
+          key: logoKey,
           width: 256,
           height: 256,
           child: Image.asset('assets/logo.png'),
@@ -86,9 +89,9 @@ class RecentRomList extends HookConsumerWidget {
                       const TextSpan(text: 'The ROM '),
                       TextSpan(
                         text: romTileData.romInfo.path,
-                        style: DefaultTextStyle.of(
-                          context,
-                        ).style.copyWith(fontWeight: FontWeight.w900),
+                        style: DefaultTextStyle.of(context).style.copyWith(
+                          fontVariations: const [FontVariation.weight(900)],
+                        ),
                       ),
                       const TextSpan(text: ' was not found.'),
                       const TextSpan(

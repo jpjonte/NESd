@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/ui/emulator/cartridge_info.dart';
+import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

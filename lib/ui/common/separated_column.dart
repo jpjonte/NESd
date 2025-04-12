@@ -19,8 +19,8 @@ class SeparatedColumn extends StatelessWidget {
             final child = entry.value;
 
             return [
-              if (index > 0 && separatorBuilder != null)
-                separatorBuilder!(index - 1),
+              if (separatorBuilder case final builder? when index > 0)
+                builder(index - 1),
               child,
             ];
           }).toList(),
