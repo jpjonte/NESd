@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const baseTextStyle = TextStyle(fontFamily: 'Inter');
+
 const nesdRedPrimary = 0xffdd2222;
 
 const nesdRed = MaterialColor(nesdRedPrimary, {
@@ -16,9 +18,9 @@ const nesdRed = MaterialColor(nesdRedPrimary, {
   900: Color.fromARGB(0xff, 0x22, 0x00, 0x00),
 });
 
-const textTheme = TextTheme(
-  bodyMedium: TextStyle(fontSize: 12.0),
-  bodyLarge: TextStyle(fontSize: 16.0),
+final textTheme = TextTheme(
+  bodyMedium: baseTextStyle.copyWith(fontSize: 12.0),
+  bodyLarge: baseTextStyle.copyWith(fontSize: 16.0),
 );
 
 final sliderTheme = SliderThemeData(
@@ -51,6 +53,11 @@ final filledButtonTheme = FilledButtonThemeData(
 
       return const StadiumBorder();
     }),
+    textStyle: WidgetStateProperty.resolveWith(
+      (states) => baseTextStyle.copyWith(
+        fontVariations: const [FontVariation.weight(700)],
+      ),
+    ),
   ),
 );
 
@@ -62,7 +69,7 @@ final dividerTheme = DividerThemeData(
 );
 
 final inputDecorationTheme = InputDecorationTheme(
-  hintStyle: TextStyle(color: Colors.grey[500]),
+  hintStyle: baseTextStyle.copyWith(color: Colors.grey[500]),
 );
 
 final segmentedButtonThemeLight = SegmentedButtonThemeData(

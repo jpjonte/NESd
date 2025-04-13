@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
 
 class EditingHint extends ConsumerWidget {
@@ -47,11 +48,11 @@ class HintText extends StatelessWidget {
         return RichText(
           text: TextSpan(
             children: [
-              const BoldSpan('Tap'),
+              BoldSpan('Tap'),
               const TextSpan(text: ' to edit controls. '),
-              const BoldSpan('Drag'),
+              BoldSpan('Drag'),
               const TextSpan(text: ' to move controls. '),
-              const BoldSpan('Rotate'),
+              BoldSpan('Rotate'),
               const TextSpan(text: ' your device to edit the '),
               BoldSpan(
                 orientation == Orientation.portrait ? 'landscape' : 'portrait',
@@ -66,9 +67,11 @@ class HintText extends StatelessWidget {
 }
 
 class BoldSpan extends TextSpan {
-  const BoldSpan(String text)
+  BoldSpan(String text)
     : super(
         text: text,
-        style: const TextStyle(fontVariations: [FontVariation.weight(700)]),
+        style: baseTextStyle.copyWith(
+          fontVariations: const [FontVariation.weight(700)],
+        ),
       );
 }

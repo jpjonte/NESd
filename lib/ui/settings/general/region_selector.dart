@@ -40,30 +40,57 @@ class RegionSelector extends ConsumerWidget {
       child: FocusOnHover(
         child: SettingsTile(
           title: const Text('Console Region'),
+          adaptive: true,
           child: ExcludeFocusTraversal(
-            child: Container(
-              width: 300,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 18),
-              child: SegmentedButton<Region?>(
-                onSelectionChanged: (value) => controller.region = value.first,
-                segments: const [
-                  ButtonSegment(
-                    icon: SizedBox(width: 18, height: 18),
-                    label: Center(child: Text('Auto')),
-                    value: null,
-                  ),
-                  ButtonSegment(
-                    icon: SizedBox(width: 18, height: 18),
-                    label: Center(child: Text('NTSC')),
-                    value: Region.ntsc,
-                  ),
-                  ButtonSegment(
-                    icon: SizedBox(width: 18, height: 18),
-                    label: Center(child: Text('PAL')),
-                    value: Region.pal,
-                  ),
-                ],
-                selected: {setting},
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 12,
+                ),
+                child: SegmentedButton<Region?>(
+                  onSelectionChanged:
+                      (value) => controller.region = value.first,
+                  segments: const [
+                    ButtonSegment(
+                      icon: SizedBox(width: 18, height: 18),
+                      label: Center(
+                        child: Text(
+                          'Auto',
+                          style: TextStyle(
+                            fontVariations: [FontVariation.weight(700)],
+                          ),
+                        ),
+                      ),
+                      value: null,
+                    ),
+                    ButtonSegment(
+                      icon: SizedBox(width: 18, height: 18),
+                      label: Center(
+                        child: Text(
+                          'NTSC',
+                          style: TextStyle(
+                            fontVariations: [FontVariation.weight(700)],
+                          ),
+                        ),
+                      ),
+                      value: Region.ntsc,
+                    ),
+                    ButtonSegment(
+                      icon: SizedBox(width: 18, height: 18),
+                      label: Center(
+                        child: Text(
+                          'PAL',
+                          style: TextStyle(
+                            fontVariations: [FontVariation.weight(700)],
+                          ),
+                        ),
+                      ),
+                      value: Region.pal,
+                    ),
+                  ],
+                  selected: {setting},
+                ),
               ),
             ),
           ),

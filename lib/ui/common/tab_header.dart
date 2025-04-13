@@ -7,6 +7,11 @@ class TabHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tab(child: Text(title));
+    return Tab(
+      child: Text(
+        title,
+        style: const TextStyle(fontVariations: [FontVariation.weight(700)]),
+      ),
+    );
   }
 }

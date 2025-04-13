@@ -37,7 +37,15 @@ class Binder extends ConsumerWidget {
                       )
                       : null,
             ),
-            child: Center(child: Text(text, textAlign: TextAlign.center)),
+            child: Center(
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontVariations: [FontVariation.weight(700)],
+                ),
+              ),
+            ),
           ),
         ),
         SizedBox(

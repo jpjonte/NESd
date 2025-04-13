@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' as material show AboutDialog;
 import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/nesd_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutDialog extends ConsumerWidget {
@@ -17,11 +18,11 @@ class AboutDialog extends ConsumerWidget {
       applicationIcon: Image.asset('assets/logo.png', width: 128, height: 128),
       children: [
         InkWell(
-          child: const Padding(
-            padding: EdgeInsets.all(16.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
               'GitHub',
-              style: TextStyle(
+              style: baseTextStyle.copyWith(
                 color: Colors.blue,
                 decoration: TextDecoration.underline,
                 decorationColor: Colors.blue,
