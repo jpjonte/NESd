@@ -106,7 +106,8 @@ class OpenRomButton extends ConsumerWidget {
       return getApplicationDocumentsDirectory();
     }
 
-    if (!(await filesystem.exists(lastRomPath))) {
+    if (!(await filesystem.isDirectory(lastRomPath)) &&
+        !(await filesystem.exists(lastRomPath))) {
       return getApplicationDocumentsDirectory();
     }
 
