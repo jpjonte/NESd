@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/android_saf_file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
@@ -16,7 +17,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
 
-void main() async {
+void main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   _addLicenses();
@@ -44,6 +45,11 @@ void main() async {
         fileSystemProvider.overrideWithValue(fileSystem),
         applicationSupportPathProvider.overrideWithValue(
           applicationSupport.path,
+        ),
+        initialRomProvider.overrideWith(
+          () => InitialRom(
+            initialValue: arguments.isNotEmpty ? arguments.first : null,
+          ),
         ),
       ],
       child: const NesdApp(),

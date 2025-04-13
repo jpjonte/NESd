@@ -9,11 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Added licenses for the used fonts
+- ROMs can now be launched directly from the command line: `NESd <path/to/rom.nes>`
+- Added an adaptive icon for Android
 
 ### Changed
 
 - Switched from the default font to Inter
 - Improved test coverage so issues can be found more quickly
+- Updated the logo for the nightly builds
+
+### Fixed
+
+- Fixed an issue where the file picker would not work on Android
+- Fixed minor issues with the UI
 
 ## [0.11.0] - 2025-04-06
 

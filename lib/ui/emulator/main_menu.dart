@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
@@ -16,8 +18,25 @@ import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class MainMenu extends ConsumerWidget {
+part 'main_menu.g.dart';
+
+@riverpod
+class InitialRom extends _$InitialRom {
+  InitialRom({this.initialValue});
+
+  final String? initialValue;
+
+  @override
+  String? build() => initialValue;
+
+  void clear() {
+    state = null;
+  }
+}
+
+class MainMenu extends HookConsumerWidget {
   const MainMenu({super.key});
 
   static const openRomKey = Key('openRom');
@@ -28,6 +47,19 @@ class MainMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider);
+    final initialRom = ref.watch(initialRomProvider);
+    final nesController = ref.watch(nesControllerProvider);
+
+    useEffect(() {
+      if (initialRom != null) {
+        scheduleMicrotask(() {
+          nesController.loadRom(initialRom);
+          ref.read(initialRomProvider.notifier).clear();
+        });
+      }
+
+      return null;
+    }, [initialRom]);
 
     return FocusChild(
       autofocus: true,
