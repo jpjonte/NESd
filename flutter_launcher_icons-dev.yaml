@@ -5,3 +5,6 @@ flutter_launcher_icons:
   windows:
     generate: true
   android: true
+  adaptive_icon_background: "#091f33"
+  adaptive_icon_foreground: "assets/logo-dev-adaptive.png"
+  adaptive_icon_foreground_inset: 20

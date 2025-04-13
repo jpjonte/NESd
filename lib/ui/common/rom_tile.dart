@@ -92,7 +92,12 @@ class RomTile extends ConsumerWidget {
                             child: Center(
                               child: StrokeText(
                                 romTileData.title,
-                                style: const TextStyle(fontSize: 15),
+                                style: baseTextStyle.copyWith(
+                                  fontSize: 15,
+                                  fontVariations: const [
+                                    FontVariation.weight(700),
+                                  ],
+                                ),
                                 strokeWidth: 2,
                                 textAlign: TextAlign.center,
                                 overflow: TextOverflow.ellipsis,

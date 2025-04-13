@@ -70,7 +70,9 @@ class SettingsTile extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth:
-                    column ? constraints.maxWidth : constraints.maxWidth / 2,
+                    column
+                        ? constraints.maxWidth
+                        : constraints.maxWidth * 2 / 3,
               ),
               child: ExcludeFocus(child: child),
             ),
@@ -79,7 +81,7 @@ class SettingsTile extends StatelessWidget {
           final children = [if (title != null) wrappedTitles, wrappedChild];
 
           return SizedBox(
-            height: column ? 140.0 : 70.0,
+            height: column ? 100.0 : 70.0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child:
