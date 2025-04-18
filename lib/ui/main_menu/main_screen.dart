@@ -4,19 +4,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/quit.dart';
-import 'package:nesd/ui/emulator/cartridge_info.dart';
-import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
-import 'package:nesd/ui/emulator/emulator_widget.dart';
-import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
-import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/emulator/tile_debug.dart';
+import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toast_overlay.dart';
@@ -28,11 +22,8 @@ class MainScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nes = ref.watch(nesStateProvider);
     final controller = ref.read(nesControllerProvider);
-    final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
-    final debuggerState = ref.watch(debuggerNotifierProvider);
 
     useEffect(() {
       scheduleMicrotask(() {
@@ -52,8 +43,6 @@ class MainScreen extends HookConsumerWidget {
       ..watch(nesControllerProvider)
       ..watch(romManagerProvider);
 
-    final cartridge = nes?.bus.cartridge;
-
     return PlatformMenuBar(
       menus: [
         _mainMenu(context, controller),
@@ -61,39 +50,7 @@ class MainScreen extends HookConsumerWidget {
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
-      child: SafeArea(
-        child: NesdScaffold(
-          body: Builder(
-            builder: (context) {
-              if (nes == null) {
-                return const MainMenu();
-              }
-
-              return Row(
-                children: [
-                  const Expanded(child: EmulatorWidget()),
-                  if (settings.showTiles ||
-                      settings.showCartridgeInfo ||
-                      settings.showDebugger)
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 512),
-                      child: Column(
-                        children: [
-                          if (settings.showTiles) const TileDebugWidget(),
-                          if (cartridge != null && settings.showCartridgeInfo)
-                            CartridgeInfoWidget(cartridge: cartridge),
-                          if (settings.showDebugger) const DebuggerWidget(),
-                        ],
-                      ),
-                    ),
-                  if (debuggerState.executionLogOpen)
-                    const ExecutionLogWidget(),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+      child: const SafeArea(child: NesdScaffold(body: MainMenu())),
     );
   }
 

@@ -11,6 +11,22 @@
 part of 'router.dart';
 
 /// generated route for
+/// [EmulatorScreen]
+class EmulatorRoute extends PageRouteInfo<void> {
+  const EmulatorRoute({List<PageRouteInfo>? children})
+    : super(EmulatorRoute.name, initialChildren: children);
+
+  static const String name = 'EmulatorRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const EmulatorScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [FilePickerScreen]
 class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
   FilePickerRoute({

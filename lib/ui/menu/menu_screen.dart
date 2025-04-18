@@ -44,7 +44,7 @@ class MenuScreen extends ConsumerWidget {
                     onPressed:
                         () => ref
                             .read(routerProvider)
-                            .navigate(const MainRoute()),
+                            .navigate(const EmulatorRoute()),
                     child: const Text('Resume'),
                   ),
                 ),

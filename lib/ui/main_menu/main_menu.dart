@@ -9,11 +9,11 @@ import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/quit.dart';
-import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -48,6 +48,7 @@ class MainMenu extends HookConsumerWidget {
       if (initialRom != null) {
         scheduleMicrotask(() {
           ref.read(nesControllerProvider).loadRom(initialRom);
+          ref.read(routerProvider).navigate(const EmulatorRoute());
           ref.read(initialRomProvider.notifier).clear();
         });
       }
@@ -106,14 +107,16 @@ class OpenRomButton extends ConsumerWidget {
               initialDirectory: directory,
               type: FilePickerType.file,
               allowedExtensions: const ['.nes', '.zip'],
-              onChangeDirectory: (directory) {
-                settingsController.lastRomPath = directory.path;
-              },
+              // TODO store whole FilesystemFile in settings
+              onChangeDirectory:
+                  (directory) =>
+                      settingsController.lastRomPath = directory.path,
             ),
           );
 
           if (file != null) {
             controller.loadRom(file.path);
+            ref.read(routerProvider).navigate(const EmulatorRoute());
           }
         },
         child: const Text('Open ROM'),

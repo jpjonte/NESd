@@ -104,7 +104,7 @@ class SaveStatesScreen extends HookConsumerWidget {
                         state: romTileData.state,
                       );
 
-                      ref.read(routerProvider).navigate(const MainRoute());
+                      ref.read(routerProvider).navigate(const EmulatorRoute());
                     },
                     onRemove: () async => await delete(context, romTileData),
                     contextMenuBuilder:

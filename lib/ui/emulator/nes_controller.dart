@@ -251,6 +251,8 @@ class NesController {
   Future<bool> loadRom(String path, {NESState? state}) async {
     suspend();
 
+    nes?.stop();
+
     try {
       final cartridge = await loadCartridge(path);
 
@@ -404,7 +406,7 @@ class NesController {
   }
 
   void _updateRoute(String? route) {
-    if (route == MainRoute.name) {
+    if (route == EmulatorRoute.name) {
       lifeCycleListenerEnabled = true;
 
       resume();

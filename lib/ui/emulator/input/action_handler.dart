@@ -86,7 +86,7 @@ class ActionHandler {
 
   bool enabled = true;
 
-  bool get _inGame => _currentRoute == MainRoute.name && nes != null;
+  bool get _inGame => _currentRoute == EmulatorRoute.name && nes != null;
 
   String? _currentRoute = MainRoute.name;
 
@@ -155,6 +155,7 @@ class ActionHandler {
         }
       case StopAction():
         nesController.stop();
+        router.navigate(const MainRoute());
       case DecreaseVolume():
         audioOutput.volume -= 0.1;
       case IncreaseVolume():
