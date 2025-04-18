@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -15,7 +17,7 @@ class FocusChild extends HookWidget {
 
     useEffect(() {
       if (autofocus) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        scheduleMicrotask(() {
           focusScopeNode.descendants
               .firstWhereOrNull((d) => d.canRequestFocus)
               ?.requestFocus();

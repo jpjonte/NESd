@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
@@ -45,39 +44,31 @@ class MainMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsControllerProvider);
-    final initialRom = ref.watch(initialRomProvider);
-    final nesController = ref.watch(nesControllerProvider);
-
-    useEffect(() {
+    ref.listen(initialRomProvider, (_, initialRom) {
       if (initialRom != null) {
         scheduleMicrotask(() {
-          nesController.loadRom(initialRom);
+          ref.read(nesControllerProvider).loadRom(initialRom);
           ref.read(initialRomProvider.notifier).clear();
         });
       }
+    });
 
-      return null;
-    }, [initialRom]);
-
-    return FocusChild(
+    return const FocusChild(
       autofocus: true,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const RecentRomList(),
-                if (settings.recentRomPaths.isNotEmpty)
-                  const NesdVerticalDivider(),
-                const OpenRomButton(key: openRomKey),
-                const NesdVerticalDivider(),
-                const SettingsButton(key: settingsKey),
-                const NesdVerticalDivider(),
-                const AboutButton(key: aboutKey),
-                const NesdVerticalDivider(),
-                const QuitButton(key: quitKey),
+                RecentRomList(),
+                OpenRomButton(key: openRomKey),
+                NesdVerticalDivider(),
+                SettingsButton(key: settingsKey),
+                NesdVerticalDivider(),
+                AboutButton(key: aboutKey),
+                NesdVerticalDivider(),
+                QuitButton(key: quitKey),
               ],
             ),
           ),
