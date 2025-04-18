@@ -20,11 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Replaced the SAF plugin (Android Storage Access Framework) with a custom native implementation, making file browsing and access more reliable
 - Refactored the file picker, improving search
 - Optimized UI performance
+- Colorized all parts of disassembly in the debugger
 
 ### Fixed
 
 - Fixed an issue where the file picker would not work on Android
 - Fixed minor issues with the UI
+- Fixed a performance issue with rendering the emulator
 
 ## [0.11.0] - 2025-04-06
 
