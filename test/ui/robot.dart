@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -95,7 +95,7 @@ class Robot extends BaseRobot {
           ),
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           packageInfoProvider.overrideWithValue(packageInfo),
-          fileSystemProvider.overrideWithValue(fileSystem),
+          filesystemProvider.overrideWithValue(fileSystem),
           applicationSupportPathProvider.overrideWithValue('/tmp/nesd'),
         ],
         child: const NesdApp(),

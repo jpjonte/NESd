@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/about/package_info.dart';
-import 'package:nesd/ui/emulator/main_menu.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/file_picker/file_system/android_saf_file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/native_file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/native_filesystem.dart';
+import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,15 +34,15 @@ void main(List<String> arguments) async {
     migrationCompletedKey: 'migrationCompleted',
   );
 
-  final fileSystem =
-      Platform.isAndroid ? AndroidSafFileSystem() : NativeFileSystem();
+  final filesystem =
+      Platform.isAndroid ? AndroidFilesystem() : NativeFilesystem();
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(preferences),
         packageInfoProvider.overrideWithValue(packageInfo),
-        fileSystemProvider.overrideWithValue(fileSystem),
+        filesystemProvider.overrideWithValue(filesystem),
         applicationSupportPathProvider.overrideWithValue(
           applicationSupport.path,
         ),

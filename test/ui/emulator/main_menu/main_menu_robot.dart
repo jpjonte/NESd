@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
-import 'package:nesd/ui/emulator/main_menu.dart';
-import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
+import 'package:nesd/ui/main_menu/main_menu.dart';
+import 'package:nesd/ui/main_menu/recent_rom_list.dart';
 
 import '../../base_robot.dart';
 

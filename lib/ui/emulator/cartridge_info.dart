@@ -18,7 +18,10 @@ class CartridgeInfoWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            KeyValue('Filename', File(cartridge.file).uri.pathSegments.last),
+            KeyValue(
+              'Filename',
+              File(cartridge.file.name).uri.pathSegments.last,
+            ),
             KeyValue('ROM format', cartridge.romFormat.toString()),
             KeyValue('PRG ROM size', '${cartridge.prgRomSize} bytes'),
             KeyValue('CHR ROM size', '${cartridge.chrRomSize} bytes'),

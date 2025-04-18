@@ -1,4 +1,7 @@
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+
+part 'file_picker_state.freezed.dart';
 
 sealed class FilePickerState {}
 
@@ -10,10 +13,20 @@ class FilePickerError extends FilePickerState {
   final String message;
 }
 
-class FilePickerData extends FilePickerState {
-  FilePickerData({required this.path, required this.files});
+@freezed
+class FilePickerData extends FilePickerState with _$FilePickerData {
+  FilePickerData({
+    required this.directory,
+    required this.files,
+    this.refreshing = false,
+  });
 
-  final String path;
+  @override
+  final FilesystemFile directory;
 
-  final List<FileSystemFile> files;
+  @override
+  final List<FilesystemFile> files;
+
+  @override
+  final bool refreshing;
 }

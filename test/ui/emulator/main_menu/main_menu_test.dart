@@ -16,7 +16,13 @@ void main() {
       'and about dialog can be opened', (tester) async {
     final r = Robot(tester)..initSettings({
       'recentRoms': [
-        {'path': '/test/roms/nestest.nes'},
+        {
+          'file': {
+            'path': '/test/roms/nestest.nes',
+            'name': '/test/roms/nestest.nes',
+            'type': 'file',
+          },
+        },
       ],
     });
 

@@ -11,7 +11,13 @@ void main() {
       'showDebugger': true,
       'showTouchControls': true,
       'recentRoms': [
-        {'path': '/test/roms/nestest.nes'},
+        {
+          'file': {
+            'path': '/test/roms/nestest.nes',
+            'name': '/test/roms/nestest.nes',
+            'type': 'file',
+          },
+        },
       ],
       'wideTouchInputConfig': [
         {'x': 0.0, 'y': 0.0, 'type': 'rectangleButton'},

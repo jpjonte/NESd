@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
@@ -80,7 +79,7 @@ class Debugger implements DebuggerInterface {
 
     nes.breakpoints = breakpoints;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    scheduleMicrotask(() {
       notifier.debuggerState = DebuggerState(breakpoints: breakpoints);
     });
   }

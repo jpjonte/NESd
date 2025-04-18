@@ -112,11 +112,18 @@ class RomTile extends ConsumerWidget {
                         child: Align(
                           alignment: Alignment.topRight,
                           child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: IconButton(
-                              icon: const Icon(Icons.close),
-                              padding: EdgeInsets.zero,
-                              onPressed: onRemove,
+                            padding: const EdgeInsets.all(8),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(100),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                iconSize: 20,
+                                icon: const Icon(Icons.close),
+                                padding: const EdgeInsets.all(4),
+                                onPressed: onRemove,
+                              ),
                             ),
                           ),
                         ),

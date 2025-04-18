@@ -86,6 +86,21 @@ final surfaceContainerColor = nesdRed[800]!;
 
 final canvasColor = nesdRed[800]!;
 
+final progressTheme = ProgressIndicatorThemeData(
+  color: nesdRed[500],
+  circularTrackColor: nesdRed[800],
+  linearTrackColor: nesdRed[800],
+  refreshBackgroundColor: nesdRed[800],
+  stopIndicatorColor: nesdRed[500],
+);
+
+final iconButtonThemeData = IconButtonThemeData(
+  style: ButtonStyle(
+    minimumSize: WidgetStateProperty.all(const Size(20, 20)),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  ),
+);
+
 final nesdThemeLight = ThemeData(
   useMaterial3: true,
   fontFamily: 'Inter',
@@ -100,6 +115,8 @@ final nesdThemeLight = ThemeData(
   filledButtonTheme: filledButtonTheme,
   dividerTheme: dividerTheme,
   segmentedButtonTheme: segmentedButtonThemeLight,
+  progressIndicatorTheme: progressTheme,
+  iconButtonTheme: iconButtonThemeData,
 );
 
 final dialogThemeDark = DialogTheme(
@@ -134,4 +151,6 @@ final nesdThemeDark = ThemeData(
   dialogTheme: dialogThemeDark,
   inputDecorationTheme: inputDecorationTheme,
   segmentedButtonTheme: segmentedButtonThemeDark,
+  progressIndicatorTheme: progressTheme,
+  iconButtonTheme: iconButtonThemeData,
 );

@@ -1,23 +1,22 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/quit.dart';
-import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'main_menu.g.dart';
@@ -46,39 +45,40 @@ class MainMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsControllerProvider);
-    final initialRom = ref.watch(initialRomProvider);
-    final nesController = ref.watch(nesControllerProvider);
-
-    useEffect(() {
+    ref.listen(initialRomProvider, (_, initialRom) {
       if (initialRom != null) {
         scheduleMicrotask(() {
-          nesController.loadRom(initialRom);
+          ref
+              .read(nesControllerProvider)
+              .loadRom(
+                FilesystemFile(
+                  path: initialRom,
+                  name: p.basename(initialRom),
+                  type: FilesystemFileType.file,
+                ),
+              );
+          ref.read(routerProvider).navigate(const EmulatorRoute());
           ref.read(initialRomProvider.notifier).clear();
         });
       }
+    });
 
-      return null;
-    }, [initialRom]);
-
-    return FocusChild(
+    return const FocusChild(
       autofocus: true,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const RecentRomList(),
-                if (settings.recentRomPaths.isNotEmpty)
-                  const NesdVerticalDivider(),
-                const OpenRomButton(key: openRomKey),
-                const NesdVerticalDivider(),
-                const SettingsButton(key: settingsKey),
-                const NesdVerticalDivider(),
-                const AboutButton(key: aboutKey),
-                const NesdVerticalDivider(),
-                const QuitButton(key: quitKey),
+                RecentRomList(),
+                OpenRomButton(key: openRomKey),
+                NesdVerticalDivider(),
+                SettingsButton(key: settingsKey),
+                NesdVerticalDivider(),
+                AboutButton(key: aboutKey),
+                NesdVerticalDivider(),
+                QuitButton(key: quitKey),
               ],
             ),
           ),
@@ -95,32 +95,35 @@ class OpenRomButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(nesControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
-    final filesystem = ref.watch(fileSystemProvider);
+    final filesystem = ref.watch(filesystemProvider);
 
     return Center(
       child: NesdButton(
         onPressed: () async {
-          final settings = ref.watch(settingsControllerProvider);
-          final directory = await _getRomPath(filesystem, settings);
+          final directory = await _getRomPath(filesystem, settingsController);
+
+          if (directory == null) {
+            return;
+          }
 
           if (!context.mounted) {
             return;
           }
 
-          final file = await AutoRouter.of(context).push<FileSystemFile?>(
+          final file = await AutoRouter.of(context).push<FilesystemFile?>(
             FilePickerRoute(
               title: 'Select a ROM',
-              initialDirectory: directory.path,
+              initialDirectory: directory,
               type: FilePickerType.file,
               allowedExtensions: const ['.nes', '.zip'],
-              onChangeDirectory: (directory) {
-                settingsController.lastRomPath = directory.path;
-              },
+              onChangeDirectory:
+                  (directory) => settingsController.lastRomPath = directory,
             ),
           );
 
           if (file != null) {
-            controller.loadRom(file.path);
+            controller.loadRom(file);
+            ref.read(routerProvider).navigate(const EmulatorRoute());
           }
         },
         child: const Text('Open ROM'),
@@ -128,22 +131,40 @@ class OpenRomButton extends ConsumerWidget {
     );
   }
 
-  Future<Directory> _getRomPath(
-    FileSystem filesystem,
-    Settings settings,
+  Future<FilesystemFile?> _getRomPath(
+    Filesystem filesystem,
+    SettingsController settingsController,
   ) async {
-    final lastRomPath = settings.lastRomPath;
+    final lastRomPath = settingsController.lastRomPath;
 
-    if (lastRomPath == null) {
-      return getApplicationDocumentsDirectory();
+    try {
+      if (lastRomPath == null) {
+        final result = await filesystem.getDocumentsDirectory();
+
+        if (result == null) {
+          return null;
+        }
+
+        return result;
+      }
+
+      if (!(await filesystem.isDirectory(lastRomPath.path)) &&
+          !(await filesystem.exists(lastRomPath.path))) {
+        final result = await filesystem.getDocumentsDirectory();
+
+        if (result == null) {
+          return null;
+        }
+
+        return result;
+      }
+    } on NesdException {
+      settingsController.lastRomPath = null;
+
+      return null;
     }
 
-    if (!(await filesystem.isDirectory(lastRomPath)) &&
-        !(await filesystem.exists(lastRomPath))) {
-      return getApplicationDocumentsDirectory();
-    }
-
-    return Directory(lastRomPath);
+    return lastRomPath;
   }
 }
 

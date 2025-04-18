@@ -8,6 +8,7 @@ import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -22,7 +23,7 @@ part 'settings.g.dart';
 typedef BindingMap = Map<InputAction, List<InputCombination?>>;
 
 // ignore: avoid-dynamic
-BindingMap bindingsFromJson(dynamic json) {
+BindingMap _bindingsFromJson(dynamic json) {
   if (json is! Map<String, dynamic>) {
     return defaultBindings;
   }
@@ -68,7 +69,7 @@ List<InputCombination?> inputsFromJson(dynamic value) {
   ];
 }
 
-Map<String, dynamic> bindingsToJson(BindingMap bindings) {
+Map<String, dynamic> _bindingsToJson(BindingMap bindings) {
   return {
     for (final MapEntry(key: action, value: inputs) in bindings.entries)
       action.code: [
@@ -78,7 +79,8 @@ Map<String, dynamic> bindingsToJson(BindingMap bindings) {
   };
 }
 
-List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
+// ignore: avoid-dynamic
+List<TouchInputConfig> _narrowTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultPortraitConfig;
   }
@@ -86,7 +88,8 @@ List<TouchInputConfig> narrowTouchInputConfigsFromJson(dynamic json) {
   return touchInputConfigsFromJson(json);
 }
 
-List<TouchInputConfig> wideTouchInputConfigsFromJson(dynamic json) {
+// ignore: avoid-dynamic
+List<TouchInputConfig> _wideTouchInputConfigsFromJson(dynamic json) {
   if (json is! List || json.isEmpty) {
     return defaultLandscapeConfig;
   }
@@ -100,6 +103,56 @@ List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
       .map((e) => TouchInputConfig.fromJson(e as Map<String, dynamic>))
       .whereType<TouchInputConfig>()
       .toList();
+}
+
+// ignore: avoid-dynamic
+List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
+  return json
+      .map((e) {
+        if (e is! Map<String, dynamic>) {
+          return null;
+        }
+
+        if (!e.containsKey('file')) {
+          return RomInfo(
+            file: FilesystemFile(
+              path: e['path'] as String,
+              name: e['name'] as String,
+              type: FilesystemFileType.file,
+            ),
+            hash: e['hash'] as String?,
+            romHash: e['romHash'] as String?,
+            chrHash: e['chrHash'] as String?,
+            prgHash: e['prgHash'] as String?,
+          );
+        }
+
+        return RomInfo.fromJson(e);
+      })
+      .where((e) => e != null)
+      .whereType<RomInfo>()
+      .toList();
+}
+
+// ignore: avoid-dynamic
+FilesystemFile? _lastRomPathFromJson(dynamic json) {
+  if (json == null) {
+    return null;
+  }
+
+  if (json is String) {
+    return FilesystemFile(
+      path: json,
+      name: p.basename(json),
+      type: FilesystemFileType.directory,
+    );
+  }
+
+  if (json is Map<String, dynamic>) {
+    return FilesystemFile.fromJson(json);
+  }
+
+  return null;
 }
 
 @freezed
@@ -117,16 +170,20 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(false) bool autoLoad,
     @Default({})
-    @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson)
+    @JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson)
     Map<InputAction, List<InputCombination?>> bindings,
-    @Default(null) String? lastRomPath,
+    @JsonKey(fromJson: _lastRomPathFromJson)
+    @Default(null)
+    FilesystemFile? lastRomPath,
     @Default([]) List<String> recentRomPaths,
-    @Default([]) List<RomInfo> recentRoms,
+    @JsonKey(fromJson: _recentRomsFromJson)
+    @Default([])
+    List<RomInfo> recentRoms,
     @Default(false) bool showTouchControls,
-    @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
+    @JsonKey(fromJson: _narrowTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> narrowTouchInputConfig,
-    @JsonKey(fromJson: wideTouchInputConfigsFromJson)
+    @JsonKey(fromJson: _wideTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> wideTouchInputConfig,
     @Default({}) Map<String, List<Breakpoint>> breakpoints,
@@ -216,9 +273,9 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(autoLoad: value));
   }
 
-  String? get lastRomPath => state.lastRomPath;
+  FilesystemFile? get lastRomPath => state.lastRomPath;
 
-  set lastRomPath(String? lastRomPath) {
+  set lastRomPath(FilesystemFile? lastRomPath) {
     _update(state.copyWith(lastRomPath: lastRomPath));
   }
 
@@ -227,7 +284,9 @@ class SettingsController extends _$SettingsController {
   void addRecentRom(RomInfo rom) {
     final recent =
         state.recentRoms.toList()
-          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash)
+          ..removeWhere(
+            (r) => r.file.name == rom.file.name || r.hash == rom.hash,
+          )
           ..insert(0, rom);
 
     _update(state.copyWith(recentRoms: recent.toList()));
@@ -239,8 +298,9 @@ class SettingsController extends _$SettingsController {
 
   void removeRecentRom(RomInfo rom) {
     final recent =
-        state.recentRoms.toList()
-          ..removeWhere((r) => r.name == rom.name || r.hash == rom.hash);
+        state.recentRoms.toList()..removeWhere(
+          (r) => r.file.name == rom.file.name || r.hash == rom.hash,
+        );
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -449,7 +509,14 @@ class SettingsController extends _$SettingsController {
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {
     return [
       for (final path in recentRomPaths)
-        RomInfo(name: p.basename(path), path: path, hash: ''),
+        RomInfo(
+          file: FilesystemFile(
+            path: path,
+            name: p.basename(path),
+            type: FilesystemFileType.file,
+          ),
+          hash: '',
+        ),
     ];
   }
 }

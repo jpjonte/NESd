@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,7 +30,7 @@ class MockAudioStream extends Mock implements AudioStream {
 
 class MockSharedPreferences extends Mock implements SharedPreferences {}
 
-class MockFileSystem extends Mock implements FileSystem {
+class MockFileSystem extends Mock implements Filesystem {
   final Map<String, Uint8List> _files = {};
 
   @override
@@ -47,17 +47,15 @@ class MockFileSystem extends Mock implements FileSystem {
   }
 
   @override
-  Future<(String, List<FileSystemFile>)> list(String path) async {
-    return (
-      path,
-      [
-        for (final entry in _files.entries)
-          FileSystemFile(
-            path: p.basename(entry.key),
-            type: FileSystemFileType.file,
-          ),
-      ],
-    );
+  Future<List<FilesystemFile>> list(String path) async {
+    return [
+      for (final entry in _files.entries)
+        FilesystemFile(
+          path: p.basename(entry.key),
+          name: p.basename(entry.key),
+          type: FilesystemFileType.file,
+        ),
+    ];
   }
 
   @override

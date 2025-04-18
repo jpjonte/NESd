@@ -8,9 +8,19 @@ void main() {
   ) async {
     final r = Robot(tester)..initSettings({
       'recentRoms': [
-        {'path': '/test/roms/nestest.nes'},
+        {
+          'file': {
+            'path': '/test/roms/nestest.nes',
+            'name': '/test/roms/nestest.nes',
+            'type': 'file',
+          },
+        },
       ],
-      'lastRomPath': '/test/roms',
+      'lastRomPath': {
+        'path': '/test/roms',
+        'name': '/test/roms',
+        'type': 'directory',
+      },
     });
 
     await r.pumpApp();

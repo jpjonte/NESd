@@ -10,6 +10,7 @@ import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -27,16 +28,14 @@ RomManager romManager(Ref ref) =>
 @immutable
 class RomInfo {
   const RomInfo({
-    this.name,
-    this.path,
+    required this.file,
     this.hash,
     this.romHash,
     this.chrHash,
     this.prgHash,
   });
 
-  final String? name;
-  final String? path;
+  final FilesystemFile file;
   final String? hash;
   final String? romHash;
   final String? chrHash;
@@ -54,11 +53,13 @@ class RomInfo {
     }
 
     return other is RomInfo &&
-        (other.name == name || other.romHash == romHash || other.hash == hash);
+        (other.file.name == file.name ||
+            other.romHash == romHash ||
+            other.hash == hash);
   }
 
   @override
-  int get hashCode => Object.hash(name, romHash);
+  int get hashCode => Object.hash(file.name, romHash);
 }
 
 class RomManager {
@@ -153,7 +154,7 @@ class RomManager {
   Future<RomTileData> getRomTileData(RomInfo romInfo) async {
     return RomTileData(
       romInfo: romInfo,
-      title: p.basenameWithoutExtension(romInfo.name ?? ''),
+      title: p.basenameWithoutExtension(romInfo.file.name),
       thumbnail: await _getLastThumbnail(romInfo),
     );
   }
@@ -270,7 +271,7 @@ class RomManager {
   String _getDirectory(String component) => p.join(baseDirectory, component);
 
   String _getFilename(String component, RomInfo romInfo, String extension) {
-    final romName = p.basename(romInfo.path ?? '');
+    final romName = p.basename(romInfo.file.path);
     final newFilename = p.setExtension(romName, extension);
     final fullPath = p.join(_getDirectory(component), newFilename);
 

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +10,8 @@ import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
@@ -29,76 +29,59 @@ class FilePickerScreen extends HookConsumerWidget {
   });
 
   final String title;
-  final String initialDirectory;
+  final FilesystemFile initialDirectory;
   final FilePickerType type;
   final List<String> allowedExtensions;
-  final void Function(Directory)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(filePickerNotifierProvider);
+    ref.listen(filePickerNotifierProvider, (_, next) {
+      if (next is FilePickerData &&
+          p.extension(next.directory.path) == '.zip' &&
+          next.files.length == 1) {
+        scheduleMicrotask(() {
+          final file = next.files.first;
+
+          if (file.type == FilesystemFileType.file) {
+            context.router.maybePop(file);
+          }
+        });
+      }
+    });
+
     final controller = ref.watch(filePickerControllerProvider);
 
     useEffect(() {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => controller.go(initialDirectory),
-      );
+      scheduleMicrotask(() => controller.go(initialDirectory));
 
       return null;
     }, [initialDirectory]);
 
-    if (state is FilePickerData &&
-        p.extension(state.path) == '.zip' &&
-        state.files.length == 1) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final file = state.files.first;
-
-        if (file.type == FileSystemFileType.file) {
-          context.router.maybePop(file);
-        }
-      });
-    }
-
-    return switch (state) {
-      FilePickerLoading() => const Center(child: CircularProgressIndicator()),
-      FilePickerError(message: final message) => Center(
-        child: Text(
-          message,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.error,
-            fontVariations: const [FontVariation.weight(700)],
-          ),
-        ),
-      ),
-      FilePickerData(path: final path, files: final files) => FilePicker(
-        title: title,
-        path: path,
-        files: files,
-        allowedExtensions: allowedExtensions,
-        onChangeDirectory: onChangeDirectory,
-      ),
-    };
+    return FilePicker(
+      title: title,
+      allowedExtensions: allowedExtensions,
+      onChangeDirectory: onChangeDirectory,
+    );
   }
 }
 
-class FilePicker extends StatelessWidget {
+class FilePicker extends ConsumerWidget {
   const FilePicker({
     required this.title,
-    required this.path,
-    required this.files,
     required this.allowedExtensions,
     this.onChangeDirectory,
     super.key,
   });
 
   final String title;
-  final String path;
-  final List<FileSystemFile> files;
   final List<String> allowedExtensions;
-  final void Function(Directory p1)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(filePickerControllerProvider);
+
     return NesdScaffold(
       appBar: AppBar(
         title: Text(
@@ -115,13 +98,32 @@ class FilePicker extends StatelessWidget {
             autofocus: true,
             child: Column(
               children: [
-                DirectoryPickerButton(
-                  path: path,
-                  onChangeDirectory: onChangeDirectory,
+                DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FocusOnHover(
+                          child: TextField(
+                            controller: controller.textEditingController,
+                            onChanged: (value) => controller.filter = value,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: 'Filter',
+                              isDense: true,
+                              contentPadding: EdgeInsets.all(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const FilePickerProgressIndicator(),
                 FileList(
-                  path: path,
-                  files: files,
                   allowedExtensions: allowedExtensions,
                   onChangeDirectory: onChangeDirectory,
                 ),
@@ -134,38 +136,58 @@ class FilePicker extends StatelessWidget {
   }
 }
 
-class DirectoryPickerButton extends ConsumerWidget {
-  const DirectoryPickerButton({
-    required this.path,
-    this.onChangeDirectory,
-    super.key,
-  });
-
-  final String path;
-  final void Function(Directory p1)? onChangeDirectory;
+class FilePickerProgressIndicator extends ConsumerWidget {
+  const FilePickerProgressIndicator({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filesystem = ref.watch(fileSystemProvider);
+    final state = ref.watch(filePickerNotifierProvider);
+
+    return Container(
+      height: 4,
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child:
+          state is FilePickerData && state.refreshing
+              ? const LinearProgressIndicator()
+              : null,
+    );
+  }
+}
+
+class DirectoryPickerButton extends ConsumerWidget {
+  const DirectoryPickerButton({this.onChangeDirectory, super.key});
+
+  final void Function(FilesystemFile)? onChangeDirectory;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filesystem = ref.watch(filesystemProvider);
     final controller = ref.watch(filePickerControllerProvider);
+    final state = ref.watch(filePickerNotifierProvider);
+
+    final currentDirectory = state is FilePickerData ? state.directory : null;
 
     return InkWell(
       onTap: () async {
+        final path = currentDirectory?.path;
+
+        if (path == null) {
+          return;
+        }
+
         final result = await filesystem.chooseDirectory(path);
 
         if (result != null) {
-          final newDirectory = Directory(result);
-
           controller.go(result);
 
-          onChangeDirectory?.call(newDirectory);
+          onChangeDirectory?.call(result);
         }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Center(
           child: Text(
-            path,
+            currentDirectory?.name ?? '',
             style: TextStyle(
               fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
               fontVariations: const [FontVariation.weight(700)],
@@ -179,76 +201,68 @@ class DirectoryPickerButton extends ConsumerWidget {
 
 class FileList extends HookConsumerWidget {
   const FileList({
-    required this.path,
-    required this.files,
     required this.allowedExtensions,
     this.onChangeDirectory,
     super.key,
   });
 
-  final String path;
-  final List<FileSystemFile> files;
   final List<String> allowedExtensions;
-  final void Function(Directory p1)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(filePickerControllerProvider);
+    final state = ref.watch(filePickerNotifierProvider);
 
     final scrollController = useScrollController();
-    final textEditingController = useTextEditingController();
 
     return Expanded(
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
-          SliverAppBar(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            floating: true,
-            leading: const Icon(Icons.search),
-            title: FocusOnHover(
-              child: TextField(
-                controller: textEditingController,
-                onChanged: (value) => controller.filter = value,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Search',
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 12,
+          switch (state) {
+            FilePickerLoading() => const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            FilePickerError(message: final message) => SliverToBoxAdapter(
+              child: Center(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontVariations: const [FontVariation.weight(700)],
                   ),
                 ),
               ),
             ),
-          ),
-          SliverList.separated(
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return ParentTile(
-                  path: path,
-                  onChangeDirectory: onChangeDirectory,
-                );
-              }
+            FilePickerData(directory: final directory, files: final files) =>
+              SliverList.separated(
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return ParentTile(
+                      directory: directory,
+                      onChangeDirectory: onChangeDirectory,
+                    );
+                  }
 
-              final file = files[index - 1];
+                  final file = files[index - 1];
 
-              return FileTile(
-                enabled:
-                    file.type == FileSystemFileType.directory ||
-                    allowedExtensions.isEmpty ||
-                    allowedExtensions.contains(
-                      p.extension(file.path).toLowerCase(),
-                    ),
-                isDirectory: file.type == FileSystemFileType.directory,
-                file: file,
-                fileIsZip: p.extension(file.path) == '.zip',
-                onChangeDirectory: onChangeDirectory,
-              );
-            },
-            separatorBuilder: (context, index) => const Divider(),
-            itemCount: files.length + 1,
-          ),
+                  return FileTile(
+                    enabled:
+                        file.type == FilesystemFileType.directory ||
+                        allowedExtensions.isEmpty ||
+                        allowedExtensions.contains(
+                          p.extension(file.path).toLowerCase(),
+                        ),
+                    isDirectory: file.type == FilesystemFileType.directory,
+                    file: file,
+                    fileIsZip: p.extension(file.path) == '.zip',
+                    onChangeDirectory: onChangeDirectory,
+                  );
+                },
+                separatorBuilder: (context, index) => const Divider(),
+                itemCount: files.length + 1,
+              ),
+          },
         ],
       ),
     );
@@ -256,25 +270,34 @@ class FileList extends HookConsumerWidget {
 }
 
 class ParentTile extends ConsumerWidget {
-  const ParentTile({required this.path, this.onChangeDirectory, super.key});
+  const ParentTile({
+    required this.directory,
+    this.onChangeDirectory,
+    super.key,
+  });
 
-  final String path;
-  final void Function(Directory p1)? onChangeDirectory;
+  final FilesystemFile directory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(filePickerControllerProvider);
+    final filesystem = ref.watch(filesystemProvider);
 
     return FocusOnHover(
       child: ListTile(
         leading: Icon(Icons.drive_folder_upload_rounded, color: nesdRed[500]),
         title: const Text('Up a directory'),
-        onTap: () {
-          final parentDirectory = Directory(path).parent;
+        onTap: () async {
+          final parent = await filesystem.parent(directory.path);
 
-          controller.go(parentDirectory.path);
+          if (parent == null) {
+            return;
+          }
 
-          onChangeDirectory?.call(parentDirectory);
+          controller.go(parent);
+
+          onChangeDirectory?.call(parent);
         },
       ),
     );
@@ -293,9 +316,9 @@ class FileTile extends ConsumerWidget {
 
   final bool isDirectory;
   final bool enabled;
-  final FileSystemFile file;
+  final FilesystemFile file;
   final bool fileIsZip;
-  final void Function(Directory p1)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -312,14 +335,14 @@ class FileTile extends ConsumerWidget {
           color: nesdRed[500],
         ),
         enabled: enabled,
-        title: Text(p.basename(file.path)),
+        title: Text(p.basename(file.name)),
         onTap: () async {
           if (isDirectory) {
-            await controller.go(file.path);
+            controller.go(file);
 
-            onChangeDirectory?.call(Directory(file.path));
+            onChangeDirectory?.call(file);
           } else if (fileIsZip) {
-            await controller.go(file.path);
+            controller.go(file);
           } else {
             await context.router.maybePop(file);
           }

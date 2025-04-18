@@ -4,13 +4,16 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/nes.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 class RomRobot {
   RomRobot(this.path) {
     final file = File(path);
 
-    final cartridge = Cartridge.fromFile(path, file.readAsBytesSync())
-      ..databaseEntry = null;
+    final cartridge = Cartridge.fromFile(
+      FilesystemFile(path: path, name: path, type: FilesystemFileType.file),
+      file.readAsBytesSync(),
+    )..databaseEntry = null;
 
     nes = NES(cartridge: cartridge, eventBus: EventBus())..reset();
   }

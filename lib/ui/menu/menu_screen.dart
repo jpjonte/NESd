@@ -44,7 +44,7 @@ class MenuScreen extends ConsumerWidget {
                     onPressed:
                         () => ref
                             .read(routerProvider)
-                            .navigate(const MainRoute()),
+                            .navigate(const EmulatorRoute()),
                     child: const Text('Resume'),
                   ),
                 ),
@@ -76,7 +76,7 @@ class MenuScreen extends ConsumerWidget {
                     key: resetGameKey,
                     onPressed: () {
                       ref.read(nesControllerProvider).reset();
-                      ref.read(routerProvider).navigate(const MainRoute());
+                      ref.read(routerProvider).navigate(const EmulatorRoute());
                     },
                     child: const Text('Reset Game'),
                   ),
@@ -99,7 +99,7 @@ class MenuScreen extends ConsumerWidget {
                     onPressed:
                         () => ref
                             .read(routerProvider)
-                            .push(const SettingsRoute()),
+                            .navigate(const SettingsRoute()),
                     child: const Text('Settings'),
                   ),
                 ),
