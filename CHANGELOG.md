@@ -17,6 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Switched from the default font to Inter
 - Improved test coverage so issues can be found more quickly
 - Updated the logo for the nightly builds
+- Replaced the SAF plugin (Android Storage Access Framework) with a custom native implementation, making file browsing and access more reliable
+- Refactored the file picker, improving search
+- Optimized UI performance
 
 ### Fixed
 
