@@ -123,15 +123,15 @@ class Disassembler implements DisassemblerInterface {
 
     final value = debugCpu.read(readAddress);
 
-    final disassembly = _disassemble(op, operands, readAddress, value);
-
     final line = DisassemblyLine(
       address: address,
       opcode: opcode,
       operation: op,
       operands: operands,
-      disassembly: disassembly,
       readAddress: readAddress,
+      value: value,
+      X: debugCpu.X,
+      Y: debugCpu.Y,
       sectionStart: isEntrypoint || lines[address]?.sectionStart == true,
       sectionEnd:
           op.instruction is RTS ||
@@ -167,30 +167,6 @@ class Disassembler implements DisassemblerInterface {
     }
 
     return debugCpu.address;
-  }
-
-  String _disassemble(
-    Operation op,
-    List<int> operands,
-    int readAddress,
-    int value,
-  ) {
-    return switch (op.addressMode) {
-      Implicit() => '',
-      Accumulator() => 'A',
-      Immediate() => '#\$${operands[0].toHex()}',
-      ZeroPage() => '\$${operands[0].toHex()}',
-      ZeroPageX() => '\$${operands[0].toHex()},X',
-      ZeroPageY() => '\$${operands[0].toHex()},Y',
-      Relative() || Absolute() => '\$${readAddress.toHex(width: 4)}',
-      AbsoluteX() =>
-        '\$${((readAddress - debugCpu.X) & 0xffff).toHex(width: 4)},X',
-      AbsoluteY() =>
-        '\$${((readAddress - debugCpu.Y) & 0xffff).toHex(width: 4)},Y',
-      Indirect() => '(\$${operands[1].toHex()}${operands[0].toHex()})',
-      IndexedIndirect() => '(\$${operands[0].toHex()},X)',
-      IndirectIndexed() => '(\$${operands[0].toHex()}),Y',
-    };
   }
 
   void _search(List<DisassemblerSearchNode> queue) {
@@ -274,8 +250,10 @@ class DisassemblyLine {
     required this.opcode,
     required this.operation,
     required this.operands,
-    required this.disassembly,
     required this.readAddress,
+    required this.value,
+    required this.X,
+    required this.Y,
     required this.sectionStart,
     required this.sectionEnd,
   });
@@ -284,8 +262,10 @@ class DisassemblyLine {
   final int opcode;
   final Operation operation;
   final List<int> operands;
-  final String disassembly;
   final int readAddress;
+  final int value;
+  final int X;
+  final int Y;
   final bool sectionStart;
   final bool sectionEnd;
 
@@ -318,6 +298,21 @@ class DisassemblyLine {
     Indirect() ||
     IndexedIndirect() ||
     IndirectIndexed() => true,
+  };
+
+  String get disassembly => switch (operation.addressMode) {
+    Implicit() => '',
+    Accumulator() => 'A',
+    Immediate() => '#\$${operands[0].toHex()}',
+    ZeroPage() => '\$${operands[0].toHex()}',
+    ZeroPageX() => '\$${operands[0].toHex()},X',
+    ZeroPageY() => '\$${operands[0].toHex()},Y',
+    Relative() || Absolute() => '\$${readAddress.toHex(width: 4)}',
+    AbsoluteX() => '\$${((readAddress - X) & 0xffff).toHex(width: 4)},X',
+    AbsoluteY() => '\$${((readAddress - Y) & 0xffff).toHex(width: 4)},Y',
+    Indirect() => '(\$${operands[1].toHex()}${operands[0].toHex()})',
+    IndexedIndirect() => '(\$${operands[0].toHex()},X)',
+    IndirectIndexed() => '(\$${operands[0].toHex()}),Y',
   };
 }
 

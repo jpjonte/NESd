@@ -85,7 +85,8 @@ class DisplayWidget extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final snapshot = useFuture(convertFrameBufferToImage(frameBuffer));
+    final future = useMemoized(() => convertFrameBufferToImage(frameBuffer));
+    final snapshot = useFuture(future);
 
     return Stack(
       children: [

@@ -1,7 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Accumulator;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
+import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
@@ -16,6 +17,10 @@ final _defaultRowBorder = BorderSide(color: nesdRed.withAlpha(0), width: 2);
 final _sectionBorder = BorderSide(color: debuggerColor, width: 2);
 final _selectedBorder = BorderSide(color: Colors.yellow[800]!);
 const _unselectedBorder = BorderSide(color: Colors.transparent);
+
+const _punctuationStyle = TextStyle(color: Colors.grey);
+final _registerStyle = TextStyle(color: Colors.pinkAccent[200]);
+final _addressStyle = TextStyle(color: Colors.amber[400]);
 
 class DisassemblyList extends ConsumerWidget {
   const DisassemblyList({required this.scrollController, super.key});
@@ -153,10 +158,7 @@ class DisassemblyRow extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      Text(
-                        line.disassembly,
-                        style: const TextStyle(color: Colors.orange),
-                      ),
+                      DisassemblyWidget(line: line),
                       if (line.addressIsCalculated)
                         EffectiveAddressSegment(line: line),
                       if (line.isRead) ValueSegment(line),
@@ -237,6 +239,134 @@ class DisassemblyRow extends ConsumerWidget {
   }
 }
 
+class DisassemblyWidget extends StatelessWidget {
+  const DisassemblyWidget({required this.line, super.key});
+
+  final DisassemblyLine line;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: DefaultTextStyle.of(context).style,
+        children: [
+          ...switch (line.operation.addressMode) {
+            Implicit() => const [],
+            Accumulator() => _accumulator(),
+            Immediate() => _immediate(),
+            ZeroPage() => _zeroPage(),
+            ZeroPageX() => _zeroPageX(),
+            ZeroPageY() => _zeroPageY(),
+            Relative() || Absolute() => _absolute(),
+            AbsoluteX() => _absoluteX(),
+            AbsoluteY() => _absoluteY(),
+            Indirect() => _indirect(),
+            IndexedIndirect() => _indexedIndirect(),
+            IndirectIndexed() => _indirectIndexed(),
+          },
+        ],
+      ),
+    );
+  }
+
+  List<InlineSpan> _immediate() {
+    return [
+      TextSpan(
+        text: '#\$${line.operands[0].toHex()}',
+        style: TextStyle(color: Colors.cyanAccent[400]),
+      ),
+    ];
+  }
+
+  List<InlineSpan> _accumulator() => [
+    TextSpan(text: 'A', style: _registerStyle),
+  ];
+
+  List<InlineSpan> _zeroPage() {
+    return [
+      TextSpan(text: '\$${line.operands[0].toHex()}', style: _addressStyle),
+    ];
+  }
+
+  List<InlineSpan> _zeroPageX() {
+    return [
+      TextSpan(text: '\$${line.operands[0].toHex()}', style: _addressStyle),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'X', style: _registerStyle),
+    ];
+  }
+
+  List<InlineSpan> _zeroPageY() {
+    return [
+      TextSpan(text: '\$${line.operands[0].toHex()}', style: _addressStyle),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'Y', style: _registerStyle),
+    ];
+  }
+
+  List<InlineSpan> _absolute() {
+    return [
+      TextSpan(
+        text: '\$${line.readAddress.toHex(width: 4)}',
+        style: _addressStyle,
+      ),
+    ];
+  }
+
+  List<InlineSpan> _absoluteX() {
+    return [
+      TextSpan(
+        text: '\$${((line.readAddress - line.X) & 0xffff).toHex(width: 4)}',
+        style: _addressStyle,
+      ),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'X', style: _registerStyle),
+    ];
+  }
+
+  List<InlineSpan> _absoluteY() {
+    return [
+      TextSpan(
+        text: '\$${((line.readAddress - line.Y) & 0xffff).toHex(width: 4)}',
+        style: _addressStyle,
+      ),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'Y', style: _registerStyle),
+    ];
+  }
+
+  List<InlineSpan> _indirect() {
+    return [
+      const TextSpan(text: '(', style: _punctuationStyle),
+      TextSpan(
+        text: '\$${line.operands[1].toHex()}${line.operands[0].toHex()}',
+        style: _addressStyle,
+      ),
+      const TextSpan(text: ')', style: _punctuationStyle),
+    ];
+  }
+
+  List<InlineSpan> _indexedIndirect() {
+    return [
+      const TextSpan(text: '(', style: _punctuationStyle),
+      TextSpan(text: '\$${line.operands[0].toHex()}', style: _addressStyle),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'X', style: _registerStyle),
+      const TextSpan(text: ')', style: _punctuationStyle),
+    ];
+  }
+
+  List<InlineSpan> _indirectIndexed() {
+    return [
+      const TextSpan(text: '(', style: _punctuationStyle),
+      TextSpan(text: '\$${line.operands[0].toHex()}', style: _addressStyle),
+      const TextSpan(text: ')', style: _punctuationStyle),
+      const TextSpan(text: ',', style: _punctuationStyle),
+      TextSpan(text: 'Y', style: _registerStyle),
+    ];
+  }
+}
+
 class EffectiveAddressSegment extends StatelessWidget {
   const EffectiveAddressSegment({required this.line, super.key});
 
@@ -301,10 +431,10 @@ class ValueSegment extends ConsumerWidget {
       text: TextSpan(
         style: DefaultTextStyle.of(context).style,
         children: [
-          const TextSpan(text: ' = ', style: TextStyle(color: Colors.grey)),
+          const TextSpan(text: ' = ', style: _punctuationStyle),
           TextSpan(
             text: '\$${debugger.read(line.readAddress).toHex()}',
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.limeAccent[700]),
           ),
         ],
       ),
