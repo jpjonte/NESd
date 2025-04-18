@@ -80,7 +80,7 @@ class AndroidFilesystem extends Filesystem {
           (result as List<Object?>)
               .where((e) => e != null)
               .cast<Map>()
-              .map((e) => FilesystemFile.fromJson(e as Map<String, dynamic>))
+              .map((e) => FilesystemFile.fromJson(e.cast<String, Object?>()))
               .toList();
 
       return files;
@@ -128,9 +128,14 @@ class AndroidFilesystem extends Filesystem {
         return null;
       }
 
-      return FilesystemFile.fromJson(parent as Map<String, dynamic>);
+      return FilesystemFile.fromJson(parent.cast<String, Object?>());
     } on PlatformException catch (e, s) {
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
+  }
+
+  @override
+  Future<FilesystemFile?> getDocumentsDirectory() async {
+    return await chooseDirectory('');
   }
 }

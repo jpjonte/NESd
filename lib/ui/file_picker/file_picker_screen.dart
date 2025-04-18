@@ -99,25 +99,28 @@ class FilePicker extends ConsumerWidget {
             child: Column(
               children: [
                 DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
-                Row(
-                  children: [
-                    const Icon(Icons.search),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FocusOnHover(
-                        child: TextField(
-                          controller: controller.textEditingController,
-                          onChanged: (value) => controller.filter = value,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'Filter',
-                            isDense: true,
-                            contentPadding: EdgeInsets.all(8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FocusOnHover(
+                          child: TextField(
+                            controller: controller.textEditingController,
+                            onChanged: (value) => controller.filter = value,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: 'Filter',
+                              isDense: true,
+                              contentPadding: EdgeInsets.all(8),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const FilePickerProgressIndicator(),
                 FileList(

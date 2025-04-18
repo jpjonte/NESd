@@ -73,4 +73,9 @@ class ZipFilesystem extends Filesystem {
       type: FilesystemFileType.directory,
     );
   }
+
+  @override
+  Future<FilesystemFile> getDocumentsDirectory() {
+    throw UnimplementedError();
+  }
 }

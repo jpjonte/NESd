@@ -129,7 +129,7 @@ class OpenRomButton extends ConsumerWidget {
 
     try {
       if (lastRomPath == null) {
-        final result = await filesystem.chooseDirectory('');
+        final result = await filesystem.getDocumentsDirectory();
 
         if (result == null) {
           return null;
@@ -140,7 +140,7 @@ class OpenRomButton extends ConsumerWidget {
 
       if (!(await filesystem.isDirectory(lastRomPath)) &&
           !(await filesystem.exists(lastRomPath))) {
-        final result = await filesystem.chooseDirectory('');
+        final result = await filesystem.getDocumentsDirectory();
 
         if (result == null) {
           return null;

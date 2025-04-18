@@ -26,4 +26,6 @@ abstract class Filesystem {
   Future<FilesystemFile?> chooseDirectory(String initialDirectory);
 
   Future<FilesystemFile?> parent(String path);
+
+  Future<FilesystemFile?> getDocumentsDirectory();
 }

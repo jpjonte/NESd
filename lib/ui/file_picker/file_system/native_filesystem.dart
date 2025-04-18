@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class NativeFilesystem extends Filesystem {
   @override
@@ -77,6 +78,17 @@ class NativeFilesystem extends Filesystem {
     return FilesystemFile(
       path: parentPath,
       name: parentPath,
+      type: FilesystemFileType.directory,
+    );
+  }
+
+  @override
+  Future<FilesystemFile> getDocumentsDirectory() async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return FilesystemFile(
+      path: directory.path,
+      name: directory.path,
       type: FilesystemFileType.directory,
     );
   }
