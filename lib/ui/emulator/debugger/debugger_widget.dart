@@ -47,7 +47,7 @@ class DebuggerWidget extends HookConsumerWidget {
     final state = ref.watch(debuggerNotifierProvider);
 
     ref.listen(debuggerNotifierProvider, (old, state) {
-      if (!state.enabled) {
+      if (!state.enabled || old?.PC == state.PC) {
         return;
       }
 
