@@ -13,8 +13,8 @@ import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -94,13 +94,12 @@ class OpenRomButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(nesControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
-    final filesystem = ref.watch(fileSystemProvider);
+    final filesystem = ref.watch(filesystemProvider);
 
     return Center(
       child: NesdButton(
         onPressed: () async {
-          final settings = ref.watch(settingsControllerProvider);
-          final directory = await _getRomPath(filesystem, settings);
+          final directory = await _getRomPath(filesystem, settingsController);
 
           if (directory == null) {
             return;
@@ -113,7 +112,7 @@ class OpenRomButton extends ConsumerWidget {
           final file = await AutoRouter.of(context).push<FilesystemFile?>(
             FilePickerRoute(
               title: 'Select a ROM',
-              initialDirectory: directory.path,
+              initialDirectory: directory,
               type: FilePickerType.file,
               allowedExtensions: const ['.nes', '.zip'],
               onChangeDirectory: (directory) {
@@ -131,34 +130,44 @@ class OpenRomButton extends ConsumerWidget {
     );
   }
 
-  Future<Directory?> _getRomPath(
+  Future<FilesystemFile?> _getRomPath(
     Filesystem filesystem,
-    Settings settings,
+    SettingsController settingsController,
   ) async {
-    final lastRomPath = settings.lastRomPath;
+    final lastRomPath = settingsController.lastRomPath;
 
-    if (lastRomPath == null) {
-      final path = await filesystem.chooseDirectory('');
+    try {
+      if (lastRomPath == null) {
+        final result = await filesystem.chooseDirectory('');
 
-      if (path == null) {
-        return null;
+        if (result == null) {
+          return null;
+        }
+
+        return result;
       }
 
-      return Directory(path);
-    }
+      if (!(await filesystem.isDirectory(lastRomPath)) &&
+          !(await filesystem.exists(lastRomPath))) {
+        final result = await filesystem.chooseDirectory('');
 
-    if (!(await filesystem.isDirectory(lastRomPath)) &&
-        !(await filesystem.exists(lastRomPath))) {
-      final path = await filesystem.chooseDirectory('');
+        if (result == null) {
+          return null;
+        }
 
-      if (path == null) {
-        return null;
+        return result;
       }
+    } on NesdException {
+      settingsController.lastRomPath = null;
 
-      return Directory(path);
+      return null;
     }
 
-    return Directory(lastRomPath);
+    return FilesystemFile(
+      path: lastRomPath,
+      name: '',
+      type: FilesystemFileType.directory,
+    );
   }
 }
 
