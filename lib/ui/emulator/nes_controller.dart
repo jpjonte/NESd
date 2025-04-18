@@ -18,8 +18,8 @@ import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/zip_file_system.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -62,7 +62,7 @@ NesController nesController(Ref ref) {
     settingsController: ref.read(settingsControllerProvider.notifier),
     toaster: ref.watch(toasterProvider),
     romManager: ref.watch(romManagerProvider),
-    fileSystem: ref.read(fileSystemProvider),
+    filesystem: ref.read(filesystemProvider),
     database: ref.watch(databaseProvider),
   );
 
@@ -109,7 +109,7 @@ class NesController {
     required this.settingsController,
     required this.toaster,
     required this.romManager,
-    required this.fileSystem,
+    required this.filesystem,
     required this.database,
   }) {
     _lifecycleListener = AppLifecycleListener(
@@ -138,7 +138,7 @@ class NesController {
 
   final RomManager romManager;
 
-  final FileSystem fileSystem;
+  final Filesystem filesystem;
 
   final NesDatabase database;
 
@@ -183,11 +183,11 @@ class NesController {
 
   Future<Uint8List> _readFile(String path) async {
     final data = await switch (path.contains(':') && path.contains('.zip')) {
-      true => ZipFileSystem(
+      true => ZipFilesystem(
         path: path.split(':').first,
-        zipData: await fileSystem.read(path.split(':').first),
+        zipData: await filesystem.read(path.split(':').first),
       ).read(path.split(':').last),
-      false => fileSystem.read(path),
+      false => filesystem.read(path),
     };
 
     return data;

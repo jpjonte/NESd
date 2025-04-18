@@ -1,17 +1,17 @@
 import 'dart:typed_data';
 
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // This won't be called in normal operation, so we ignore it
 // coverage:ignore-start
-final fileSystemProvider = Provider<FileSystem>((ref) {
+final filesystemProvider = Provider<Filesystem>((ref) {
   throw UnimplementedError();
 });
 // coverage:ignore-end
 
-abstract class FileSystem {
-  Future<(String, List<FileSystemFile>)> list(String path);
+abstract class Filesystem {
+  Future<List<FilesystemFile>> list(String path);
 
   Future<Uint8List> read(String path);
 
@@ -21,5 +21,9 @@ abstract class FileSystem {
 
   Future<bool> isDirectory(String path);
 
-  Future<String?> chooseDirectory(String initialDirectory);
+  Future<bool> hasPermission(String path);
+
+  Future<FilesystemFile?> chooseDirectory(String initialDirectory);
+
+  Future<FilesystemFile?> parent(String path);
 }

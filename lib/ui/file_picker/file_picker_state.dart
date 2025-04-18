@@ -1,4 +1,4 @@
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 sealed class FilePickerState {}
 
@@ -15,5 +15,5 @@ class FilePickerData extends FilePickerState {
 
   final String path;
 
-  final List<FileSystemFile> files;
+  final List<FilesystemFile> files;
 }

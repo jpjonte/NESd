@@ -17,7 +17,6 @@ import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'main_menu.g.dart';
@@ -103,11 +102,15 @@ class OpenRomButton extends ConsumerWidget {
           final settings = ref.watch(settingsControllerProvider);
           final directory = await _getRomPath(filesystem, settings);
 
+          if (directory == null) {
+            return;
+          }
+
           if (!context.mounted) {
             return;
           }
 
-          final file = await AutoRouter.of(context).push<FileSystemFile?>(
+          final file = await AutoRouter.of(context).push<FilesystemFile?>(
             FilePickerRoute(
               title: 'Select a ROM',
               initialDirectory: directory.path,
@@ -128,19 +131,31 @@ class OpenRomButton extends ConsumerWidget {
     );
   }
 
-  Future<Directory> _getRomPath(
-    FileSystem filesystem,
+  Future<Directory?> _getRomPath(
+    Filesystem filesystem,
     Settings settings,
   ) async {
     final lastRomPath = settings.lastRomPath;
 
     if (lastRomPath == null) {
-      return getApplicationDocumentsDirectory();
+      final path = await filesystem.chooseDirectory('');
+
+      if (path == null) {
+        return null;
+      }
+
+      return Directory(path);
     }
 
     if (!(await filesystem.isDirectory(lastRomPath)) &&
         !(await filesystem.exists(lastRomPath))) {
-      return getApplicationDocumentsDirectory();
+      final path = await filesystem.chooseDirectory('');
+
+      if (path == null) {
+        return null;
+      }
+
+      return Directory(path);
     }
 
     return Directory(lastRomPath);

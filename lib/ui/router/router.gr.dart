@@ -15,10 +15,10 @@ part of 'router.dart';
 class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
   FilePickerRoute({
     required String title,
-    required String initialDirectory,
+    required FilesystemFile initialDirectory,
     required FilePickerType type,
     List<String> allowedExtensions = const [],
-    void Function(Directory)? onChangeDirectory,
+    void Function(FilesystemFile)? onChangeDirectory,
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
@@ -64,13 +64,13 @@ class FilePickerRouteArgs {
 
   final String title;
 
-  final String initialDirectory;
+  final FilesystemFile initialDirectory;
 
   final FilePickerType type;
 
   final List<String> allowedExtensions;
 
-  final void Function(Directory)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   final Key? key;
 

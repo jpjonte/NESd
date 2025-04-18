@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/emulator/main_screen.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/menu/menu_screen.dart';
 import 'package:nesd/ui/save_states/save_states_screen.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_screen.dart';

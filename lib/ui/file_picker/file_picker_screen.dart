@@ -10,8 +10,8 @@ import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system.dart';
-import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
@@ -29,10 +29,10 @@ class FilePickerScreen extends HookConsumerWidget {
   });
 
   final String title;
-  final String initialDirectory;
+  final FilesystemFile initialDirectory;
   final FilePickerType type;
   final List<String> allowedExtensions;
-  final void Function(Directory)? onChangeDirectory;
+  final void Function(FilesystemFile)? onChangeDirectory;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,7 +53,7 @@ class FilePickerScreen extends HookConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final file = state.files.first;
 
-        if (file.type == FileSystemFileType.file) {
+        if (file.type == FilesystemFileType.file) {
           context.router.maybePop(file);
         }
       });
@@ -93,7 +93,7 @@ class FilePicker extends StatelessWidget {
 
   final String title;
   final String path;
-  final List<FileSystemFile> files;
+  final List<FilesystemFile> files;
   final List<String> allowedExtensions;
   final void Function(Directory p1)? onChangeDirectory;
 
@@ -187,7 +187,7 @@ class FileList extends HookConsumerWidget {
   });
 
   final String path;
-  final List<FileSystemFile> files;
+  final List<FilesystemFile> files;
   final List<String> allowedExtensions;
   final void Function(Directory p1)? onChangeDirectory;
 
@@ -235,12 +235,12 @@ class FileList extends HookConsumerWidget {
 
               return FileTile(
                 enabled:
-                    file.type == FileSystemFileType.directory ||
+                    file.type == FilesystemFileType.directory ||
                     allowedExtensions.isEmpty ||
                     allowedExtensions.contains(
                       p.extension(file.path).toLowerCase(),
                     ),
-                isDirectory: file.type == FileSystemFileType.directory,
+                isDirectory: file.type == FilesystemFileType.directory,
                 file: file,
                 fileIsZip: p.extension(file.path) == '.zip',
                 onChangeDirectory: onChangeDirectory,
@@ -293,7 +293,7 @@ class FileTile extends ConsumerWidget {
 
   final bool isDirectory;
   final bool enabled;
-  final FileSystemFile file;
+  final FilesystemFile file;
   final bool fileIsZip;
   final void Function(Directory p1)? onChangeDirectory;
 

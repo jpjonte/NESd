@@ -1,3 +1,4 @@
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system.dart';
 import 'package:nesd/ui/file_picker/file_system/file_system_file.dart';
@@ -35,7 +36,7 @@ FilePickerController filePickerController(Ref ref) {
 class FilePickerController {
   FilePickerController({required this.filesystem, required this.notifier});
 
-  final FileSystem filesystem;
+  final Filesystem filesystem;
   final FilePickerNotifier notifier;
 
   String? _filter;
@@ -52,16 +53,20 @@ class FilePickerController {
   Future<void> go(String path) async {
     notifier.update(FilePickerLoading());
 
-    if (p.extension(path) == '.zip') {
-      _listFilesFromZip(path);
+    try {
+      if (p.extension(path) == '.zip') {
+        _listFilesFromZip(path);
 
-      return;
-    }
+        return;
+      }
 
-    if (await filesystem.isDirectory(path)) {
-      _listFilesFromDirectory(path);
+      if (await filesystem.isDirectory(path)) {
+        _listFilesFromDirectory(path);
 
-      return;
+        return;
+      }
+    } on NesdException catch (e) {
+      notifier.update(FilePickerError(e.message));
     }
 
     notifier.update(
@@ -71,7 +76,7 @@ class FilePickerController {
 
   Future<void> _listFilesFromZip(String path) async {
     final zipData = await filesystem.read(path);
-    final zipFileSystem = ZipFileSystem(path: path, zipData: zipData);
+    final zipFileSystem = ZipFilesystem(path: path, zipData: zipData);
 
     _listFilesFromFileSystem(zipFileSystem, path);
   }
@@ -81,7 +86,7 @@ class FilePickerController {
   }
 
   Future<void> _listFilesFromFileSystem(
-    FileSystem filesystem,
+    Filesystem filesystem,
     String path,
   ) async {
     final (resultPath, allFiles) = await filesystem.list(path);
@@ -108,11 +113,11 @@ class FilePickerController {
             final aType = a.type;
             final bType = b.type;
 
-            if (aType == FileSystemFileType.directory &&
-                bType != FileSystemFileType.directory) {
+            if (aType == FilesystemFileType.directory &&
+                bType != FilesystemFileType.directory) {
               return -1;
-            } else if (aType != FileSystemFileType.directory &&
-                bType == FileSystemFileType.directory) {
+            } else if (aType != FilesystemFileType.directory &&
+                bType == FilesystemFileType.directory) {
               return 1;
             }
 
