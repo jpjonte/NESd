@@ -108,10 +108,10 @@ class ActionHandler {
 
   void handleActionDown(InputAction action) {
     if (action is OpenMenu) {
-      if (_currentRoute == MainRoute.name) {
+      if (_currentRoute == EmulatorRoute.name) {
         router.navigate(const MenuRoute());
       } else {
-        router.navigate(const MainRoute());
+        router.navigate(const EmulatorRoute());
       }
 
       return;

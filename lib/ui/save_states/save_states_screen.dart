@@ -92,7 +92,7 @@ class SaveStatesScreen extends HookConsumerWidget {
                     onPressed: () {
                       controller.save(saveRomTileData);
 
-                      ref.read(routerProvider).navigate(const MainRoute());
+                      ref.read(routerProvider).navigate(const EmulatorRoute());
                     },
                   ),
                 for (final romTileData in states)
