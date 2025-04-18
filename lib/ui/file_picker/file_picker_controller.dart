@@ -128,7 +128,7 @@ class FilePickerController {
     } on NesdException catch (e) {
       notifier.update(FilePickerError(e.message));
 
-      if (directory.path == settingsController.lastRomPath) {
+      if (directory.path == settingsController.lastRomPath?.path) {
         settingsController.lastRomPath = null;
       }
     }
@@ -150,7 +150,7 @@ class FilePickerController {
     } on NesdException catch (e) {
       notifier.update(FilePickerError(e.message));
 
-      if (directory.path == settingsController.lastRomPath) {
+      if (directory.path == settingsController.lastRomPath?.path) {
         settingsController.lastRomPath = null;
       }
 

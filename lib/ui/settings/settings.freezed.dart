@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Settings {
 
- double get volume; bool get stretch; bool get showBorder; bool get showTiles; bool get showCartridgeInfo; bool get showDebugOverlay; bool get showDebugger; Scaling get scaling; bool get autoSave; int? get autoSaveInterval; bool get autoLoad;@JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson) Map<InputAction, List<InputCombination?>> get bindings; String? get lastRomPath; List<String> get recentRomPaths; List<RomInfo> get recentRoms; bool get showTouchControls;@JsonKey(fromJson: narrowTouchInputConfigsFromJson) List<TouchInputConfig> get narrowTouchInputConfig;@JsonKey(fromJson: wideTouchInputConfigsFromJson) List<TouchInputConfig> get wideTouchInputConfig; Map<String, List<Breakpoint>> get breakpoints; Region? get region;
+ double get volume; bool get stretch; bool get showBorder; bool get showTiles; bool get showCartridgeInfo; bool get showDebugOverlay; bool get showDebugger; Scaling get scaling; bool get autoSave; int? get autoSaveInterval; bool get autoLoad;@JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson) Map<InputAction, List<InputCombination?>> get bindings;@JsonKey(fromJson: _lastRomPathFromJson) FilesystemFile? get lastRomPath; List<String> get recentRomPaths;@JsonKey(fromJson: _recentRomsFromJson) List<RomInfo> get recentRoms; bool get showTouchControls;@JsonKey(fromJson: _narrowTouchInputConfigsFromJson) List<TouchInputConfig> get narrowTouchInputConfig;@JsonKey(fromJson: _wideTouchInputConfigsFromJson) List<TouchInputConfig> get wideTouchInputConfig; Map<String, List<Breakpoint>> get breakpoints; Region? get region;
 /// Create a copy of Settings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $SettingsCopyWith<$Res>  {
   factory $SettingsCopyWith(Settings value, $Res Function(Settings) _then) = _$SettingsCopyWithImpl;
 @useResult
 $Res call({
- double volume, bool stretch, bool showBorder, bool showTiles, bool showCartridgeInfo, bool showDebugOverlay, bool showDebugger, Scaling scaling, bool autoSave, int? autoSaveInterval, bool autoLoad,@JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson) Map<InputAction, List<InputCombination?>> bindings, String? lastRomPath, List<String> recentRomPaths, List<RomInfo> recentRoms, bool showTouchControls,@JsonKey(fromJson: narrowTouchInputConfigsFromJson) List<TouchInputConfig> narrowTouchInputConfig,@JsonKey(fromJson: wideTouchInputConfigsFromJson) List<TouchInputConfig> wideTouchInputConfig, Map<String, List<Breakpoint>> breakpoints, Region? region
+ double volume, bool stretch, bool showBorder, bool showTiles, bool showCartridgeInfo, bool showDebugOverlay, bool showDebugger, Scaling scaling, bool autoSave, int? autoSaveInterval, bool autoLoad,@JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson) Map<InputAction, List<InputCombination?>> bindings,@JsonKey(fromJson: _lastRomPathFromJson) FilesystemFile? lastRomPath, List<String> recentRomPaths,@JsonKey(fromJson: _recentRomsFromJson) List<RomInfo> recentRoms, bool showTouchControls,@JsonKey(fromJson: _narrowTouchInputConfigsFromJson) List<TouchInputConfig> narrowTouchInputConfig,@JsonKey(fromJson: _wideTouchInputConfigsFromJson) List<TouchInputConfig> wideTouchInputConfig, Map<String, List<Breakpoint>> breakpoints, Region? region
 });
 
 
@@ -81,7 +81,7 @@ as bool,autoSaveInterval: freezed == autoSaveInterval ? _self.autoSaveInterval :
 as int?,autoLoad: null == autoLoad ? _self.autoLoad : autoLoad // ignore: cast_nullable_to_non_nullable
 as bool,bindings: null == bindings ? _self.bindings : bindings // ignore: cast_nullable_to_non_nullable
 as Map<InputAction, List<InputCombination?>>,lastRomPath: freezed == lastRomPath ? _self.lastRomPath : lastRomPath // ignore: cast_nullable_to_non_nullable
-as String?,recentRomPaths: null == recentRomPaths ? _self.recentRomPaths : recentRomPaths // ignore: cast_nullable_to_non_nullable
+as FilesystemFile?,recentRomPaths: null == recentRomPaths ? _self.recentRomPaths : recentRomPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,recentRoms: null == recentRoms ? _self.recentRoms : recentRoms // ignore: cast_nullable_to_non_nullable
 as List<RomInfo>,showTouchControls: null == showTouchControls ? _self.showTouchControls : showTouchControls // ignore: cast_nullable_to_non_nullable
 as bool,narrowTouchInputConfig: null == narrowTouchInputConfig ? _self.narrowTouchInputConfig : narrowTouchInputConfig // ignore: cast_nullable_to_non_nullable
@@ -99,7 +99,7 @@ as Region?,
 @JsonSerializable()
 
 class _Settings implements Settings {
-   _Settings({this.volume = 1.0, this.stretch = true, this.showBorder = false, this.showTiles = false, this.showCartridgeInfo = false, this.showDebugOverlay = false, this.showDebugger = false, this.scaling = Scaling.autoInteger, this.autoSave = true, this.autoSaveInterval = 1, this.autoLoad = false, @JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson) final  Map<InputAction, List<InputCombination?>> bindings = const {}, this.lastRomPath = null, final  List<String> recentRomPaths = const [], final  List<RomInfo> recentRoms = const [], this.showTouchControls = false, @JsonKey(fromJson: narrowTouchInputConfigsFromJson) final  List<TouchInputConfig> narrowTouchInputConfig = const [], @JsonKey(fromJson: wideTouchInputConfigsFromJson) final  List<TouchInputConfig> wideTouchInputConfig = const [], final  Map<String, List<Breakpoint>> breakpoints = const {}, this.region = null}): _bindings = bindings,_recentRomPaths = recentRomPaths,_recentRoms = recentRoms,_narrowTouchInputConfig = narrowTouchInputConfig,_wideTouchInputConfig = wideTouchInputConfig,_breakpoints = breakpoints;
+   _Settings({this.volume = 1.0, this.stretch = true, this.showBorder = false, this.showTiles = false, this.showCartridgeInfo = false, this.showDebugOverlay = false, this.showDebugger = false, this.scaling = Scaling.autoInteger, this.autoSave = true, this.autoSaveInterval = 1, this.autoLoad = false, @JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson) final  Map<InputAction, List<InputCombination?>> bindings = const {}, @JsonKey(fromJson: _lastRomPathFromJson) this.lastRomPath = null, final  List<String> recentRomPaths = const [], @JsonKey(fromJson: _recentRomsFromJson) final  List<RomInfo> recentRoms = const [], this.showTouchControls = false, @JsonKey(fromJson: _narrowTouchInputConfigsFromJson) final  List<TouchInputConfig> narrowTouchInputConfig = const [], @JsonKey(fromJson: _wideTouchInputConfigsFromJson) final  List<TouchInputConfig> wideTouchInputConfig = const [], final  Map<String, List<Breakpoint>> breakpoints = const {}, this.region = null}): _bindings = bindings,_recentRomPaths = recentRomPaths,_recentRoms = recentRoms,_narrowTouchInputConfig = narrowTouchInputConfig,_wideTouchInputConfig = wideTouchInputConfig,_breakpoints = breakpoints;
   factory _Settings.fromJson(Map<String, dynamic> json) => _$SettingsFromJson(json);
 
 @override@JsonKey() final  double volume;
@@ -114,13 +114,13 @@ class _Settings implements Settings {
 @override@JsonKey() final  int? autoSaveInterval;
 @override@JsonKey() final  bool autoLoad;
  final  Map<InputAction, List<InputCombination?>> _bindings;
-@override@JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson) Map<InputAction, List<InputCombination?>> get bindings {
+@override@JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson) Map<InputAction, List<InputCombination?>> get bindings {
   if (_bindings is EqualUnmodifiableMapView) return _bindings;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_bindings);
 }
 
-@override@JsonKey() final  String? lastRomPath;
+@override@JsonKey(fromJson: _lastRomPathFromJson) final  FilesystemFile? lastRomPath;
  final  List<String> _recentRomPaths;
 @override@JsonKey() List<String> get recentRomPaths {
   if (_recentRomPaths is EqualUnmodifiableListView) return _recentRomPaths;
@@ -129,7 +129,7 @@ class _Settings implements Settings {
 }
 
  final  List<RomInfo> _recentRoms;
-@override@JsonKey() List<RomInfo> get recentRoms {
+@override@JsonKey(fromJson: _recentRomsFromJson) List<RomInfo> get recentRoms {
   if (_recentRoms is EqualUnmodifiableListView) return _recentRoms;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_recentRoms);
@@ -137,14 +137,14 @@ class _Settings implements Settings {
 
 @override@JsonKey() final  bool showTouchControls;
  final  List<TouchInputConfig> _narrowTouchInputConfig;
-@override@JsonKey(fromJson: narrowTouchInputConfigsFromJson) List<TouchInputConfig> get narrowTouchInputConfig {
+@override@JsonKey(fromJson: _narrowTouchInputConfigsFromJson) List<TouchInputConfig> get narrowTouchInputConfig {
   if (_narrowTouchInputConfig is EqualUnmodifiableListView) return _narrowTouchInputConfig;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_narrowTouchInputConfig);
 }
 
  final  List<TouchInputConfig> _wideTouchInputConfig;
-@override@JsonKey(fromJson: wideTouchInputConfigsFromJson) List<TouchInputConfig> get wideTouchInputConfig {
+@override@JsonKey(fromJson: _wideTouchInputConfigsFromJson) List<TouchInputConfig> get wideTouchInputConfig {
   if (_wideTouchInputConfig is EqualUnmodifiableListView) return _wideTouchInputConfig;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_wideTouchInputConfig);
@@ -192,7 +192,7 @@ abstract mixin class _$SettingsCopyWith<$Res> implements $SettingsCopyWith<$Res>
   factory _$SettingsCopyWith(_Settings value, $Res Function(_Settings) _then) = __$SettingsCopyWithImpl;
 @override @useResult
 $Res call({
- double volume, bool stretch, bool showBorder, bool showTiles, bool showCartridgeInfo, bool showDebugOverlay, bool showDebugger, Scaling scaling, bool autoSave, int? autoSaveInterval, bool autoLoad,@JsonKey(fromJson: bindingsFromJson, toJson: bindingsToJson) Map<InputAction, List<InputCombination?>> bindings, String? lastRomPath, List<String> recentRomPaths, List<RomInfo> recentRoms, bool showTouchControls,@JsonKey(fromJson: narrowTouchInputConfigsFromJson) List<TouchInputConfig> narrowTouchInputConfig,@JsonKey(fromJson: wideTouchInputConfigsFromJson) List<TouchInputConfig> wideTouchInputConfig, Map<String, List<Breakpoint>> breakpoints, Region? region
+ double volume, bool stretch, bool showBorder, bool showTiles, bool showCartridgeInfo, bool showDebugOverlay, bool showDebugger, Scaling scaling, bool autoSave, int? autoSaveInterval, bool autoLoad,@JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson) Map<InputAction, List<InputCombination?>> bindings,@JsonKey(fromJson: _lastRomPathFromJson) FilesystemFile? lastRomPath, List<String> recentRomPaths,@JsonKey(fromJson: _recentRomsFromJson) List<RomInfo> recentRoms, bool showTouchControls,@JsonKey(fromJson: _narrowTouchInputConfigsFromJson) List<TouchInputConfig> narrowTouchInputConfig,@JsonKey(fromJson: _wideTouchInputConfigsFromJson) List<TouchInputConfig> wideTouchInputConfig, Map<String, List<Breakpoint>> breakpoints, Region? region
 });
 
 
@@ -224,7 +224,7 @@ as bool,autoSaveInterval: freezed == autoSaveInterval ? _self.autoSaveInterval :
 as int?,autoLoad: null == autoLoad ? _self.autoLoad : autoLoad // ignore: cast_nullable_to_non_nullable
 as bool,bindings: null == bindings ? _self._bindings : bindings // ignore: cast_nullable_to_non_nullable
 as Map<InputAction, List<InputCombination?>>,lastRomPath: freezed == lastRomPath ? _self.lastRomPath : lastRomPath // ignore: cast_nullable_to_non_nullable
-as String?,recentRomPaths: null == recentRomPaths ? _self._recentRomPaths : recentRomPaths // ignore: cast_nullable_to_non_nullable
+as FilesystemFile?,recentRomPaths: null == recentRomPaths ? _self._recentRomPaths : recentRomPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,recentRoms: null == recentRoms ? _self._recentRoms : recentRoms // ignore: cast_nullable_to_non_nullable
 as List<RomInfo>,showTouchControls: null == showTouchControls ? _self.showTouchControls : showTouchControls // ignore: cast_nullable_to_non_nullable
 as bool,narrowTouchInputConfig: null == narrowTouchInputConfig ? _self._narrowTouchInputConfig : narrowTouchInputConfig // ignore: cast_nullable_to_non_nullable

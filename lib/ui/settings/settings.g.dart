@@ -21,27 +21,29 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
   autoLoad: json['autoLoad'] as bool? ?? false,
   bindings:
-      json['bindings'] == null ? const {} : bindingsFromJson(json['bindings']),
-  lastRomPath: json['lastRomPath'] as String? ?? null,
+      json['bindings'] == null ? const {} : _bindingsFromJson(json['bindings']),
+  lastRomPath:
+      json['lastRomPath'] == null
+          ? null
+          : _lastRomPathFromJson(json['lastRomPath']),
   recentRomPaths:
       (json['recentRomPaths'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
       const [],
   recentRoms:
-      (json['recentRoms'] as List<dynamic>?)
-          ?.map((e) => RomInfo.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
+      json['recentRoms'] == null
+          ? const []
+          : _recentRomsFromJson(json['recentRoms'] as List),
   showTouchControls: json['showTouchControls'] as bool? ?? false,
   narrowTouchInputConfig:
       json['narrowTouchInputConfig'] == null
           ? const []
-          : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
+          : _narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
   wideTouchInputConfig:
       json['wideTouchInputConfig'] == null
           ? const []
-          : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
+          : _wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
   breakpoints:
       (json['breakpoints'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -67,7 +69,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'autoSave': instance.autoSave,
   'autoSaveInterval': instance.autoSaveInterval,
   'autoLoad': instance.autoLoad,
-  'bindings': bindingsToJson(instance.bindings),
+  'bindings': _bindingsToJson(instance.bindings),
   'lastRomPath': instance.lastRomPath,
   'recentRomPaths': instance.recentRomPaths,
   'recentRoms': instance.recentRoms,
@@ -94,7 +96,7 @@ const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'905e00efb7623b89ffe5799bf4d0bfe4de22bec3';
+    r'2ef0147cde3afcf4872f0c29cb4dc14cf90c2bb4';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

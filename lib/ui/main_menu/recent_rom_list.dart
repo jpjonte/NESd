@@ -75,7 +75,7 @@ class RecentRomList extends HookConsumerWidget {
             RomTile(
               onPressed: () async {
                 final success = await controller.loadRom(
-                  romTileData.romInfo.path!,
+                  romTileData.romInfo.file,
                 );
 
                 if (success || !context.mounted) {
@@ -92,7 +92,7 @@ class RecentRomList extends HookConsumerWidget {
                       children: [
                         const TextSpan(text: 'The ROM '),
                         TextSpan(
-                          text: romTileData.romInfo.path,
+                          text: romTileData.romInfo.file.name,
                           style: DefaultTextStyle.of(context).style.copyWith(
                             fontVariations: const [FontVariation.weight(900)],
                           ),

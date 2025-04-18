@@ -16,6 +16,7 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/main_menu/recent_rom_list.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'main_menu.g.dart';
@@ -47,7 +48,15 @@ class MainMenu extends HookConsumerWidget {
     ref.listen(initialRomProvider, (_, initialRom) {
       if (initialRom != null) {
         scheduleMicrotask(() {
-          ref.read(nesControllerProvider).loadRom(initialRom);
+          ref
+              .read(nesControllerProvider)
+              .loadRom(
+                FilesystemFile(
+                  path: initialRom,
+                  name: p.basename(initialRom),
+                  type: FilesystemFileType.file,
+                ),
+              );
           ref.read(routerProvider).navigate(const EmulatorRoute());
           ref.read(initialRomProvider.notifier).clear();
         });
@@ -107,15 +116,13 @@ class OpenRomButton extends ConsumerWidget {
               initialDirectory: directory,
               type: FilePickerType.file,
               allowedExtensions: const ['.nes', '.zip'],
-              // TODO store whole FilesystemFile in settings
               onChangeDirectory:
-                  (directory) =>
-                      settingsController.lastRomPath = directory.path,
+                  (directory) => settingsController.lastRomPath = directory,
             ),
           );
 
           if (file != null) {
-            controller.loadRom(file.path);
+            controller.loadRom(file);
             ref.read(routerProvider).navigate(const EmulatorRoute());
           }
         },
@@ -141,8 +148,8 @@ class OpenRomButton extends ConsumerWidget {
         return result;
       }
 
-      if (!(await filesystem.isDirectory(lastRomPath)) &&
-          !(await filesystem.exists(lastRomPath))) {
+      if (!(await filesystem.isDirectory(lastRomPath.path)) &&
+          !(await filesystem.exists(lastRomPath.path))) {
         final result = await filesystem.getDocumentsDirectory();
 
         if (result == null) {
@@ -157,11 +164,7 @@ class OpenRomButton extends ConsumerWidget {
       return null;
     }
 
-    return FilesystemFile(
-      path: lastRomPath,
-      name: '',
-      type: FilesystemFileType.directory,
-    );
+    return lastRomPath;
   }
 }
 

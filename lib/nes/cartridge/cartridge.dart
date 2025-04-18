@@ -6,7 +6,7 @@ import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:path/path.dart' as p;
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
@@ -41,7 +41,7 @@ class Cartridge {
     mapper.cartridge = this;
   }
 
-  factory Cartridge.fromFile(String path, Uint8List rom) {
+  factory Cartridge.fromFile(FilesystemFile file, Uint8List rom) {
     if (rom[0] != 0x4E || rom[1] != 0x45 || rom[2] != 0x53 || rom[3] != 0x1A) {
       throw InvalidRomHeader(rom.sublist(0, 4));
     }
@@ -50,7 +50,7 @@ class Cartridge {
     final prg = _parsePrgRom(rom);
 
     return Cartridge._internal(
-      file: path,
+      file: file,
       rom: rom,
       prgRom: prg,
       chr: chr,
@@ -72,7 +72,7 @@ class Cartridge {
     );
   }
 
-  final String file;
+  final FilesystemFile file;
   final Uint8List rom;
   final Uint8List prgRom;
   final Uint8List chr;
@@ -113,8 +113,7 @@ class Cartridge {
   }
 
   RomInfo get romInfo => RomInfo(
-    name: p.basename(file),
-    path: file,
+    file: file,
     hash: fileHash,
     romHash: romHash,
     chrHash: chrHash,

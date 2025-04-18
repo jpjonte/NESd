@@ -7,8 +7,7 @@ part of 'rom_manager.dart';
 // **************************************************************************
 
 RomInfo _$RomInfoFromJson(Map<String, dynamic> json) => RomInfo(
-  name: json['name'] as String?,
-  path: json['path'] as String?,
+  file: FilesystemFile.fromJson(json['file'] as Map<String, dynamic>),
   hash: json['hash'] as String?,
   romHash: json['romHash'] as String?,
   chrHash: json['chrHash'] as String?,
@@ -16,8 +15,7 @@ RomInfo _$RomInfoFromJson(Map<String, dynamic> json) => RomInfo(
 );
 
 Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
-  'name': instance.name,
-  'path': instance.path,
+  'file': instance.file,
   'hash': instance.hash,
   'romHash': instance.romHash,
   'chrHash': instance.chrHash,

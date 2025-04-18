@@ -73,7 +73,7 @@ class SaveStatesScreen extends HookConsumerWidget {
     return NesdScaffold(
       appBar: AppBar(
         title: Text(
-          'Save States - ${p.basenameWithoutExtension(romInfo.name ?? '')}',
+          'Save States - ${p.basenameWithoutExtension(romInfo.file.name)}',
           style: TextStyle(
             color: Theme.of(context).colorScheme.primary,
             fontVariations: const [FontVariation.weight(700)],
@@ -100,7 +100,7 @@ class SaveStatesScreen extends HookConsumerWidget {
                     romTileData: romTileData,
                     onPressed: () {
                       nesController.loadRom(
-                        romTileData.romInfo.path ?? '',
+                        romTileData.romInfo.file,
                         state: romTileData.state,
                       );
 
