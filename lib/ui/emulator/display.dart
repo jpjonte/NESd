@@ -62,7 +62,7 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
       child: DisplayWidget(
         paused: nes.paused,
         fastForward: nes.fastForward,
-        frameBuffer: nes.ppu.frameBuffer,
+        imageFuture: convertFrameBufferToImage(nes.ppu.frameBuffer),
       ),
     );
   }
@@ -72,21 +72,20 @@ class DisplayWidget extends HookConsumerWidget {
   static const menuKey = Key('menu');
 
   const DisplayWidget({
-    required this.frameBuffer,
+    required this.imageFuture,
     this.paused = false,
     this.fastForward = false,
     super.key,
   });
 
-  final FrameBuffer frameBuffer;
+  final Future<ui.Image> imageFuture;
 
   final bool paused;
   final bool fastForward;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final future = useMemoized(() => convertFrameBufferToImage(frameBuffer));
-    final snapshot = useFuture(future);
+    final snapshot = useFuture(imageFuture);
 
     return Stack(
       children: [
