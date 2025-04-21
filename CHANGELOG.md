@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added support for rewinding to a previous state in the emulator
 - Added licenses for the used fonts
 - ROMs can now be launched directly from the command line: `NESd <path/to/rom.nes>`
 - Added an adaptive icon for Android

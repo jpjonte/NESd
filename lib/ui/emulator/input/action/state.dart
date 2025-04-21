@@ -22,6 +22,10 @@ class ToggleFastForward extends InputAction {
   const ToggleFastForward({required super.title, required super.code});
 }
 
+class ToggleRewind extends InputAction {
+  const ToggleRewind({required super.title, required super.code});
+}
+
 class DecreaseVolume extends InputAction {
   const DecreaseVolume({required super.title, required super.code});
 }
@@ -48,6 +52,11 @@ const stop = StopAction(title: 'Stop Game', code: 'state.stop');
 const toggleFastForward = ToggleFastForward(
   title: 'Toggle Fast Forward',
   code: 'state.toggleFastForward',
+);
+
+const toggleRewind = ToggleRewind(
+  title: 'Toggle Rewind',
+  code: 'state.toggleRewind',
 );
 
 const decreaseVolume = DecreaseVolume(

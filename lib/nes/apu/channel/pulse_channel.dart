@@ -127,7 +127,7 @@ class PulseChannel {
       return 0;
     }
 
-    if (dutyCycleSequences[duty].bit(7 - dutyIndex) == 0) {
+    if ((dutyCycleSequences[duty] >> (7 - dutyIndex)) & 1 == 0) {
       return 0;
     }
 

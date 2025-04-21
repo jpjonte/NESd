@@ -15,10 +15,11 @@ class NESState {
     required this.ppuState,
     required this.apuState,
     required this.cartridgeState,
-    required this.cycles,
+    // ignore: avoid_unused_constructor_parameters
+    int cycles = 0,
   });
 
-  factory NESState.fromBytes(Uint8List bytes) {
+  factory NESState.fromBytes(List<int> bytes) {
     return NESState.deserialize(Payload.read(bytes));
   }
 
@@ -67,8 +68,6 @@ class NESState {
 
   final CartridgeState cartridgeState;
 
-  final int cycles;
-
   Uint8List serialize() {
     final writer =
         Payload.write()
@@ -83,7 +82,7 @@ class NESState {
     apuState.serialize(writer);
     cartridgeState.serialize(writer);
 
-    writer.set(uint64, cycles);
+    writer.set(uint64, 0); // cycles, unused
 
     return binarize(writer);
   }

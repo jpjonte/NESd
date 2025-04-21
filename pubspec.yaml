@@ -14,6 +14,8 @@ dependencies:
   build_runner: ^2.4.10
   collection: ^1.18.0
   crypto: ^3.0.5
+  es_compression: ^2.0.14
+  ffi: ^2.1.4
   file_picker: ^10.0.0
   flutter:
     sdk: flutter

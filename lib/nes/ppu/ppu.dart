@@ -127,27 +127,28 @@ class PPU {
   int get t_fineY => (t >> 12) & 0x7;
 
   int get PPUCTRL_N => PPUCTRL & 0x3; // nametable address
-  int get PPUCTRL_I => PPUCTRL.bit(2); // VRAM address increment
-  int get PPUCTRL_S => PPUCTRL.bit(3); // sprite pattern table address (8x8)
-  int get PPUCTRL_B => PPUCTRL.bit(4); // background pattern table address
-  int get PPUCTRL_H => PPUCTRL.bit(5); // sprite size
-  int get PPUCTRL_V => PPUCTRL.bit(7); // enable vblank NMI
+  int get PPUCTRL_I => (PPUCTRL >> 2) & 1; // VRAM address increment
+  int get PPUCTRL_S => (PPUCTRL >> 3) & 1; // sprite pattern table address (8x8)
+  int get PPUCTRL_B => (PPUCTRL >> 4) & 1; // background pattern table address
+  int get PPUCTRL_H => (PPUCTRL >> 5) & 1; // sprite size
+  int get PPUCTRL_V => (PPUCTRL >> 7) & 1; // enable vblank NMI
 
-  int get PPUCTRL_X => PPUCTRL.bit(0); // scroll X high bit
-  int get PPUCTRL_Y => PPUCTRL.bit(1); // scroll Y high bit
+  int get PPUCTRL_X => PPUCTRL & 1; // scroll X high bit
+  int get PPUCTRL_Y => (PPUCTRL >> 1) & 1; // scroll Y high bit
 
-  int get PPUMASK_Gr => PPUMASK.bit(0); // greyscale
-  int get PPUMASK_m => PPUMASK.bit(1); // show background in leftmost 8 pixels
-  int get PPUMASK_M => PPUMASK.bit(2); // show sprites in leftmost 8 pixels
-  int get PPUMASK_b => PPUMASK.bit(3); // show background
-  int get PPUMASK_s => PPUMASK.bit(4); // show sprites
-  int get PPUMASK_ER => PPUMASK.bit(5); // emphasize red
-  int get PPUMASK_EG => PPUMASK.bit(6); // emphasize green
-  int get PPUMASK_EB => PPUMASK.bit(7); // emphasize blue
+  int get PPUMASK_Gr => PPUMASK & 1; // greyscale
+  int get PPUMASK_m =>
+      (PPUMASK >> 1) & 1; // show background in leftmost 8 pixels
+  int get PPUMASK_M => (PPUMASK >> 2) & 1; // show sprites in leftmost 8 pixels
+  int get PPUMASK_b => (PPUMASK >> 3) & 1; // show background
+  int get PPUMASK_s => (PPUMASK >> 4) & 1; // show sprites
+  int get PPUMASK_ER => (PPUMASK >> 5) & 1; // emphasize red
+  int get PPUMASK_EG => (PPUMASK >> 6) & 1; // emphasize green
+  int get PPUMASK_EB => (PPUMASK >> 7) & 1; // emphasize blue
 
-  int get PPUSTATUS_O => PPUSTATUS.bit(5); // sprite overflow
-  int get PPUSTATUS_S => PPUSTATUS.bit(6); // sprite 0 hit
-  int get PPUSTATUS_V => PPUSTATUS.bit(7); // vblank active
+  int get PPUSTATUS_O => (PPUSTATUS >> 5) & 1; // sprite overflow
+  int get PPUSTATUS_S => (PPUSTATUS >> 6) & 1; // sprite 0 hit
+  int get PPUSTATUS_V => (PPUSTATUS >> 7) & 1; // vblank active
 
   set PPUSTATUS_O(int value) => PPUSTATUS = PPUSTATUS.setBit(5, value);
   set PPUSTATUS_S(int value) => PPUSTATUS = PPUSTATUS.setBit(6, value);
@@ -739,13 +740,14 @@ class PPU {
       }
 
       final attribute = spriteOutput.attribute;
-      final flipH = attribute.bit(6);
+      final flipH = (attribute >> 6) & 1;
 
       final fineX = flipH == 1 ? xOffset : 7 - xOffset;
 
       final patternLow = spriteOutput.patternLow;
       final patternHigh = spriteOutput.patternHigh;
-      final pattern = (patternHigh.bit(fineX) << 1) | patternLow.bit(fineX);
+      final pattern =
+          (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
 
       if (pattern == 0) {
         continue;
@@ -760,7 +762,7 @@ class PPU {
         PPUSTATUS_S = 1;
       }
 
-      final priority = attribute.bit(5);
+      final priority = (attribute >> 5) & 1;
       final palette = attribute & 0x3;
 
       return priority << 4 | palette << 2 | pattern;
@@ -780,8 +782,8 @@ class PPU {
     attributeTableHighShift <<= 1;
     attributeTableLowShift <<= 1;
 
-    attributeTableHighShift |= attribute.bit(1);
-    attributeTableLowShift |= attribute.bit(0);
+    attributeTableHighShift |= (attribute >> 1) & 1;
+    attributeTableLowShift |= attribute & 1;
   }
 
   void _fetchNametable() {
@@ -1009,7 +1011,7 @@ class PPU {
 
     final tileIndex = secondaryOam[sprite * 4 + 1];
     final attribute = _spriteOutputs[sprite].attribute;
-    final flipV = attribute.bit(7) == 1;
+    final flipV = (attribute >> 7) > 0;
 
     final y = secondaryOam[sprite * 4];
     final yOffset = scanline - y;
@@ -1020,7 +1022,7 @@ class PPU {
     final tile =
         bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
 
-    final patternTable = bigSprites ? tileIndex.bit(0) : PPUCTRL_S;
+    final patternTable = bigSprites ? (tileIndex & 1) : PPUCTRL_S;
     final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
 
     final lowAddress = patternTable << 12 | tile << 4 | fineY + addressOffset;

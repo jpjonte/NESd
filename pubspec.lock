@@ -273,6 +273,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  es_compression:
+    dependency: "direct main"
+    description:
+      name: es_compression
+      sha256: "174d2cee4e182d1a8df92712eaa6ee56a0adf83d4b8a14838c66380caa4e65a7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.14"
   fake_async:
     dependency: transitive
     description:
@@ -282,7 +290,7 @@ packages:
     source: hosted
     version: "1.3.2"
   ffi:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: ffi
       sha256: "289279317b4b16eb2bb7e271abccd4bf84ec9bdcbe999e278a94b804f5630418"

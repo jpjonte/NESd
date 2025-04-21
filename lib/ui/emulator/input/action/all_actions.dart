@@ -23,6 +23,7 @@ const emulatorActions = [
   togglePause,
   stop,
   toggleFastForward,
+  toggleRewind,
   decreaseVolume,
   increaseVolume,
 ];

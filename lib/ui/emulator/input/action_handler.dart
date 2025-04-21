@@ -147,6 +147,8 @@ class ActionHandler {
         nes?.togglePause();
       case ToggleFastForward():
         nes?.toggleFastForward();
+      case ToggleRewind():
+        nes?.toggleRewind();
       case PauseAction(paused: final paused):
         if (paused) {
           nes?.pause();

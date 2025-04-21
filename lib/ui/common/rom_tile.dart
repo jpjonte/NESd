@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nesd/nes/nes_state.dart';
+import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/common/custom_button.dart';
 import 'package:nesd/ui/common/outline_text.dart';

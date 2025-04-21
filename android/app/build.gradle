@@ -42,12 +42,20 @@ android {
         jvmTarget = "17"
     }
 
+    sourceSets {
+        main.jniLibs.srcDirs += 'src/main/jniLibs'
+    }
+
     defaultConfig {
         applicationId = "dev.jpj.nesd"
+
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
+
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
     }
 
     signingConfigs {

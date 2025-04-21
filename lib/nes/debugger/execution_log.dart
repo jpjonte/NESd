@@ -102,7 +102,7 @@ class ExecutionLog {
           ..write('--')
           ..write(line.P.bit(3) == 1 ? 'D' : 'd')
           ..write(line.P.bit(2) == 1 ? 'I' : 'i')
-          ..write(line.P.bit(1) == 1 ? 'Z' : 'z')
+          ..write((line.P >> 1) & 1 == 1 ? 'Z' : 'z')
           ..write(line.P.bit(0) == 1 ? 'C' : 'c');
 
     return result.toString();

@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/common/key_value.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -19,6 +21,7 @@ sealed class DebugOverlayState with _$DebugOverlayState {
     @Default(0) double fps,
     @Default(0) double sleepBudget,
     @Default(0) int frame,
+    @Default(0) double rewindSize,
   }) = _DebugOverlayState;
 }
 
@@ -75,6 +78,7 @@ class DebugOverlayController {
       frame: event.frame,
       fps: fps,
       sleepBudget: sleepBudget,
+      rewindSize: event.rewindSize / 1024 / 1024,
     );
   }
 }
@@ -85,15 +89,11 @@ class DebugOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(debugOverlayNotifierProvider);
+    final nes = ref.watch(nesStateProvider);
 
     ref.watch(debugOverlayControllerProvider);
 
-    final color = switch (state.fps) {
-      < 30 => nesdRed,
-      < 45 => Colors.orange,
-      < 60 => Colors.yellow,
-      _ => null,
-    };
+    final color = _getColor(nes, state);
 
     return Align(
       alignment: Alignment.topRight,
@@ -121,10 +121,32 @@ class DebugOverlay extends ConsumerWidget {
                   _ => null,
                 },
               ),
+              KeyValue(
+                'Rewind Size',
+                '${state.rewindSize.toStringAsFixed(1)} MB',
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  MaterialColor? _getColor(NES? nes, DebugOverlayState state) {
+    final targetFrameRate = nes?.frameRate ?? 60;
+
+    if (state.fps < targetFrameRate ~/ 2) {
+      return nesdRed;
+    }
+
+    if (state.fps < targetFrameRate - 10) {
+      return Colors.orange;
+    }
+
+    if (state.fps < targetFrameRate) {
+      return Colors.yellow;
+    }
+
+    return Colors.green;
   }
 }
