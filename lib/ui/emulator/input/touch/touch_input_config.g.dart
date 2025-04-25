@@ -11,6 +11,9 @@ RectangleButtonConfig _$RectangleButtonConfigFromJson(
 ) => RectangleButtonConfig(
   x: (json['x'] as num).toDouble(),
   y: (json['y'] as num).toDouble(),
+  bindingType:
+      $enumDecodeNullable(_$BindingTypeEnumMap, json['bindingType']) ??
+      BindingType.hold,
   action: InputAction.fromCode(json['action'] as String?),
   width: (json['width'] as num?)?.toDouble() ?? 60,
   height: (json['height'] as num?)?.toDouble() ?? 60,
@@ -23,6 +26,7 @@ Map<String, dynamic> _$RectangleButtonConfigToJson(
 ) => <String, dynamic>{
   'x': instance.x,
   'y': instance.y,
+  'bindingType': _$BindingTypeEnumMap[instance.bindingType]!,
   'action': InputAction.toJson(instance.action),
   'width': instance.width,
   'height': instance.height,
@@ -30,10 +34,18 @@ Map<String, dynamic> _$RectangleButtonConfigToJson(
   'type': instance.$type,
 };
 
+const _$BindingTypeEnumMap = {
+  BindingType.hold: 'hold',
+  BindingType.toggle: 'toggle',
+};
+
 CircleButtonConfig _$CircleButtonConfigFromJson(Map<String, dynamic> json) =>
     CircleButtonConfig(
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
+      bindingType:
+          $enumDecodeNullable(_$BindingTypeEnumMap, json['bindingType']) ??
+          BindingType.hold,
       action: InputAction.fromCode(json['action'] as String?),
       size: (json['size'] as num?)?.toDouble() ?? 75,
       label: json['label'] as String? ?? '',
@@ -44,6 +56,7 @@ Map<String, dynamic> _$CircleButtonConfigToJson(CircleButtonConfig instance) =>
     <String, dynamic>{
       'x': instance.x,
       'y': instance.y,
+      'bindingType': _$BindingTypeEnumMap[instance.bindingType]!,
       'action': InputAction.toJson(instance.action),
       'size': instance.size,
       'label': instance.label,
@@ -54,6 +67,9 @@ JoyStickConfig _$JoyStickConfigFromJson(Map<String, dynamic> json) =>
     JoyStickConfig(
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
+      bindingType:
+          $enumDecodeNullable(_$BindingTypeEnumMap, json['bindingType']) ??
+          BindingType.hold,
       upAction: InputAction.fromCode(json['upAction'] as String?),
       downAction: InputAction.fromCode(json['downAction'] as String?),
       leftAction: InputAction.fromCode(json['leftAction'] as String?),
@@ -68,6 +84,7 @@ Map<String, dynamic> _$JoyStickConfigToJson(JoyStickConfig instance) =>
     <String, dynamic>{
       'x': instance.x,
       'y': instance.y,
+      'bindingType': _$BindingTypeEnumMap[instance.bindingType]!,
       'upAction': InputAction.toJson(instance.upAction),
       'downAction': InputAction.toJson(instance.downAction),
       'leftAction': InputAction.toJson(instance.leftAction),
@@ -81,6 +98,9 @@ Map<String, dynamic> _$JoyStickConfigToJson(JoyStickConfig instance) =>
 DPadConfig _$DPadConfigFromJson(Map<String, dynamic> json) => DPadConfig(
   x: (json['x'] as num).toDouble(),
   y: (json['y'] as num).toDouble(),
+  bindingType:
+      $enumDecodeNullable(_$BindingTypeEnumMap, json['bindingType']) ??
+      BindingType.hold,
   upAction: InputAction.fromCode(json['upAction'] as String?),
   downAction: InputAction.fromCode(json['downAction'] as String?),
   leftAction: InputAction.fromCode(json['leftAction'] as String?),
@@ -94,6 +114,7 @@ Map<String, dynamic> _$DPadConfigToJson(DPadConfig instance) =>
     <String, dynamic>{
       'x': instance.x,
       'y': instance.y,
+      'bindingType': _$BindingTypeEnumMap[instance.bindingType]!,
       'upAction': InputAction.toJson(instance.upAction),
       'downAction': InputAction.toJson(instance.downAction),
       'leftAction': InputAction.toJson(instance.leftAction),

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
-import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/emulator/input/bound_action.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod/riverpod.dart';
@@ -8,8 +9,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'keyboard_input_handler.g.dart';
 
-typedef PriorityAction = ({int priority, InputAction action});
-typedef KeyMap = Map<Set<LogicalKeyboardKey>, InputAction>;
+typedef KeyMap = Map<Set<LogicalKeyboardKey>, Binding>;
 
 @riverpod
 KeyboardInputHandler keyboardInputHandler(Ref ref) {
@@ -24,7 +24,7 @@ KeyboardInputHandler keyboardInputHandler(Ref ref) {
 
 class KeyboardInputHandler {
   KeyboardInputHandler({
-    required BindingMap bindings,
+    required Bindings bindings,
     required this.actionStream,
   }) {
     _bindings = _buildBindingMap(bindings);
@@ -68,12 +68,18 @@ class KeyboardInputHandler {
 
   // get actions that match the pressed keys, sorted by highest priority first
   // priority = number of keys pressed
-  List<PriorityAction> _getActions() {
-    final actions = <PriorityAction>[];
+  List<BoundAction> _getActions() {
+    final actions = <BoundAction>[];
 
-    for (final MapEntry(key: input, value: action) in _bindings.entries) {
+    for (final MapEntry(key: input, value: binding) in _bindings.entries) {
       if (_pressedKeys.containsAll(input)) {
-        actions.add((priority: input.length, action: action));
+        actions.add(
+          BoundAction(
+            priority: input.length,
+            action: binding.action,
+            bindingType: binding.type,
+          ),
+        );
       }
     }
 
@@ -94,8 +100,8 @@ class KeyboardInputHandler {
 
   bool _addActions(
     double value,
-    List<PriorityAction> baseActions,
-    List<PriorityAction> compareActions, {
+    List<BoundAction> baseActions,
+    List<BoundAction> compareActions, {
     bool highesPriorityOnly = false,
   }) {
     int? priority;
@@ -109,7 +115,13 @@ class KeyboardInputHandler {
       }
 
       if (!compareActions.contains(action)) {
-        actionStream.add((action: action.action, value: value));
+        actionStream.add(
+          InputActionEvent(
+            action: action.action,
+            value: value,
+            bindingType: action.bindingType,
+          ),
+        );
         triggered = true;
       }
     }
@@ -117,12 +129,15 @@ class KeyboardInputHandler {
     return triggered;
   }
 
-  KeyMap _buildBindingMap(BindingMap bindings) {
-    return {
-      for (final MapEntry(key: action, value: inputs) in bindings.entries)
-        for (final input in inputs)
-          if (input case final KeyboardInputCombination input)
-            input.keys: action,
-    };
+  KeyMap _buildBindingMap(Bindings bindings) {
+    final bindingMap = <Set<LogicalKeyboardKey>, Binding>{};
+
+    for (final binding in bindings) {
+      if (binding.input case final KeyboardInputCombination input) {
+        bindingMap[input.keys] = binding;
+      }
+    }
+
+    return bindingMap;
   }
 }

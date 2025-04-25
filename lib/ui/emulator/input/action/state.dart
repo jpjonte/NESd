@@ -1,14 +1,11 @@
 part of '../input_action.dart';
 
-class TogglePauseAction extends InputAction {
-  const TogglePauseAction({required super.title, required super.code});
-}
-
 class PauseAction extends InputAction {
   const PauseAction({
     required this.paused,
     required super.title,
     required super.code,
+    super.toggleable,
   });
 
   final bool paused;
@@ -18,12 +15,14 @@ class StopAction extends InputAction {
   const StopAction({required super.title, required super.code});
 }
 
-class ToggleFastForward extends InputAction {
-  const ToggleFastForward({required super.title, required super.code});
+class FastForward extends InputAction {
+  const FastForward({required super.title, required super.code})
+    : super(toggleable: true);
 }
 
-class ToggleRewind extends InputAction {
-  const ToggleRewind({required super.title, required super.code});
+class Rewind extends InputAction {
+  const Rewind({required super.title, required super.code})
+    : super(toggleable: true);
 }
 
 class DecreaseVolume extends InputAction {
@@ -34,12 +33,12 @@ class IncreaseVolume extends InputAction {
   const IncreaseVolume({required super.title, required super.code});
 }
 
-const togglePause = TogglePauseAction(
-  title: 'Toggle Pause',
-  code: 'state.togglePause',
+const pause = PauseAction(
+  paused: true,
+  title: 'Pause',
+  code: 'state.pause',
+  toggleable: true,
 );
-
-const pause = PauseAction(paused: true, title: 'Pause', code: 'state.pause');
 
 const unpause = PauseAction(
   paused: false,
@@ -49,15 +48,12 @@ const unpause = PauseAction(
 
 const stop = StopAction(title: 'Stop Game', code: 'state.stop');
 
-const toggleFastForward = ToggleFastForward(
-  title: 'Toggle Fast Forward',
-  code: 'state.toggleFastForward',
+const fastForward = FastForward(
+  title: 'Fast Forward',
+  code: 'state.fastForward',
 );
 
-const toggleRewind = ToggleRewind(
-  title: 'Toggle Rewind',
-  code: 'state.toggleRewind',
-);
+const rewind = Rewind(title: 'Rewind', code: 'state.rewind');
 
 const decreaseVolume = DecreaseVolume(
   title: 'Decrease Volume',

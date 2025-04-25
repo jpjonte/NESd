@@ -340,6 +340,10 @@ class NES {
     bus.buttonUp(controller, button);
   }
 
+  void buttonToggle(int controller, NesButton button) {
+    bus.buttonToggle(controller, button);
+  }
+
   void step() {
     cpu.step();
 

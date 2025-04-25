@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
@@ -27,35 +28,24 @@ class ScalingDropdown extends HookConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(maxWidth: 300),
-          child: DropdownButtonHideUnderline(
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                contentPadding: EdgeInsets.zero,
-                border: OutlineInputBorder(),
+          child: Dropdown<Scaling>(
+            value: setting,
+            onChanged:
+                (value) => controller.scaling = value ?? Scaling.autoInteger,
+            items: const [
+              DropdownMenuItem(
+                value: Scaling.autoInteger,
+                child: Text('Auto (integer)'),
               ),
-              child: DropdownButton<Scaling>(
-                value: setting,
-                onChanged:
-                    (value) =>
-                        controller.scaling = value ?? Scaling.autoInteger,
-                borderRadius: BorderRadius.circular(8),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                items: const [
-                  DropdownMenuItem(
-                    value: Scaling.autoInteger,
-                    child: Text('Auto (integer)'),
-                  ),
-                  DropdownMenuItem(
-                    value: Scaling.autoSmooth,
-                    child: Text('Auto (smooth)'),
-                  ),
-                  DropdownMenuItem(value: Scaling.x1, child: Text('1x')),
-                  DropdownMenuItem(value: Scaling.x2, child: Text('2x')),
-                  DropdownMenuItem(value: Scaling.x3, child: Text('3x')),
-                  DropdownMenuItem(value: Scaling.x4, child: Text('4x')),
-                ],
+              DropdownMenuItem(
+                value: Scaling.autoSmooth,
+                child: Text('Auto (smooth)'),
               ),
-            ),
+              DropdownMenuItem(value: Scaling.x1, child: Text('1x')),
+              DropdownMenuItem(value: Scaling.x2, child: Text('2x')),
+              DropdownMenuItem(value: Scaling.x3, child: Text('3x')),
+              DropdownMenuItem(value: Scaling.x4, child: Text('4x')),
+            ],
           ),
         ),
       ),

@@ -160,6 +160,12 @@ class Bus {
     }
   }
 
+  void buttonToggle(int controller, NesButton button) {
+    if (_inputs[controller] case final Controller controller) {
+      controller.buttonToggle(button);
+    }
+  }
+
   void triggerIrq(IrqSource source) => cpu.triggerIrq(source);
 
   void clearIrq(IrqSource source) => cpu.clearIrq(source);

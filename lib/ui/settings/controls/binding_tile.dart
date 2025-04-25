@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binder.dart';
 import 'package:nesd/ui/settings/controls/binder_controller.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
+import 'package:nesd/ui/settings/controls/binding_type_dropdown.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 
 class BindingTile extends HookConsumerWidget {
@@ -17,13 +18,11 @@ class BindingTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(binderStateProvider(action));
+    final state = ref.watch(binderStateNotifierProvider(action));
     final controller = ref.watch(binderControllerProvider(action));
     final indexController = ref.watch(profileIndexProvider.notifier);
 
     final focusNode = useFocusNode();
-
-    useListenable(focusNode);
 
     return Actions(
       actions: {
@@ -51,7 +50,27 @@ class BindingTile extends HookConsumerWidget {
             adaptive: true,
             onTap: () => controller.editing = !state.editing,
             title: Text(action.title),
-            child: Binder(action: action),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (action.toggleable)
+                  Expanded(child: BindingTypeDropdown(action: action)),
+                if (action.toggleable) const SizedBox(width: 16),
+                Expanded(flex: 2, child: Binder(action: action)),
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child:
+                      state.input != null && !state.editing
+                          ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            iconSize: 16,
+                            onPressed: controller.clearBinding,
+                          )
+                          : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

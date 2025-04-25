@@ -6,7 +6,8 @@ part of 'binder_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$binderStateHash() => r'a554693d24e13e283d69801854c9a334421f13fb';
+String _$binderStateNotifierHash() =>
+    r'027109c0744a948f497bfff2f31f419e88849203';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,34 +30,30 @@ class _SystemHash {
   }
 }
 
-abstract class _$BinderState
-    extends
-        BuildlessAutoDisposeNotifier<
-          ({bool editing, InputCombination? input})
-        > {
+abstract class _$BinderStateNotifier
+    extends BuildlessAutoDisposeNotifier<BinderState> {
   late final InputAction action;
 
-  ({bool editing, InputCombination? input}) build(InputAction action);
+  BinderState build(InputAction action);
 }
 
-/// See also [BinderState].
-@ProviderFor(BinderState)
-const binderStateProvider = BinderStateFamily();
+/// See also [BinderStateNotifier].
+@ProviderFor(BinderStateNotifier)
+const binderStateNotifierProvider = BinderStateNotifierFamily();
 
-/// See also [BinderState].
-class BinderStateFamily
-    extends Family<({bool editing, InputCombination? input})> {
-  /// See also [BinderState].
-  const BinderStateFamily();
+/// See also [BinderStateNotifier].
+class BinderStateNotifierFamily extends Family<BinderState> {
+  /// See also [BinderStateNotifier].
+  const BinderStateNotifierFamily();
 
-  /// See also [BinderState].
-  BinderStateProvider call(InputAction action) {
-    return BinderStateProvider(action);
+  /// See also [BinderStateNotifier].
+  BinderStateNotifierProvider call(InputAction action) {
+    return BinderStateNotifierProvider(action);
   }
 
   @override
-  BinderStateProvider getProviderOverride(
-    covariant BinderStateProvider provider,
+  BinderStateNotifierProvider getProviderOverride(
+    covariant BinderStateNotifierProvider provider,
   ) {
     return call(provider.action);
   }
@@ -73,32 +70,29 @@ class BinderStateFamily
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'binderStateProvider';
+  String? get name => r'binderStateNotifierProvider';
 }
 
-/// See also [BinderState].
-class BinderStateProvider
-    extends
-        AutoDisposeNotifierProviderImpl<
-          BinderState,
-          ({bool editing, InputCombination? input})
-        > {
-  /// See also [BinderState].
-  BinderStateProvider(InputAction action)
+/// See also [BinderStateNotifier].
+class BinderStateNotifierProvider
+    extends AutoDisposeNotifierProviderImpl<BinderStateNotifier, BinderState> {
+  /// See also [BinderStateNotifier].
+  BinderStateNotifierProvider(InputAction action)
     : this._internal(
-        () => BinderState()..action = action,
-        from: binderStateProvider,
-        name: r'binderStateProvider',
+        () => BinderStateNotifier()..action = action,
+        from: binderStateNotifierProvider,
+        name: r'binderStateNotifierProvider',
         debugGetCreateSourceHash:
             const bool.fromEnvironment('dart.vm.product')
                 ? null
-                : _$binderStateHash,
-        dependencies: BinderStateFamily._dependencies,
-        allTransitiveDependencies: BinderStateFamily._allTransitiveDependencies,
+                : _$binderStateNotifierHash,
+        dependencies: BinderStateNotifierFamily._dependencies,
+        allTransitiveDependencies:
+            BinderStateNotifierFamily._allTransitiveDependencies,
         action: action,
       );
 
-  BinderStateProvider._internal(
+  BinderStateNotifierProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -111,17 +105,15 @@ class BinderStateProvider
   final InputAction action;
 
   @override
-  ({bool editing, InputCombination? input}) runNotifierBuild(
-    covariant BinderState notifier,
-  ) {
+  BinderState runNotifierBuild(covariant BinderStateNotifier notifier) {
     return notifier.build(action);
   }
 
   @override
-  Override overrideWith(BinderState Function() create) {
+  Override overrideWith(BinderStateNotifier Function() create) {
     return ProviderOverride(
       origin: this,
-      override: BinderStateProvider._internal(
+      override: BinderStateNotifierProvider._internal(
         () => create()..action = action,
         from: from,
         name: null,
@@ -134,17 +126,14 @@ class BinderStateProvider
   }
 
   @override
-  AutoDisposeNotifierProviderElement<
-    BinderState,
-    ({bool editing, InputCombination? input})
-  >
+  AutoDisposeNotifierProviderElement<BinderStateNotifier, BinderState>
   createElement() {
-    return _BinderStateProviderElement(this);
+    return _BinderStateNotifierProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BinderStateProvider && other.action == action;
+    return other is BinderStateNotifierProvider && other.action == action;
   }
 
   @override
@@ -158,26 +147,18 @@ class BinderStateProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin BinderStateRef
-    on
-        AutoDisposeNotifierProviderRef<
-          ({bool editing, InputCombination? input})
-        > {
+mixin BinderStateNotifierRef on AutoDisposeNotifierProviderRef<BinderState> {
   /// The parameter `action` of this provider.
   InputAction get action;
 }
 
-class _BinderStateProviderElement
-    extends
-        AutoDisposeNotifierProviderElement<
-          BinderState,
-          ({bool editing, InputCombination? input})
-        >
-    with BinderStateRef {
-  _BinderStateProviderElement(super.provider);
+class _BinderStateNotifierProviderElement
+    extends AutoDisposeNotifierProviderElement<BinderStateNotifier, BinderState>
+    with BinderStateNotifierRef {
+  _BinderStateNotifierProviderElement(super.provider);
 
   @override
-  InputAction get action => (origin as BinderStateProvider).action;
+  InputAction get action => (origin as BinderStateNotifierProvider).action;
 }
 
 // ignore_for_file: type=lint

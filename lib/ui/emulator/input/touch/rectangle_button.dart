@@ -19,6 +19,7 @@ class RectangleButton extends StatelessWidget {
         height: config.height,
         label: config.label,
         action: config.action,
+        config: config,
         decorationBuilder:
             (color) => BoxDecoration(
               borderRadius: BorderRadius.circular(8),

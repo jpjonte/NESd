@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/bound_action.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
-import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -12,9 +13,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_handler.g.dart';
 
-typedef PriorityAction = ({int priority, InputAction action});
 typedef GamepadMap =
-    Map<({String gamepadId, Set<GamepadInput> state}), InputAction>;
+    Map<({String gamepadId, Set<GamepadInput> state}), Binding>;
 
 const _inputOnThreshold = 0.2;
 const _inputOffThreshold = 0.1;
@@ -41,7 +41,7 @@ GamepadInputHandler gamepadInputHandler(Ref ref) {
 
 class GamepadInputHandler {
   GamepadInputHandler(
-    BindingMap bindings, {
+    Bindings bindings, {
     required this.actionStream,
     required GamepadInputMapper inputMapper,
   }) {
@@ -98,10 +98,10 @@ class GamepadInputHandler {
 
   // get actions that match the pressed keys, sorted by highest priority first
   // priority = number of actions
-  List<PriorityAction> _getActions() {
-    final actions = <PriorityAction>[];
+  List<BoundAction> _getActions() {
+    final actions = <BoundAction>[];
 
-    for (final MapEntry(key: input, value: action) in _bindings.entries) {
+    for (final MapEntry(key: input, value: binding) in _bindings.entries) {
       final gamepadState = _state[input.gamepadId];
 
       if (gamepadState == null) {
@@ -109,7 +109,13 @@ class GamepadInputHandler {
       }
 
       if (gamepadState.containsAll(input.state)) {
-        actions.add((priority: input.state.length, action: action));
+        actions.add(
+          BoundAction(
+            priority: input.state.length,
+            action: binding.action,
+            bindingType: binding.type,
+          ),
+        );
       }
     }
 
@@ -135,8 +141,8 @@ class GamepadInputHandler {
 
   void _addActions(
     double value,
-    List<PriorityAction> baseActions,
-    List<PriorityAction> compareActions, {
+    List<BoundAction> baseActions,
+    List<BoundAction> compareActions, {
     bool highesPriorityOnly = false,
   }) {
     int? priority;
@@ -149,18 +155,32 @@ class GamepadInputHandler {
       }
 
       if (!compareActions.contains(action)) {
-        actionStream.add((action: action.action, value: value));
+        actionStream.add(
+          InputActionEvent(
+            action: action.action,
+            value: value,
+            bindingType: action.bindingType,
+          ),
+        );
       }
     }
   }
 
-  GamepadMap _buildBindingMap(BindingMap bindings) {
-    return {
-      for (final MapEntry(key: action, value: inputs) in bindings.entries)
-        for (final input in inputs)
-          if (input case final GamepadInputCombination input)
-            (gamepadId: input.gamepadId, state: input.inputs): action,
-    };
+  GamepadMap _buildBindingMap(Bindings bindings) {
+    final bindingMap =
+        <({String gamepadId, Set<GamepadInput> state}), Binding>{};
+
+    for (final binding in bindings) {
+      if (binding.input case final GamepadInputCombination gamepadInput) {
+        bindingMap[(
+              gamepadId: gamepadInput.gamepadId,
+              state: gamepadInput.inputs,
+            )] =
+            binding;
+      }
+    }
+
+    return bindingMap;
   }
 
   void _startRepeatDelay() {
@@ -184,7 +204,13 @@ class GamepadInputHandler {
       }
 
       for (final action in actions) {
-        actionStream.add((action: action.action, value: 1.0));
+        actionStream.add(
+          InputActionEvent(
+            action: action.action,
+            value: 1.0,
+            bindingType: action.bindingType,
+          ),
+        );
       }
     });
   }

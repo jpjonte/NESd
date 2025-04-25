@@ -9,18 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Added support for rewinding to a previous state in the emulator
-- Added licenses for the used fonts
 - ROMs can now be launched directly from the command line: `NESd <path/to/rom.nes>`
 - Added an adaptive icon for Android
+- Added licenses for the used fonts
 
 ### Changed
 
+- Key bindings can now be set to "hold" (default) or "toggle"
+- Refactored the file picker, improving search
+- Optimized UI performance
 - Switched from the default font to Inter
 - Improved test coverage so issues can be found more quickly
 - Updated the logo for the nightly builds
 - Replaced the SAF plugin (Android Storage Access Framework) with a custom native implementation, making file browsing and access more reliable
-- Refactored the file picker, improving search
-- Optimized UI performance
 - Colorized all parts of disassembly in the debugger
 
 ### Fixed

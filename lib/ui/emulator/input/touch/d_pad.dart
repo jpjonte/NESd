@@ -44,6 +44,7 @@ class DPad extends HookConsumerWidget {
     );
 
     void handleEdge(
+      DPadConfig config,
       InputAction? action,
       Rect rect,
       Offset previous,
@@ -56,7 +57,13 @@ class DPad extends HookConsumerWidget {
       final inside = rect.contains(current);
 
       if (inside != rect.contains(previous)) {
-        actionStream.add((action: action, value: inside ? 1.0 : 0.0));
+        actionStream.add(
+          InputActionEvent(
+            action: action,
+            value: inside ? 1.0 : 0.0,
+            bindingType: config.bindingType,
+          ),
+        );
       }
     }
 
@@ -65,10 +72,10 @@ class DPad extends HookConsumerWidget {
 
       position.value = offset;
 
-      handleEdge(config.leftAction, left, previous, position.value);
-      handleEdge(config.rightAction, right, previous, position.value);
-      handleEdge(config.upAction, up, previous, position.value);
-      handleEdge(config.downAction, down, previous, position.value);
+      handleEdge(config, config.leftAction, left, previous, position.value);
+      handleEdge(config, config.rightAction, right, previous, position.value);
+      handleEdge(config, config.upAction, up, previous, position.value);
+      handleEdge(config, config.downAction, down, previous, position.value);
     }
 
     final borderRadius = Radius.circular(config.size * config.deadZone / 4);
@@ -84,19 +91,43 @@ class DPad extends HookConsumerWidget {
           position.value = Offset.zero;
 
           if (config.upAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.downAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.leftAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.rightAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
         },
         child: SizedBox(

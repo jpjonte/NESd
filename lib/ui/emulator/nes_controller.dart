@@ -290,7 +290,7 @@ class NesController {
     } on Exception catch (e) {
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
-      resume();
+      nesState.stop();
     }
 
     return true;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 
 part 'touch_input_config.freezed.dart';
 part 'touch_input_config.g.dart';
@@ -28,6 +29,7 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.rectangleButton({
     required double x,
     required double y,
+    @Default(BindingType.hold) BindingType bindingType,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
     InputAction? action,
     @Default(60) double width,
@@ -38,6 +40,7 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.circleButton({
     required double x,
     required double y,
+    @Default(BindingType.hold) BindingType bindingType,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
     InputAction? action,
     @Default(75) double size,
@@ -47,6 +50,7 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.joyStick({
     required double x,
     required double y,
+    @Default(BindingType.hold) BindingType bindingType,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
     InputAction? upAction,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
@@ -63,6 +67,7 @@ sealed class TouchInputConfig with _$TouchInputConfig {
   const factory TouchInputConfig.dPad({
     required double x,
     required double y,
+    @Default(BindingType.hold) BindingType bindingType,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
     InputAction? upAction,
     @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)
