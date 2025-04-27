@@ -1,16 +1,20 @@
 import 'dart:io';
 
 import 'package:nesd/nes/bus.dart';
-import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+
+import '../ui/mocks.dart';
 
 class RomRobot {
   RomRobot(this.path) {
     final file = File(path);
 
-    final cartridge = Cartridge.fromFile(
+    final cartridgeFactory = CartridgeFactory(database: MockNesDatabase());
+
+    final cartridge = cartridgeFactory.fromFile(
       FilesystemFile(path: path, name: path, type: FilesystemFileType.file),
       file.readAsBytesSync(),
     )..databaseEntry = null;

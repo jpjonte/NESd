@@ -7,10 +7,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/exception/empty_archive.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
@@ -65,6 +67,7 @@ NesController nesController(Ref ref) {
     romManager: ref.watch(romManagerProvider),
     filesystem: ref.read(filesystemProvider),
     database: ref.watch(databaseProvider),
+    cartridgeFactory: ref.watch(cartridgeFactoryProvider),
   );
 
   ref.onDispose(controller._dispose);
@@ -112,6 +115,7 @@ class NesController {
     required this.romManager,
     required this.filesystem,
     required this.database,
+    required this.cartridgeFactory,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -143,6 +147,8 @@ class NesController {
 
   final NesDatabase database;
 
+  final CartridgeFactory cartridgeFactory;
+
   NES? get nes => nesState.nes;
 
   late final AppLifecycleListener _lifecycleListener;
@@ -170,7 +176,7 @@ class NesController {
       _ => throw UnsupportedFileType(extension),
     };
 
-    final cartridge = Cartridge.fromFile(file, rom);
+    final cartridge = cartridgeFactory.fromFile(file, rom);
 
     cartridge.databaseEntry = database.find(cartridge.romInfo);
 
@@ -291,6 +297,8 @@ class NesController {
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       nesState.stop();
+
+      return false;
     }
 
     return true;
@@ -323,9 +331,13 @@ class NesController {
       if (saveState == null) {
         toaster.send(Toast.warning('No save state found in slot $slot'));
       } else {
-        nes.state = NESState.fromBytes(saveState);
+        try {
+          nes.state = NESState.fromBytes(saveState);
 
-        toaster.send(Toast.info('State loaded from slot $slot'));
+          toaster.send(Toast.info('State loaded from slot $slot'));
+        } on NesdException catch (e) {
+          toaster.send(Toast.error('Failed to load state: $e'));
+        }
       }
     }
   }

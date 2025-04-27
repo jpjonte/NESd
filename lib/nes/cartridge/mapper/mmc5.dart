@@ -542,7 +542,7 @@ class MMC5 extends Mapper {
   MemoryAccess _memoryAccess(CpuMemoryType memoryType) {
     return switch (memoryType) {
       CpuMemoryType.prgRom => MemoryAccess.read,
-      CpuMemoryType.prgRam =>
+      _ =>
         _prgRamProtect1 == 2 && _prgRamProtect2 == 1
             ? MemoryAccess.readWrite
             : MemoryAccess.read,
@@ -649,6 +649,6 @@ class MMC5 extends Mapper {
   }
 
   int _readChr(int address) {
-    return cartridge.chr[address];
+    return cartridge.chrRom[address];
   }
 }
