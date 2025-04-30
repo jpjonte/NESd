@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed an issue where the file picker would not work on Android
 - Fixed minor issues with the UI
 - Fixed a performance issue with rendering the emulator
+- Fixed an issue where loading the state for an MMC5 ROM would not work correctly
 
 ## [0.11.0] - 2025-04-06
 
