@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/nesd_theme.dart';
 
 enum TouchButtonShape { circle, rectangle }
@@ -13,6 +14,7 @@ class TouchButton extends HookConsumerWidget {
     required this.height,
     required this.label,
     required this.decorationBuilder,
+    required this.config,
     this.action,
     super.key,
   });
@@ -20,8 +22,9 @@ class TouchButton extends HookConsumerWidget {
   final double width;
   final double height;
   final String label;
-  final InputAction? action;
   final Decoration Function(Color) decorationBuilder;
+  final TouchInputConfig config;
+  final InputAction? action;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,7 +35,13 @@ class TouchButton extends HookConsumerWidget {
       active.value = false;
 
       if (action case final action?) {
-        actionStream.add((action: action, value: 0.0));
+        actionStream.add(
+          InputActionEvent(
+            action: action,
+            value: 0.0,
+            bindingType: config.bindingType,
+          ),
+        );
       }
     }
 
@@ -44,7 +53,13 @@ class TouchButton extends HookConsumerWidget {
         active.value = true;
 
         if (action case final action?) {
-          actionStream.add((action: action, value: 1.0));
+          actionStream.add(
+            InputActionEvent(
+              action: action,
+              value: 1.0,
+              bindingType: config.bindingType,
+            ),
+          );
         }
       },
       onTapCancel: up,

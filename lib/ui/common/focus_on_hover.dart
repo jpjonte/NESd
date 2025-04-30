@@ -19,7 +19,9 @@ class FocusOnHover extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final focusNode = this.focusNode ?? useFocusNode();
+    // hooks must always be called
+    final ownFocusNode = useFocusNode();
+    final focusNode = this.focusNode ?? ownFocusNode;
 
     return Focus(
       focusNode: focusNode,

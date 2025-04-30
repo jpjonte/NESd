@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
@@ -11,9 +11,10 @@ import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/nes/rewind/rewind_buffer.dart';
+import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/wait.dart';
 
 class NES {
@@ -41,6 +42,12 @@ class NES {
   bool _inLoop = false;
 
   bool fastForward = false;
+  bool rewind = false;
+
+  // 1 minute of rewind
+  final RewindBuffer _rewindBuffer = RewindBuffer(size: 3600);
+
+  int frameRate = 60;
 
   late DateTime _frameStart;
 
@@ -83,13 +90,17 @@ class NES {
 
     reset();
 
+    _applyState(state);
+
+    _frameStart = DateTime.now();
+    _sleepBudget = Duration.zero;
+  }
+
+  void _applyState(NESState state) {
     cpu.state = state.cpuState;
     ppu.state = state.ppuState;
     apu.state = state.apuState;
     bus.cartridge.state = state.cartridgeState;
-
-    _frameStart = DateTime.now();
-    _sleepBudget = Duration.zero;
   }
 
   // we don't need a getter
@@ -98,6 +109,11 @@ class NES {
     cpu.region = region;
     apu.region = region;
     ppu.region = region;
+
+    frameRate = switch (region) {
+      Region.ntsc => 60,
+      Region.pal => 50,
+    };
   }
 
   Uint8List? save() => bus.cartridge.save();
@@ -119,6 +135,8 @@ class NES {
     cpu.reset();
     apu.reset();
     ppu.reset();
+
+    _rewindBuffer.reset();
 
     if (paused) {
       eventBus.add(DebuggerNesEvent());
@@ -147,6 +165,18 @@ class NES {
         continue;
       }
 
+      if (rewind) {
+        _handleRewind();
+
+        final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
+
+        _frameStart = DateTime.now();
+
+        await wait(sleepTime);
+
+        continue;
+      }
+
       final vblankBefore = ppu.PPUSTATUS_V;
 
       try {
@@ -165,6 +195,32 @@ class NES {
     _inLoop = false;
   }
 
+  void _handleRewind() {
+    final rewindState = _rewindBuffer.pop();
+
+    if (rewindState == null) {
+      rewind = false;
+
+      return;
+    }
+
+    _applyState(rewindState);
+
+    _frameTime = DateTime.now().difference(_frameStart);
+
+    eventBus.add(
+      FrameNesEvent(
+        samples: Float32List.fromList(
+          apu.sampleBuffer.sublist(0, apu.sampleIndex).reversed.toList(),
+        ),
+        frameTime: _frameTime,
+        frame: ppu.frames,
+        sleepBudget: Duration.zero,
+        rewindSize: _rewindBuffer.size,
+      ),
+    );
+  }
+
   Future<void> _sendFrame() async {
     eventBus.add(
       FrameNesEvent(
@@ -172,16 +228,20 @@ class NES {
         frameTime: _frameTime, // last frame time
         frame: ppu.frames,
         sleepBudget: _sleepBudget,
+        rewindSize: _rewindBuffer.size,
       ),
     );
 
-    _lastState = NESState(
+    final state = NESState(
       cpuState: cpu.state,
       ppuState: ppu.state,
       apuState: apu.state,
       cartridgeState: bus.cartridge.state,
-      cycles: 0,
     );
+
+    _lastState = state;
+
+    _rewindBuffer.add(state);
 
     if (stopAfterNextFrame) {
       stopAfterNextFrame = false;
@@ -207,10 +267,6 @@ class NES {
   }
 
   Duration _calculateSleepTime(Duration elapsedTime, int samples) {
-    if (fastForward) {
-      return Duration.zero;
-    }
-
     final targetAudioTime = 1000000 * samples / apuSampleRate;
     final time = targetAudioTime - elapsedTime.inMicroseconds;
 
@@ -237,6 +293,10 @@ class NES {
     if (fastForward) {
       _sleepBudget = Duration.zero;
     }
+  }
+
+  void toggleRewind() {
+    rewind = !rewind;
   }
 
   void unpause() {
@@ -278,6 +338,10 @@ class NES {
 
   void buttonUp(int controller, NesButton button) {
     bus.buttonUp(controller, button);
+  }
+
+  void buttonToggle(int controller, NesButton button) {
+    bus.buttonToggle(controller, button);
   }
 
   void step() {

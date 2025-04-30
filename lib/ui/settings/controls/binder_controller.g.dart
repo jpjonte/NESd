@@ -6,7 +6,7 @@ part of 'binder_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$binderControllerHash() => r'eea6b44750e9433a915210a356e9843b49208ba7';
+String _$binderControllerHash() => r'25b07eb3851a3d6d57f8030f140c654dffb97d12';
 
 /// Copied from Dart SDK
 class _SystemHash {

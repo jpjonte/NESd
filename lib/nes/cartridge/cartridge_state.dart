@@ -4,8 +4,9 @@ import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class CartridgeState {
   const CartridgeState({
-    required this.chr,
-    required this.sram,
+    required this.chrRam,
+    required this.prgRam,
+    required this.prgSaveRam,
     required this.mapperId,
     required this.mapperState,
   });
@@ -15,22 +16,36 @@ class CartridgeState {
 
     return switch (version) {
       0 => CartridgeState._version0(reader),
+      1 => CartridgeState._version1(reader),
       _ => throw InvalidSerializationVersion('CartridgeState', version),
     };
   }
 
   factory CartridgeState._version0(PayloadReader reader) {
     return CartridgeState(
-      chr: reader.get(uint8List(lengthType: uint32)),
-      sram: reader.get(uint8List(lengthType: uint32)),
+      chrRam: reader.get(uint8List(lengthType: uint32)),
+      prgRam: Uint8List(0),
+      prgSaveRam: reader.get(uint8List(lengthType: uint32)),
       mapperId: reader.get(uint8),
       mapperState: MapperState.deserialize(reader),
     );
   }
 
-  final Uint8List chr;
+  factory CartridgeState._version1(PayloadReader reader) {
+    return CartridgeState(
+      chrRam: reader.get(uint8List(lengthType: uint32)),
+      prgRam: reader.get(uint8List(lengthType: uint32)),
+      prgSaveRam: reader.get(uint8List(lengthType: uint16)),
+      mapperId: reader.get(uint8),
+      mapperState: MapperState.deserialize(reader),
+    );
+  }
 
-  final Uint8List sram;
+  final Uint8List chrRam;
+
+  final Uint8List prgRam;
+
+  final Uint8List prgSaveRam;
 
   final int mapperId;
 
@@ -38,9 +53,10 @@ class CartridgeState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
-      ..set(uint8List(lengthType: uint32), chr)
-      ..set(uint8List(lengthType: uint32), sram)
+      ..set(uint8, 1) // version
+      ..set(uint8List(lengthType: uint32), chrRam)
+      ..set(uint8List(lengthType: uint32), prgRam)
+      ..set(uint8List(lengthType: uint16), prgSaveRam)
       ..set(uint8, mapperId);
 
     mapperState.serialize(writer);

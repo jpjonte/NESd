@@ -37,7 +37,7 @@ class SettingsTile extends StatelessWidget {
       onTap: enabled ? onTap : null,
       child: LayoutBuilder(
         builder: (_, constraints) {
-          final narrow = constraints.maxWidth < 500;
+          final narrow = constraints.maxWidth < 600;
           final column = adaptive && narrow;
 
           final titles = [

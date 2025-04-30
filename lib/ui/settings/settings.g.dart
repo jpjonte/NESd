@@ -21,7 +21,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
   autoLoad: json['autoLoad'] as bool? ?? false,
   bindings:
-      json['bindings'] == null ? const {} : _bindingsFromJson(json['bindings']),
+      json['bindings'] == null ? const [] : bindingsFromJson(json['bindings']),
   lastRomPath:
       json['lastRomPath'] == null
           ? null
@@ -39,11 +39,11 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   narrowTouchInputConfig:
       json['narrowTouchInputConfig'] == null
           ? const []
-          : _narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
+          : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
   wideTouchInputConfig:
       json['wideTouchInputConfig'] == null
           ? const []
-          : _wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
+          : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
   breakpoints:
       (json['breakpoints'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -69,7 +69,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'autoSave': instance.autoSave,
   'autoSaveInterval': instance.autoSaveInterval,
   'autoLoad': instance.autoLoad,
-  'bindings': _bindingsToJson(instance.bindings),
+  'bindings': instance.bindings,
   'lastRomPath': instance.lastRomPath,
   'recentRomPaths': instance.recentRomPaths,
   'recentRoms': instance.recentRoms,
@@ -96,7 +96,7 @@ const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'2ef0147cde3afcf4872f0c29cb4dc14cf90c2bb4';
+    r'9a6aca1d391909c0d833e02e692740eb59eecfd9';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

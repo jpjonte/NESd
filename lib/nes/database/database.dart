@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
+import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:path/path.dart' as p;
@@ -39,43 +40,52 @@ class NesDatabase {
     final databaseXml = await rootBundle.loadString('assets/nes20db.xml');
     final data = XmlDocument.parse(databaseXml);
 
-    for (final child in data.findAllElements('game')) {
-      final romHash = _getHash(child, 'rom');
+    for (final game in data.findAllElements('game')) {
+      final romHash = _getHash(game, 'rom');
 
       if (romHash == null) {
         continue;
       }
 
       final name = p.basenameWithoutExtension(
-        child.children.whereType<XmlComment>().single.value.trim().replaceAll(
+        game.children.whereType<XmlComment>().single.value.trim().replaceAll(
           '\\',
           '/',
         ),
       );
 
-      final chrHash = _getHash(child, 'chrrom');
-      final prgHash = _getHash(child, 'prgrom')!;
-      final mapper = int.parse(_getAttribute(child, 'pcb', 'mapper')!);
-      final region = int.parse(_getAttribute(child, 'console', 'region')!);
+      final chrHash = _getHash(game, 'chrrom');
+      final prgHash = _getHash(game, 'prgrom')!;
+      final mapper = _getAttribute(game, 'pcb', 'mapper').toIntOrZero();
+      final region = _getAttribute(game, 'console', 'region').toIntOrZero();
+      final chrRamSize = _getAttribute(game, 'chrram', 'size').toIntOrZero();
+      final prgRamSize = _getAttribute(game, 'prgram', 'size').toIntOrZero();
+      final prgSaveRamSize =
+          _getAttribute(game, 'prgnvram', 'size').toIntOrZero();
+      final hasBattery = _getAttribute(game, 'pcb', 'battery') == '1';
 
       _database[romHash] = NesDatabaseEntry(
         name: name,
         romHash: romHash,
         chrHash: chrHash,
         prgHash: prgHash,
+        chrRamSize: chrRamSize,
+        prgRamSize: prgRamSize,
+        prgSaveRamSize: prgSaveRamSize,
+        hasBattery: hasBattery,
         mapper: mapper,
         region: switch (region) {
           0 => Region.ntsc,
           1 => Region.pal,
           _ => null,
         },
-        expansion: int.parse(_getAttribute(child, 'expansion', 'type')!),
+        expansion: int.parse(_getAttribute(game, 'expansion', 'type')!),
       );
     }
   }
 
   String? _getAttribute(XmlElement child, String tag, String attribute) {
-    return child.findElements(tag).single.getAttribute(attribute);
+    return child.findElements(tag).singleOrNull?.getAttribute(attribute);
   }
 
   String? _getHash(XmlElement child, String tag) {
@@ -93,6 +103,10 @@ class NesDatabaseEntry {
     required this.romHash,
     required this.chrHash,
     required this.prgHash,
+    required this.chrRamSize,
+    required this.prgRamSize,
+    required this.prgSaveRamSize,
+    required this.hasBattery,
     required this.mapper,
     required this.expansion,
     this.region,
@@ -102,6 +116,10 @@ class NesDatabaseEntry {
   final String romHash;
   final String? chrHash;
   final String prgHash;
+  final int chrRamSize;
+  final int prgRamSize;
+  final int prgSaveRamSize;
+  final bool hasBattery;
   final int mapper;
   final int expansion;
   final Region? region;

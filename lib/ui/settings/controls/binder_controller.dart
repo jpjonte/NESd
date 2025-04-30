@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -23,7 +24,7 @@ class BinderController {
     required this.profileIndex,
     required this.settingsController,
     required this.state,
-    required this.inputs,
+    required this.stateNotifier,
     required this.actionHandler,
     required GamepadInputMapper gamepadInputMapper,
   }) {
@@ -34,7 +35,7 @@ class BinderController {
   final int profileIndex;
   final SettingsController settingsController;
   final BinderState state;
-  final List<InputCombination?> inputs;
+  final BinderStateNotifier stateNotifier;
   final ActionHandler actionHandler;
 
   late final StreamSubscription<GamepadInputEvent> _subscription;
@@ -51,14 +52,14 @@ class BinderController {
     }
 
     if (value) {
-      state.input = null;
+      stateNotifier.input = null;
 
       actionHandler.enabled = false;
     } else {
       actionHandler.enabled = true;
     }
 
-    state.editing = value;
+    stateNotifier.editing = value;
   }
 
   void clearBinding() {
@@ -75,15 +76,15 @@ class BinderController {
       return KeyEventResult.handled;
     }
 
-    final updatedBinding = state.input ?? const InputCombination.keyboard({});
+    final updatedInput = state.input ?? const InputCombination.keyboard({});
 
-    if (updatedBinding is! KeyboardInputCombination) {
+    if (updatedInput is! KeyboardInputCombination) {
       return KeyEventResult.ignored;
     }
 
     if (event is KeyDownEvent) {
-      state.input = updatedBinding.copyWith(
-        keys: {...updatedBinding.keys, event.logicalKey},
+      stateNotifier.input = updatedInput.copyWith(
+        keys: {...updatedInput.keys, event.logicalKey},
       );
 
       return KeyEventResult.handled;
@@ -92,7 +93,13 @@ class BinderController {
     if (event is KeyUpEvent) {
       editing = false;
 
-      settingsController.updateBinding(action, profileIndex, updatedBinding);
+      final existingBinding =
+          settingsController.getBinding(action, profileIndex) ??
+          Binding(action: action, index: profileIndex, input: updatedInput);
+
+      settingsController.updateBinding(
+        existingBinding.copyWith(input: updatedInput),
+      );
     }
 
     return KeyEventResult.ignored;
@@ -103,7 +110,7 @@ class BinderController {
       return;
     }
 
-    final updatedBinding =
+    final updatedInput =
         state.input ??
         InputCombination.gamepad(
           gamepadId: event.gamepadId,
@@ -111,22 +118,22 @@ class BinderController {
           inputs: const {},
         );
 
-    if (updatedBinding is! GamepadInputCombination) {
+    if (updatedInput is! GamepadInputCombination) {
       return;
     }
 
-    if (event.gamepadId != updatedBinding.gamepadId) {
+    if (event.gamepadId != updatedInput.gamepadId) {
       return;
     }
 
-    final gamepadInput = updatedBinding.inputs.firstWhereOrNull(
+    final gamepadInput = updatedInput.inputs.firstWhereOrNull(
       (input) => input.id == event.inputId,
     );
 
     if (event.value.abs() > 0.5) {
-      state.input = updatedBinding.copyWith(
+      stateNotifier.input = updatedInput.copyWith(
         inputs: {
-          ...updatedBinding.inputs,
+          ...updatedInput.inputs,
           GamepadInput(
             id: event.inputId,
             direction: event.value.sign.toInt(),
@@ -137,23 +144,27 @@ class BinderController {
     } else if (gamepadInput != null) {
       editing = false;
 
-      settingsController.updateBinding(action, profileIndex, updatedBinding);
+      final existingBinding =
+          settingsController.getBinding(action, profileIndex) ??
+          Binding(action: action, index: profileIndex, input: updatedInput);
+
+      settingsController.updateBinding(
+        existingBinding.copyWith(input: updatedInput),
+      );
     }
   }
 }
 
 @riverpod
 BinderController binderController(Ref ref, InputAction action) {
+  final settingsController = ref.watch(settingsControllerProvider.notifier);
+
   final controller = BinderController(
     action: action,
     profileIndex: ref.watch(profileIndexProvider),
-    settingsController: ref.watch(settingsControllerProvider.notifier),
-    state: ref.watch(binderStateProvider(action).notifier),
-    inputs: ref.watch(
-      settingsControllerProvider.select(
-        (settings) => settings.bindings[action] ?? [],
-      ),
-    ),
+    settingsController: settingsController,
+    state: ref.watch(binderStateNotifierProvider(action)),
+    stateNotifier: ref.watch(binderStateNotifierProvider(action).notifier),
     actionHandler: ref.watch(actionHandlerProvider),
     gamepadInputMapper: ref.watch(gamepadInputMapperProvider),
   );

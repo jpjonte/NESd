@@ -9,3 +9,15 @@ extension StringExtension on String {
     return false;
   }
 }
+
+extension NullStringExtension on String? {
+  int toIntOrZero() {
+    final value = this;
+
+    if (value == null) {
+      return 0;
+    }
+
+    return int.tryParse(value) ?? 0;
+  }
+}

@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
+import 'package:nesd/nes/database/database.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
@@ -67,4 +69,9 @@ class MockFileSystem extends Mock implements Filesystem {
   Future<bool> isDirectory(String path) async {
     return _files.entries.any((entry) => entry.key.startsWith(path));
   }
+}
+
+class MockNesDatabase extends Mock implements NesDatabase {
+  @override
+  NesDatabaseEntry? find(RomInfo info) => null;
 }

@@ -62,7 +62,7 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
       child: DisplayWidget(
         paused: nes.paused,
         fastForward: nes.fastForward,
-        frameBuffer: nes.ppu.frameBuffer,
+        imageFuture: convertFrameBufferToImage(nes.ppu.frameBuffer),
       ),
     );
   }
@@ -72,28 +72,25 @@ class DisplayWidget extends HookConsumerWidget {
   static const menuKey = Key('menu');
 
   const DisplayWidget({
-    required this.frameBuffer,
+    required this.imageFuture,
     this.paused = false,
     this.fastForward = false,
     super.key,
   });
 
-  final FrameBuffer frameBuffer;
+  final Future<ui.Image> imageFuture;
 
   final bool paused;
   final bool fastForward;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final future = useMemoized(() => convertFrameBufferToImage(frameBuffer));
-    final snapshot = useFuture(future);
+    final snapshot = useFuture(imageFuture);
 
     return Stack(
       children: [
         switch (snapshot) {
           AsyncSnapshot<ui.Image>(data: final image?) => DisplayBuilder(
-            paused: paused,
-            fastForward: fastForward,
             image: image,
           ),
           _ => const Center(child: CircularProgressIndicator()),
@@ -116,15 +113,7 @@ class DisplayWidget extends HookConsumerWidget {
 }
 
 class DisplayBuilder extends ConsumerWidget {
-  const DisplayBuilder({
-    required this.image,
-    this.paused = false,
-    this.fastForward = false,
-    super.key,
-  });
-
-  final bool paused;
-  final bool fastForward;
+  const DisplayBuilder({required this.image, super.key});
 
   final ui.Image image;
 
@@ -206,8 +195,9 @@ class DisplayBuilder extends ConsumerWidget {
                     screenSize: scaledSize,
                     scale: scale,
                     image: image,
-                    paused: paused,
-                    fastForward: fastForward,
+                    paused: nes?.paused ?? false,
+                    fastForward: nes?.fastForward ?? false,
+                    rewind: nes?.rewind ?? false,
                     showBorder: settings.showBorder,
                     crossHairPosition:
                         nes?.bus.cartridge.databaseEntry?.hasZapper == true
@@ -252,6 +242,7 @@ class EmulatorPainter extends CustomPainter {
     required this.showBorder,
     required this.paused,
     required this.fastForward,
+    required this.rewind,
     this.crossHairPosition,
   });
 
@@ -265,6 +256,7 @@ class EmulatorPainter extends CustomPainter {
   final bool showBorder;
   final bool paused;
   final bool fastForward;
+  final bool rewind;
 
   final Offset? crossHairPosition;
 
@@ -328,6 +320,15 @@ class EmulatorPainter extends CustomPainter {
     if (fastForward) {
       _drawFastForward(canvas, size, topLeft + const Offset(8, 24));
     }
+
+    if (rewind) {
+      _drawFastForward(
+        canvas,
+        size,
+        topLeft + const Offset(32, 24),
+        mirror: true,
+      );
+    }
   }
 
   void _drawScreen(Canvas canvas, Offset topLeft, Size screenSize) {
@@ -354,8 +355,15 @@ class EmulatorPainter extends CustomPainter {
       ..drawRect(center.translate(16, -16) & const Size(16, 48), _iconPaint);
   }
 
-  void _drawFastForward(Canvas canvas, Size size, Offset center) {
-    final path = _fastForwardPath.shift(center);
+  void _drawFastForward(
+    Canvas canvas,
+    Size size,
+    Offset center, {
+    bool mirror = false,
+  }) {
+    final path = _fastForwardPath
+        .transform(Matrix4.diagonal3Values(mirror ? -1 : 1, 1, 1).storage)
+        .shift(center);
 
     canvas
       ..drawPath(path, _outlinePaint)

@@ -6,7 +6,7 @@ part of 'controls_settings.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$maxIndexHash() => r'a525c8b34d74b0d09157c15f945630305422f7da';
+String _$maxIndexHash() => r'eb1f948d0c86a333e6e6949cbcfc609dd607c24c';
 
 /// See also [maxIndex].
 @ProviderFor(maxIndex)

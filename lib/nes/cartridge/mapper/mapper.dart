@@ -17,7 +17,7 @@ import 'package:nesd/nes/cartridge/mapper/namco163.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 
-enum CpuMemoryType { prgRom, prgRam }
+enum CpuMemoryType { prgRom, prgRam, prgSaveRam }
 
 enum PpuMemoryType { chrRom, chrRam, nametable }
 
@@ -147,7 +147,11 @@ abstract class Mapper {
   void reset() {
     nametableLayout = cartridge.nametableLayout;
 
-    mapCpu(0x6000, 0x7fff, 0, type: CpuMemoryType.prgRam);
+    if (cartridge.hasBattery && cartridge.prgSaveRam.isNotEmpty) {
+      mapCpu(0x6000, 0x7fff, 0, type: CpuMemoryType.prgSaveRam);
+    } else if (cartridge.prgRam.isNotEmpty) {
+      mapCpu(0x6000, 0x7fff, 0, type: CpuMemoryType.prgRam);
+    }
 
     mapPpu(0x0000, 0x1fff, 0);
   }
@@ -239,7 +243,8 @@ abstract class Mapper {
         source ??
         switch (resolvedType) {
           CpuMemoryType.prgRom => cartridge.prgRom,
-          CpuMemoryType.prgRam => cartridge.sram,
+          CpuMemoryType.prgRam => cartridge.prgRam,
+          CpuMemoryType.prgSaveRam => cartridge.prgSaveRam,
         };
 
     final resolvedPageSize =
@@ -247,6 +252,7 @@ abstract class Mapper {
         switch (resolvedType) {
           CpuMemoryType.prgRom => prgRomPageSize,
           CpuMemoryType.prgRam => prgRamPageSize,
+          CpuMemoryType.prgSaveRam => prgRamPageSize,
         };
 
     final resolvedAccess =
@@ -254,6 +260,7 @@ abstract class Mapper {
         switch (resolvedType) {
           CpuMemoryType.prgRom => MemoryAccess.read,
           CpuMemoryType.prgRam => MemoryAccess.readWrite,
+          CpuMemoryType.prgSaveRam => MemoryAccess.readWrite,
         };
 
     for (
@@ -262,6 +269,13 @@ abstract class Mapper {
       address += _cpuBlockSize
     ) {
       final block = address >> _cpuBlockAddressWidth;
+
+      if (resolvedSource.isEmpty) {
+        _cpuMapping[block] = null;
+
+        continue;
+      }
+
       final addressDiff = address - fromAddress;
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
@@ -291,16 +305,16 @@ abstract class Mapper {
   }) {
     final resolvedType =
         type ??
-        switch (cartridge.chrRomSize) {
-          0 => PpuMemoryType.chrRam,
-          _ => PpuMemoryType.chrRom,
+        switch (cartridge.chrRam.length) {
+          0 => PpuMemoryType.chrRom,
+          _ => PpuMemoryType.chrRam,
         };
 
     final resolvedSource =
         source ??
         switch (resolvedType) {
-          PpuMemoryType.chrRom => cartridge.chr,
-          PpuMemoryType.chrRam => cartridge.chr,
+          PpuMemoryType.chrRom => cartridge.chrRom,
+          PpuMemoryType.chrRam => cartridge.chrRam,
           PpuMemoryType.nametable => bus.ppu.ram,
         };
 

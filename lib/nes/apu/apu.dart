@@ -84,8 +84,6 @@ class APU {
     triangle.state = state.triangleState;
     noise.state = state.noiseState;
     dmc.state = state.dmcState;
-
-    sampleIndex = 0;
   }
 
   // we don't need a getter from this

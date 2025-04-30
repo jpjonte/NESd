@@ -18,6 +18,9 @@ class RingBuffer<T, S extends List<T>> {
   // (because start == end => size == 0)
   int get remaining => size - current - 1;
 
+  bool get isEmpty => current < 1;
+  bool get isFull => remaining < 1;
+
   void clear() {
     _start = 0;
     _end = 0;
@@ -63,5 +66,62 @@ class RingBuffer<T, S extends List<T>> {
     _end = (_end + writeSize) % size;
 
     return writeSize;
+  }
+
+  void append(T item) {
+    if (isFull) {
+      throw Exception('Buffer is full');
+    }
+
+    _buffer[_end] = item;
+    _end = (_end + 1) % size;
+  }
+
+  T? popFront() {
+    if (isEmpty) {
+      return null;
+    }
+
+    final item = _buffer[_start];
+
+    _start = (_start + 1) % size;
+
+    return item;
+  }
+
+  T? popEnd() {
+    if (isEmpty) {
+      return null;
+    }
+
+    _end = (_end - 1) % size;
+
+    return _buffer[_end];
+  }
+
+  T? peekFront() {
+    if (isEmpty) {
+      return null;
+    }
+
+    return _buffer[_start];
+  }
+
+  T? peek(int position) {
+    if (position >= current) {
+      return null;
+    }
+
+    final index = (_start + position) % size;
+
+    return _buffer[index];
+  }
+
+  T? peekEnd() {
+    if (isEmpty) {
+      return null;
+    }
+
+    return _buffer[(_end - 1) % size];
   }
 }

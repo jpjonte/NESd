@@ -12,12 +12,14 @@ class FrameNesEvent extends NesEvent {
     required this.frameTime,
     required this.frame,
     required this.sleepBudget,
+    required this.rewindSize,
   });
 
   final Float32List samples;
   final Duration frameTime;
   final int frame;
   final Duration sleepBudget;
+  final int rewindSize;
 }
 
 class DebuggerNesEvent extends NesEvent {}

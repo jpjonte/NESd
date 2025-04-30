@@ -31,4 +31,12 @@ class Controller implements InputDevice {
   void buttonUp(NesButton button) {
     _status &= ~(1 << button.index);
   }
+
+  void buttonToggle(NesButton button) {
+    if (_status & (1 << button.index) == 0) {
+      buttonDown(button);
+    } else {
+      buttonUp(button);
+    }
+  }
 }

@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/dividers.dart';
+import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/touch/forms/circle_button_form.dart';
 import 'package:nesd/ui/settings/controls/touch/forms/d_pad_form.dart';
 import 'package:nesd/ui/settings/controls/touch/forms/form_row.dart';
@@ -111,6 +113,23 @@ class TouchInputForm extends ConsumerWidget {
               min: -1,
               onChanged:
                   (value) => controller.update(config.copyWith(y: value)),
+            ),
+          ),
+          FormRow(
+            label: 'Type',
+            child: Dropdown<BindingType>(
+              value: config.bindingType,
+              onChanged:
+                  (value) => controller.update(
+                    config.copyWith(bindingType: value ?? config.bindingType),
+                  ),
+              items: const [
+                DropdownMenuItem(value: BindingType.hold, child: Text('Hold')),
+                DropdownMenuItem(
+                  value: BindingType.toggle,
+                  child: Text('Toggle'),
+                ),
+              ],
             ),
           ),
           switch (config) {

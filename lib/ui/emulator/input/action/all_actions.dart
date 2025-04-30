@@ -20,9 +20,9 @@ const menuActions = [
 const emulatorActions = [
   pause,
   unpause,
-  togglePause,
   stop,
-  toggleFastForward,
+  fastForward,
+  rewind,
   decreaseVolume,
   increaseVolume,
 ];

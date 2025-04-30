@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
@@ -9,10 +10,10 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
-import 'package:nesd/util/decorate.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,92 +21,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
-typedef BindingMap = Map<InputAction, List<InputCombination?>>;
-
-// ignore: avoid-dynamic
-BindingMap _bindingsFromJson(dynamic json) {
-  if (json is! Map<String, dynamic>) {
-    return defaultBindings;
-  }
-
-  final bindings = <InputAction, List<InputCombination?>>{};
-
-  for (final MapEntry(key: code, :value) in json.entries) {
-    try {
-      final action = InputAction.fromCode(code);
-
-      if (action == null) {
-        continue;
-      }
-
-      final inputs = inputsFromJson(value);
-
-      bindings[action] = inputs;
-
-      // catch errors to ignore invalid actions
-      // ignore: avoid_catching_errors
-    } on StateError {
-      // ignore invalid actions
-    }
-  }
-
-  return bindings;
-}
-
-// ignore: avoid-dynamic
-List<InputCombination?> inputsFromJson(dynamic value) {
-  if (value is! List) {
-    return [
-      if (value != null)
-        InputCombination.fromJson(value as Map<String, dynamic>)
-      else
-        null,
-    ];
-  }
-
-  return [
-    for (final e in value)
-      decorate(e, (e) => InputCombination.fromJson(e as Map<String, dynamic>)),
-  ];
-}
-
-Map<String, dynamic> _bindingsToJson(BindingMap bindings) {
-  return {
-    for (final MapEntry(key: action, value: inputs) in bindings.entries)
-      action.code: [
-        for (final input in inputs)
-          if (input != null) input.toJson() else null,
-      ],
-  };
-}
-
-// ignore: avoid-dynamic
-List<TouchInputConfig> _narrowTouchInputConfigsFromJson(dynamic json) {
-  if (json is! List || json.isEmpty) {
-    return defaultPortraitConfig;
-  }
-
-  return touchInputConfigsFromJson(json);
-}
-
-// ignore: avoid-dynamic
-List<TouchInputConfig> _wideTouchInputConfigsFromJson(dynamic json) {
-  if (json is! List || json.isEmpty) {
-    return defaultLandscapeConfig;
-  }
-
-  return touchInputConfigsFromJson(json);
-}
-
-// ignore: avoid-dynamic
-List<TouchInputConfig> touchInputConfigsFromJson(List<dynamic> json) {
-  return json
-      .map((e) => TouchInputConfig.fromJson(e as Map<String, dynamic>))
-      .whereType<TouchInputConfig>()
-      .toList();
-}
-
-// ignore: avoid-dynamic
 List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
   return json
       .map((e) {
@@ -134,7 +49,6 @@ List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
       .toList();
 }
 
-// ignore: avoid-dynamic
 FilesystemFile? _lastRomPathFromJson(dynamic json) {
   if (json == null) {
     return null;
@@ -169,9 +83,7 @@ sealed class Settings with _$Settings {
     @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
     @Default(false) bool autoLoad,
-    @Default({})
-    @JsonKey(fromJson: _bindingsFromJson, toJson: _bindingsToJson)
-    Map<InputAction, List<InputCombination?>> bindings,
+    @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
     @JsonKey(fromJson: _lastRomPathFromJson)
     @Default(null)
     FilesystemFile? lastRomPath,
@@ -180,10 +92,10 @@ sealed class Settings with _$Settings {
     @Default([])
     List<RomInfo> recentRoms,
     @Default(false) bool showTouchControls,
-    @JsonKey(fromJson: _narrowTouchInputConfigsFromJson)
+    @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> narrowTouchInputConfig,
-    @JsonKey(fromJson: _wideTouchInputConfigsFromJson)
+    @JsonKey(fromJson: wideTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> wideTouchInputConfig,
     @Default({}) Map<String, List<Breakpoint>> breakpoints,
@@ -311,49 +223,40 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(showTouchControls: showTouchControls));
   }
 
-  BindingMap get bindings => state.bindings;
+  Bindings get bindings => state.bindings;
 
-  set bindings(BindingMap bindings) {
+  set bindings(Bindings bindings) {
     _update(state.copyWith(bindings: bindings));
   }
 
-  void updateBinding(InputAction action, int index, InputCombination input) {
-    final bindings = List<InputCombination?>.of(state.bindings[action] ?? []);
+  Binding? getBinding(InputAction action, int index) {
+    return state.bindings.firstWhereOrNull(
+      (b) => b.action == action && b.index == index,
+    );
+  }
 
-    if (index < bindings.length) {
-      bindings[index] = input;
-    } else {
-      bindings
-        ..addAll(
-          // fill with nulls up to the index
-          List<InputCombination?>.filled(index - bindings.length, null),
-        )
-        ..add(input);
-    }
+  void updateBinding(Binding binding) {
+    final updatedBindings =
+        state.bindings
+            .where(
+              (b) => b.index != binding.index || b.action != binding.action,
+            )
+            .toList()
+          ..add(binding);
 
-    _update(state.copyWith(bindings: {...state.bindings, action: bindings}));
+    _update(state.copyWith(bindings: updatedBindings));
   }
 
   void clearBinding(InputAction action, int index) {
-    final bindings = state.bindings[action] ?? [];
-
-    if (index < bindings.length - 1) {
-      bindings[index] = null;
-    } else if (index == bindings.length - 1) {
-      bindings.removeAt(index);
-    }
-
-    _update(
-      state.copyWith(
-        bindings: {
-          for (final entry in state.bindings.entries)
-            if (entry.key == action)
-              entry.key: bindings
-            else
-              entry.key: entry.value,
-        },
-      ),
+    final existingBinding = state.bindings.firstWhereOrNull(
+      (b) => b.action == action && b.index == index,
     );
+
+    if (existingBinding != null) {
+      final updatedBindings = state.bindings.toList()..remove(existingBinding);
+
+      _update(state.copyWith(bindings: updatedBindings));
+    }
   }
 
   void resetBindings() {

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DebugOverlayState {
 
- double get frameTime; double get fps; double get sleepBudget; int get frame;
+ double get frameTime; double get fps; double get sleepBudget; int get frame; double get rewindSize;
 /// Create a copy of DebugOverlayState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $DebugOverlayStateCopyWith<DebugOverlayState> get copyWith => _$DebugOverlayStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepBudget, sleepBudget) || other.sleepBudget == sleepBudget)&&(identical(other.frame, frame) || other.frame == frame));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepBudget, sleepBudget) || other.sleepBudget == sleepBudget)&&(identical(other.frame, frame) || other.frame == frame)&&(identical(other.rewindSize, rewindSize) || other.rewindSize == rewindSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepBudget,frame);
+int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepBudget,frame,rewindSize);
 
 @override
 String toString() {
-  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget, frame: $frame)';
+  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget, frame: $frame, rewindSize: $rewindSize)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $DebugOverlayStateCopyWith<$Res>  {
   factory $DebugOverlayStateCopyWith(DebugOverlayState value, $Res Function(DebugOverlayState) _then) = _$DebugOverlayStateCopyWithImpl;
 @useResult
 $Res call({
- double frameTime, double fps, double sleepBudget, int frame
+ double frameTime, double fps, double sleepBudget, int frame, double rewindSize
 });
 
 
@@ -63,13 +63,14 @@ class _$DebugOverlayStateCopyWithImpl<$Res>
 
 /// Create a copy of DebugOverlayState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? frameTime = null,Object? fps = null,Object? sleepBudget = null,Object? frame = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? frameTime = null,Object? fps = null,Object? sleepBudget = null,Object? frame = null,Object? rewindSize = null,}) {
   return _then(_self.copyWith(
 frameTime: null == frameTime ? _self.frameTime : frameTime // ignore: cast_nullable_to_non_nullable
 as double,fps: null == fps ? _self.fps : fps // ignore: cast_nullable_to_non_nullable
 as double,sleepBudget: null == sleepBudget ? _self.sleepBudget : sleepBudget // ignore: cast_nullable_to_non_nullable
 as double,frame: null == frame ? _self.frame : frame // ignore: cast_nullable_to_non_nullable
-as int,
+as int,rewindSize: null == rewindSize ? _self.rewindSize : rewindSize // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -80,13 +81,14 @@ as int,
 
 
 class _DebugOverlayState implements DebugOverlayState {
-  const _DebugOverlayState({this.frameTime = 0, this.fps = 0, this.sleepBudget = 0, this.frame = 0});
+  const _DebugOverlayState({this.frameTime = 0, this.fps = 0, this.sleepBudget = 0, this.frame = 0, this.rewindSize = 0});
   
 
 @override@JsonKey() final  double frameTime;
 @override@JsonKey() final  double fps;
 @override@JsonKey() final  double sleepBudget;
 @override@JsonKey() final  int frame;
+@override@JsonKey() final  double rewindSize;
 
 /// Create a copy of DebugOverlayState
 /// with the given fields replaced by the non-null parameter values.
@@ -98,16 +100,16 @@ _$DebugOverlayStateCopyWith<_DebugOverlayState> get copyWith => __$DebugOverlayS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepBudget, sleepBudget) || other.sleepBudget == sleepBudget)&&(identical(other.frame, frame) || other.frame == frame));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepBudget, sleepBudget) || other.sleepBudget == sleepBudget)&&(identical(other.frame, frame) || other.frame == frame)&&(identical(other.rewindSize, rewindSize) || other.rewindSize == rewindSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepBudget,frame);
+int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepBudget,frame,rewindSize);
 
 @override
 String toString() {
-  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget, frame: $frame)';
+  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepBudget: $sleepBudget, frame: $frame, rewindSize: $rewindSize)';
 }
 
 
@@ -118,7 +120,7 @@ abstract mixin class _$DebugOverlayStateCopyWith<$Res> implements $DebugOverlayS
   factory _$DebugOverlayStateCopyWith(_DebugOverlayState value, $Res Function(_DebugOverlayState) _then) = __$DebugOverlayStateCopyWithImpl;
 @override @useResult
 $Res call({
- double frameTime, double fps, double sleepBudget, int frame
+ double frameTime, double fps, double sleepBudget, int frame, double rewindSize
 });
 
 
@@ -135,13 +137,14 @@ class __$DebugOverlayStateCopyWithImpl<$Res>
 
 /// Create a copy of DebugOverlayState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? frameTime = null,Object? fps = null,Object? sleepBudget = null,Object? frame = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? frameTime = null,Object? fps = null,Object? sleepBudget = null,Object? frame = null,Object? rewindSize = null,}) {
   return _then(_DebugOverlayState(
 frameTime: null == frameTime ? _self.frameTime : frameTime // ignore: cast_nullable_to_non_nullable
 as double,fps: null == fps ? _self.fps : fps // ignore: cast_nullable_to_non_nullable
 as double,sleepBudget: null == sleepBudget ? _self.sleepBudget : sleepBudget // ignore: cast_nullable_to_non_nullable
 as double,frame: null == frame ? _self.frame : frame // ignore: cast_nullable_to_non_nullable
-as int,
+as int,rewindSize: null == rewindSize ? _self.rewindSize : rewindSize // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

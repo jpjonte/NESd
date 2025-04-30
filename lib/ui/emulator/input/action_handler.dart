@@ -9,12 +9,23 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'action_handler.g.dart';
 
-typedef InputActionEvent = ({InputAction action, double value});
+class InputActionEvent {
+  const InputActionEvent({
+    required this.action,
+    required this.value,
+    required this.bindingType,
+  });
+
+  final InputAction action;
+  final double value;
+  final BindingType bindingType;
+}
 
 @riverpod
 ActionStream actionStream(Ref ref) {
@@ -86,7 +97,7 @@ class ActionHandler {
 
   bool enabled = true;
 
-  bool get _inGame => _currentRoute == EmulatorRoute.name && nes != null;
+  bool get _inGame => _currentRoute == EmulatorRoute.name;
 
   String? _currentRoute = MainRoute.name;
 
@@ -100,23 +111,23 @@ class ActionHandler {
     }
 
     if (event.value > 0.5) {
-      handleActionDown(event.action);
+      if (event.bindingType == BindingType.toggle && _inGame) {
+        _handleActionToggleInGame(event.action);
+
+        return;
+      }
+
+      _handleActionDown(event.action);
     } else {
-      handleActionUp(event.action);
+      if (event.bindingType == BindingType.toggle) {
+        return;
+      }
+
+      _handleActionUp(event.action);
     }
   }
 
-  void handleActionDown(InputAction action) {
-    if (action is OpenMenu) {
-      if (_currentRoute == EmulatorRoute.name) {
-        router.navigate(const MenuRoute());
-      } else {
-        router.navigate(const EmulatorRoute());
-      }
-
-      return;
-    }
-
+  void _handleActionDown(InputAction action) {
     if (_inGame) {
       _handleActionDownInGame(action);
     } else {
@@ -124,12 +135,44 @@ class ActionHandler {
     }
   }
 
-  void handleActionUp(InputAction action) {
+  void _handleActionUp(InputAction action) {
     switch (action) {
       case ControllerPress():
         if (_inGame) {
           nes?.buttonUp(action.controller, action.button);
         }
+      case FastForward():
+        if (_inGame) {
+          nes?.fastForward = false;
+        }
+
+      case Rewind():
+        if (_inGame) {
+          nes?.rewind = false;
+        }
+      case PauseAction(paused: final paused):
+        if (_inGame) {
+          if (paused) {
+            nes?.unpause();
+          } else {
+            nes?.pause();
+          }
+        }
+      default:
+      // no-op
+    }
+  }
+
+  void _handleActionToggleInGame(InputAction action) {
+    switch (action) {
+      case ControllerPress():
+        nes?.buttonToggle(action.controller, action.button);
+      case FastForward():
+        nes?.toggleFastForward();
+      case Rewind():
+        nes?.toggleRewind();
+      case PauseAction():
+        nes?.togglePause();
       default:
       // no-op
     }
@@ -143,10 +186,10 @@ class ActionHandler {
         _saveState(action.slot);
       case LoadState():
         _loadState(action.slot);
-      case TogglePauseAction():
-        nes?.togglePause();
-      case ToggleFastForward():
-        nes?.toggleFastForward();
+      case FastForward():
+        nes?.fastForward = true;
+      case Rewind():
+        nes?.rewind = true;
       case PauseAction(paused: final paused):
         if (paused) {
           nes?.pause();
@@ -160,6 +203,8 @@ class ActionHandler {
         audioOutput.volume -= 0.1;
       case IncreaseVolume():
         audioOutput.volume += 0.1;
+      case OpenMenu():
+        router.navigate(const MenuRoute());
       default:
       // no-op
     }
@@ -193,6 +238,8 @@ class ActionHandler {
         _sendIntent(const PreviousTabIntent());
       case NextTab():
         _sendIntent(const NextTabIntent());
+      case OpenMenu():
+        router.navigate(const EmulatorRoute());
       default:
       // no-op
     }

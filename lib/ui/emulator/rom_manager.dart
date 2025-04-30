@@ -6,8 +6,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:nesd/exception/nesd_exception.dart';
-import 'package:nesd/nes/nes_state.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -90,7 +90,7 @@ class RomManager {
     return saveFile.readAsBytesSync();
   }
 
-  void saveState(RomInfo romInfo, int slot, Uint8List data) {
+  void saveState(RomInfo romInfo, int slot, List<int> data) {
     final file = _getSaveStateFile(romInfo, slot);
 
     _ensureDirectoryExists(file);

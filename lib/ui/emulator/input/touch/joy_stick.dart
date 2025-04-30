@@ -25,7 +25,13 @@ class JoyStick extends HookConsumerWidget {
       final inside = current > config.deadZone;
 
       if (previous <= config.deadZone != inside) {
-        actionStream.add((action: action, value: inside ? 1.0 : 0.0));
+        actionStream.add(
+          InputActionEvent(
+            action: action,
+            value: inside ? 1.0 : 0.0,
+            bindingType: config.bindingType,
+          ),
+        );
       }
     }
 
@@ -66,19 +72,43 @@ class JoyStick extends HookConsumerWidget {
           position.value = Alignment.center;
 
           if (config.upAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.downAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.leftAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
 
           if (config.rightAction case final action?) {
-            actionStream.add((action: action, value: 0.0));
+            actionStream.add(
+              InputActionEvent(
+                action: action,
+                value: 0.0,
+                bindingType: config.bindingType,
+              ),
+            );
           }
         },
         child: Container(

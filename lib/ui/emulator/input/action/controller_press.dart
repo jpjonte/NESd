@@ -6,7 +6,7 @@ class ControllerPress extends InputAction {
     this.button, {
     required super.title,
     required super.code,
-  });
+  }) : super(toggleable: true);
 
   final int controller;
   final NesButton button;

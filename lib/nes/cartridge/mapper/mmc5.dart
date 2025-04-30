@@ -117,7 +117,54 @@ class MMC5 extends Mapper {
   @override
   set state(covariant MMC5State state) {
     _prgBankMode = state.prgBankMode;
+
+    _prgRamProtect1 = state.prgRamProtect1;
+    _prgRamProtect2 = state.prgRamProtect2;
+
+    _prgRegisters.setAll(0, state.prgRegisters);
+
+    _chrRegisters.setAll(0, state.chrRegisters);
     _chrBankMode = state.chrBankMode;
+    _lastChrAddress = state.lastChrAddress;
+
+    _filledNametable.setAll(0, state.filledNametable);
+
+    _nametables = state.nametables;
+
+    _fillModeTile = state.fillModeTile;
+    _fillModeColor = state.fillModeColor;
+
+    _lastPpuAddress = state.lastPpuAddress;
+
+    _ppuIdleCountdown = state.ppuIdleCountdown;
+    _ppuInFrame = state.ppuInFrame;
+    _ppuNtReadCount = state.ppuNtReadCount;
+    _scanline = state.scanline;
+
+    _irqTargetScanline = state.irqTargetScanline;
+    _irqEnabled = state.irqEnabled;
+    _irqPending = state.irqPending;
+
+    _multiplicand = state.multiplicand;
+    _multiplier = state.multiplier;
+
+    _tileCounter = state.tileCounter;
+
+    _lastExtraChr = state.lastExtraChr;
+
+    _splitEnabled = state.splitEnabled;
+    _splitActive = state.splitActive;
+    _splitSide = state.splitSide;
+    _splitTile = state.splitTile;
+    _splitTileAddress = state.splitTileAddress;
+    _splitScroll = state.splitScroll;
+    _splitBank = state.splitBank;
+
+    _exram.setAll(0, state.exram);
+    _extendedRamMode = state.extendedRamMode;
+    _extendedAttributeOffset = state.extendedAttributeOffset;
+    _extendedAttributeFetchCountdown = state.extendedAttributeFetchCountdown;
+    _extendedAttributeChrBank = state.extendedAttributeChrBank;
 
     _updateState();
   }
@@ -542,7 +589,7 @@ class MMC5 extends Mapper {
   MemoryAccess _memoryAccess(CpuMemoryType memoryType) {
     return switch (memoryType) {
       CpuMemoryType.prgRom => MemoryAccess.read,
-      CpuMemoryType.prgRam =>
+      _ =>
         _prgRamProtect1 == 2 && _prgRamProtect2 == 1
             ? MemoryAccess.readWrite
             : MemoryAccess.read,
@@ -649,6 +696,6 @@ class MMC5 extends Mapper {
   }
 
   int _readChr(int address) {
-    return cartridge.chr[address];
+    return cartridge.chrRom[address];
   }
 }

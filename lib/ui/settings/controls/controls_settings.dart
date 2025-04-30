@@ -44,7 +44,7 @@ int maxIndex(Ref ref) {
     settingsControllerProvider.select((s) => s.bindings),
   );
 
-  return bindings.values.fold(0, (acc, inputs) => max(acc, inputs.length - 1));
+  return bindings.fold(0, (acc, binding) => max(acc, binding.index));
 }
 
 @riverpod

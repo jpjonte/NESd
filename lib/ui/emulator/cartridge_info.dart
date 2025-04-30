@@ -23,8 +23,8 @@ class CartridgeInfoWidget extends StatelessWidget {
               File(cartridge.file.name).uri.pathSegments.last,
             ),
             KeyValue('ROM format', cartridge.romFormat.toString()),
-            KeyValue('PRG ROM size', '${cartridge.prgRomSize} bytes'),
-            KeyValue('CHR ROM size', '${cartridge.chrRomSize} bytes'),
+            KeyValue('PRG ROM size', '${cartridge.prgRom.length} bytes'),
+            KeyValue('CHR ROM size', '${cartridge.chrRom.length} bytes'),
             KeyValue('Nametable layout', '${cartridge.nametableLayout}'),
             KeyValue(
               'Alternative nametable layout',
@@ -37,7 +37,11 @@ class CartridgeInfoWidget extends StatelessWidget {
               'Mapper',
               '${cartridge.mapper.name} (${cartridge.mapper.id})',
             ),
-            KeyValue('PRG RAM size', '${cartridge.prgRamSize} bytes'),
+            KeyValue('PRG Work RAM size', '${cartridge.prgRam.length} bytes'),
+            KeyValue(
+              'PRG Save RAM size',
+              '${cartridge.prgSaveRam.length} bytes',
+            ),
             KeyValue('TV system', '${cartridge.tvSystem}'),
           ],
         ),
