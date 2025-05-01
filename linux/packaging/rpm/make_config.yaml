@@ -21,3 +21,5 @@ categories:
   - Games
 
 startup_notify: true
+
+metainfo: linux/packaging/dev.jpj.NESd.metainfo.xml

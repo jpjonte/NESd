@@ -199,12 +199,12 @@ jobs:
       - run: ci/build/windows/build.ps1
       - uses: thedoctor0/zip-release@0.7.5
         with:
-          directory: ${{ steps.env.outputs.windows_path }}
+          directory: build/windows/x64/runner/Release
           filename: ${{ steps.env.outputs.windows_artifact }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.windows_artifact }}
-          path: ${{ steps.env.outputs.windows_path }}/${{ steps.env.outputs.windows_artifact }}
+          path: build/windows/x64/runner/Release/${{ steps.env.outputs.windows_artifact }}
           if-no-files-found: error
 
   build-android:

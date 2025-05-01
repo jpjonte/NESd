@@ -68,5 +68,7 @@ void main() {
 
     await r.menuScreen.tapQuitGame();
     r.mainMenu.expectMainMenuFound();
+
+    await r.fixAsync();
   });
 }
