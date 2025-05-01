@@ -166,13 +166,7 @@ class NES {
       }
 
       if (rewind) {
-        _handleRewind();
-
-        final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
-
-        _frameStart = DateTime.now();
-
-        await wait(sleepTime);
+        await _handleRewind();
 
         continue;
       }
@@ -195,7 +189,7 @@ class NES {
     _inLoop = false;
   }
 
-  void _handleRewind() {
+  Future<void> _handleRewind() async {
     final rewindState = _rewindBuffer.pop();
 
     if (rewindState == null) {
@@ -205,8 +199,6 @@ class NES {
     }
 
     _applyState(rewindState);
-
-    _frameTime = DateTime.now().difference(_frameStart);
 
     eventBus.add(
       FrameNesEvent(
@@ -219,6 +211,14 @@ class NES {
         rewindSize: _rewindBuffer.size,
       ),
     );
+
+    _frameTime = DateTime.now().difference(_frameStart);
+
+    final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
+
+    _frameStart = DateTime.now();
+
+    await wait(sleepTime);
   }
 
   Future<void> _sendFrame() async {
@@ -251,7 +251,10 @@ class NES {
 
     _frameTime = DateTime.now().difference(_frameStart);
 
-    final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
+    final sleepTime =
+        fastForward
+            ? Duration.zero
+            : _calculateSleepTime(_frameTime, apu.sampleIndex);
 
     apu.sampleIndex = 0;
 
