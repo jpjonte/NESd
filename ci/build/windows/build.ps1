@@ -1,7 +1,7 @@
 flutter build windows --release
 
 $lz4library = ".\windows\eslz4-win64.dll"
-$buildDirectory = ".\build\windows\x64\runner\Release\eslz4-wind64.dll"
+$buildDirectory = ".\build\windows\x64\runner\Release"
 
 if (-not (Test-Path -Path $buildDirectory)) {
     New-Item -ItemType Directory -Path $buildDirectory -Force
