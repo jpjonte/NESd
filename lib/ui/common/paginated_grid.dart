@@ -32,8 +32,8 @@ class PaginatedGrid extends HookConsumerWidget {
         final width = min(mediaQuery.size.width, constraints.maxWidth) - 80;
         final height = min(mediaQuery.size.height, constraints.maxHeight);
 
-        final columnCount = width ~/ tileWidth;
-        final rowCount = max(height ~/ tileHeight - skipRows, 1);
+        final columnCount = max(1, width ~/ tileWidth);
+        final rowCount = max(1, height ~/ tileHeight - skipRows);
 
         final count = columnCount * rowCount;
 
