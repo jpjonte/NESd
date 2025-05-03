@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.12.1] - 2025-05-03
 
 ### Fixed
-- Added missing compression libraries to the Windows and Linux builds
+- Added missing compression libraries to the Windows, Linux, and Android builds (#107, #113)
+- Fixed fast-forward not working (#108)
+- Fixed window resizing not working on Windows (thanks to the fix in the [gamepads](https://github.com/flame-engine/gamepads/) library) (#109)
+- Fixed ROM images not reloading after quitting a game
 
 ## [0.12.0] - 2025-04-30
 
