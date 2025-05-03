@@ -7,6 +7,7 @@ import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
+import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class RecentRomList extends HookConsumerWidget {
@@ -24,6 +25,8 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
+    final route = ref.watch(routerObserverProvider);
+
     if (recentRoms.isEmpty) {
       return Center(
         child: SizedBox(
@@ -37,7 +40,7 @@ class RecentRomList extends HookConsumerWidget {
 
     final future = useMemoized(
       () => _getRomTileDataForRoms(romManager, recentRoms),
-      [recentRoms],
+      [recentRoms, route == MainRoute.name],
     );
 
     final romsSnapshot = useFuture(future);
