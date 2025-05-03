@@ -18,7 +18,7 @@ final routerProvider = ChangeNotifierProvider((ref) => Router());
 @AutoRouterConfig(replaceInRouteName: 'Screen,Route')
 class Router extends RootStackRouter {
   @override
-  List<AutoRoute> get routes => [
+  final List<AutoRoute> routes = [
     CustomRoute(
       page: MainRoute.page,
       path: '/',
