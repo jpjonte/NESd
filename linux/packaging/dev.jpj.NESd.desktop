@@ -1,5 +1,5 @@
 [Desktop Entry]
-Version=0.12.1
+Version=1.4
 Type=Application
 
 Name=NESd
@@ -7,6 +7,6 @@ Comment=NES emulator
 Categories=Game;Emulator;
 
 Icon=dev.jpj.NESd
-Exec=nesd
+Exec=nesd %U
 Terminal=false
 StartupWMClass=nesd

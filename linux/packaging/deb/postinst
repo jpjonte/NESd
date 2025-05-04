@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+ln -s /usr/share/dev.jpj.NESd/nesd /usr/bin/nesd
+chmod +x /usr/bin/nesd
