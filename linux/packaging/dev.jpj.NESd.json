@@ -11,7 +11,7 @@
     "--socket=wayland",
     "--socket=pulseaudio",
     "--device=dri",
-    "--device=input",
+    "--device=all",
     "--filesystem=home"
   ],
   "modules": [
@@ -23,6 +23,28 @@
       ],
       "build-commands": [
         "cp -r build/linux/x64/release/bundle/* /app",
+        "chmod +x /app/nesd",
+        "mkdir -p /app/bin",
+        "ln -s /app/nesd /app/bin/nesd",
+        "install -Dm644 assets/logo.svg /app/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg",
+        "install -Dm644 linux/packaging/dev.jpj.NESd.desktop /app/share/applications/dev.jpj.NESd.desktop",
+        "install -Dm644 linux/packaging/dev.jpj.NESd.metainfo.xml /app/share/metainfo/dev.jpj.NESd.metainfo.xml"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../.."
+        }
+      ]
+    },
+    {
+      "name": "nesd",
+      "buildsystem": "simple",
+      "only-arches": [
+        "aarch64"
+      ],
+      "build-commands": [
+        "cp -r build/linux/arm64/release/bundle/* /app",
         "chmod +x /app/nesd",
         "mkdir -p /app/bin",
         "ln -s /app/nesd /app/bin/nesd",

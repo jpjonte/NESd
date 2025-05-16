@@ -18,6 +18,6 @@ icon_locations = {
     'Applications': (350, 350),
 }
 
-background = 'ci/build/macos/background.tiff'
+background = 'ci/1-build/macos/background.tiff'
 
 window_rect = ((200, 200), (512, 568))

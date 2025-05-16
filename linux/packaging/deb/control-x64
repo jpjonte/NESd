@@ -1,0 +1,10 @@
+Maintainer: John Paul Jonte <nesd@jpj.dev>
+Package: dev.jpj.NESd
+Version: 0.12.1
+Section: x11
+Priority: optional
+Essential: no
+InstalledSize: 23860
+Description: NES emulator
+Homepage: https://github.com/jpjonte/NESd
+Architecture: amd64

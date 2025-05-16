@@ -119,7 +119,7 @@ final nesdThemeLight = ThemeData(
   iconButtonTheme: iconButtonThemeData,
 );
 
-final dialogThemeDark = DialogTheme(
+final dialogThemeDark = DialogThemeData(
   backgroundColor: nesdRed[900],
   shadowColor: nesdRed[600],
   elevation: 4,

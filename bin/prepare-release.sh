@@ -23,6 +23,9 @@ date=$(date +'%Y-%m-%d')
 sed -i '' -e 's/\[Unreleased\]/['"$version"'] - '"$date"'/' CHANGELOG.md
 
 sed -i '' -e '/Version/s/.*/Version='"$version"'/' linux/packaging/dev.jpj.NESd.desktop
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/deb/control-x64
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/deb/control-arm64
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/rpm/nesd.spec
 
 awk '
 BEGIN {

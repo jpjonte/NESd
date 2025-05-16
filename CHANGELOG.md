@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- Added an AppImage build for Linux
+- Added arm64 builds for Linux
+
 ## [0.12.1] - 2025-05-03
 
 ### Fixed

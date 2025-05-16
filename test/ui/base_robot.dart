@@ -58,7 +58,7 @@ abstract class BaseRobot {
   /// This way, image decoding can run and finish in the tests.
   Future<void> fixAsync() async {
     await tester.runAsync(
-      () async => await Future.delayed(const Duration(milliseconds: 1)),
+      () async => await Future.delayed(const Duration(milliseconds: 50)),
     );
     await pumpFrames(const Duration(milliseconds: 50));
   }
