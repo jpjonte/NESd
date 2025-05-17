@@ -10,3 +10,5 @@ fi
 
 rm /tmp/upload-keystore.jks
 rm android/key.properties
+
+mv build/app/outputs/flutter-apk/*.apk ./"$ARTIFACT_FLAVORED".android.apk

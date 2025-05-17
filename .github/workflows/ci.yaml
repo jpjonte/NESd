@@ -156,7 +156,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.artifact_flavored }}.android.apk
-          path: build/app/**/*.apk
+          path: '*.apk'
           if-no-files-found: error
 
   package-linux-deb:
@@ -329,6 +329,8 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - id: env
+        run: ci/env.sh
       - run: ci/3-release/zip_windows_artifacts.sh
       - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
@@ -376,16 +378,18 @@ jobs:
           repository: flatpak
           skip_fetch: true
           skip_checkout: true
-      - id: env
+      - id: changelog
         run: ci/3-release/extract_changelog.sh
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
+      - id: env
+        run: ci/env.sh
       - run: ci/3-release/zip_windows_artifacts.sh
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*
           name: NESd ${{ needs.build-macos.outputs.release_name }}
-          body: ${{ steps.env.outputs.changes }}
+          body: ${{ steps.changelog.outputs.changes }}
           artifactErrorsFailBuild: true
