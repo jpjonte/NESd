@@ -329,6 +329,7 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - run: ci/3-release/zip_windows_artifacts.sh
       - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
         with:
@@ -381,6 +382,7 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+      - run: ci/3-release/zip_windows_artifacts.sh
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*
