@@ -323,7 +323,7 @@ jobs:
           repository: flatpak
           skip_fetch: true
           skip_checkout: true
-      - id: env
+      - id: changelog
         run: ci/3-release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v4
         with:
@@ -338,7 +338,7 @@ jobs:
           artifacts: artifacts/*
           name: NESd nightly
           tag: nightly
-          body: ${{ steps.env.outputs.changes }}
+          body: ${{ steps.changelog.outputs.changes }}
           artifactErrorsFailBuild: true
           prerelease: true
           allowUpdates: true
