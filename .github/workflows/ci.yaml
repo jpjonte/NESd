@@ -128,7 +128,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.env.outputs.artifact }}.windows-x64.zip
-          path: build/windows/x64/runner/Release/
+          path: dist/
           if-no-files-found: error
 
   build-android:
