@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added an AppImage build for Linux
 - Added arm64 builds for Linux
 
+### Fixed
+- Fixed gamepad inputs not being saved on Windows
+
 ## [0.12.1] - 2025-05-03
 
 ### Fixed
