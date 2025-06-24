@@ -100,6 +100,7 @@ sealed class Settings with _$Settings {
     List<TouchInputConfig> wideTouchInputConfig,
     @Default({}) Map<String, List<Breakpoint>> breakpoints,
     @Default(null) Region? region,
+    @Default(ThemeMode.system) ThemeMode themeMode,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -380,6 +381,12 @@ class SettingsController extends _$SettingsController {
 
   set region(Region? region) {
     _update(state.copyWith(region: region));
+  }
+
+  ThemeMode get themeMode => state.themeMode;
+
+  set themeMode(ThemeMode themeMode) {
+    _update(state.copyWith(themeMode: themeMode));
   }
 
   void _update(Settings settings) {

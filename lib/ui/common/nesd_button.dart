@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 class NesdButton extends StatelessWidget {
   const NesdButton({

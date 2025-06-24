@@ -87,6 +87,8 @@ class DisplayWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = useFuture(imageFuture);
 
+    final theme = Theme.of(context);
+
     return Stack(
       children: [
         switch (snapshot) {
@@ -99,11 +101,23 @@ class DisplayWidget extends HookConsumerWidget {
           alignment: Alignment.topLeft,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: IconButton(
-              key: menuKey,
-              icon: const Icon(Icons.menu),
-              onPressed:
-                  () => ref.read(routerProvider).navigate(const MenuRoute()),
+            child: Theme(
+              data: theme.copyWith(
+                iconButtonTheme: IconButtonThemeData(
+                  style: theme.iconButtonTheme.style!.copyWith(
+                    backgroundColor: WidgetStateProperty.all(
+                      Colors.black.withAlpha(150),
+                    ),
+                  ),
+                ),
+              ),
+              child: IconButton(
+                key: menuKey,
+                icon: const Icon(Icons.menu),
+                color: Colors.white,
+                onPressed:
+                    () => ref.read(routerProvider).navigate(const MenuRoute()),
+              ),
             ),
           ),
         ),

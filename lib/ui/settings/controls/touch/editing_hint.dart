@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_state.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 class EditingHint extends ConsumerWidget {
   const EditingHint({super.key});
@@ -10,12 +10,13 @@ class EditingHint extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(touchEditorNotifierProvider);
     final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final theme = Theme.of(context);
 
     return Container(
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(200),
+        color: theme.colorScheme.surface.withAlpha(200),
         borderRadius: const BorderRadius.all(Radius.circular(16)),
       ),
       child: LayoutBuilder(
@@ -29,7 +30,11 @@ class EditingHint extends ConsumerWidget {
                   const BackButton(),
                   if (state.showHint) const Expanded(child: HintText()),
                   if (state.showHint) const SizedBox(width: 8),
-                  if (state.showHint) const Icon(Icons.close, size: 16),
+                  if (state.showHint)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(Icons.close, size: 16),
+                    ),
                 ],
               ),
             ),
@@ -47,6 +52,7 @@ class HintText extends StatelessWidget {
       builder: (context, orientation) {
         return RichText(
           text: TextSpan(
+            style: DefaultTextStyle.of(context).style,
             children: [
               BoldSpan('Tap'),
               const TextSpan(text: ' to edit controls. '),

@@ -11,7 +11,7 @@ import 'package:nesd/ui/common/clickable.dart';
 import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 final _defaultRowBorder = BorderSide(color: nesdRed.withAlpha(0), width: 2);
 final _sectionBorder = BorderSide(color: debuggerColor, width: 2);
@@ -33,37 +33,45 @@ class DisassemblyList extends ConsumerWidget {
     final state = ref.watch(debuggerNotifierProvider);
     final nesController = ref.read(nesControllerProvider);
 
-    return ListView.builder(
-      controller: scrollController,
-      itemExtent: disassemblyRowHeight,
-      itemCount: state.disassembly.length,
-      itemBuilder: (context, index) {
-        final line = state.disassembly[index];
+    final defaultTextStyle = DefaultTextStyle.of(context);
+    final theme = Theme.of(context);
 
-        return DisassemblyRow(
-          line: line,
-          highlight: state.enabled && line.address == state.PC,
-          breakpoint: state.breakpoints.firstWhereOrNull(
-            (b) => b.address == line.address && !b.hidden,
-          ),
-          selected: line.address == state.selectedAddress,
-          jumpTo: (address) {
-            debugger.selectAddress(address);
+    return DefaultTextStyle(
+      style: defaultTextStyle.style.copyWith(
+        color: theme.colorScheme.onSurface,
+      ),
+      child: ListView.builder(
+        controller: scrollController,
+        itemExtent: disassemblyRowHeight,
+        itemCount: state.disassembly.length,
+        itemBuilder: (context, index) {
+          final line = state.disassembly[index];
 
-            jumpTo(
-              scrollController,
-              calculateAddressScrollOffset(state, address),
-            );
-          },
-          runTo: (address) {
-            debugger.addBreakpoint(
-              Breakpoint(address, hidden: true, removeOnHit: true),
-            );
+          return DisassemblyRow(
+            line: line,
+            highlight: state.enabled && line.address == state.PC,
+            breakpoint: state.breakpoints.firstWhereOrNull(
+              (b) => b.address == line.address && !b.hidden,
+            ),
+            selected: line.address == state.selectedAddress,
+            jumpTo: (address) {
+              debugger.selectAddress(address);
 
-            nesController.unpause();
-          },
-        );
-      },
+              jumpTo(
+                scrollController,
+                calculateAddressScrollOffset(state, address),
+              );
+            },
+            runTo: (address) {
+              debugger.addBreakpoint(
+                Breakpoint(address, hidden: true, removeOnHit: true),
+              );
+
+              nesController.unpause();
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -121,7 +129,7 @@ class DisassemblyRow extends ConsumerWidget {
                 width: 36,
                 height: disassemblyRowHeight,
                 color: debuggerColor,
-                child: Text(address, style: TextStyle(color: Colors.grey[400])),
+                child: Text(address, style: TextStyle(color: Colors.grey[300])),
               ),
             ),
 

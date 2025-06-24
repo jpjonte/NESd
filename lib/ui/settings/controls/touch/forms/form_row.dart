@@ -12,21 +12,23 @@ class FormRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontVariations: [FontVariation.weight(700)],
+    return Focus(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontVariations: [FontVariation.weight(700)],
+              ),
             ),
           ),
-        ),
-        Expanded(child: child),
-      ],
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }

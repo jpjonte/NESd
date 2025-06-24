@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Added an AppImage build for Linux
 - Added arm64 builds for Linux
+- Added an option to customize the theme mode (system, light, dark)
+
+### Changed
+- Improved the design of the light mode (work in progress)
 
 ### Fixed
 - Fixed gamepad inputs not being saved on Windows

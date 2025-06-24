@@ -2,6 +2,7 @@
 // ignore_for_file: unnecessary_raw_strings
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class AddressDialog extends HookWidget {
@@ -14,26 +15,21 @@ class AddressDialog extends HookWidget {
   Widget build(BuildContext context) {
     final controller = useTextEditingController();
 
+    final navigator = Navigator.of(context);
+
     return AlertDialog(
       title: Text(title),
       content: TextField(
         autofocus: true,
         controller: controller,
-        onChanged: (_) {
-          var text = controller.text;
-
-          if (text.length > 4) {
-            text = text.substring(0, 4);
-          }
-
-          if (text.contains(RegExp(r'[^0-9a-fA-F]'))) {
-            text = text.replaceAll(RegExp(r'[^0-9a-fA-F]'), '');
-          }
-
-          controller
-            ..value = TextEditingValue(text: text.toUpperCase())
-            ..selection = TextSelection.collapsed(offset: text.length);
-        },
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'^[0-9a-fA-F]*')),
+          TextInputFormatter.withFunction(
+            (_, newValue) =>
+                newValue.copyWith(text: newValue.text.toUpperCase()),
+          ),
+          LengthLimitingTextInputFormatter(4),
+        ],
         decoration: const InputDecoration(
           label: Text('Address'),
           hintText: '0000',
@@ -41,20 +37,20 @@ class AddressDialog extends HookWidget {
         onSubmitted: (text) {
           _submit(text);
 
-          Navigator.of(context).pop();
+          navigator.pop();
         },
       ),
       actions: <Widget>[
         TextButton(
           child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => navigator.pop(),
         ),
         TextButton(
           child: const Text('OK'),
           onPressed: () {
             _submit(controller.text);
 
-            Navigator.of(context).pop();
+            navigator.pop();
           },
         ),
       ],

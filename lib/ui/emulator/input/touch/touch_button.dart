@@ -3,8 +3,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 enum TouchButtonShape { circle, rectangle }
 
@@ -45,8 +46,7 @@ class TouchButton extends HookConsumerWidget {
       }
     }
 
-    final color =
-        active.value ? const Color(0xFFFFFFFF) : const Color(0x99FFFFFF);
+    final color = active.value ? touchInputColorActive : touchInputColor;
 
     return GestureDetector(
       onTapDown: (_) {
@@ -72,6 +72,7 @@ class TouchButton extends HookConsumerWidget {
           child: Text(
             label,
             style: baseTextStyle.copyWith(
+              color: Colors.white,
               fontVariations: const [FontVariation.weight(700)],
             ),
           ),

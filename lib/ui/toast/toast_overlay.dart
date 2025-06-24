@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/outline_text.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
 class ToastOverlay extends ConsumerWidget {

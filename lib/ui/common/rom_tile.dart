@@ -7,7 +7,7 @@ import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/common/custom_button.dart';
 import 'package:nesd/ui/common/outline_text.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 const gameTileWidth = 272.0;
 const gameTileHeight = 256.0;
@@ -60,9 +60,13 @@ class RomTile extends ConsumerWidget {
                       width: 256,
                       height: 240,
                       decoration: BoxDecoration(
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: active ? nesdRed : Colors.grey[600]!,
+                          color:
+                              active
+                                  ? nesdRed
+                                  : Theme.of(context).disabledColor,
                           width: 2,
                         ),
                       ),
@@ -97,6 +101,7 @@ class RomTile extends ConsumerWidget {
                                   fontVariations: const [
                                     FontVariation.weight(700),
                                   ],
+                                  color: Colors.white,
                                 ),
                                 strokeWidth: 2,
                                 textAlign: TextAlign.center,
@@ -122,6 +127,7 @@ class RomTile extends ConsumerWidget {
                                 iconSize: 20,
                                 icon: const Icon(Icons.close),
                                 padding: const EdgeInsets.all(4),
+                                color: Colors.white,
                                 onPressed: onRemove,
                               ),
                             ),

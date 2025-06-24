@@ -24,6 +24,8 @@ class BindingTile extends HookConsumerWidget {
 
     final focusNode = useFocusNode();
 
+    final focused = useState(false);
+
     return Actions(
       actions: {
         DecreaseIntent: CallbackAction<DecreaseIntent>(
@@ -43,6 +45,8 @@ class BindingTile extends HookConsumerWidget {
           if (!hasFocus) {
             controller.editing = false;
           }
+
+          focused.value = hasFocus;
         },
         child: GestureDetector(
           onDoubleTap: controller.clearBinding,
@@ -57,7 +61,8 @@ class BindingTile extends HookConsumerWidget {
                   Expanded(child: BindingTypeDropdown(action: action)),
                 if (action.toggleable) const SizedBox(width: 16),
                 Expanded(flex: 2, child: Binder(action: action)),
-                SizedBox(
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
                   width: 40,
                   height: 40,
                   child:
@@ -66,6 +71,10 @@ class BindingTile extends HookConsumerWidget {
                             icon: const Icon(Icons.clear),
                             iconSize: 16,
                             onPressed: controller.clearBinding,
+                            color:
+                                focused.value
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : null,
                           )
                           : null,
                 ),

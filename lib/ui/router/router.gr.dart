@@ -94,6 +94,28 @@ class FilePickerRouteArgs {
   String toString() {
     return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, onChangeDirectory: $onChangeDirectory, key: $key}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! FilePickerRouteArgs) return false;
+    return title == other.title &&
+        initialDirectory == other.initialDirectory &&
+        type == other.type &&
+        const ListEquality().equals(
+          allowedExtensions,
+          other.allowedExtensions,
+        ) &&
+        key == other.key;
+  }
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      initialDirectory.hashCode ^
+      type.hashCode ^
+      const ListEquality().hash(allowedExtensions) ^
+      key.hashCode;
 }
 
 /// generated route for
@@ -163,6 +185,16 @@ class SaveStatesRouteArgs {
   String toString() {
     return 'SaveStatesRouteArgs{romInfo: $romInfo, key: $key}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SaveStatesRouteArgs) return false;
+    return romInfo == other.romInfo && key == other.key;
+  }
+
+  @override
+  int get hashCode => romInfo.hashCode ^ key.hashCode;
 }
 
 /// generated route for

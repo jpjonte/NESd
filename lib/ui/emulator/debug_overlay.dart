@@ -8,7 +8,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debug_overlay.freezed.dart';
@@ -102,30 +102,35 @@ class DebugOverlay extends ConsumerWidget {
           width: 200,
           padding: const EdgeInsets.all(8),
           color: Colors.black.withValues(alpha: 0.5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              KeyValue(
-                'Frame Time',
-                state.frameTime.toStringAsFixed(3),
-                color: color,
-              ),
-              KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
-              KeyValue('Frame', state.frame.toString()),
-              KeyValue(
-                'Sleep Budget',
-                state.sleepBudget.toStringAsFixed(3),
-                color: switch (state.sleepBudget) {
-                  < -16 => nesdRed,
-                  < 0 => Colors.orange,
-                  _ => null,
-                },
-              ),
-              KeyValue(
-                'Rewind Size',
-                '${state.rewindSize.toStringAsFixed(1)} MB',
-              ),
-            ],
+          child: DefaultTextStyle(
+            style: DefaultTextStyle.of(
+              context,
+            ).style.copyWith(color: Colors.white),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                KeyValue(
+                  'Frame Time',
+                  state.frameTime.toStringAsFixed(3),
+                  color: color,
+                ),
+                KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
+                KeyValue('Frame', state.frame.toString()),
+                KeyValue(
+                  'Sleep Budget',
+                  state.sleepBudget.toStringAsFixed(3),
+                  color: switch (state.sleepBudget) {
+                    < -16 => nesdRed,
+                    < 0 => Colors.orange,
+                    _ => null,
+                  },
+                ),
+                KeyValue(
+                  'Rewind Size',
+                  '${state.rewindSize.toStringAsFixed(1)} MB',
+                ),
+              ],
+            ),
           ),
         ),
       ),

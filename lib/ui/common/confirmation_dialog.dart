@@ -37,6 +37,8 @@ class ConfirmationDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final navigator = Navigator.of(context);
+
     return AlertDialog(
       title: title,
       content: ConstrainedBox(
@@ -46,11 +48,11 @@ class ConfirmationDialog extends ConsumerWidget {
       actions: [
         TextButton(
           autofocus: true,
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => navigator.pop(),
           child: cancelLabel ?? const Text('Cancel'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => navigator.pop(true),
           child: confirmLabel ?? const Text('OK'),
         ),
       ],
