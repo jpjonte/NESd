@@ -6,7 +6,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -18,7 +18,7 @@ jobs:
       - run: flutter analyze
 
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [lint]
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
 
   publish-coverage:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test]
     permissions:
       pages: write
@@ -132,7 +132,7 @@ jobs:
           if-no-files-found: error
 
   build-android:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test]
     steps:
       - uses: actions/checkout@v4
@@ -291,7 +291,7 @@ jobs:
 
   release_nightly:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - build-macos
       - package-linux-deb
@@ -346,7 +346,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - build-macos
       - package-linux-deb
