@@ -18,12 +18,13 @@
     {
       "groupName": "Dart packages",
       "groupSlug": "dart",
-      "matchManagers": [
-        "pub"
-      ],
-      "matchPackageNames": [
-        "*"
-      ]
+      "matchManagers": ["pub"],
+      "matchPackageNames": ["*"]
+    },
+    {
+      "matchManagers": ["pub"],
+      "matchPackageNames": ["dart"],
+      "rangeStrategy": "replace"
     }
   ]
 }
