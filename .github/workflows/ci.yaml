@@ -314,7 +314,7 @@ jobs:
         with:
           path: flatpak/nightly
           key: flatpak-nightly-${{ github.sha }}
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Update NESd nightly
           commit_user_name: NESd CI Pipeline
@@ -369,7 +369,7 @@ jobs:
         with:
           path: flatpak/stable
           key: flatpak-stable-${{ github.sha }}
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Update NESd stable
           commit_user_name: NESd CI Pipeline
