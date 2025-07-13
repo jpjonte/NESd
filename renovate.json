@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "default:automergePatch",
+    "default:automergeRequireAllStatusChecks",
+    "default:automergePr",
+    "group:recommended"
+  ],
+  "assignees": ["jpjonte"],
+  "ignorePaths": [
+    "**/android/**",
+    "**/ios/**",
+    "**/macos/**"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "groupName": "Dart packages",
+      "groupSlug": "dart",
+      "matchManagers": [
+        "pub"
+      ],
+      "matchPackageNames": [
+        "*"
+      ]
+    }
+  ]
+}
