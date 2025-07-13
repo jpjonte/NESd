@@ -126,10 +126,19 @@ class DisplayBuilder extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (_, constraints) {
-        final scale = _calculateScale(
-          settings,
-          Size(constraints.maxWidth, constraints.maxHeight),
-          image,
+        final maxScale = min(
+          constraints.maxWidth / image.width,
+          constraints.maxHeight / image.height,
+        );
+
+        final scale = min(
+          maxScale,
+          _calculateScale(
+            settings,
+            constraints.maxWidth,
+            constraints.maxHeight,
+            image,
+          ),
         );
 
         final narrow = constraints.maxWidth < constraints.maxHeight;
@@ -214,20 +223,20 @@ class DisplayBuilder extends ConsumerWidget {
     );
   }
 
-  double _calculateScale(Settings settings, Size size, ui.Image image) {
+  double _calculateScale(
+    Settings settings,
+    double width,
+    double height,
+    ui.Image image,
+  ) {
     return switch (settings.scaling) {
       Scaling.x1 => 1.0,
       Scaling.x2 => 2.0,
       Scaling.x3 => 3.0,
       Scaling.x4 => 4.0,
-      Scaling.autoInteger => max(
-        1.0,
-        min(size.width ~/ image.width, size.height ~/ image.height).toDouble(),
-      ),
-      Scaling.autoSmooth => max(
-        0.5,
-        min(size.width / image.width, size.height / image.height),
-      ),
+      Scaling.autoInteger =>
+        max(0.5, min(width ~/ image.width, height ~/ image.height)).toDouble(),
+      Scaling.autoSmooth => 1000,
     };
   }
 }
