@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
+import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class JoyStick extends HookConsumerWidget {
@@ -116,7 +117,7 @@ class JoyStick extends HookConsumerWidget {
           height: config.size,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0x66FFFFFF),
+            color: touchInputColorSecondary,
           ),
           child: Align(
             alignment: position.value,
@@ -125,10 +126,7 @@ class JoyStick extends HookConsumerWidget {
               height: config.innerSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color:
-                    active.value
-                        ? const Color(0xFFFFFFFF)
-                        : const Color(0x99FFFFFF),
+                color: active.value ? touchInputColor : touchInputColorActive,
               ),
             ),
           ),

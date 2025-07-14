@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
+import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 
 class DPad extends HookConsumerWidget {
@@ -142,7 +143,7 @@ class DPad extends HookConsumerWidget {
                   config.deadZone * config.size,
                   config.deadZone * config.size,
                 ),
-                color: const Color(0x99FFFFFF),
+                color: touchInputColor,
               ),
               DPadSegment(
                 rect: left,
@@ -152,8 +153,8 @@ class DPad extends HookConsumerWidget {
                 ),
                 color:
                     left.contains(position.value)
-                        ? const Color(0xFFFFFFFF)
-                        : const Color(0x99FFFFFF),
+                        ? touchInputColorActive
+                        : touchInputColor,
               ),
               DPadSegment(
                 rect: right,
@@ -163,8 +164,8 @@ class DPad extends HookConsumerWidget {
                 ),
                 color:
                     right.contains(position.value)
-                        ? const Color(0xFFFFFFFF)
-                        : const Color(0x99FFFFFF),
+                        ? touchInputColorActive
+                        : touchInputColor,
               ),
               DPadSegment(
                 rect: up,
@@ -174,8 +175,8 @@ class DPad extends HookConsumerWidget {
                 ),
                 color:
                     up.contains(position.value)
-                        ? const Color(0xFFFFFFFF)
-                        : const Color(0x99FFFFFF),
+                        ? touchInputColorActive
+                        : touchInputColor,
               ),
               DPadSegment(
                 rect: down,
@@ -185,8 +186,8 @@ class DPad extends HookConsumerWidget {
                 ),
                 color:
                     down.contains(position.value)
-                        ? const Color(0xFFFFFFFF)
-                        : const Color(0x99FFFFFF),
+                        ? touchInputColorActive
+                        : touchInputColor,
               ),
             ],
           ),

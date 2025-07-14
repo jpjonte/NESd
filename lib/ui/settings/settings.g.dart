@@ -55,6 +55,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       ) ??
       const {},
   region: $enumDecodeNullable(_$RegionEnumMap, json['region']) ?? null,
+  themeMode:
+      $enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']) ??
+      ThemeMode.system,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -78,6 +81,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'wideTouchInputConfig': instance.wideTouchInputConfig,
   'breakpoints': instance.breakpoints,
   'region': _$RegionEnumMap[instance.region],
+  'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
 };
 
 const _$ScalingEnumMap = {
@@ -91,12 +95,18 @@ const _$ScalingEnumMap = {
 
 const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
 
+const _$ThemeModeEnumMap = {
+  ThemeMode.system: 'system',
+  ThemeMode.light: 'light',
+  ThemeMode.dark: 'dark',
+};
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
 String _$settingsControllerHash() =>
-    r'9a6aca1d391909c0d833e02e692740eb59eecfd9';
+    r'0dcfb731732fe2afd3dc55ca4cdb7c6e5a9dcb95';
 
 /// See also [SettingsController].
 @ProviderFor(SettingsController)

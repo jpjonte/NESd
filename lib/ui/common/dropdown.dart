@@ -14,17 +14,31 @@ class Dropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final focused = Focus.of(context).hasFocus;
+
+    final color =
+        focused ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
+
+    final border = theme.inputDecorationTheme.border!.borderSide;
+
     return DropdownButtonHideUnderline(
       child: InputDecorator(
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           contentPadding: EdgeInsets.zero,
-          border: OutlineInputBorder(),
+          enabledBorder: OutlineInputBorder(
+            borderSide: border.copyWith(color: color),
+          ),
         ),
         child: DropdownButton<T>(
           value: value,
           onChanged: onChanged,
           borderRadius: BorderRadius.circular(8),
           padding: const EdgeInsets.symmetric(horizontal: 8),
+          style: DefaultTextStyle.of(context).style.copyWith(
+            color: color,
+            fontVariations: const [FontVariation.weight(700)],
+          ),
           items: items,
         ),
       ),

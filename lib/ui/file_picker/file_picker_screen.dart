@@ -12,7 +12,6 @@ import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:nesd/ui/nesd_theme.dart';
 import 'package:path/path.dart' as p;
 
 enum FilePickerType { file, directory, any }
@@ -80,14 +79,14 @@ class FilePicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(filePickerControllerProvider);
+    final theme = Theme.of(context);
 
     return NesdScaffold(
       appBar: AppBar(
         title: Text(
           title,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
             fontVariations: const [FontVariation.weight(700)],
           ),
         ),
@@ -99,29 +98,7 @@ class FilePicker extends ConsumerWidget {
             child: Column(
               children: [
                 DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: FocusOnHover(
-                          child: TextField(
-                            controller: controller.textEditingController,
-                            onChanged: (value) => controller.filter = value,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Filter',
-                              isDense: true,
-                              contentPadding: EdgeInsets.all(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SearchBox(),
                 const FilePickerProgressIndicator(),
                 FileList(
                   allowedExtensions: allowedExtensions,
@@ -136,6 +113,55 @@ class FilePicker extends ConsumerWidget {
   }
 }
 
+class SearchBox extends HookConsumerWidget {
+  const SearchBox({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.watch(filePickerControllerProvider);
+
+    final focused = useState(false);
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FocusOnHover(
+      onFocusChange: (hasFocus) => focused.value = hasFocus,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        color: focused.value ? colorScheme.primary : colorScheme.surface,
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: focused.value ? colorScheme.onPrimary : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                cursorColor: focused.value ? colorScheme.onPrimary : null,
+                style: TextStyle(
+                  color: focused.value ? colorScheme.onPrimary : null,
+                ),
+                controller: controller.textEditingController,
+                onChanged: (value) => controller.filter = value,
+                decoration: InputDecoration(
+                  hintStyle: TextStyle(
+                    color: focused.value ? Colors.grey[300] : null,
+                  ),
+                  border: const OutlineInputBorder(),
+                  hintText: 'Filter',
+                  isDense: true,
+                  contentPadding: const EdgeInsets.all(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class FilePickerProgressIndicator extends ConsumerWidget {
   const FilePickerProgressIndicator({super.key});
 
@@ -143,13 +169,12 @@ class FilePickerProgressIndicator extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(filePickerNotifierProvider);
 
+    final loading = state is FilePickerData && state.refreshing;
+
     return Container(
-      height: 4,
+      height: loading ? 4 : 0,
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child:
-          state is FilePickerData && state.refreshing
-              ? const LinearProgressIndicator()
-              : null,
+      child: loading ? const LinearProgressIndicator() : null,
     );
   }
 }
@@ -167,30 +192,35 @@ class DirectoryPickerButton extends ConsumerWidget {
 
     final currentDirectory = state is FilePickerData ? state.directory : null;
 
-    return InkWell(
-      onTap: () async {
-        final path = currentDirectory?.path;
+    final theme = Theme.of(context);
 
-        if (path == null) {
-          return;
-        }
+    return ColoredBox(
+      color: theme.colorScheme.surface,
+      child: InkWell(
+        onTap: () async {
+          final path = currentDirectory?.path;
 
-        final result = await filesystem.chooseDirectory(path);
+          if (path == null) {
+            return;
+          }
 
-        if (result != null) {
-          controller.go(result);
+          final result = await filesystem.chooseDirectory(path);
 
-          onChangeDirectory?.call(result);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Center(
-          child: Text(
-            currentDirectory?.name ?? '',
-            style: TextStyle(
-              fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-              fontVariations: const [FontVariation.weight(700)],
+          if (result != null) {
+            controller.go(result);
+
+            onChangeDirectory?.call(result);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Center(
+            child: Text(
+              currentDirectory?.name ?? '',
+              style: TextStyle(
+                fontSize: theme.textTheme.bodyLarge?.fontSize,
+                fontVariations: const [FontVariation.weight(700)],
+              ),
             ),
           ),
         ),
@@ -285,19 +315,32 @@ class ParentTile extends ConsumerWidget {
     final filesystem = ref.watch(filesystemProvider);
 
     return FocusOnHover(
-      child: ListTile(
-        leading: Icon(Icons.drive_folder_upload_rounded, color: nesdRed[500]),
-        title: const Text('Up a directory'),
-        onTap: () async {
-          final parent = await filesystem.parent(directory.path);
+      child: Builder(
+        builder: (context) {
+          final focused = Focus.of(context).hasFocus;
+          final colorScheme = Theme.of(context).colorScheme;
 
-          if (parent == null) {
-            return;
-          }
+          return ListTile(
+            leading: Icon(
+              Icons.drive_folder_upload_rounded,
+              color: focused ? colorScheme.onPrimary : colorScheme.primary,
+            ),
+            title: Text(
+              'Up a directory',
+              style: TextStyle(color: focused ? colorScheme.onPrimary : null),
+            ),
+            onTap: () async {
+              final parent = await filesystem.parent(directory.path);
 
-          controller.go(parent);
+              if (parent == null) {
+                return;
+              }
 
-          onChangeDirectory?.call(parent);
+              controller.go(parent);
+
+              onChangeDirectory?.call(parent);
+            },
+          );
         },
       ),
     );
@@ -325,27 +368,37 @@ class FileTile extends ConsumerWidget {
     final controller = ref.watch(filePickerControllerProvider);
 
     return FocusOnHover(
-      child: ListTile(
-        leading: Icon(
-          isDirectory
-              ? Icons.folder
-              : enabled
-              ? Icons.videogame_asset
-              : null,
-          color: nesdRed[500],
-        ),
-        enabled: enabled,
-        title: Text(p.basename(file.name)),
-        onTap: () async {
-          if (isDirectory) {
-            controller.go(file);
+      child: Builder(
+        builder: (context) {
+          final focused = Focus.of(context).hasFocus;
+          final colorScheme = Theme.of(context).colorScheme;
 
-            onChangeDirectory?.call(file);
-          } else if (fileIsZip) {
-            controller.go(file);
-          } else {
-            await context.router.maybePop(file);
-          }
+          return ListTile(
+            leading: Icon(
+              isDirectory
+                  ? Icons.folder
+                  : enabled
+                  ? Icons.videogame_asset
+                  : null,
+              color: focused ? colorScheme.onPrimary : colorScheme.primary,
+            ),
+            enabled: enabled,
+            title: Text(
+              p.basename(file.name),
+              style: TextStyle(color: focused ? colorScheme.onPrimary : null),
+            ),
+            onTap: () async {
+              if (isDirectory) {
+                controller.go(file);
+
+                onChangeDirectory?.call(file);
+              } else if (fileIsZip) {
+                controller.go(file);
+              } else {
+                await context.router.maybePop(file);
+              }
+            },
+          );
         },
       ),
     );

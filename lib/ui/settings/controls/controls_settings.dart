@@ -89,10 +89,9 @@ class ProfileSelectionHeader extends ConsumerWidget {
           onInvoke: (_) => indexController.next(),
         ),
       },
-      child: FocusOnHover(
+      child: const FocusOnHover(
         child: SettingsTile(
-          onTap: () {},
-          child: const SizedBox(
+          child: SizedBox(
             width: 324,
             height: 40,
             child: Row(
@@ -119,11 +118,16 @@ class CurrentProfileHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final index = ref.watch(profileIndexProvider);
 
+    final focused = Focus.of(context).hasFocus;
+    final theme = Theme.of(context);
+
     return Center(
       child: Text(
         'Profile ${index + 1}',
-        style: TextStyle(
-          fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+        style: DefaultTextStyle.of(context).style.copyWith(
+          fontSize: theme.textTheme.bodyLarge?.fontSize,
+          fontVariations: const [FontVariation.weight(700)],
+          color: focused ? theme.colorScheme.onPrimary : null,
         ),
       ),
     );
@@ -138,6 +142,8 @@ class PreviousProfileButton extends ConsumerWidget {
     final index = ref.watch(profileIndexProvider);
     final indexController = ref.read(profileIndexProvider.notifier);
 
+    final focused = Focus.of(context).hasFocus;
+
     return SizedBox(
       width: 40,
       height: 40,
@@ -145,7 +151,11 @@ class PreviousProfileButton extends ConsumerWidget {
           index > 0
               ? IconButton(
                 onPressed: indexController.previous,
-                icon: const Icon(Icons.keyboard_arrow_left),
+                icon: Icon(
+                  Icons.keyboard_arrow_left,
+                  color:
+                      focused ? Theme.of(context).colorScheme.onPrimary : null,
+                ),
               )
               : null,
     );
@@ -162,12 +172,17 @@ class NextProfileButton extends ConsumerWidget {
 
     final maxIndex = ref.watch(maxIndexProvider);
 
+    final focused = Focus.of(context).hasFocus;
+
     Widget? child;
 
     if (index <= maxIndex) {
       child = IconButton(
         onPressed: indexController.next,
-        icon: Icon(index == maxIndex ? Icons.add : Icons.keyboard_arrow_right),
+        icon: Icon(
+          index == maxIndex ? Icons.add : Icons.keyboard_arrow_right,
+          color: focused ? Theme.of(context).colorScheme.onPrimary : null,
+        ),
       );
     }
 

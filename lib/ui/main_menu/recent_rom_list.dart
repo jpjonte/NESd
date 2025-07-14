@@ -87,17 +87,26 @@ class RecentRomList extends HookConsumerWidget {
                   return;
                 }
 
+                final theme = Theme.of(context);
+
                 final confirmed = await ConfirmationDialog.show(
                   context,
-                  title: const Text('Remove ROM?'),
+                  title: Text(
+                    'Remove ROM?',
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
+                      fontVariations: const [FontVariation.weight(700)],
+                    ),
+                  ),
                   content: RichText(
                     text: TextSpan(
                       children: [
                         const TextSpan(text: 'The ROM '),
                         TextSpan(
-                          text: romTileData.romInfo.file.name,
+                          text: romTileData.romInfo.file.path,
                           style: DefaultTextStyle.of(context).style.copyWith(
                             fontVariations: const [FontVariation.weight(900)],
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
                         const TextSpan(text: ' was not found.'),

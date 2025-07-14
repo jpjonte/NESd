@@ -7,7 +7,7 @@ import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/emulator/debugger/action_bar.dart';
 import 'package:nesd/ui/emulator/debugger/disassembly_list.dart';
 import 'package:nesd/ui/emulator/debugger/status_bar.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 const disassemblyRowHeight = 17.0;
 final debuggerColor = nesdRed[750]!;

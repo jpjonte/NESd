@@ -8,7 +8,7 @@ import 'package:nesd/ui/emulator/debugger/address_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/breakpoint_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/nesd_theme.dart';
+import 'package:nesd/ui/theme/base.dart';
 
 class ActionBar extends StatelessWidget {
   const ActionBar({required this.scrollController, super.key});
@@ -20,19 +20,22 @@ class ActionBar extends StatelessWidget {
     return Container(
       height: 50,
       color: nesdRed[900],
-      child: Row(
-        children: [
-          const ResumeButton(),
-          const PauseButton(),
-          const StepIntoButton(),
-          const StepOverButton(),
-          const StepOutButton(),
-          const RunToAddressButton(),
-          GoToPcButton(scrollController: scrollController),
-          GoToAddressButton(scrollController: scrollController),
-          BreakpointListButton(scrollController: scrollController),
-          const OpenExecutionLogButton(),
-        ],
+      child: IconTheme(
+        data: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
+        child: Row(
+          children: [
+            const ResumeButton(),
+            const PauseButton(),
+            const StepIntoButton(),
+            const StepOverButton(),
+            const StepOutButton(),
+            const RunToAddressButton(),
+            GoToPcButton(scrollController: scrollController),
+            GoToAddressButton(scrollController: scrollController),
+            BreakpointListButton(scrollController: scrollController),
+            const OpenExecutionLogButton(),
+          ],
+        ),
       ),
     );
   }

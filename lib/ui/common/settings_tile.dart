@@ -24,17 +24,37 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final focus = Focus.of(context);
+
+    final titleColor = switch ((enabled, focus.hasFocus)) {
+      (true, true) => theme.colorScheme.onPrimary,
+      (true, false) => null,
+      (false, _) => theme.disabledColor,
+    };
+
+    final defaultTextStyle = DefaultTextStyle.of(context);
+
     final wrappedTitle = DefaultTextStyle(
-      style: DefaultTextStyle.of(context).style.copyWith(
-        color: enabled ? null : Colors.grey[800],
+      style: defaultTextStyle.style.copyWith(
+        color: titleColor,
         fontSize: 15,
         fontVariations: const [FontVariation.weight(700)],
       ),
       child: title ?? const SizedBox(),
     );
 
+    final wrappedSubtitle = DefaultTextStyle(
+      style: defaultTextStyle.style.copyWith(
+        color: titleColor ?? theme.textTheme.labelMedium?.color,
+        fontSize: 14,
+      ),
+      child: subtitle ?? const SizedBox(),
+    );
+
     return InkWell(
-      onTap: enabled ? onTap : null,
+      onTap: enabled ? (onTap ?? () {}) : null,
       child: LayoutBuilder(
         builder: (_, constraints) {
           final narrow = constraints.maxWidth < 600;
@@ -42,14 +62,7 @@ class SettingsTile extends StatelessWidget {
 
           final titles = [
             if (title != null) wrappedTitle,
-            if (subtitle != null)
-              DefaultTextStyle(
-                style: DefaultTextStyle.of(context).style.copyWith(
-                  color: enabled ? Colors.grey[400] : Colors.grey[800],
-                  fontSize: 14,
-                ),
-                child: subtitle!,
-              ),
+            if (subtitle != null) wrappedSubtitle,
           ];
 
           final wrappedTitles =
@@ -74,7 +87,7 @@ class SettingsTile extends StatelessWidget {
                         ? constraints.maxWidth
                         : constraints.maxWidth * 2 / 3,
               ),
-              child: ExcludeFocus(child: child),
+              child: child,
             ),
           );
 
@@ -133,12 +146,14 @@ class IconButtonSettingsTile extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.onPressed,
+    this.color,
     super.key,
   });
 
   final Widget title;
   final IconData icon;
   final VoidCallback onPressed;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +162,7 @@ class IconButtonSettingsTile extends StatelessWidget {
       onTap: onPressed,
       child: Padding(
         padding: const EdgeInsets.only(right: 16),
-        child: Icon(icon, size: 32),
+        child: Icon(icon, size: 32, color: color),
       ),
     );
   }

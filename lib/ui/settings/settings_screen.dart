@@ -55,12 +55,14 @@ class SettingsScreen extends HookConsumerWidget {
       return () => tabController.removeListener(listener);
     });
 
+    final theme = Theme.of(context);
+
     return NesdScaffold(
       appBar: AppBar(
         title: Text(
           'Settings',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
+            color: theme.colorScheme.primary,
             fontVariations: const [FontVariation.weight(700)],
           ),
         ),
@@ -84,17 +86,20 @@ class SettingsScreen extends HookConsumerWidget {
           child: NesdMenuWrapper(
             child: Column(
               children: [
-                TabBar(
-                  controller: tabController,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.center,
-                  tabs: const [
-                    TabHeader(key: generalKey, title: 'General'),
-                    TabHeader(key: graphicsKey, title: 'Graphics'),
-                    TabHeader(key: audioKey, title: 'Audio'),
-                    TabHeader(key: controlsKey, title: 'Controls'),
-                    TabHeader(key: debugKey, title: 'Debug'),
-                  ],
+                ColoredBox(
+                  color: theme.colorScheme.surface,
+                  child: TabBar(
+                    controller: tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    tabs: const [
+                      TabHeader(key: generalKey, title: 'General'),
+                      TabHeader(key: graphicsKey, title: 'Graphics'),
+                      TabHeader(key: audioKey, title: 'Audio'),
+                      TabHeader(key: controlsKey, title: 'Controls'),
+                      TabHeader(key: debugKey, title: 'Debug'),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8.0),
                 Expanded(

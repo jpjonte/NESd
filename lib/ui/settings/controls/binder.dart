@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
-import 'package:nesd/ui/nesd_theme.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
 
 class Binder extends ConsumerWidget {
@@ -21,7 +20,10 @@ class Binder extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: state.editing ? nesdRed[500] : nesdRed[800],
+        color:
+            state.editing
+                ? theme.colorScheme.primary
+                : theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(8),
         border:
             state.editing
@@ -32,7 +34,10 @@ class Binder extends ConsumerWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontVariations: [FontVariation.weight(700)]),
+          style: TextStyle(
+            color: theme.colorScheme.onPrimary,
+            fontVariations: const [FontVariation.weight(700)],
+          ),
         ),
       ),
     );

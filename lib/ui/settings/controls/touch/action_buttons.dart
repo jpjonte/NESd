@@ -11,6 +11,8 @@ class ActionButtons extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(touchEditorNotifierProvider.notifier);
 
+    final navigator = Navigator.of(context);
+
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
@@ -33,12 +35,12 @@ class ActionButtons extends ConsumerWidget {
                         ),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () => navigator.pop(),
                             child: const Text('No'),
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              navigator.pop();
                               controller.reset(orientation);
                             },
                             child: const Text('Yes'),
