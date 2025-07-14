@@ -10,6 +10,8 @@ else
   full_arch="x86_64"
 fi
 
+flutter_version=$(jq -r '.flutter' .fvmrc)
+
 version=$(yq '.version' pubspec.yaml)
 
 flavor="dev"
@@ -31,6 +33,7 @@ artifact="nesd.$release_name"
 artifact_flavored="$flavored_id.$release_name"
 
 {
+  echo "flutter_version=$flutter_version"
   echo "version=$version"
   echo "flavored_name=$flavored_name"
   echo "release_name=$release_name"
@@ -40,6 +43,7 @@ artifact_flavored="$flavored_id.$release_name"
 
 {
   echo "ARCH=$arch"
+  echo "FLUTTER_VERSION=$flutter_version"
   echo "FULL_ARCH=$full_arch"
   echo "VERSION=$version"
   echo "RELEASE_NAME=$release_name"

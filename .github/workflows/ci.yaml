@@ -9,12 +9,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - id: env
+        run: ci/env.sh
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
-      - run: dart format --set-exit-if-changed .
       - run: flutter pub get
+      - run: dart format --set-exit-if-changed .
       - run: flutter analyze
 
   test:
@@ -22,9 +24,11 @@ jobs:
     needs: [lint]
     steps:
       - uses: actions/checkout@v4
+      - id: env
+        run: ci/env.sh
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
       - uses: hrishikesh-kadam/setup-lcov@v1
       - uses: actions/cache@v4
@@ -63,9 +67,11 @@ jobs:
       release_name: ${{ steps.env.outputs.release_name }}
     steps:
       - uses: actions/checkout@v4
+      - id: env
+        run: ci/env.sh
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
       - uses: webfactory/ssh-agent@v0.9.1
         with:
@@ -78,8 +84,6 @@ jobs:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - id: env
-        run: ci/env.sh
       - run: ci/1-build/macos/build.sh
       - uses: actions/upload-artifact@v4
         with:
@@ -95,13 +99,13 @@ jobs:
     needs: [ test ]
     steps:
       - uses: actions/checkout@v4
+      - id: env
+        run: ci/env.sh ${{ matrix.arch }}
       - uses: subosito/flutter-action@v2
         with:
           channel: master
-          flutter-version: 3.29
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
-      - id: env
-        run: ci/env.sh ${{ matrix.arch }}
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/linux/build.sh
       - uses: actions/cache/save@v4
@@ -114,16 +118,17 @@ jobs:
     needs: [test]
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.29
-          cache: true
       - run: ci/1-build/windows/prepare.ps1
       - id: env
         shell: bash
         run: |
           alias yq="/C/ProgramData/chocolatey/lib/yq/tools/yq.exe"
+          alias jq="/C/ProgramData/chocolatey/lib/jq/tools/jq.exe"
           ci/env.sh
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
+          cache: true
       - run: ci/1-build/windows/build.ps1
       - uses: actions/upload-artifact@v4
         with:
@@ -141,17 +146,17 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+      - id: env
+        run: ci/env.sh
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.29
+          flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/android/prepare.sh
         env:
           KEY_STORE_BASE64: ${{ secrets.ANDROID_KEY_STORE }}
           KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
-      - id: env
-        run: ci/env.sh
       - run: ci/1-build/android/build.sh
       - uses: actions/upload-artifact@v4
         with:
@@ -216,7 +221,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           git config --global --add safe.directory $(pwd)
-          sudo dnf install -y yq
+          sudo dnf install -y yq jq
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v4
