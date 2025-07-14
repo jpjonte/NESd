@@ -13,7 +13,6 @@
     "**/ios/**",
     "**/macos/**"
   ],
-  "rangeStrategy": "bump",
   "packageRules": [
     {
       "groupName": "Dart packages",
