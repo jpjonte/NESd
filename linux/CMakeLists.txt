@@ -123,6 +123,19 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     COMPONENT Runtime)
 endforeach(bundled_library)
 
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64")
+  set(ARCH_SUFFIX "x64")
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64")
+  set(ARCH_SUFFIX "arm64")
+else()
+  message(FATAL_ERROR "Unsupported architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+endif()
+
+install(FILES "eslz4-linux-${ARCH_SUFFIX}.so"
+    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+    RENAME "eslz4-linux64.so"
+    COMPONENT Runtime)
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/linux/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"
