@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -108,6 +107,148 @@ as BindingType,
 
 }
 
+
+/// Adds pattern-matching-related methods to [TouchInputConfig].
+extension TouchInputConfigPatterns on TouchInputConfig {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( RectangleButtonConfig value)?  rectangleButton,TResult Function( CircleButtonConfig value)?  circleButton,TResult Function( JoyStickConfig value)?  joyStick,TResult Function( DPadConfig value)?  dPad,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case RectangleButtonConfig() when rectangleButton != null:
+return rectangleButton(_that);case CircleButtonConfig() when circleButton != null:
+return circleButton(_that);case JoyStickConfig() when joyStick != null:
+return joyStick(_that);case DPadConfig() when dPad != null:
+return dPad(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( RectangleButtonConfig value)  rectangleButton,required TResult Function( CircleButtonConfig value)  circleButton,required TResult Function( JoyStickConfig value)  joyStick,required TResult Function( DPadConfig value)  dPad,}){
+final _that = this;
+switch (_that) {
+case RectangleButtonConfig():
+return rectangleButton(_that);case CircleButtonConfig():
+return circleButton(_that);case JoyStickConfig():
+return joyStick(_that);case DPadConfig():
+return dPad(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( RectangleButtonConfig value)?  rectangleButton,TResult? Function( CircleButtonConfig value)?  circleButton,TResult? Function( JoyStickConfig value)?  joyStick,TResult? Function( DPadConfig value)?  dPad,}){
+final _that = this;
+switch (_that) {
+case RectangleButtonConfig() when rectangleButton != null:
+return rectangleButton(_that);case CircleButtonConfig() when circleButton != null:
+return circleButton(_that);case JoyStickConfig() when joyStick != null:
+return joyStick(_that);case DPadConfig() when dPad != null:
+return dPad(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double width,  double height,  String label)?  rectangleButton,TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double size,  String label)?  circleButton,TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double innerSize,  double deadZone)?  joyStick,TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double deadZone)?  dPad,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case RectangleButtonConfig() when rectangleButton != null:
+return rectangleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.width,_that.height,_that.label);case CircleButtonConfig() when circleButton != null:
+return circleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.size,_that.label);case JoyStickConfig() when joyStick != null:
+return joyStick(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.innerSize,_that.deadZone);case DPadConfig() when dPad != null:
+return dPad(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.deadZone);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double width,  double height,  String label)  rectangleButton,required TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double size,  String label)  circleButton,required TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double innerSize,  double deadZone)  joyStick,required TResult Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double deadZone)  dPad,}) {final _that = this;
+switch (_that) {
+case RectangleButtonConfig():
+return rectangleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.width,_that.height,_that.label);case CircleButtonConfig():
+return circleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.size,_that.label);case JoyStickConfig():
+return joyStick(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.innerSize,_that.deadZone);case DPadConfig():
+return dPad(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.deadZone);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double width,  double height,  String label)?  rectangleButton,TResult? Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? action,  double size,  String label)?  circleButton,TResult? Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double innerSize,  double deadZone)?  joyStick,TResult? Function( double x,  double y,  BindingType bindingType, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson)  InputAction? rightAction,  double size,  double deadZone)?  dPad,}) {final _that = this;
+switch (_that) {
+case RectangleButtonConfig() when rectangleButton != null:
+return rectangleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.width,_that.height,_that.label);case CircleButtonConfig() when circleButton != null:
+return circleButton(_that.x,_that.y,_that.bindingType,_that.action,_that.size,_that.label);case JoyStickConfig() when joyStick != null:
+return joyStick(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.innerSize,_that.deadZone);case DPadConfig() when dPad != null:
+return dPad(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_that.leftAction,_that.rightAction,_that.size,_that.deadZone);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

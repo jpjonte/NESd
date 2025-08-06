@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -102,6 +101,130 @@ as int?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [DebuggerState].
+extension DebuggerStatePatterns on DebuggerState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DebuggerState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DebuggerState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DebuggerState value)  $default,){
+final _that = this;
+switch (_that) {
+case _DebuggerState():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DebuggerState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DebuggerState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enabled,  Disassembly disassembly,  int PC,  int A,  int X,  int Y,  int SP,  int P,  bool C,  bool Z,  bool I,  bool D,  bool B,  bool V,  bool N,  int irq,  bool nmi,  List<int> stack,  List<Breakpoint> breakpoints,  bool canStepOut,  int scanline,  int cycle,  int v,  int t,  int x,  bool spriteOverflow,  bool sprite0Hit,  bool vBlank,  bool executionLogOpen,  bool showStack,  int? selectedAddress)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DebuggerState() when $default != null:
+return $default(_that.enabled,_that.disassembly,_that.PC,_that.A,_that.X,_that.Y,_that.SP,_that.P,_that.C,_that.Z,_that.I,_that.D,_that.B,_that.V,_that.N,_that.irq,_that.nmi,_that.stack,_that.breakpoints,_that.canStepOut,_that.scanline,_that.cycle,_that.v,_that.t,_that.x,_that.spriteOverflow,_that.sprite0Hit,_that.vBlank,_that.executionLogOpen,_that.showStack,_that.selectedAddress);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enabled,  Disassembly disassembly,  int PC,  int A,  int X,  int Y,  int SP,  int P,  bool C,  bool Z,  bool I,  bool D,  bool B,  bool V,  bool N,  int irq,  bool nmi,  List<int> stack,  List<Breakpoint> breakpoints,  bool canStepOut,  int scanline,  int cycle,  int v,  int t,  int x,  bool spriteOverflow,  bool sprite0Hit,  bool vBlank,  bool executionLogOpen,  bool showStack,  int? selectedAddress)  $default,) {final _that = this;
+switch (_that) {
+case _DebuggerState():
+return $default(_that.enabled,_that.disassembly,_that.PC,_that.A,_that.X,_that.Y,_that.SP,_that.P,_that.C,_that.Z,_that.I,_that.D,_that.B,_that.V,_that.N,_that.irq,_that.nmi,_that.stack,_that.breakpoints,_that.canStepOut,_that.scanline,_that.cycle,_that.v,_that.t,_that.x,_that.spriteOverflow,_that.sprite0Hit,_that.vBlank,_that.executionLogOpen,_that.showStack,_that.selectedAddress);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enabled,  Disassembly disassembly,  int PC,  int A,  int X,  int Y,  int SP,  int P,  bool C,  bool Z,  bool I,  bool D,  bool B,  bool V,  bool N,  int irq,  bool nmi,  List<int> stack,  List<Breakpoint> breakpoints,  bool canStepOut,  int scanline,  int cycle,  int v,  int t,  int x,  bool spriteOverflow,  bool sprite0Hit,  bool vBlank,  bool executionLogOpen,  bool showStack,  int? selectedAddress)?  $default,) {final _that = this;
+switch (_that) {
+case _DebuggerState() when $default != null:
+return $default(_that.enabled,_that.disassembly,_that.PC,_that.A,_that.X,_that.Y,_that.SP,_that.P,_that.C,_that.Z,_that.I,_that.D,_that.B,_that.V,_that.N,_that.irq,_that.nmi,_that.stack,_that.breakpoints,_that.canStepOut,_that.scanline,_that.cycle,_that.v,_that.t,_that.x,_that.spriteOverflow,_that.sprite0Hit,_that.vBlank,_that.executionLogOpen,_that.showStack,_that.selectedAddress);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 

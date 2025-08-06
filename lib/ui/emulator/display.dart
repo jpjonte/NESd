@@ -7,9 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/ui/emulator/input/keyboard/keyboard_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -35,13 +33,8 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final keyboardInputHandler = ref.watch(keyboardInputHandlerProvider);
     final eventBus = ref.watch(eventBusProvider);
     final nes = ref.watch(nesStateProvider);
-
-    if (nes == null) {
-      return const SizedBox();
-    }
 
     useStream(
       eventBus.stream.where(
@@ -52,25 +45,19 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
       ),
     );
 
-    return Focus(
-      autofocus: true,
-      onKeyEvent:
-          (focusNode, event) =>
-              keyboardInputHandler.handleKeyEvent(event)
-                  ? KeyEventResult.handled
-                  : KeyEventResult.ignored,
-      child: DisplayWidget(
-        paused: nes.paused,
-        fastForward: nes.fastForward,
-        imageFuture: convertFrameBufferToImage(nes.ppu.frameBuffer),
-      ),
+    if (nes == null) {
+      return const SizedBox();
+    }
+
+    return DisplayWidget(
+      paused: nes.paused,
+      fastForward: nes.fastForward,
+      imageFuture: convertFrameBufferToImage(nes.ppu.frameBuffer),
     );
   }
 }
 
 class DisplayWidget extends HookConsumerWidget {
-  static const menuKey = Key('menu');
-
   const DisplayWidget({
     required this.imageFuture,
     this.paused = false,
@@ -87,42 +74,12 @@ class DisplayWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final snapshot = useFuture(imageFuture);
 
-    final theme = Theme.of(context);
-
-    return Stack(
-      children: [
-        switch (snapshot) {
-          AsyncSnapshot<ui.Image>(data: final image?) => DisplayBuilder(
-            image: image,
-          ),
-          _ => const Center(child: CircularProgressIndicator()),
-        },
-        Align(
-          alignment: Alignment.topLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Theme(
-              data: theme.copyWith(
-                iconButtonTheme: IconButtonThemeData(
-                  style: theme.iconButtonTheme.style!.copyWith(
-                    backgroundColor: WidgetStateProperty.all(
-                      Colors.black.withAlpha(150),
-                    ),
-                  ),
-                ),
-              ),
-              child: IconButton(
-                key: menuKey,
-                icon: const Icon(Icons.menu),
-                color: Colors.white,
-                onPressed:
-                    () => ref.read(routerProvider).navigate(const MenuRoute()),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return switch (snapshot) {
+      AsyncSnapshot<ui.Image>(data: final image?) => DisplayBuilder(
+        image: image,
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    };
   }
 }
 

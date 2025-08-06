@@ -5,7 +5,7 @@ import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
 class MMC3 extends Mapper {
-  MMC3() : super(4);
+  MMC3([super.id = 4]);
 
   @override
   String name = 'MMC3';
@@ -16,7 +16,7 @@ class MMC3 extends Mapper {
   @override
   int chrPageSize = 0x0400;
 
-  int _register = 0;
+  int register = 0;
   int _r0 = 0;
   int _r1 = 0;
   int _r2 = 2;
@@ -28,7 +28,7 @@ class MMC3 extends Mapper {
 
   int _prgBankMode = 0;
 
-  int _chrBankMode = 0;
+  int chrBankMode = 0;
 
   int _mirroring = 0;
 
@@ -42,7 +42,7 @@ class MMC3 extends Mapper {
 
   @override
   MMC3State get state => MMC3State(
-    register: _register,
+    register: register,
     r0: _r0,
     r1: _r1,
     r2: _r2,
@@ -52,7 +52,7 @@ class MMC3 extends Mapper {
     r6: _r6,
     r7: _r7,
     prgBankMode: _prgBankMode,
-    chrBankMode: _chrBankMode,
+    chrBankMode: chrBankMode,
     mirroring: _mirroring,
     irqCounter: _irqCounter,
     irqLatch: _irqLatch,
@@ -63,7 +63,7 @@ class MMC3 extends Mapper {
 
   @override
   set state(covariant MMC3State state) {
-    _register = state.register;
+    register = state.register;
     _r0 = state.r0;
     _r1 = state.r1;
     _r2 = state.r2;
@@ -73,7 +73,7 @@ class MMC3 extends Mapper {
     _r6 = state.r6;
     _r7 = state.r7;
     _prgBankMode = state.prgBankMode;
-    _chrBankMode = state.chrBankMode;
+    chrBankMode = state.chrBankMode;
     _mirroring = state.mirroring;
     _irqCounter = state.irqCounter;
     _irqLatch = state.irqLatch;
@@ -88,7 +88,7 @@ class MMC3 extends Mapper {
   void reset() {
     super.reset();
 
-    _register = 0;
+    register = 0;
     _r0 = 0;
     _r1 = 0;
     _r2 = 0;
@@ -99,7 +99,7 @@ class MMC3 extends Mapper {
     _r7 = 0;
 
     _prgBankMode = 0;
-    _chrBankMode = switch (bus.cartridge.nametableLayout) {
+    chrBankMode = switch (bus.cartridge.nametableLayout) {
       NametableLayout.vertical => 1,
       NametableLayout.horizontal => 0,
       NametableLayout.four => 0,
@@ -147,22 +147,22 @@ class MMC3 extends Mapper {
       // bank select (0x8000 - 0x9ffe, even)
       case 0x8000:
         final previousPrgBankMode = _prgBankMode;
-        final previousChrBankMode = _chrBankMode;
+        final previousChrBankMode = chrBankMode;
 
-        _register = value & 0x7;
+        register = value & 0x7;
         _prgBankMode = value.bit(6);
-        _chrBankMode = value.bit(7);
+        chrBankMode = value.bit(7);
 
         if (_prgBankMode != previousPrgBankMode) {
           _updatePrgPages();
         }
 
-        if (_chrBankMode != previousChrBankMode) {
+        if (chrBankMode != previousChrBankMode) {
           _updateChrPages();
         }
       // bank data (0x8001 - 0x9fff, odd)
       case 0x8001:
-        switch (_register) {
+        switch (register) {
           case 0:
             _r0 = value & 0xfe;
             _updateChrPages();
@@ -235,7 +235,7 @@ class MMC3 extends Mapper {
   }
 
   void _updateChrPages() {
-    switch (_chrBankMode) {
+    switch (chrBankMode) {
       case 0:
         mapPpu(0x0000, 0x07ff, _r0);
         mapPpu(0x0800, 0x0fff, _r1);
