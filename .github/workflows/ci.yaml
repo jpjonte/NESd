@@ -330,7 +330,7 @@ jobs:
           skip_checkout: true
       - id: changelog
         run: ci/3-release/extract_changelog_nightly.sh
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
           merge-multiple: true
@@ -385,7 +385,7 @@ jobs:
           skip_checkout: true
       - id: changelog
         run: ci/3-release/extract_changelog.sh
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
           merge-multiple: true
