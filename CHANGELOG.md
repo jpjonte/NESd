@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Added support for TxSROM (Mapper 118)
 - Added an AppImage build for Linux
 - Added arm64 builds for Linux
 - Added an option to customize the theme mode (system, light, dark)
