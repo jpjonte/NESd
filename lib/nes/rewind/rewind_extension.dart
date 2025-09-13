@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:es_compression/lz4.dart';
 
-// TODO bundle lz4 library on Windows, Linux
 extension IntListRewindExtension on List<int> {
   List<int> compress() => nesdLz4.encode(this);
 
