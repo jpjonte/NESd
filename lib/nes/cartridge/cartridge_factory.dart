@@ -149,7 +149,17 @@ class CartridgeFactory {
   }
 
   TvSystem _parseTvSystem(Uint8List rom) {
-    return TvSystem.values[rom[9] & 0x03];
+    final v = rom[9] & 0x03;
+    // iNES header stores TV system but values 2/3 are reserved/unknown.
+    // Default unknowns to NTSC for stability in tools/tests.
+    switch (v) {
+      case 0:
+        return TvSystem.ntsc;
+      case 1:
+        return TvSystem.pal;
+      default:
+        return TvSystem.ntsc;
+    }
   }
 
   RomFormat _parseRomFormat(Uint8List rom) {
