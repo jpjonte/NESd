@@ -158,6 +158,9 @@ class PPU {
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
   final Uint8List palette = Uint8List(0x20);
+  // Precomputed final RGB colors per palette entry
+  // (greyscale + emphasis already applied)
+  final Uint32List _paletteLut = Uint32List(0x20);
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
 
@@ -169,6 +172,8 @@ class PPU {
   int frames = 0;
 
   int _preRenderScanline = ntscPreRenderScanline;
+
+  int _pixelBase = 0;
 
   int nametableLatch = 0;
 
@@ -184,6 +189,9 @@ class PPU {
   int attributeTableLowShift = 0;
 
   int attribute = 0;
+
+  // Cached pattern table base for background when using 8x8 sprites.
+  int _bgPatternBase = 0;
 
   int oamAddress = 0;
   int oamBuffer = 0;
@@ -277,6 +285,8 @@ class PPU {
     for (var i = 0; i < _spriteOutputs.length; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
     }
+
+    _rebuildPaletteLut();
   }
 
   // we don't need a getter from this
@@ -335,6 +345,8 @@ class PPU {
     oam.fillRange(0, oam.length, 0);
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
+
+    _rebuildPaletteLut();
   }
 
   int getPixelBrightness(int x, int y) {
@@ -381,6 +393,7 @@ class PPU {
         _writePPUCTRL(value);
       case 1:
         PPUMASK = value;
+        _rebuildPaletteLut();
       case 3:
         OAMADDR = value;
       case 4:
@@ -400,18 +413,28 @@ class PPU {
 
   int get currentX => cycle - 1;
 
+  @pragma('vm:prefer-inline')
   bool get lineVisible => scanline < 240;
+  @pragma('vm:prefer-inline')
   bool get linePreRender => scanline == _preRenderScanline;
+  @pragma('vm:prefer-inline')
   bool get lineVblank => scanline == 241;
+  @pragma('vm:prefer-inline')
   bool get lineFetch => lineVisible || linePreRender;
 
+  @pragma('vm:prefer-inline')
   bool get cycleVisible => cycle >= 1 && cycle <= 256;
+  @pragma('vm:prefer-inline')
   bool get cyclePreFetch => cycle >= 321 && cycle <= 336;
+  @pragma('vm:prefer-inline')
   bool get cycleFetch => cycleVisible || cyclePreFetch;
 
+  @pragma('vm:prefer-inline')
   bool get renderingEnabled => PPUMASK_b == 1 || PPUMASK_s == 1;
+  @pragma('vm:prefer-inline')
   bool get rendering => lineVisible && cycleVisible;
 
+  @pragma('vm:prefer-inline')
   bool get fetching => lineFetch && cycleFetch;
 
   void stepUntil(int targetCycles) {
@@ -421,7 +444,9 @@ class PPU {
   }
 
   void step() {
-    _handleRendering();
+    if (renderingEnabled) {
+      _handleRendering();
+    }
 
     _handleGarbageFetches();
 
@@ -439,21 +464,30 @@ class PPU {
   }
 
   void _handleRendering() {
-    if (!renderingEnabled) {
-      return;
+    final visible = lineVisible;
+    final preRender = linePreRender;
+    final render = visible && cycleVisible;
+    final fetch = (visible || preRender) && cycleFetch;
+
+    if (render) {
+      _renderPixel();
     }
 
-    _renderPixel();
+    if (render || fetch) {
+      _shiftRegisters();
+    }
 
-    _shiftRegisters();
-
-    if (fetching) {
+    if (fetch) {
       _fetch();
     }
 
-    _copyHorizontalBits();
+    if ((visible || preRender) && cycle == 257) {
+      _copyHorizontalBits();
+    }
 
-    _copyVerticalBits();
+    if (preRender && cycle >= 280 && cycle <= 304) {
+      _copyVerticalBits();
+    }
   }
 
   void _handleGarbageFetches() {
@@ -536,6 +570,9 @@ class PPU {
     PPUCTRL = value;
 
     t = (t & 0xF3FF) | (PPUCTRL_N << 10);
+
+    // cache pattern table bases (<< 12)
+    _bgPatternBase = (PPUCTRL_B & 1) << 12;
   }
 
   void _writeOAMDATA(int value) {
@@ -608,6 +645,8 @@ class PPU {
       cycle = 0;
       frames++;
 
+      _pixelBase = 0;
+
       return;
     }
 
@@ -615,9 +654,13 @@ class PPU {
       cycle = 0;
       scanline++;
 
+      _pixelBase = scanline * frameBuffer.width * 4;
+
       if (scanline > _preRenderScanline) {
         scanline = 0;
         frames++;
+
+        _pixelBase = 0;
       }
     }
   }
@@ -633,21 +676,12 @@ class PPU {
   }
 
   void _renderPixel() {
-    if (!rendering) {
-      return;
-    }
-
     final color = _getPixelColor();
 
-    final paletteColor = readPpuMemory(0x3F00 | color, updateBusAddress: false);
+    // Use precomputed final RGB color for this palette index (with mirroring)
+    final rgb = _paletteLut[_remapPaletteIndex(color & 0x1f)];
 
-    final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
-
-    final rgbColor = systemPalette[paletteColor & greyMask];
-
-    final emphasizedColor = _applyEmphasis(rgbColor);
-
-    frameBuffer.setPixel(currentX, scanline, emphasizedColor);
+    frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
 
   int _applyEmphasis(int color) {
@@ -772,10 +806,6 @@ class PPU {
   }
 
   void _shiftRegisters() {
-    if (!rendering && !fetching) {
-      return;
-    }
-
     patternTableHighShift <<= 1;
     patternTableLowShift <<= 1;
 
@@ -841,13 +871,13 @@ class PPU {
   }
 
   void _fetchPatternTableLow() {
-    final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY;
+    final address = _bgPatternBase | (nametableLatch << 4) | v_fineY;
 
     patternTableLowLatch = readPpuMemory(address);
   }
 
   void _fetchPatternTableHigh() {
-    final address = PPUCTRL_B << 12 | nametableLatch << 4 | v_fineY + 8;
+    final address = _bgPatternBase | (nametableLatch << 4) | (v_fineY + 8);
 
     patternTableHighLatch = readPpuMemory(address);
   }
@@ -881,19 +911,11 @@ class PPU {
   }
 
   void _copyHorizontalBits() {
-    if (!lineFetch || cycle != 257) {
-      return;
-    }
-
     v_coarseX = t_coarseX;
     v_nametableX = t_nametableX;
   }
 
   void _copyVerticalBits() {
-    if (!linePreRender || cycle < 280 || cycle > 304) {
-      return;
-    }
-
     v_coarseY = t_coarseY;
     v_fineY = t_fineY;
     v_nametableY = t_nametableY;
@@ -1023,14 +1045,70 @@ class PPU {
         bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
 
     final patternTable = bigSprites ? (tileIndex & 1) : PPUCTRL_S;
+
     final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
 
-    final lowAddress = patternTable << 12 | tile << 4 | fineY + addressOffset;
-    final highAddress =
-        patternTable << 12 | tile << 4 | fineY + 8 - addressOffset;
+    final base = (patternTable & 1) << 12;
+
+    final lowAddress = base | (tile << 4) | (fineY + addressOffset);
+    final highAddress = base | (tile << 4) | (fineY + 8 - addressOffset);
 
     _spriteOutputs[sprite].patternLow = readPpuMemory(lowAddress);
     _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
+  }
+
+  // Called when PPUMASK changes or palette memory is written to, to update LUT.
+  void _rebuildPaletteLut() {
+    for (var i = 0; i < 0x20; i++) {
+      _paletteLut[i] = _computePaletteEntry(i);
+    }
+  }
+
+  void onPaletteWrite(int index) {
+    if (index < 0 || index >= 0x20) {
+      return;
+    }
+
+    final rem = _remapPaletteIndex(index);
+    final val = _computePaletteEntry(rem);
+
+    _paletteLut[rem] = val;
+
+    // keep mirrored indices in sync to avoid remap at render
+    if (rem == 0x00) {
+      _paletteLut[0x10] = val;
+    }
+
+    if (rem == 0x04) {
+      _paletteLut[0x14] = val;
+    }
+
+    if (rem == 0x08) {
+      _paletteLut[0x18] = val;
+    }
+
+    if (rem == 0x0c) {
+      _paletteLut[0x1c] = val;
+    }
+  }
+
+  int _computePaletteEntry(int index) {
+    final idx = index & 0x1f;
+    final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
+    final palVal = palette[idx] & greyMask;
+    final rgb = systemPalette[palVal];
+
+    return _applyEmphasis(rgb);
+  }
+
+  int _remapPaletteIndex(int index) {
+    return switch (index & 0x1f) {
+      0x10 => 0x00,
+      0x14 => 0x04,
+      0x18 => 0x08,
+      0x1c => 0x0c,
+      _ => index & 0x1f,
+    };
   }
 
   void _handleSprite0() {
