@@ -12,7 +12,7 @@ EventBus eventBus(Ref ref) {
 }
 
 class EventBus {
-  EventBus() : _streamController = StreamController.broadcast(sync: true);
+  EventBus() : _streamController = StreamController.broadcast();
 
   final StreamController<NesEvent> _streamController;
 
