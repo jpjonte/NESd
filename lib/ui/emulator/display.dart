@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -11,21 +13,54 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
-Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
-  final buffer = await ui.ImmutableBuffer.fromUint8List(frameBuffer.pixels);
+class _PendingFrame {
+  _PendingFrame(this.bytes, this.width, this.height);
 
-  final descriptor = ui.ImageDescriptor.raw(
-    buffer,
-    width: frameBuffer.width,
-    height: frameBuffer.height,
-    pixelFormat: ui.PixelFormat.rgba8888,
+  final Uint8List bytes;
+  final int width;
+  final int height;
+}
+
+class _BufferPool {
+  _BufferPool({required this.bufferSize}) : _available = <Uint8List>[];
+
+  final int bufferSize;
+  static const int _capacity = 3;
+  final List<Uint8List> _available;
+
+  Uint8List acquire() {
+    if (_available.isNotEmpty) {
+      return _available.removeLast();
+    }
+
+    return Uint8List(bufferSize);
+  }
+
+  void release(Uint8List buffer) {
+    if (buffer.lengthInBytes != bufferSize) {
+      return;
+    }
+
+    if (_available.length < _capacity) {
+      _available.add(buffer);
+    }
+  }
+}
+
+Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) {
+  final bytes = Uint8List.fromList(frameBuffer.pixels);
+  final completer = Completer<ui.Image>();
+
+  ui.decodeImageFromPixels(
+    bytes,
+    frameBuffer.width,
+    frameBuffer.height,
+    ui.PixelFormat.rgba8888,
+    (img) => completer.complete(img),
+    rowBytes: frameBuffer.width * 4,
   );
 
-  final codec = await descriptor.instantiateCodec();
-
-  final frame = await codec.getNextFrame();
-
-  return frame.image;
+  return completer.future;
 }
 
 class FrameBufferStreamBuilder extends HookConsumerWidget {
@@ -36,50 +71,148 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
     final eventBus = ref.watch(eventBusProvider);
     final nes = ref.watch(nesStateProvider);
 
-    useStream(
-      eventBus.stream.where(
-        (event) =>
-            event is FrameNesEvent ||
-            event is SuspendNesEvent ||
-            event is DebuggerNesEvent,
-      ),
-    );
-
     if (nes == null) {
       return const SizedBox();
     }
 
-    return DisplayWidget(
-      paused: nes.paused,
-      fastForward: nes.fastForward,
-      imageFuture: convertFrameBufferToImage(nes.ppu.frameBuffer),
-    );
-  }
-}
+    // keep the last successfully decoded image on screen
+    final currentImage = useState<ui.Image?>(null);
 
-class DisplayWidget extends HookConsumerWidget {
-  const DisplayWidget({
-    required this.imageFuture,
-    this.paused = false,
-    this.fastForward = false,
-    super.key,
-  });
+    // ensure we're only decoding one frame at a time
+    final inFlight = useRef<bool>(false);
+    final pending = useRef<_PendingFrame?>(null);
+    final disposed = useRef<bool>(false);
+    final poolRef = useRef<_BufferPool?>(null);
 
-  final Future<ui.Image> imageFuture;
+    Future<void> decodeAndSet(Uint8List bytes, int width, int height) async {
+      final completer = Completer<ui.Image>();
 
-  final bool paused;
-  final bool fastForward;
+      ui.decodeImageFromPixels(
+        bytes,
+        width,
+        height,
+        ui.PixelFormat.rgba8888,
+        (image) => completer.complete(image),
+        rowBytes: width * 4,
+      );
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final snapshot = useFuture(imageFuture);
+      final image = await completer.future;
 
-    return switch (snapshot) {
-      AsyncSnapshot<ui.Image>(data: final image?) => DisplayBuilder(
-        image: image,
-      ),
-      _ => const Center(child: CircularProgressIndicator()),
-    };
+      if (disposed.value) {
+        image.dispose();
+
+        poolRef.value?.release(bytes);
+
+        return;
+      }
+
+      final oldImage = currentImage.value;
+
+      currentImage.value = image;
+
+      oldImage?.dispose();
+
+      poolRef.value?.release(bytes);
+
+      final next = pending.value;
+
+      if (next != null) {
+        pending.value = null;
+
+        await decodeAndSet(next.bytes, next.width, next.height);
+      } else {
+        inFlight.value = false;
+      }
+    }
+
+    void scheduleDecode() {
+      final frameBuffer = nes.ppu.frameBuffer;
+      final size = frameBuffer.width * frameBuffer.height * 4;
+
+      if (poolRef.value == null || poolRef.value!.bufferSize != size) {
+        poolRef.value = _BufferPool(bufferSize: size);
+      }
+
+      final copy = poolRef.value!.acquire()..setAll(0, frameBuffer.pixels);
+
+      if (inFlight.value) {
+        // release any previously pending buffer when superseded
+        final old = pending.value;
+
+        if (old != null) {
+          poolRef.value?.release(old.bytes);
+        }
+
+        pending.value = _PendingFrame(
+          copy,
+          frameBuffer.width,
+          frameBuffer.height,
+        );
+      } else {
+        inFlight.value = true;
+
+        unawaited(decodeAndSet(copy, frameBuffer.width, frameBuffer.height));
+      }
+    }
+
+    // listen for frame-related events and schedule image decodes
+    useEffect(() {
+      disposed.value = false;
+
+      final sub = eventBus.stream
+          .where(
+            (event) =>
+                event is FrameNesEvent ||
+                event is SuspendNesEvent ||
+                event is DebuggerNesEvent,
+          )
+          .listen((event) {
+            if (event is FrameNesEvent || event is DebuggerNesEvent) {
+              scheduleDecode();
+            }
+          });
+
+      return () {
+        disposed.value = true;
+
+        sub.cancel();
+
+        currentImage.value?.dispose();
+        currentImage.value = null;
+
+        final old = pending.value;
+
+        if (old != null) {
+          poolRef.value?.release(old.bytes);
+        }
+
+        pending.value = null;
+
+        inFlight.value = false;
+      };
+    }, [eventBus]);
+
+    // when fast-forward turns off, decode the latest frame immediately
+    final isFastForward = nes.fastForward;
+    final prevFastForward = useRef<bool>(isFastForward);
+
+    useEffect(() {
+      if (prevFastForward.value && !isFastForward) {
+        scheduleDecode();
+      }
+
+      prevFastForward.value = isFastForward;
+
+      return null;
+    }, [isFastForward]);
+
+    final img = currentImage.value;
+
+    if (img == null) {
+      return const ColoredBox(color: Colors.black);
+    }
+
+    return DisplayBuilder(image: img);
   }
 }
 
@@ -368,5 +501,14 @@ class EmulatorPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant EmulatorPainter oldDelegate) =>
-      image != oldDelegate.image;
+      image != oldDelegate.image ||
+      center != oldDelegate.center ||
+      topLeft != oldDelegate.topLeft ||
+      screenSize != oldDelegate.screenSize ||
+      scale != oldDelegate.scale ||
+      showBorder != oldDelegate.showBorder ||
+      paused != oldDelegate.paused ||
+      fastForward != oldDelegate.fastForward ||
+      rewind != oldDelegate.rewind ||
+      crossHairPosition != oldDelegate.crossHairPosition;
 }

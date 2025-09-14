@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Fixed gamepad inputs not being saved on Windows
+- Fixed an issue where the frame rate would drop to less than 1 FPS after running for a while
 
 ## [0.12.1] - 2025-05-03
 
