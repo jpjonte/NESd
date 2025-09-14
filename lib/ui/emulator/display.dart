@@ -178,7 +178,6 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
         sub.cancel();
 
         currentImage.value?.dispose();
-        currentImage.value = null;
 
         final old = pending.value;
 

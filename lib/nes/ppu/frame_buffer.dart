@@ -47,6 +47,16 @@ class FrameBuffer {
     pixels[index + 3] = 0xff;
   }
 
+  void setPixelWithBase(int base, int x, int color) {
+    final index = base + (x * 4);
+
+    // no need to mask with 0xff because we are using Uint8List
+    pixels[index] = color >> 16;
+    pixels[index + 1] = color >> 8;
+    pixels[index + 2] = color;
+    pixels[index + 3] = 0xff;
+  }
+
   void setPixels(Uint8List pixels) {
     this.pixels.setAll(0, pixels);
   }

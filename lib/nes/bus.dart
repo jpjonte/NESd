@@ -142,7 +142,12 @@ class Bus {
     }
 
     if (address < 0x3fff) {
-      ppu.palette[_paletteAddress(address)] = value;
+      final idx = _paletteAddress(address);
+
+      ppu.palette[idx] = value;
+      // notify PPU to refresh LUT entry for this palette index
+      // (safe even if LUT is not used yet)
+      ppu.onPaletteWrite(idx);
 
       return;
     }
@@ -184,6 +189,7 @@ class Bus {
 
   set zapperPosition(Offset? position) => _zapper.position = position;
 
+  @pragma('vm:prefer-inline')
   int _paletteAddress(int address) {
     return switch (address & 0x1f) {
       0x10 => 0x00,
