@@ -31,10 +31,6 @@ enum MemoryAccess {
   const MemoryAccess(this.value);
 
   final int value;
-
-  bool supports(MemoryAccess other) {
-    return value & other.value > 0;
-  }
 }
 
 const _cpuBlockAddressWidth = 10;
@@ -48,12 +44,15 @@ const _ppuBlockMask = _ppuBlockSize - 1;
 const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 
 class MemoryMapping {
-  MemoryMapping({required this.source, this.access = MemoryAccess.read});
+  MemoryMapping({required this.source, this.access = MemoryAccess.read})
+    : readable = (access.value & MemoryAccess.read.value) != 0,
+      writable = (access.value & MemoryAccess.write.value) != 0;
 
   Uint8List source;
   MemoryAccess access;
 
-  bool supports(MemoryAccess other) => access.supports(other);
+  final bool readable;
+  final bool writable;
 }
 
 abstract class Mapper {
@@ -167,11 +166,11 @@ abstract class Mapper {
       return 0;
     }
 
-    if (mapping.supports(MemoryAccess.read)) {
+    if (mapping.readable) {
       final source = mapping.source;
       final offset = address & _cpuBlockMask;
 
-      return source[offset % source.length];
+      return source[offset];
     }
 
     return 0;
@@ -185,11 +184,11 @@ abstract class Mapper {
         return 0;
       }
 
-      if (mapping.supports(MemoryAccess.read)) {
+      if (mapping.readable) {
         final source = mapping.source;
         final offset = address & _ppuBlockMask;
 
-        return source[offset % source.length];
+        return source[offset];
       }
     }
 
@@ -211,7 +210,7 @@ abstract class Mapper {
       return;
     }
 
-    if (mapping.supports(MemoryAccess.write)) {
+    if (mapping.writable) {
       mapping.source[address & _cpuBlockMask] = value;
     }
   }
@@ -223,7 +222,7 @@ abstract class Mapper {
       return;
     }
 
-    if (mapping.supports(MemoryAccess.write)) {
+    if (mapping.writable) {
       mapping.source[address & _ppuBlockMask] = value;
     }
   }

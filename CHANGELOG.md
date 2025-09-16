@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Improved the design of the light mode (work in progress)
-- Improved performance of the PPU code
+- Improved performance of the PPU and mapper code
 
 ### Fixed
 - Fixed gamepad inputs not being saved on Windows
