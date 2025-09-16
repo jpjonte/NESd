@@ -42,7 +42,7 @@ Add my Flatpak repo (https://jpjonte.github.io/flatpak/jpj.flatpakrepo) and inst
 
 ## Supported games and mappers
 
-NESd supports 2.480 games.
+NESd supports 2.519 games.
 
 - 0: NROM (319 games)
 - 1: MMC1 (734 games)
@@ -55,6 +55,7 @@ NESd supports 2.480 games.
 - 19: Namco 163 (31 games)
 - 66: GxROM (17 games)
 - 71: BR909x (19 games)
+- 118: TxSROM (8 games)
 - 206: Namco 108 (61 games)
 
 ## Acknowledgements

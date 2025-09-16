@@ -45,7 +45,9 @@ class APU {
   int _dmcSamples = 0;
   int _sampleStart = 0;
 
-  double _cyclesPerSample = ntscCpuFrequency / apuSampleRate;
+  // Integer accumulator for sample scheduling
+  int _cpuFrequency = ntscCpuFrequency;
+  int _sampleAccumulator = 0;
 
   APUState get state => APUState(
     cycles: cycles,
@@ -93,9 +95,9 @@ class APU {
 
     switch (region) {
       case Region.ntsc:
-        _cyclesPerSample = ntscCpuFrequency / apuSampleRate;
+        _cpuFrequency = ntscCpuFrequency;
       case Region.pal:
-        _cyclesPerSample = palCpuFrequency / apuSampleRate;
+        _cpuFrequency = palCpuFrequency;
     }
   }
 
@@ -170,6 +172,7 @@ class APU {
     sampleIndex = 0;
 
     _sampleStart = 0;
+    _sampleAccumulator = 0;
 
     _frameCounter.reset();
 
@@ -222,11 +225,12 @@ class APU {
   void _handleSampling() {
     _gatherSamples();
 
-    // if this cycle crossed the sample rate boundary, output a new sample
-    final before = (cycles - 1) / _cyclesPerSample;
-    final after = cycles / _cyclesPerSample;
+    // Integer accumulator: emit a sample whenever the accumulated
+    // APU sample rate meets/exceeds the CPU frequency.
+    _sampleAccumulator += apuSampleRate;
 
-    if (before.truncate() != after.truncate()) {
+    if (_sampleAccumulator >= _cpuFrequency) {
+      _sampleAccumulator -= _cpuFrequency;
       sampleBuffer[sampleIndex++] = _output();
     }
   }
@@ -242,12 +246,15 @@ class APU {
     final sampledCycles = cycles - _sampleStart;
 
     // average samples over the last [sampledCycles] cycles
-    final pulse1Sample = (_pulse1Samples / sampledCycles).floor();
-    final pulse2Sample = (_pulse2Samples / sampledCycles).floor();
+    // Use a single reciprocal to avoid multiple divisions.
+    final inv = 1.0 / sampledCycles;
+
+    final pulse1Sample = (_pulse1Samples * inv).floor();
+    final pulse2Sample = (_pulse2Samples * inv).floor();
     final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
 
-    final triangleSample = (_triangleSamples / sampledCycles).floor();
-    final dmcSample = (_dmcSamples / sampledCycles).floor();
+    final triangleSample = (_triangleSamples * inv).floor();
+    final dmcSample = (_dmcSamples * inv).floor();
 
     final tndOut = tndTable[3 * triangleSample + 2 * noise.output + dmcSample];
 

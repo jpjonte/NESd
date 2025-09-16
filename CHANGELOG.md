@@ -7,15 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Added support for TxSROM (Mapper 118)
 - Added an AppImage build for Linux
 - Added arm64 builds for Linux
 - Added an option to customize the theme mode (system, light, dark)
 
 ### Changed
 - Improved the design of the light mode (work in progress)
+- Improved performance of the PPU, mapper, and APU code
 
 ### Fixed
 - Fixed gamepad inputs not being saved on Windows
+- Fixed an issue where the frame rate would drop to less than 1 FPS after running for a while
 
 ## [0.12.1] - 2025-05-03
 
