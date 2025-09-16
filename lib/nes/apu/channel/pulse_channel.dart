@@ -17,6 +17,7 @@ class PulseChannel {
   late final sweep = SweepUnit(this, onesComplement: onesComplement);
 
   int duty = 0;
+  int _dutyMask = dutyCycleSequences[0];
 
   bool constantVolume = false;
 
@@ -43,6 +44,7 @@ class PulseChannel {
   set state(PulseChannelState state) {
     enabled = state.enabled;
     duty = state.duty;
+    _dutyMask = dutyCycleSequences[duty];
     constantVolume = state.constantVolume;
     volume = state.volume;
     dutyIndex = state.dutyIndex;
@@ -56,6 +58,7 @@ class PulseChannel {
   void reset() {
     enabled = false;
     duty = 0;
+    _dutyMask = dutyCycleSequences[duty];
     constantVolume = false;
     volume = 0;
 
@@ -76,6 +79,7 @@ class PulseChannel {
 
   void writeControl(int value) {
     duty = (value >> 6) & 0x03;
+    _dutyMask = dutyCycleSequences[duty];
     lengthCounter.halt = value.bit(5) == 1;
     constantVolume = value.bit(4) == 1;
     volume = value & 0x0f;
@@ -127,7 +131,7 @@ class PulseChannel {
       return 0;
     }
 
-    if ((dutyCycleSequences[duty] >> (7 - dutyIndex)) & 1 == 0) {
+    if ((_dutyMask >> (7 - dutyIndex)) & 1 == 0) {
       return 0;
     }
 
