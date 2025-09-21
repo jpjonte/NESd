@@ -200,6 +200,8 @@ class NES {
 
     _applyState(rewindState);
 
+    ppu.frameBuffer.swap();
+
     eventBus.add(
       FrameNesEvent(
         samples: Float32List.fromList(
@@ -222,6 +224,8 @@ class NES {
   }
 
   Future<void> _sendFrame() async {
+    ppu.frameBuffer.swap();
+
     eventBus.add(
       FrameNesEvent(
         samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),

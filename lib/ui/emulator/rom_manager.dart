@@ -128,20 +128,31 @@ class RomManager {
   }
 
   void saveThumbnail(RomInfo romInfo, FrameBuffer frameBuffer) {
-    final image = img.Image.fromBytes(
-      width: frameBuffer.width,
-      height: frameBuffer.height,
-      order: img.ChannelOrder.rgba,
-      bytes: frameBuffer.pixels.buffer,
-    );
+    final queued = frameBuffer.takeReadyBuffer();
+    final bytes = queued ?? Uint8List.fromList(frameBuffer.pixels);
 
-    final png = img.encodePng(image);
+    try {
+      final image = img.Image.fromBytes(
+        width: frameBuffer.width,
+        height: frameBuffer.height,
+        bytes: bytes.buffer,
+        bytesOffset: bytes.offsetInBytes,
+        numChannels: 4,
+        order: img.ChannelOrder.rgba,
+      );
 
-    final file = getThumbnailFile(romInfo);
+      final png = img.encodePng(image);
 
-    _ensureDirectoryExists(file);
+      final file = getThumbnailFile(romInfo);
 
-    file.writeAsBytesSync(png);
+      _ensureDirectoryExists(file);
+
+      file.writeAsBytesSync(png);
+    } finally {
+      if (queued != null) {
+        frameBuffer.releaseDisplayBuffer(queued);
+      }
+    }
   }
 
   File getThumbnailFile(RomInfo romInfo) {

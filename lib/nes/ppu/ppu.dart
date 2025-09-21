@@ -265,6 +265,7 @@ class PPU {
     cycle = state.cycle;
     scanline = state.scanline;
     frames = state.frames;
+    _pixelBase = scanline * frameBuffer.width * 4;
     nametableLatch = state.nametableLatch;
     patternTableHighLatch = state.patternTableHighLatch;
     patternTableLowLatch = state.patternTableLowLatch;
@@ -354,6 +355,8 @@ class PPU {
     _nmiEnabled = false;
     _bgPatternBase = 0;
     _updateMaskFlags();
+
+    frameBuffer.resetBuffers();
 
     _rebuildPaletteLut();
   }
