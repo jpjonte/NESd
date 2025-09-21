@@ -131,17 +131,10 @@ class PPU {
   int get PPUCTRL_S => (PPUCTRL >> 3) & 1; // sprite pattern table address (8x8)
   int get PPUCTRL_B => (PPUCTRL >> 4) & 1; // background pattern table address
   int get PPUCTRL_H => (PPUCTRL >> 5) & 1; // sprite size
-  int get PPUCTRL_V => (PPUCTRL >> 7) & 1; // enable vblank NMI
-
   int get PPUCTRL_X => PPUCTRL & 1; // scroll X high bit
   int get PPUCTRL_Y => (PPUCTRL >> 1) & 1; // scroll Y high bit
 
   int get PPUMASK_Gr => PPUMASK & 1; // greyscale
-  int get PPUMASK_m =>
-      (PPUMASK >> 1) & 1; // show background in leftmost 8 pixels
-  int get PPUMASK_M => (PPUMASK >> 2) & 1; // show sprites in leftmost 8 pixels
-  int get PPUMASK_b => (PPUMASK >> 3) & 1; // show background
-  int get PPUMASK_s => (PPUMASK >> 4) & 1; // show sprites
   int get PPUMASK_ER => (PPUMASK >> 5) & 1; // emphasize red
   int get PPUMASK_EG => (PPUMASK >> 6) & 1; // emphasize green
   int get PPUMASK_EB => (PPUMASK >> 7) & 1; // emphasize blue
@@ -163,6 +156,12 @@ class PPU {
   final Uint32List _paletteLut = Uint32List(0x20);
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
+
+  bool _showBackground = false;
+  bool _showSprites = false;
+  bool _showLeftBackground = false;
+  bool _showLeftSprites = false;
+  bool _nmiEnabled = false;
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
@@ -286,6 +285,10 @@ class PPU {
       _spriteOutputs[i].state = state.spriteOutputs[i];
     }
 
+    _nmiEnabled = (PPUCTRL & 0x80) != 0;
+    _bgPatternBase = (PPUCTRL_B & 1) << 12;
+    _updateMaskFlags();
+
     _rebuildPaletteLut();
   }
 
@@ -348,6 +351,10 @@ class PPU {
 
     _pixelBase = 0;
 
+    _nmiEnabled = false;
+    _bgPatternBase = 0;
+    _updateMaskFlags();
+
     _rebuildPaletteLut();
   }
 
@@ -394,8 +401,7 @@ class PPU {
       case 0:
         _writePPUCTRL(value);
       case 1:
-        PPUMASK = value;
-        _rebuildPaletteLut();
+        _writePPUMASK(value);
       case 3:
         OAMADDR = value;
       case 4:
@@ -432,7 +438,7 @@ class PPU {
   bool get cycleFetch => cycleVisible || cyclePreFetch;
 
   @pragma('vm:prefer-inline')
-  bool get renderingEnabled => PPUMASK_b == 1 || PPUMASK_s == 1;
+  bool get renderingEnabled => _showBackground || _showSprites;
   @pragma('vm:prefer-inline')
   bool get rendering => lineVisible && cycleVisible;
 
@@ -507,7 +513,7 @@ class PPU {
       spriteCount = 0;
       secondarySpriteCount = 0;
 
-      if (PPUCTRL_V == 1) {
+      if (_nmiEnabled) {
         bus.triggerNmi();
       }
     }
@@ -571,10 +577,27 @@ class PPU {
   void _writePPUCTRL(int value) {
     PPUCTRL = value;
 
+    _nmiEnabled = (value & 0x80) != 0;
+
     t = (t & 0xF3FF) | (PPUCTRL_N << 10);
 
     // cache pattern table bases (<< 12)
     _bgPatternBase = (PPUCTRL_B & 1) << 12;
+  }
+
+  void _writePPUMASK(int value) {
+    PPUMASK = value;
+
+    _updateMaskFlags();
+
+    _rebuildPaletteLut();
+  }
+
+  void _updateMaskFlags() {
+    _showLeftBackground = (PPUMASK & 0x02) != 0;
+    _showLeftSprites = (PPUMASK & 0x04) != 0;
+    _showBackground = (PPUMASK & 0x08) != 0;
+    _showSprites = (PPUMASK & 0x10) != 0;
   }
 
   void _writeOAMDATA(int value) {
@@ -704,13 +727,13 @@ class PPU {
   }
 
   int _getPixelColor() {
-    if (PPUMASK_b == 0 && PPUMASK_s == 0) {
+    if (!_showBackground && !_showSprites) {
       return 0;
     }
 
     final backgroundColor = _getBackgroundPixelColor();
 
-    if (PPUMASK_s == 0) {
+    if (!_showSprites) {
       return backgroundColor;
     }
 
@@ -719,7 +742,7 @@ class PPU {
     // if the sprite color is selected, bit 4 is set
     final spriteColorValue = spriteColor | 0x10;
 
-    if (PPUMASK_b == 0) {
+    if (!_showBackground) {
       return spriteColorValue;
     }
 
@@ -741,11 +764,11 @@ class PPU {
   }
 
   int _getBackgroundPixelColor() {
-    if (PPUMASK_b == 0) {
+    if (!_showBackground) {
       return 0;
     }
 
-    if (PPUMASK_m == 0 && currentX < 8) {
+    if (!_showLeftBackground && currentX < 8) {
       return 0;
     }
 
@@ -769,7 +792,7 @@ class PPU {
   }
 
   int _getSpritePixelColor(int backgroundColor) {
-    if (PPUMASK_M == 0 && currentX < 8) {
+    if (!_showLeftSprites && currentX < 8) {
       return 0;
     }
 
