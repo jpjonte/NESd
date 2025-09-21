@@ -3,7 +3,8 @@ import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class FrameBuffer {
   FrameBuffer({required this.width, required this.height})
-    : pixels = Uint8List(height * width * 4);
+    : size = height * width * 4,
+      pixels = Uint8List(height * width * 4);
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
@@ -21,6 +22,7 @@ class FrameBuffer {
 
   final int width;
   final int height;
+  final int size;
   final Uint8List pixels;
 
   int getPixelBrightness(int x, int y) {
