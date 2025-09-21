@@ -440,9 +440,9 @@ class PPU {
   bool get fetching => lineFetch && cycleFetch;
 
   void stepUntil(int targetCycles) {
-    do {
+    while (consoleCycles < targetCycles) {
       step();
-    } while (consoleCycles < targetCycles);
+    }
   }
 
   void step() {
@@ -681,7 +681,7 @@ class PPU {
     final color = _getPixelColor();
 
     // Use precomputed final RGB color for this palette index (with mirroring)
-    final rgb = _paletteLut[_remapPaletteIndex(color & 0x1f)];
+    final rgb = _paletteLut[color & 0x1f];
 
     frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
@@ -749,8 +749,10 @@ class PPU {
       return 0;
     }
 
-    final patternHigh = (patternTableHighShift >> (15 - x)) & 0x1;
-    final patternLow = (patternTableLowShift >> (15 - x)) & 0x1;
+    final patternShift = 15 - x;
+
+    final patternHigh = (patternTableHighShift >> patternShift) & 0x1;
+    final patternLow = (patternTableLowShift >> patternShift) & 0x1;
 
     final pattern = patternHigh << 1 | patternLow;
 
@@ -758,8 +760,10 @@ class PPU {
       return 0;
     }
 
-    final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
-    final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
+    final attributeShift = 7 - x;
+
+    final paletteIndexHigh = (attributeTableHighShift >> attributeShift) & 0x1;
+    final paletteIndexLow = (attributeTableLowShift >> attributeShift) & 0x1;
 
     return paletteIndexHigh << 3 | paletteIndexLow << 2 | pattern;
   }
@@ -856,17 +860,18 @@ class PPU {
   void _fetch() {
     final subcycle = cycle & 7;
 
-    if (subcycle == 0) {
-      _loadShiftRegisters();
-      _incrementX();
-    } else if (subcycle == 1) {
-      _fetchNametable();
-    } else if (subcycle == 3) {
-      _fetchAttributeTable();
-    } else if (subcycle == 5) {
-      _fetchPatternTableLow();
-    } else if (subcycle == 7) {
-      _fetchPatternTableHigh();
+    switch (subcycle) {
+      case 0:
+        _loadShiftRegisters();
+        _incrementX();
+      case 1:
+        _fetchNametable();
+      case 3:
+        _fetchAttributeTable();
+      case 5:
+        _fetchPatternTableLow();
+      case 7:
+        _fetchPatternTableHigh();
     }
 
     if (cycle == 256) {
@@ -978,10 +983,12 @@ class PPU {
           sprite0OnNextLine = true;
         }
 
-        secondaryOam[secondarySpriteCount * 4] = y;
-        secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamAddress + 1];
-        secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamAddress + 2];
-        secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamAddress + 3];
+        final base = secondarySpriteCount * 4;
+
+        secondaryOam[base] = y;
+        secondaryOam[base + 1] = oam[oamAddress + 1];
+        secondaryOam[base + 2] = oam[oamAddress + 2];
+        secondaryOam[base + 3] = oam[oamAddress + 3];
 
         secondarySpriteCount++;
       }
@@ -1065,7 +1072,10 @@ class PPU {
   // Called when PPUMASK changes or palette memory is written to, to update LUT.
   void _rebuildPaletteLut() {
     for (var i = 0; i < 0x20; i++) {
-      _paletteLut[i] = _computePaletteEntry(i);
+      final remapped = _remapPaletteIndex(i);
+      final value = _computePaletteEntry(remapped);
+
+      _setPaletteEntry(remapped, value);
     }
   }
 
@@ -1077,23 +1087,25 @@ class PPU {
     final rem = _remapPaletteIndex(index);
     final val = _computePaletteEntry(rem);
 
-    _paletteLut[rem] = val;
+    _setPaletteEntry(rem, val);
+  }
 
-    // keep mirrored indices in sync to avoid remap at render
-    if (rem == 0x00) {
-      _paletteLut[0x10] = val;
-    }
-
-    if (rem == 0x04) {
-      _paletteLut[0x14] = val;
-    }
-
-    if (rem == 0x08) {
-      _paletteLut[0x18] = val;
-    }
-
-    if (rem == 0x0c) {
-      _paletteLut[0x1c] = val;
+  void _setPaletteEntry(int index, int value) {
+    switch (index) {
+      case 0x00:
+        _paletteLut[0x00] = value;
+        _paletteLut[0x10] = value;
+      case 0x04:
+        _paletteLut[0x04] = value;
+        _paletteLut[0x14] = value;
+      case 0x08:
+        _paletteLut[0x08] = value;
+        _paletteLut[0x18] = value;
+      case 0x0c:
+        _paletteLut[0x0c] = value;
+        _paletteLut[0x1c] = value;
+      default:
+        _paletteLut[index] = value;
     }
   }
 
