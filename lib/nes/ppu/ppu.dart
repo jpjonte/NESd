@@ -346,6 +346,8 @@ class PPU {
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
 
+    _pixelBase = 0;
+
     _rebuildPaletteLut();
   }
 
