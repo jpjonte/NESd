@@ -365,10 +365,6 @@ class NES {
   void stepOver() {
     final op = ops[bus.cpuRead(cpu.PC)];
 
-    if (op == null) {
-      return;
-    }
-
     if (op.instruction is! JSR && op.instruction is! BRK) {
       stepInto();
 

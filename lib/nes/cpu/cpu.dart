@@ -270,7 +270,7 @@ class CPU {
   void step() {
     final opcode = read(PC);
 
-    final op = ops[opcode]!;
+    final op = ops[opcode];
 
     operation = op;
 
