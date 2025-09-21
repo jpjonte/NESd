@@ -7,7 +7,6 @@ import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
-import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
@@ -280,7 +279,7 @@ class CPU {
 
     PC++;
 
-    _updateCallStack(op);
+    _updateCallStack(opcode);
 
     op.execute(this);
 
@@ -407,14 +406,17 @@ class CPU {
     _oamDmaOffset = 0;
   }
 
-  void _updateCallStack(Operation op) {
-    if (op.instruction is JSR) {
-      callStack.add(PC + 2);
-    } else if (op.instruction is BRK) {
-      callStack.add(PC + 1);
-    } else if (callStack.isNotEmpty &&
-        (op.instruction is RTI || op.instruction is RTS)) {
-      callStack.removeLast();
+  void _updateCallStack(int opcode) {
+    switch (opcode) {
+      case 0x00: // BRK
+        callStack.add(PC + 1);
+      case 0x20: // JSR
+        callStack.add(PC + 2);
+      case 0x40: // RTI
+      case 0x60: // RTS
+        if (callStack.isNotEmpty) {
+          callStack.removeLast();
+        }
     }
   }
 
