@@ -21,34 +21,10 @@ class _PendingFrame {
   final int height;
 }
 
-class _BufferPool {
-  _BufferPool({required this.bufferSize}) : _available = <Uint8List>[];
+Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) async {
+  final queued = frameBuffer.takeReadyBuffer();
+  final bytes = queued ?? Uint8List.fromList(frameBuffer.pixels);
 
-  final int bufferSize;
-  static const int _capacity = 3;
-  final List<Uint8List> _available;
-
-  Uint8List acquire() {
-    if (_available.isNotEmpty) {
-      return _available.removeLast();
-    }
-
-    return Uint8List(bufferSize);
-  }
-
-  void release(Uint8List buffer) {
-    if (buffer.lengthInBytes != bufferSize) {
-      return;
-    }
-
-    if (_available.length < _capacity) {
-      _available.add(buffer);
-    }
-  }
-}
-
-Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) {
-  final bytes = Uint8List.fromList(frameBuffer.pixels);
   final completer = Completer<ui.Image>();
 
   ui.decodeImageFromPixels(
@@ -60,7 +36,13 @@ Future<ui.Image> convertFrameBufferToImage(FrameBuffer frameBuffer) {
     rowBytes: frameBuffer.width * 4,
   );
 
-  return completer.future;
+  try {
+    return await completer.future;
+  } finally {
+    if (queued != null) {
+      frameBuffer.releaseDisplayBuffer(queued);
+    }
+  }
 }
 
 class FrameBufferStreamBuilder extends HookConsumerWidget {
@@ -75,6 +57,8 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
       return const SizedBox();
     }
 
+    final frameBuffer = nes.ppu.frameBuffer;
+
     // keep the last successfully decoded image on screen
     final currentImage = useState<ui.Image?>(null);
 
@@ -82,7 +66,6 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
     final inFlight = useRef<bool>(false);
     final pending = useRef<_PendingFrame?>(null);
     final disposed = useRef<bool>(false);
-    final poolRef = useRef<_BufferPool?>(null);
 
     Future<void> decodeAndSet(Uint8List bytes, int width, int height) async {
       final completer = Completer<ui.Image>();
@@ -93,15 +76,14 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
         height,
         ui.PixelFormat.rgba8888,
         (image) => completer.complete(image),
-        rowBytes: width * 4,
       );
 
       final image = await completer.future;
 
+      frameBuffer.releaseDisplayBuffer(bytes);
+
       if (disposed.value) {
         image.dispose();
-
-        poolRef.value?.release(bytes);
 
         return;
       }
@@ -111,8 +93,6 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
       currentImage.value = image;
 
       oldImage?.dispose();
-
-      poolRef.value?.release(bytes);
 
       final next = pending.value;
 
@@ -126,32 +106,29 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
     }
 
     void scheduleDecode() {
-      final frameBuffer = nes.ppu.frameBuffer;
-      final size = frameBuffer.width * frameBuffer.height * 4;
+      final bytes = frameBuffer.takeReadyBuffer();
 
-      if (poolRef.value == null || poolRef.value!.bufferSize != size) {
-        poolRef.value = _BufferPool(bufferSize: size);
+      if (bytes == null) {
+        return;
       }
-
-      final copy = poolRef.value!.acquire()..setAll(0, frameBuffer.pixels);
 
       if (inFlight.value) {
         // release any previously pending buffer when superseded
         final old = pending.value;
 
         if (old != null) {
-          poolRef.value?.release(old.bytes);
+          frameBuffer.releaseDisplayBuffer(old.bytes);
         }
 
         pending.value = _PendingFrame(
-          copy,
+          bytes,
           frameBuffer.width,
           frameBuffer.height,
         );
       } else {
         inFlight.value = true;
 
-        unawaited(decodeAndSet(copy, frameBuffer.width, frameBuffer.height));
+        unawaited(decodeAndSet(bytes, frameBuffer.width, frameBuffer.height));
       }
     }
 
@@ -166,11 +143,7 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
                 event is SuspendNesEvent ||
                 event is DebuggerNesEvent,
           )
-          .listen((event) {
-            if (event is FrameNesEvent || event is DebuggerNesEvent) {
-              scheduleDecode();
-            }
-          });
+          .listen((_) => scheduleDecode());
 
       return () {
         disposed.value = true;
@@ -182,7 +155,7 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
         final old = pending.value;
 
         if (old != null) {
-          poolRef.value?.release(old.bytes);
+          frameBuffer.releaseDisplayBuffer(old.bytes);
         }
 
         pending.value = null;
