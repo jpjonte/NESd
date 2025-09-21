@@ -1,7 +1,7 @@
 import 'dart:math';
 
 class RingBuffer<T, S extends List<T>> {
-  RingBuffer({required this.bufferConstructor, required int size}) {
+  RingBuffer({required this.bufferConstructor, required this.size}) {
     _buffer = bufferConstructor(size);
   }
 
@@ -9,10 +9,11 @@ class RingBuffer<T, S extends List<T>> {
 
   late final S _buffer;
 
+  final int size;
+
   int _start = 0;
   int _end = 0;
 
-  int get size => _buffer.length;
   int get current => (_end - _start) % size;
   // subtract 1 so that a full buffer is not considered empty
   // (because start == end => size == 0)
@@ -34,12 +35,11 @@ class RingBuffer<T, S extends List<T>> {
       data.setAll(0, _buffer.sublist(_start, _start + readSize));
     } else {
       // read wraps around
-
-      final firstSegmentSize = _buffer.length - _start;
+      final firstSegmentSize = this.size - _start;
       final secondSegmentSize = readSize - firstSegmentSize;
 
       data
-        ..setAll(0, _buffer.sublist(_start, _buffer.length))
+        ..setAll(0, _buffer.sublist(_start, this.size))
         ..setAll(firstSegmentSize, _buffer.sublist(0, secondSegmentSize));
     }
 
