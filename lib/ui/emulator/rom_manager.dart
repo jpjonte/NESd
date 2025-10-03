@@ -9,7 +9,7 @@ import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
-import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/frame_buffer_image.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -131,28 +131,22 @@ class RomManager {
     final queued = frameBuffer.takeReadyBuffer();
     final bytes = queued ?? Uint8List.fromList(frameBuffer.pixels);
 
-    try {
-      final image = img.Image.fromBytes(
-        width: frameBuffer.width,
-        height: frameBuffer.height,
-        bytes: bytes.buffer,
-        bytesOffset: bytes.offsetInBytes,
-        numChannels: 4,
-        order: img.ChannelOrder.rgba,
-      );
+    final image = img.Image.fromBytes(
+      width: frameBuffer.width,
+      height: frameBuffer.height,
+      bytes: bytes.buffer,
+      bytesOffset: bytes.offsetInBytes,
+      numChannels: 4,
+      order: img.ChannelOrder.rgba,
+    );
 
-      final png = img.encodePng(image);
+    final png = img.encodePng(image);
 
-      final file = getThumbnailFile(romInfo);
+    final file = getThumbnailFile(romInfo);
 
-      _ensureDirectoryExists(file);
+    _ensureDirectoryExists(file);
 
-      file.writeAsBytesSync(png);
-    } finally {
-      if (queued != null) {
-        frameBuffer.releaseDisplayBuffer(queued);
-      }
-    }
+    file.writeAsBytesSync(png);
   }
 
   File getThumbnailFile(RomInfo romInfo) {
