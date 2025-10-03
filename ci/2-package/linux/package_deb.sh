@@ -1,20 +1,29 @@
 #!/usr/bin/env bash
 
+set -eux
+
+repo_root=$(git rev-parse --show-toplevel)
+app_root="$repo_root/packages/nesd"
+
 mkdir -p deb/DEBIAN \
   deb/usr/share/{dev.jpj.NESd,applications,metainfo} \
   deb/usr/share/icons/hicolor/scalable/apps
 
-cp assets/logo.svg deb/usr/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg
+cp "$app_root/assets/logo.svg" \
+  deb/usr/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg
 
-cp linux/packaging/dev.jpj.NESd.metainfo.xml deb/usr/share/metainfo/
+cp "$app_root/linux/packaging/dev.jpj.NESd.metainfo.xml" \
+  deb/usr/share/metainfo/
 
-cp -r build/linux/"$ARCH"/release/bundle/* deb/usr/share/dev.jpj.NESd/
+cp -r "$app_root/build/linux/$ARCH/release/bundle"/* \
+  deb/usr/share/dev.jpj.NESd/
 
-cp linux/packaging/deb/control-"$ARCH" deb/DEBIAN/control
-cp linux/packaging/deb/postinst deb/DEBIAN/postinst
-cp linux/packaging/deb/postrm deb/DEBIAN/postrm
+cp "$app_root/linux/packaging/deb/control-$ARCH" deb/DEBIAN/control
+cp "$app_root/linux/packaging/deb/postinst" deb/DEBIAN/postinst
+cp "$app_root/linux/packaging/deb/postrm" deb/DEBIAN/postrm
 
-cp linux/packaging/dev.jpj.NESd.desktop deb/usr/share/applications/
+cp "$app_root/linux/packaging/dev.jpj.NESd.desktop" \
+  deb/usr/share/applications/
 
 chmod +x deb/DEBIAN/postinst deb/DEBIAN/postrm
 

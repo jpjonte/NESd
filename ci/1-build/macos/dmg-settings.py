@@ -7,11 +7,16 @@ flavored_name = os.environ.get('FLAVORED_NAME', 'NESd dev')
 
 format = "UDZO"
 
-files = [(f'build/macos/Build/Products/Release-{flavor}/NESd.app', f'{flavored_name}.app')]
+files = [
+    (
+        f'packages/nesd/build/macos/Build/Products/Release-{flavor}/NESd.app',
+        f'{flavored_name}.app',
+    ),
+]
 
-symlinks = { 'Applications': '/Applications' }
+symlinks = {'Applications': '/Applications'}
 
-badge_icon = f'build/macos/Build/Products/Release-{flavor}/NESd.app/Contents/Resources/AppIcon.icns'
+badge_icon = f'packages/nesd/build/macos/Build/Products/Release-{flavor}/NESd.app/Contents/Resources/AppIcon.icns'
 
 icon_locations = {
     f'{flavored_name}.app': (150, 350),

@@ -1,6 +1,7 @@
 flutter pub get
 
 $repoDirectory = Get-Location
+$nesdDirectory = Join-Path -Path $repoDirectory -ChildPath ".\packages\nesd"
 
 Get-ChildItem -Path "$env:USERPROFILE\AppData\Local\Pub\Cache\git" -Directory -Filter "mp-audio-stream*" | ForEach-Object {
     Set-Location $_.FullName
@@ -8,12 +9,14 @@ Get-ChildItem -Path "$env:USERPROFILE\AppData\Local\Pub\Cache\git" -Directory -F
     git submodule update
 }
 
-Set-Location $repoDirectory
+Set-Location $nesdDirectory
 
 flutter build windows --release
 
+Set-Location $repoDirectory
+
 $lz4library = ".\windows\eslz4-win64.dll"
-$buildDirectory = ".\build\windows\x64\runner\Release"
+$buildDirectory = ".\packages\nesd\build\windows\x64\runner\Release"
 
 New-Item -ItemType Directory -Path $buildDirectory -Force
 

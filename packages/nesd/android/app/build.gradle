@@ -1,0 +1,102 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace = "dev.jpj.nesd"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = "27.0.12077973"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    sourceSets {
+        main.jniLibs.srcDirs += 'src/main/jniLibs'
+    }
+
+    defaultConfig {
+        applicationId = "dev.jpj.nesd"
+
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+    }
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+        }
+        profile {
+            signingConfig signingConfigs.release
+        }
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    flavorDimensions "nesd"
+
+    productFlavors {
+        dev {
+            dimension "nesd"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "NESd DEV"
+            versionNameSuffix ".dev"
+        }
+        prod {
+            dimension "nesd"
+            resValue "string", "app_name", "NESd"
+        }
+    }
+
+    namespace "dev.jpj.nesd"
+}
+
+flutter {
+    source = "../.."
+}

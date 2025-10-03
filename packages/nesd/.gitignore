@@ -1,0 +1,7 @@
+# Flutter/Dart/Pub
+.dart_tool/
+build/
+macos/build/
+android/app/.cxx
+
+coverage/

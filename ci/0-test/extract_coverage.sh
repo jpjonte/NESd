@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 
-lcov -r coverage/lcov.info \
+lcov -r packages/nesd/coverage/lcov.info \
   --ignore-errors unused \
   'lib/*/*.freezed.dart' \
   'lib/*/*.g.dart' \
-  -o coverage/lcov_cleaned.info
+  -o packages/nesd/coverage/lcov_cleaned.info
 
-output=$(lcov --summary coverage/lcov_cleaned.info)
+output=$(lcov --summary packages/nesd/coverage/lcov_cleaned.info)
 
 lines_coverage=$(echo "$output" | grep "lines......." | awk '{print $2}' | xargs printf "%.0f")
 
