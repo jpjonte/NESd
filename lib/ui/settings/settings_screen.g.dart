@@ -10,11 +10,11 @@ part of 'settings_screen.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SettingsTabIndex)
-const settingsTabIndexProvider = SettingsTabIndexProvider._();
+final settingsTabIndexProvider = SettingsTabIndexProvider._();
 
 final class SettingsTabIndexProvider
     extends $NotifierProvider<SettingsTabIndex, int> {
-  const SettingsTabIndexProvider._()
+  SettingsTabIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,7 +48,6 @@ abstract class _$SettingsTabIndex extends $Notifier<int> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$SettingsTabIndex extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

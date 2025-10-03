@@ -10,12 +10,12 @@ part of 'execution_log.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(executionLog)
-const executionLogProvider = ExecutionLogProvider._();
+final executionLogProvider = ExecutionLogProvider._();
 
 final class ExecutionLogProvider
     extends $FunctionalProvider<ExecutionLog, ExecutionLog, ExecutionLog>
     with $Provider<ExecutionLog> {
-  const ExecutionLogProvider._()
+  ExecutionLogProvider._()
     : super(
         from: null,
         argument: null,

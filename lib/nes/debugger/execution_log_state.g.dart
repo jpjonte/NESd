@@ -10,11 +10,11 @@ part of 'execution_log_state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExecutionLogStateNotifier)
-const executionLogStateProvider = ExecutionLogStateNotifierProvider._();
+final executionLogStateProvider = ExecutionLogStateNotifierProvider._();
 
 final class ExecutionLogStateNotifierProvider
     extends $NotifierProvider<ExecutionLogStateNotifier, ExecutionLogState> {
-  const ExecutionLogStateNotifierProvider._()
+  ExecutionLogStateNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,7 +50,6 @@ abstract class _$ExecutionLogStateNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<ExecutionLogState, ExecutionLogState>;
     final element =
         ref.element
@@ -60,6 +59,6 @@ abstract class _$ExecutionLogStateNotifier
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

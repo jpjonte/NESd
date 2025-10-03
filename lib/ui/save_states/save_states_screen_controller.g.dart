@@ -10,7 +10,7 @@ part of 'save_states_screen_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(saveStatesScreenController)
-const saveStatesScreenControllerProvider = SaveStatesScreenControllerFamily._();
+final saveStatesScreenControllerProvider = SaveStatesScreenControllerFamily._();
 
 final class SaveStatesScreenControllerProvider
     extends
@@ -20,7 +20,7 @@ final class SaveStatesScreenControllerProvider
           SaveStatesScreenController
         >
     with $Provider<SaveStatesScreenController> {
-  const SaveStatesScreenControllerProvider._({
+  SaveStatesScreenControllerProvider._({
     required SaveStatesScreenControllerFamily super.from,
     required RomInfo super.argument,
   }) : super(
@@ -78,7 +78,7 @@ String _$saveStatesScreenControllerHash() =>
 
 final class SaveStatesScreenControllerFamily extends $Family
     with $FunctionalFamilyOverride<SaveStatesScreenController, RomInfo> {
-  const SaveStatesScreenControllerFamily._()
+  SaveStatesScreenControllerFamily._()
     : super(
         retry: null,
         name: r'saveStatesScreenControllerProvider',

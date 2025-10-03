@@ -10,7 +10,7 @@ part of 'keyboard_input_handler.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(keyboardInputHandler)
-const keyboardInputHandlerProvider = KeyboardInputHandlerProvider._();
+final keyboardInputHandlerProvider = KeyboardInputHandlerProvider._();
 
 final class KeyboardInputHandlerProvider
     extends
@@ -20,7 +20,7 @@ final class KeyboardInputHandlerProvider
           KeyboardInputHandler
         >
     with $Provider<KeyboardInputHandler> {
-  const KeyboardInputHandlerProvider._()
+  KeyboardInputHandlerProvider._()
     : super(
         from: null,
         argument: null,

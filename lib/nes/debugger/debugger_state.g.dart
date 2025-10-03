@@ -10,11 +10,11 @@ part of 'debugger_state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(DebuggerStateNotifier)
-const debuggerStateProvider = DebuggerStateNotifierProvider._();
+final debuggerStateProvider = DebuggerStateNotifierProvider._();
 
 final class DebuggerStateNotifierProvider
     extends $NotifierProvider<DebuggerStateNotifier, DebuggerState> {
-  const DebuggerStateNotifierProvider._()
+  DebuggerStateNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$DebuggerStateNotifier extends $Notifier<DebuggerState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<DebuggerState, DebuggerState>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$DebuggerStateNotifier extends $Notifier<DebuggerState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

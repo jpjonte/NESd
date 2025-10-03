@@ -10,7 +10,7 @@ part of 'disassembler.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(disassembler)
-const disassemblerProvider = DisassemblerProvider._();
+final disassemblerProvider = DisassemblerProvider._();
 
 final class DisassemblerProvider
     extends
@@ -20,7 +20,7 @@ final class DisassemblerProvider
           DisassemblerInterface
         >
     with $Provider<DisassemblerInterface> {
-  const DisassemblerProvider._()
+  DisassemblerProvider._()
     : super(
         from: null,
         argument: null,

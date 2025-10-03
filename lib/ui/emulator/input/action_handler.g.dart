@@ -10,12 +10,12 @@ part of 'action_handler.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(actionStream)
-const actionStreamProvider = ActionStreamProvider._();
+final actionStreamProvider = ActionStreamProvider._();
 
 final class ActionStreamProvider
     extends $FunctionalProvider<ActionStream, ActionStream, ActionStream>
     with $Provider<ActionStream> {
-  const ActionStreamProvider._()
+  ActionStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,12 +51,12 @@ final class ActionStreamProvider
 String _$actionStreamHash() => r'639cbedd5a9e63c4d1539f80b28dde3f51eb3c45';
 
 @ProviderFor(actionHandler)
-const actionHandlerProvider = ActionHandlerProvider._();
+final actionHandlerProvider = ActionHandlerProvider._();
 
 final class ActionHandlerProvider
     extends $FunctionalProvider<ActionHandler, ActionHandler, ActionHandler>
     with $Provider<ActionHandler> {
-  const ActionHandlerProvider._()
+  ActionHandlerProvider._()
     : super(
         from: null,
         argument: null,

@@ -10,11 +10,11 @@ part of 'binder_state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(BinderStateNotifier)
-const binderStateProvider = BinderStateNotifierFamily._();
+final binderStateProvider = BinderStateNotifierFamily._();
 
 final class BinderStateNotifierProvider
     extends $NotifierProvider<BinderStateNotifier, BinderState> {
-  const BinderStateNotifierProvider._({
+  BinderStateNotifierProvider._({
     required BinderStateNotifierFamily super.from,
     required InputAction super.argument,
   }) : super(
@@ -70,7 +70,7 @@ final class BinderStateNotifierFamily extends $Family
           BinderState,
           InputAction
         > {
-  const BinderStateNotifierFamily._()
+  BinderStateNotifierFamily._()
     : super(
         retry: null,
         name: r'binderStateProvider',
@@ -94,7 +94,6 @@ abstract class _$BinderStateNotifier extends $Notifier<BinderState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<BinderState, BinderState>;
     final element =
         ref.element
@@ -104,6 +103,6 @@ abstract class _$BinderStateNotifier extends $Notifier<BinderState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

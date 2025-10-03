@@ -10,12 +10,12 @@ part of 'toaster.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(toaster)
-const toasterProvider = ToasterProvider._();
+final toasterProvider = ToasterProvider._();
 
 final class ToasterProvider
     extends $FunctionalProvider<Toaster, Toaster, Toaster>
     with $Provider<Toaster> {
-  const ToasterProvider._()
+  ToasterProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,11 +51,11 @@ final class ToasterProvider
 String _$toasterHash() => r'2830927222b4b7cbe3e48cf7ec0133c86ac4efc9';
 
 @ProviderFor(ToastState)
-const toastStateProvider = ToastStateProvider._();
+final toastStateProvider = ToastStateProvider._();
 
 final class ToastStateProvider
     extends $NotifierProvider<ToastState, List<Toast>> {
-  const ToastStateProvider._()
+  ToastStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -89,7 +89,6 @@ abstract class _$ToastState extends $Notifier<List<Toast>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<List<Toast>, List<Toast>>;
     final element =
         ref.element
@@ -99,6 +98,6 @@ abstract class _$ToastState extends $Notifier<List<Toast>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

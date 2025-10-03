@@ -30,12 +30,12 @@ Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(applicationSupportPath)
-const applicationSupportPathProvider = ApplicationSupportPathProvider._();
+final applicationSupportPathProvider = ApplicationSupportPathProvider._();
 
 final class ApplicationSupportPathProvider
     extends $FunctionalProvider<String, String, String>
     with $Provider<String> {
-  const ApplicationSupportPathProvider._()
+  ApplicationSupportPathProvider._()
     : super(
         from: null,
         argument: null,
@@ -72,12 +72,12 @@ String _$applicationSupportPathHash() =>
     r'd9da2d8890a3ca61b212204a35e0820482a1f82f';
 
 @ProviderFor(romManager)
-const romManagerProvider = RomManagerProvider._();
+final romManagerProvider = RomManagerProvider._();
 
 final class RomManagerProvider
     extends $FunctionalProvider<RomManager, RomManager, RomManager>
     with $Provider<RomManager> {
-  const RomManagerProvider._()
+  RomManagerProvider._()
     : super(
         from: null,
         argument: null,

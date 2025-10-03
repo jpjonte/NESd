@@ -10,7 +10,7 @@ part of 'cartridge_factory.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(cartridgeFactory)
-const cartridgeFactoryProvider = CartridgeFactoryProvider._();
+final cartridgeFactoryProvider = CartridgeFactoryProvider._();
 
 final class CartridgeFactoryProvider
     extends
@@ -20,7 +20,7 @@ final class CartridgeFactoryProvider
           CartridgeFactory
         >
     with $Provider<CartridgeFactory> {
-  const CartridgeFactoryProvider._()
+  CartridgeFactoryProvider._()
     : super(
         from: null,
         argument: null,
