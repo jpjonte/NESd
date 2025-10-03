@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+set -eux
+
+repo_root=$(git rev-parse --show-toplevel)
+app_root="$repo_root/packages/nesd"
+
 sudo apt-get update -y
 sudo apt-get install -y locate
 
@@ -9,15 +14,17 @@ mv appimagetool /usr/local/bin/
 
 mkdir -p nesd.AppDir/{usr/share/icons/hicolor/scalable/apps,usr/share/metainfo,usr/lib}
 
-cp -r build/linux/"$ARCH"/release/bundle/* nesd.AppDir
+cp -r "$app_root/build/linux/$ARCH/release/bundle"/* nesd.AppDir
 
-cp linux/packaging/dev.jpj.NESd.desktop nesd.AppDir/nesd.desktop
-cp linux/packaging/dev.jpj.NESd.metainfo.xml nesd.AppDir/usr/share/metainfo/nesd.metainfo.xml
+cp "$app_root/linux/packaging/dev.jpj.NESd.desktop" nesd.AppDir/nesd.desktop
+cp "$app_root/linux/packaging/dev.jpj.NESd.metainfo.xml" \
+  nesd.AppDir/usr/share/metainfo/nesd.metainfo.xml
 
-cp linux/packaging/appimage/AppRun nesd.AppDir/AppRun
+cp "$app_root/linux/packaging/appimage/AppRun" nesd.AppDir/AppRun
 
-cp assets/logo.svg nesd.AppDir/dev.jpj.NESd.svg
-cp assets/logo.svg nesd.AppDir/usr/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg
+cp "$app_root/assets/logo.svg" nesd.AppDir/dev.jpj.NESd.svg
+cp "$app_root/assets/logo.svg" \
+  nesd.AppDir/usr/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg
 
 chmod +x nesd.AppDir/AppRun
 
