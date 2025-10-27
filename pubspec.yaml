@@ -50,7 +50,7 @@ dependencies:
 
 dev_dependencies:
   auto_route_generator: ^10.2.3
-  custom_lint: ^0.7.5
+  custom_lint: 0.8.1
   dart_code_metrics_presets: ^2.24.0
   flutter_test:
     sdk: flutter
