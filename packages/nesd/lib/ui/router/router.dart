@@ -45,6 +45,15 @@ class Router extends RootStackRouter {
       duration: const Duration(milliseconds: 200),
       reverseDuration: const Duration(milliseconds: 200),
       opaque: false,
+      customRouteBuilder: <T>(context, child, page) {
+        return PageRouteBuilder<T>(
+          fullscreenDialog: page.fullscreenDialog,
+          opaque: page.opaque,
+          settings: page,
+          transitionsBuilder: TransitionsBuilders.fadeIn,
+          pageBuilder: (_, _, _) => child,
+        );
+      },
     ),
     AutoRoute(page: SaveStatesRoute.page, path: '/save_states'),
   ];
