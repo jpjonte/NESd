@@ -7,4 +7,3 @@ environment:
 workspace:
   - packages/nesd
   - packages/nesd_texture
-  - bin/perf
