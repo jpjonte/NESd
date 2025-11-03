@@ -7,6 +7,7 @@ import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/common/key_value.dart';
+import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/theme/base.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,6 +23,7 @@ sealed class DebugOverlayState with _$DebugOverlayState {
     @Default(0) double sleepBudget,
     @Default(0) int frame,
     @Default(0) double rewindSize,
+    @Default(FrameDelivery.none) FrameDelivery frameDelivery,
   }) = _DebugOverlayState;
 }
 
@@ -44,6 +46,7 @@ DebugOverlayController debugOverlayController(Ref ref) {
   final controller = DebugOverlayController(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(debugOverlayStateProvider.notifier),
+    frameController: ref.watch(displayFrameControllerProvider),
   );
 
   ref.onDispose(controller.dispose);
@@ -52,20 +55,28 @@ DebugOverlayController debugOverlayController(Ref ref) {
 }
 
 class DebugOverlayController {
-  DebugOverlayController({required this.eventBus, required this.notifier}) {
+  DebugOverlayController({
+    required this.eventBus,
+    required this.notifier,
+    required this.frameController,
+  }) {
     _subscription = eventBus.stream
         .where((event) => event is FrameNesEvent)
         .cast<FrameNesEvent>()
         .listen(_handleEvent);
+
+    frameController.addListener(_handleFrameDelivery);
   }
 
   final EventBus eventBus;
   final DebugOverlayStateNotifier notifier;
+  final DisplayFrameController frameController;
 
   late final StreamSubscription<FrameNesEvent> _subscription;
 
   void dispose() {
     _subscription.cancel();
+    frameController.removeListener(_handleFrameDelivery);
   }
 
   void _handleEvent(FrameNesEvent event) {
@@ -79,6 +90,12 @@ class DebugOverlayController {
       fps: fps,
       sleepBudget: sleepBudget,
       rewindSize: event.rewindSize / 1024 / 1024,
+    );
+  }
+
+  void _handleFrameDelivery() {
+    notifier.overlayState = notifier.overlayState.copyWith(
+      frameDelivery: frameController.value.delivery,
     );
   }
 }
@@ -129,6 +146,11 @@ class DebugOverlay extends ConsumerWidget {
                   'Rewind Size',
                   '${state.rewindSize.toStringAsFixed(1)} MB',
                 ),
+                KeyValue('Renderer', switch (state.frameDelivery) {
+                  FrameDelivery.gpu => 'GPU',
+                  FrameDelivery.cpu => 'CPU',
+                  FrameDelivery.none => 'Unknown',
+                }),
               ],
             ),
           ),

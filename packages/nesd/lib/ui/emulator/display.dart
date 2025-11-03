@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
-import 'package:nesd/ui/emulator/emulator_painter.dart';
+import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -23,28 +23,18 @@ class FrameBufferStreamBuilder extends HookConsumerWidget {
 
     final controller = ref.watch(displayFrameControllerProvider);
 
-    useEffect(() {
-      controller.scheduleFrame();
-
-      return null;
-    }, [controller]);
-
-    useEffect(() {
-      controller.onFastForwardChanged(isFastForward: nes.fastForward);
-
-      return null;
-    }, [controller, nes.fastForward]);
-
-    useEffect(() {
-      controller.onFastForwardChanged(isFastForward: nes.fastForward);
-
-      return null;
-    }, [controller, nes.fastForward]);
-
     final frameState = useValueListenable(controller);
 
     return switch (frameState) {
-      ImageDisplayFrameState(:final image) => DisplayBuilder(image: image),
+      TextureDisplayFrameState(:final textureId, :final width, :final height) =>
+        DisplayBuilder.texture(
+          textureId: textureId,
+          imageWidth: width,
+          imageHeight: height,
+        ),
+      ImageDisplayFrameState(:final image) => DisplayBuilder.image(
+        image: image,
+      ),
       _ => const ColoredBox(color: Colors.black),
     };
   }
@@ -68,9 +58,28 @@ class DisplayBuilder extends ConsumerWidget {
       imageHeight: image.height,
     );
   }
+
+  factory DisplayBuilder.texture({
+    required int textureId,
+    required int imageWidth,
+    required int imageHeight,
+    Key? key,
+  }) {
+    return DisplayBuilder._(
+      key: key,
+      image: null,
+      textureId: textureId,
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
+    );
+  }
+
   final ui.Image? image;
+
   final int imageWidth;
   final int imageHeight;
+
+  final int? textureId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +111,10 @@ class DisplayBuilder extends ConsumerWidget {
         final screenWidth = imageWidth;
         final screenHeight = (imageHeight / widthScale).round();
 
-        final screenSize = Size(width.toDouble(), height.toDouble());
+        final screenSize = Size(
+          screenWidth.toDouble(),
+          screenHeight.toDouble(),
+        );
         final scaledSize = screenSize * scale;
 
         final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -117,25 +129,57 @@ class DisplayBuilder extends ConsumerWidget {
         final topLeft =
             center - Offset(scaledSize.width / 2, scaledSize.height / 2);
 
-        Widget child;
+        final baseLayer = textureId != null
+            ? SizedBox.expand(
+                child: Texture(
+                  textureId: textureId!,
+                  filterQuality: FilterQuality.none,
+                ),
+              )
+            : CustomPaint(
+                painter: CpuFramePainter(image: image!),
+                child: const SizedBox.expand(),
+              );
 
-        child = CustomPaint(
-          painter: EmulatorPainter(
-            center: center,
-            topLeft: topLeft,
-            screenSize: scaledSize,
+        final overlayLayer = CustomPaint(
+          painter: EmulatorOverlayPainter(
             scale: scale,
-            image: image!,
+            showBorder: settings.showBorder,
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
             rewind: nes?.rewind ?? false,
-            showBorder: settings.showBorder,
             crossHairPosition:
                 nes?.bus.cartridge.databaseEntry?.hasZapper == true
                 ? nes?.bus.zapperPosition
                 : null,
           ),
           child: const SizedBox.expand(),
+        );
+
+        final screen = SizedBox(
+          width: scaledSize.width,
+          height: scaledSize.height,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(child: baseLayer),
+              overlayLayer,
+            ],
+          ),
+        );
+
+        final child = Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Positioned.fill(child: ColoredBox(color: Colors.black)),
+            Positioned(
+              left: topLeft.dx,
+              top: topLeft.dy,
+              width: scaledSize.width,
+              height: scaledSize.height,
+              child: screen,
+            ),
+          ],
         );
 
         return ConstrainedBox(

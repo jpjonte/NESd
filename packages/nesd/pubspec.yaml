@@ -39,6 +39,7 @@ dependencies:
     git:
       url: https://github.com/jpjonte/mp-audio-stream.git
       ref: feature/buffer-size
+  nesd_texture: any
   package_info_plus: ^9.0.0
   path: ^1.9.1
   path_provider: ^2.1.5
