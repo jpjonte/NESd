@@ -70,36 +70,7 @@ class RewindBuffer {
   void reset() => _buffer.clear();
 
   void add(NESState state) {
-    scheduleMicrotask(() {
-      if (_buffer.isFull) {
-        // pop the oldest full state
-        _buffer.popFront();
-
-        // pop all diff states until we find a full state
-        while (_buffer.peekFront() is DiffRewindItem) {
-          _buffer.popFront();
-        }
-      }
-
-      final fullState = _buffer.current % fullStateThreshold == 0;
-
-      final serialized = state.serialize();
-      final previous = _getLastFullState();
-
-      if (fullState) {
-        if (previous != null) {
-          previous.compress();
-        }
-
-        final item = FullRewindItem(serialized);
-
-        _buffer.append(item);
-      } else {
-        final item = DiffRewindItem(previous!.data, serialized);
-
-        _buffer.append(item);
-      }
-    });
+    scheduleMicrotask(() => _addState(state));
   }
 
   NESState? pop() {
@@ -114,6 +85,37 @@ class RewindBuffer {
       DiffRewindItem() => _getDiffState(item),
       DummyRewindItem() => null,
     };
+  }
+
+  void _addState(NESState state) {
+    if (_buffer.isFull) {
+      // pop the oldest full state
+      _buffer.popFront();
+
+      // pop all diff states until we find a full state
+      while (_buffer.peekFront() is DiffRewindItem) {
+        _buffer.popFront();
+      }
+    }
+
+    final fullState = _buffer.current % fullStateThreshold == 0;
+
+    final serialized = state.serialize();
+    final previous = _getLastFullState();
+
+    if (fullState) {
+      if (previous != null) {
+        previous.compress();
+      }
+
+      final item = FullRewindItem(serialized);
+
+      _buffer.append(item);
+    } else {
+      final item = DiffRewindItem(previous!.data, serialized);
+
+      _buffer.append(item);
+    }
   }
 
   FullRewindItem? _getLastFullState() {

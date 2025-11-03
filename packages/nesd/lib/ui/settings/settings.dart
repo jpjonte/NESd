@@ -22,6 +22,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'settings.freezed.dart';
 part 'settings.g.dart';
 
+enum RendererPreference { auto, gpu, cpu }
+
 List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
   return json
       .map((e) {
@@ -103,6 +105,7 @@ sealed class Settings with _$Settings {
     @Default({}) Map<String, List<Cheat>> cheats,
     @Default(null) Region? region,
     @Default(ThemeMode.system) ThemeMode themeMode,
+    @Default(RendererPreference.auto) RendererPreference renderer,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -392,6 +395,12 @@ class SettingsController extends _$SettingsController {
 
   set themeMode(ThemeMode themeMode) {
     _update(state.copyWith(themeMode: themeMode));
+  }
+
+  RendererPreference get rendererPreference => state.renderer;
+
+  set rendererPreference(RendererPreference renderer) {
+    _update(state.copyWith(renderer: renderer));
   }
 
   void _update(Settings settings) {

@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   gamepads_windows
+  nesd_texture
   url_launcher_windows
 )
 
