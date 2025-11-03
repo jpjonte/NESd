@@ -6,25 +6,53 @@ part of 'gamepad_input_mapper.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(gamepadInputMapper)
+const gamepadInputMapperProvider = GamepadInputMapperProvider._();
+
+final class GamepadInputMapperProvider
+    extends
+        $FunctionalProvider<
+          GamepadInputMapper,
+          GamepadInputMapper,
+          GamepadInputMapper
+        >
+    with $Provider<GamepadInputMapper> {
+  const GamepadInputMapperProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'gamepadInputMapperProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$gamepadInputMapperHash();
+
+  @$internal
+  @override
+  $ProviderElement<GamepadInputMapper> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GamepadInputMapper create(Ref ref) {
+    return gamepadInputMapper(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GamepadInputMapper value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GamepadInputMapper>(value),
+    );
+  }
+}
+
 String _$gamepadInputMapperHash() =>
     r'08e2ceb682b3a19e591cc0cf17974e08e6d1df82';
-
-/// See also [gamepadInputMapper].
-@ProviderFor(gamepadInputMapper)
-final gamepadInputMapperProvider =
-    AutoDisposeProvider<GamepadInputMapper>.internal(
-      gamepadInputMapper,
-      name: r'gamepadInputMapperProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$gamepadInputMapperHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef GamepadInputMapperRef = AutoDisposeProviderRef<GamepadInputMapper>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

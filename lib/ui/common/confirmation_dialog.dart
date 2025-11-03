@@ -25,13 +25,12 @@ class ConfirmationDialog extends ConsumerWidget {
   }) async {
     return await showDialog<bool>(
       context: context,
-      builder:
-          (context) => ConfirmationDialog(
-            title: title,
-            content: content,
-            confirmLabel: confirmLabel,
-            cancelLabel: cancelLabel,
-          ),
+      builder: (context) => ConfirmationDialog(
+        title: title,
+        content: content,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+      ),
     );
   }
 

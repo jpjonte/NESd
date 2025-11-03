@@ -10,21 +10,20 @@ import 'package:path_provider/path_provider.dart';
 class NativeFilesystem extends Filesystem {
   @override
   Future<List<FilesystemFile>> list(String path) async {
-    final files =
-        Directory(path)
-            .listSync()
-            .map(
-              (e) => FilesystemFile(
-                path: e.path,
-                name: p.basename(e.path),
-                type: switch (e) {
-                  File() => FilesystemFileType.file,
-                  Directory() || Link() => FilesystemFileType.directory,
-                  _ => throw UnimplementedError(),
-                },
-              ),
-            )
-            .toList();
+    final files = Directory(path)
+        .listSync()
+        .map(
+          (e) => FilesystemFile(
+            path: e.path,
+            name: p.basename(e.path),
+            type: switch (e) {
+              File() => FilesystemFileType.file,
+              Directory() || Link() => FilesystemFileType.directory,
+              _ => throw UnimplementedError(),
+            },
+          ),
+        )
+        .toList();
 
     return files;
   }

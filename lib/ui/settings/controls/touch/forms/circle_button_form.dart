@@ -12,7 +12,7 @@ class CircleButtonForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
 
     return DividedColumn(
       mainAxisSize: MainAxisSize.min,
@@ -27,13 +27,13 @@ class CircleButtonForm extends ConsumerWidget {
         TextFieldRow(
           label: 'Label',
           value: config.label,
-          onChanged:
-              (label) => controller.update(config.copyWith(label: label)),
+          onChanged: (label) =>
+              controller.update(config.copyWith(label: label)),
         ),
         ActionDropDownRow(
           action: config.action,
-          onChanged:
-              (action) => controller.update(config.copyWith(action: action)),
+          onChanged: (action) =>
+              controller.update(config.copyWith(action: action)),
         ),
       ],
     );

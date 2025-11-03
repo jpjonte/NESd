@@ -30,8 +30,8 @@ class ScalingDropdown extends HookConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 300),
           child: Dropdown<Scaling>(
             value: setting,
-            onChanged:
-                (value) => controller.scaling = value ?? Scaling.autoInteger,
+            onChanged: (value) =>
+                controller.scaling = value ?? Scaling.autoInteger,
             items: const [
               DropdownMenuItem(
                 value: Scaling.autoInteger,

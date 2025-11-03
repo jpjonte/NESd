@@ -27,7 +27,7 @@ class TouchInputForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
 
     return SingleChildScrollView(
       child: DividedColumn(
@@ -102,8 +102,8 @@ class TouchInputForm extends ConsumerWidget {
             child: Slider(
               value: config.x,
               min: -1,
-              onChanged:
-                  (value) => controller.update(config.copyWith(x: value)),
+              onChanged: (value) =>
+                  controller.update(config.copyWith(x: value)),
             ),
           ),
           FormRow(
@@ -111,18 +111,17 @@ class TouchInputForm extends ConsumerWidget {
             child: Slider(
               value: config.y,
               min: -1,
-              onChanged:
-                  (value) => controller.update(config.copyWith(y: value)),
+              onChanged: (value) =>
+                  controller.update(config.copyWith(y: value)),
             ),
           ),
           FormRow(
             label: 'Type',
             child: Dropdown<BindingType>(
               value: config.bindingType,
-              onChanged:
-                  (value) => controller.update(
-                    config.copyWith(bindingType: value ?? config.bindingType),
-                  ),
+              onChanged: (value) => controller.update(
+                config.copyWith(bindingType: value ?? config.bindingType),
+              ),
               items: const [
                 DropdownMenuItem(value: BindingType.hold, child: Text('Hold')),
                 DropdownMenuItem(

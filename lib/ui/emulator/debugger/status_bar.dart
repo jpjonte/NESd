@@ -14,7 +14,7 @@ class StatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
     final debugger = ref.watch(debuggerProvider);
 
     return Container(
@@ -112,7 +112,10 @@ class StatusBarItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [Text(label, style: registerHeaderStyle), value],
+      children: [
+        Text(label, style: registerHeaderStyle),
+        value,
+      ],
     );
   }
 }

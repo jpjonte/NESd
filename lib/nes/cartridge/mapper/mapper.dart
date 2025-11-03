@@ -281,17 +281,16 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _cpuMapping[block] =
-          resolvedSource.isNotEmpty
-              ? MemoryMapping(
-                source: Uint8List.sublistView(
-                  resolvedSource,
-                  offset,
-                  offset + _cpuBlockSize,
-                ),
-                access: resolvedAccess,
-              )
-              : null;
+      _cpuMapping[block] = resolvedSource.isNotEmpty
+          ? MemoryMapping(
+              source: Uint8List.sublistView(
+                resolvedSource,
+                offset,
+                offset + _cpuBlockSize,
+              ),
+              access: resolvedAccess,
+            )
+          : null;
     }
   }
 
@@ -345,17 +344,16 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _ppuMapping[block] =
-          resolvedSource.isNotEmpty
-              ? MemoryMapping(
-                source: Uint8List.sublistView(
-                  resolvedSource,
-                  offset,
-                  offset + _ppuBlockSize,
-                ),
-                access: resolvedAccess,
-              )
-              : null;
+      _ppuMapping[block] = resolvedSource.isNotEmpty
+          ? MemoryMapping(
+              source: Uint8List.sublistView(
+                resolvedSource,
+                offset,
+                offset + _ppuBlockSize,
+              ),
+              access: resolvedAccess,
+            )
+          : null;
     }
   }
 }

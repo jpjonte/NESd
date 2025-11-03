@@ -23,11 +23,10 @@ class EmulatorWidget extends ConsumerWidget {
       children: [
         Focus(
           autofocus: true,
-          onKeyEvent:
-              (focusNode, event) =>
-                  keyboardInputHandler.handleKeyEvent(event)
-                      ? KeyEventResult.handled
-                      : KeyEventResult.ignored,
+          onKeyEvent: (focusNode, event) =>
+              keyboardInputHandler.handleKeyEvent(event)
+              ? KeyEventResult.handled
+              : KeyEventResult.ignored,
           child: const FrameBufferStreamBuilder(),
         ),
         Align(
@@ -48,8 +47,8 @@ class EmulatorWidget extends ConsumerWidget {
                 key: menuKey,
                 icon: const Icon(Icons.menu),
                 color: Colors.white,
-                onPressed:
-                    () => ref.read(routerProvider).navigate(const MenuRoute()),
+                onPressed: () =>
+                    ref.read(routerProvider).navigate(const MenuRoute()),
               ),
             ),
           ),

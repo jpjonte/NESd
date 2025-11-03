@@ -438,11 +438,10 @@ class DEY extends Instruction {
   String get name => 'DEY';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..Y = (cpu.Y - 1) & 0xff
-        ..zero(cpu.Y)
-        ..negative(cpu.Y);
+  void execute(CPU cpu) => cpu
+    ..Y = (cpu.Y - 1) & 0xff
+    ..zero(cpu.Y)
+    ..negative(cpu.Y);
 }
 
 class TXA extends Instruction {
@@ -450,11 +449,10 @@ class TXA extends Instruction {
   String get name => 'TXA';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..A = cpu.X
-        ..zero(cpu.A)
-        ..negative(cpu.A);
+  void execute(CPU cpu) => cpu
+    ..A = cpu.X
+    ..zero(cpu.A)
+    ..negative(cpu.A);
 }
 
 class BCC extends Instruction {
@@ -473,11 +471,10 @@ class TYA extends Instruction {
   String get name => 'TYA';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..A = cpu.Y
-        ..zero(cpu.A)
-        ..negative(cpu.A);
+  void execute(CPU cpu) => cpu
+    ..A = cpu.Y
+    ..zero(cpu.A)
+    ..negative(cpu.A);
 }
 
 class TXS extends Instruction {
@@ -538,11 +535,10 @@ class TAY extends Instruction {
   String get name => 'TAY';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..Y = cpu.A
-        ..zero(cpu.Y)
-        ..negative(cpu.Y);
+  void execute(CPU cpu) => cpu
+    ..Y = cpu.A
+    ..zero(cpu.Y)
+    ..negative(cpu.Y);
 }
 
 class TAX extends Instruction {
@@ -550,11 +546,10 @@ class TAX extends Instruction {
   String get name => 'TAX';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..X = cpu.A
-        ..zero(cpu.X)
-        ..negative(cpu.X);
+  void execute(CPU cpu) => cpu
+    ..X = cpu.A
+    ..zero(cpu.X)
+    ..negative(cpu.X);
 }
 
 class BCS extends Instruction {
@@ -581,11 +576,10 @@ class TSX extends Instruction {
   String get name => 'TSX';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..X = cpu.SP
-        ..zero(cpu.X)
-        ..negative(cpu.X);
+  void execute(CPU cpu) => cpu
+    ..X = cpu.SP
+    ..zero(cpu.X)
+    ..negative(cpu.X);
 }
 
 class CPY extends Instruction {
@@ -646,11 +640,10 @@ class INY extends Instruction {
   String get name => 'INY';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..Y = (cpu.Y + 1) & 0xff
-        ..zero(cpu.Y)
-        ..negative(cpu.Y);
+  void execute(CPU cpu) => cpu
+    ..Y = (cpu.Y + 1) & 0xff
+    ..zero(cpu.Y)
+    ..negative(cpu.Y);
 }
 
 class DEX extends Instruction {
@@ -658,11 +651,10 @@ class DEX extends Instruction {
   String get name => 'DEX';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..X = (cpu.X - 1) & 0xff
-        ..zero(cpu.X)
-        ..negative(cpu.X);
+  void execute(CPU cpu) => cpu
+    ..X = (cpu.X - 1) & 0xff
+    ..zero(cpu.X)
+    ..negative(cpu.X);
 }
 
 class BNE extends Instruction {
@@ -745,11 +737,10 @@ class INX extends Instruction {
   String get name => 'INX';
 
   @override
-  void execute(CPU cpu) =>
-      cpu
-        ..X = (cpu.X + 1) & 0xff
-        ..zero(cpu.X)
-        ..negative(cpu.X);
+  void execute(CPU cpu) => cpu
+    ..X = (cpu.X + 1) & 0xff
+    ..zero(cpu.X)
+    ..negative(cpu.X);
 }
 
 class NOP extends Instruction {

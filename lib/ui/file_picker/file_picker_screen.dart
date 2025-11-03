@@ -35,7 +35,7 @@ class FilePickerScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(filePickerNotifierProvider, (_, next) {
+    ref.listen(filePickerStateProvider, (_, next) {
       if (next is FilePickerData &&
           p.extension(next.directory.path) == '.zip' &&
           next.files.length == 1) {
@@ -167,7 +167,7 @@ class FilePickerProgressIndicator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(filePickerNotifierProvider);
+    final state = ref.watch(filePickerStateProvider);
 
     final loading = state is FilePickerData && state.refreshing;
 
@@ -188,7 +188,7 @@ class DirectoryPickerButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filesystem = ref.watch(filesystemProvider);
     final controller = ref.watch(filePickerControllerProvider);
-    final state = ref.watch(filePickerNotifierProvider);
+    final state = ref.watch(filePickerStateProvider);
 
     final currentDirectory = state is FilePickerData ? state.directory : null;
 
@@ -241,7 +241,7 @@ class FileList extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(filePickerNotifierProvider);
+    final state = ref.watch(filePickerStateProvider);
 
     final scrollController = useScrollController();
 

@@ -691,10 +691,12 @@ class PPU {
 
     // TODO implement an accurate algorithm
     final resultRed = (PPUMASK_EG == 1 || PPUMASK_EB == 1) ? (red >> 2) : red;
-    final resultGreen =
-        (PPUMASK_ER == 1 || PPUMASK_EB == 1) ? (green >> 2) : green;
-    final resultBlue =
-        (PPUMASK_ER == 1 || PPUMASK_EG == 1) ? (blue >> 2) : blue;
+    final resultGreen = (PPUMASK_ER == 1 || PPUMASK_EB == 1)
+        ? (green >> 2)
+        : green;
+    final resultBlue = (PPUMASK_ER == 1 || PPUMASK_EG == 1)
+        ? (blue >> 2)
+        : blue;
 
     return (resultBlue << 16) | (resultGreen << 8) | resultRed;
   }
@@ -1041,8 +1043,9 @@ class PPU {
 
     final isBigSpriteSecondTile = yOffset < 8;
     final bigSpriteOffset = isBigSpriteSecondTile == flipV ? 1 : 0;
-    final tile =
-        bigSprites ? ((tileIndex & 0xfe) + bigSpriteOffset) : tileIndex;
+    final tile = bigSprites
+        ? ((tileIndex & 0xfe) + bigSpriteOffset)
+        : tileIndex;
 
     final patternTable = bigSprites ? (tileIndex & 1) : PPUCTRL_S;
 

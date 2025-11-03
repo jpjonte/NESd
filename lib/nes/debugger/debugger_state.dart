@@ -47,7 +47,7 @@ sealed class DebuggerState with _$DebuggerState {
 }
 
 @riverpod
-class DebuggerNotifier extends _$DebuggerNotifier {
+class DebuggerStateNotifier extends _$DebuggerStateNotifier {
   @override
   DebuggerState build() {
     return const DebuggerState();

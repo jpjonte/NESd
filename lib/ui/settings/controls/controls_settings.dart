@@ -147,17 +147,15 @@ class PreviousProfileButton extends ConsumerWidget {
     return SizedBox(
       width: 40,
       height: 40,
-      child:
-          index > 0
-              ? IconButton(
-                onPressed: indexController.previous,
-                icon: Icon(
-                  Icons.keyboard_arrow_left,
-                  color:
-                      focused ? Theme.of(context).colorScheme.onPrimary : null,
-                ),
-              )
-              : null,
+      child: index > 0
+          ? IconButton(
+              onPressed: indexController.previous,
+              icon: Icon(
+                Icons.keyboard_arrow_left,
+                color: focused ? Theme.of(context).colorScheme.onPrimary : null,
+              ),
+            )
+          : null,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'binder_state.freezed.dart';
@@ -26,14 +27,12 @@ class BinderStateNotifier extends _$BinderStateNotifier {
     return BinderState(
       input: ref.watch(
         settingsControllerProvider.select(
-          (settings) =>
-              settings.bindings
-                  .firstWhereOrNull(
-                    (binding) =>
-                        binding.action == action &&
-                        binding.index == profileIndex,
-                  )
-                  ?.input,
+          (settings) => settings.bindings
+              .firstWhereOrNull(
+                (binding) =>
+                    binding.action == action && binding.index == profileIndex,
+              )
+              ?.input,
         ),
       ),
     );

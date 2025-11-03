@@ -24,10 +24,9 @@ GamepadInputCombination _$GamepadInputCombinationFromJson(
   Map<String, dynamic> json,
 ) => GamepadInputCombination(
   gamepadId: json['gamepadId'] as String,
-  inputs:
-      (json['inputs'] as List<dynamic>)
-          .map((e) => GamepadInput.fromJson(e as Map<String, dynamic>))
-          .toSet(),
+  inputs: (json['inputs'] as List<dynamic>)
+      .map((e) => GamepadInput.fromJson(e as Map<String, dynamic>))
+      .toSet(),
   gamepadName: json['gamepadName'] as String? ?? 'Unknown',
   $type: json['type'] as String?,
 );

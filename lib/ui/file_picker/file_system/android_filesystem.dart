@@ -76,12 +76,11 @@ class AndroidFilesystem extends Filesystem {
         throw FileNotFound(path: path);
       }
 
-      final files =
-          (result as List<Object?>)
-              .where((e) => e != null)
-              .cast<Map>()
-              .map((e) => FilesystemFile.fromJson(e.cast<String, Object?>()))
-              .toList();
+      final files = (result as List<Object?>)
+          .where((e) => e != null)
+          .cast<Map>()
+          .map((e) => FilesystemFile.fromJson(e.cast<String, Object?>()))
+          .toList();
 
       return files;
     } on PlatformException catch (e, s) {

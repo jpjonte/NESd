@@ -6,25 +6,60 @@ part of 'execution_log_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$executionLogNotifierHash() =>
-    r'812ccba53c0b4a8a05562b5535881f42ed676ace';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [ExecutionLogNotifier].
-@ProviderFor(ExecutionLogNotifier)
-final executionLogNotifierProvider = AutoDisposeNotifierProvider<
-  ExecutionLogNotifier,
-  ExecutionLogState
->.internal(
-  ExecutionLogNotifier.new,
-  name: r'executionLogNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$executionLogNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(ExecutionLogStateNotifier)
+const executionLogStateProvider = ExecutionLogStateNotifierProvider._();
 
-typedef _$ExecutionLogNotifier = AutoDisposeNotifier<ExecutionLogState>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ExecutionLogStateNotifierProvider
+    extends $NotifierProvider<ExecutionLogStateNotifier, ExecutionLogState> {
+  const ExecutionLogStateNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'executionLogStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$executionLogStateNotifierHash();
+
+  @$internal
+  @override
+  ExecutionLogStateNotifier create() => ExecutionLogStateNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExecutionLogState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExecutionLogState>(value),
+    );
+  }
+}
+
+String _$executionLogStateNotifierHash() =>
+    r'9bf0de82a51511726f0191c0f3a1f44d63e14a81';
+
+abstract class _$ExecutionLogStateNotifier
+    extends $Notifier<ExecutionLogState> {
+  ExecutionLogState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<ExecutionLogState, ExecutionLogState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ExecutionLogState, ExecutionLogState>,
+              ExecutionLogState,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

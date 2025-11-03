@@ -18,22 +18,18 @@ class ThemeModeSelector extends ConsumerWidget {
     return Actions(
       actions: {
         DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke:
-              (intent) =>
-                  controller.themeMode = switch (setting) {
-                    ThemeMode.light => ThemeMode.system,
-                    ThemeMode.dark => ThemeMode.light,
-                    _ => setting,
-                  },
+          onInvoke: (intent) => controller.themeMode = switch (setting) {
+            ThemeMode.light => ThemeMode.system,
+            ThemeMode.dark => ThemeMode.light,
+            _ => setting,
+          },
         ),
         IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke:
-              (intent) =>
-                  controller.themeMode = switch (setting) {
-                    ThemeMode.system => ThemeMode.light,
-                    ThemeMode.light => ThemeMode.dark,
-                    _ => setting,
-                  },
+          onInvoke: (intent) => controller.themeMode = switch (setting) {
+            ThemeMode.system => ThemeMode.light,
+            ThemeMode.light => ThemeMode.dark,
+            _ => setting,
+          },
         ),
       },
       child: FocusOnHover(
@@ -44,8 +40,8 @@ class ThemeModeSelector extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
               child: SegmentedButton<ThemeMode>(
-                onSelectionChanged:
-                    (value) => controller.themeMode = value.first,
+                onSelectionChanged: (value) =>
+                    controller.themeMode = value.first,
                 segments: const [
                   ButtonSegment(
                     icon: SizedBox(width: 18, height: 18),

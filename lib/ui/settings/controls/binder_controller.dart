@@ -13,7 +13,6 @@ import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'binder_controller.g.dart';
@@ -163,8 +162,8 @@ BinderController binderController(Ref ref, InputAction action) {
     action: action,
     profileIndex: ref.watch(profileIndexProvider),
     settingsController: settingsController,
-    state: ref.watch(binderStateNotifierProvider(action)),
-    stateNotifier: ref.watch(binderStateNotifierProvider(action).notifier),
+    state: ref.watch(binderStateProvider(action)),
+    stateNotifier: ref.watch(binderStateProvider(action).notifier),
     actionHandler: ref.watch(actionHandlerProvider),
     gamepadInputMapper: ref.watch(gamepadInputMapperProvider),
   );

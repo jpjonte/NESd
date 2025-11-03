@@ -30,7 +30,7 @@ class DisassemblyList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugger = ref.watch(debuggerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
     final nesController = ref.read(nesControllerProvider);
 
     final defaultTextStyle = DefaultTextStyle.of(context);
@@ -158,10 +158,9 @@ class DisassemblyRow extends ConsumerWidget {
                           child: Text(
                             instruction,
                             style: TextStyle(
-                              color:
-                                  unofficial
-                                      ? Colors.redAccent[100]
-                                      : Colors.greenAccent[200],
+                              color: unofficial
+                                  ? Colors.redAccent[100]
+                                  : Colors.greenAccent[200],
                             ),
                           ),
                         ),
@@ -407,20 +406,19 @@ class BreakpointDot extends ConsumerWidget {
         width: disassemblyRowHeight + 8,
         height: disassemblyRowHeight,
         color: debuggerColor,
-        child:
-            breakpoint != null
-                ? Center(
-                  child: Container(
-                    width: disassemblyRowHeight - 4,
-                    height: disassemblyRowHeight - 4,
-                    decoration: BoxDecoration(
-                      color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: nesdRed, width: 2),
-                    ),
+        child: breakpoint != null
+            ? Center(
+                child: Container(
+                  width: disassemblyRowHeight - 4,
+                  height: disassemblyRowHeight - 4,
+                  decoration: BoxDecoration(
+                    color: nesdRed.withAlpha(breakpoint.enabled ? 255 : 0),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: nesdRed, width: 2),
                   ),
-                )
-                : null,
+                ),
+              )
+            : null,
       ),
     );
   }

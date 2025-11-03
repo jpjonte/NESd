@@ -4,7 +4,6 @@ import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:path/path.dart' as p;
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:xml/xml.dart';
 
@@ -60,8 +59,11 @@ class NesDatabase {
       final region = _getAttribute(game, 'console', 'region').toIntOrZero();
       final chrRamSize = _getAttribute(game, 'chrram', 'size').toIntOrZero();
       final prgRamSize = _getAttribute(game, 'prgram', 'size').toIntOrZero();
-      final prgSaveRamSize =
-          _getAttribute(game, 'prgnvram', 'size').toIntOrZero();
+      final prgSaveRamSize = _getAttribute(
+        game,
+        'prgnvram',
+        'size',
+      ).toIntOrZero();
       final hasBattery = _getAttribute(game, 'pcb', 'battery') == '1';
 
       _database[romHash] = NesDatabaseEntry(

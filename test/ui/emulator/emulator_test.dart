@@ -6,26 +6,27 @@ void main() {
   testWidgets('Game can be started and quit, returning to main menu', (
     tester,
   ) async {
-    final r = Robot(tester)..initSettings({
-      'showDebugOverlay': true,
-      'showDebugger': true,
-      'showTouchControls': true,
-      'recentRoms': [
-        {
-          'file': {
-            'path': '/test/roms/nestest.nes',
-            'name': '/test/roms/nestest.nes',
-            'type': 'file',
+    final r = Robot(tester)
+      ..initSettings({
+        'showDebugOverlay': true,
+        'showDebugger': true,
+        'showTouchControls': true,
+        'recentRoms': [
+          {
+            'file': {
+              'path': '/test/roms/nestest.nes',
+              'name': '/test/roms/nestest.nes',
+              'type': 'file',
+            },
           },
-        },
-      ],
-      'wideTouchInputConfig': [
-        {'x': 0.0, 'y': 0.0, 'type': 'rectangleButton'},
-        {'x': 0.0, 'y': 0.0, 'type': 'circleButton'},
-        {'x': 0.0, 'y': 0.0, 'type': 'joyStick'},
-        {'x': 0.0, 'y': 0.0, 'type': 'dPad'},
-      ],
-    });
+        ],
+        'wideTouchInputConfig': [
+          {'x': 0.0, 'y': 0.0, 'type': 'rectangleButton'},
+          {'x': 0.0, 'y': 0.0, 'type': 'circleButton'},
+          {'x': 0.0, 'y': 0.0, 'type': 'joyStick'},
+          {'x': 0.0, 'y': 0.0, 'type': 'dPad'},
+        ],
+      });
 
     await r.pumpApp();
     r.mainMenu.expectMainMenuFound();

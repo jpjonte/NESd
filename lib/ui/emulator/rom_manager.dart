@@ -12,7 +12,6 @@ import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'rom_manager.g.dart';

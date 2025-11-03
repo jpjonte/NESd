@@ -10,8 +10,8 @@ class EditorPopup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(touchEditorNotifierProvider);
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final state = ref.watch(touchEditorStateProvider);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
 
     final config = state.editingConfig;
 

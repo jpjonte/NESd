@@ -6,41 +6,113 @@ part of 'touch_editor_state.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$touchEditorNotifierHash() =>
-    r'3970e8977ba14fdc94791a5e5655ead8f3b5cda2';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [TouchEditorNotifier].
-@ProviderFor(TouchEditorNotifier)
-final touchEditorNotifierProvider =
-    AutoDisposeNotifierProvider<TouchEditorNotifier, TouchEditorState>.internal(
-      TouchEditorNotifier.new,
-      name: r'touchEditorNotifierProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$touchEditorNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+@ProviderFor(TouchEditorStateNotifier)
+const touchEditorStateProvider = TouchEditorStateNotifierProvider._();
+
+final class TouchEditorStateNotifierProvider
+    extends $NotifierProvider<TouchEditorStateNotifier, TouchEditorState> {
+  const TouchEditorStateNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'touchEditorStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$touchEditorStateNotifierHash();
+
+  @$internal
+  @override
+  TouchEditorStateNotifier create() => TouchEditorStateNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TouchEditorState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TouchEditorState>(value),
     );
+  }
+}
 
-typedef _$TouchEditorNotifier = AutoDisposeNotifier<TouchEditorState>;
+String _$touchEditorStateNotifierHash() =>
+    r'd15afec0e59b3e5846e5e08fb916d0bfde3a5c9f';
+
+abstract class _$TouchEditorStateNotifier extends $Notifier<TouchEditorState> {
+  TouchEditorState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<TouchEditorState, TouchEditorState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<TouchEditorState, TouchEditorState>,
+              TouchEditorState,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+@ProviderFor(TouchEditorMoveIndex)
+const touchEditorMoveIndexProvider = TouchEditorMoveIndexProvider._();
+
+final class TouchEditorMoveIndexProvider
+    extends $NotifierProvider<TouchEditorMoveIndex, int?> {
+  const TouchEditorMoveIndexProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'touchEditorMoveIndexProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$touchEditorMoveIndexHash();
+
+  @$internal
+  @override
+  TouchEditorMoveIndex create() => TouchEditorMoveIndex();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int?>(value),
+    );
+  }
+}
+
 String _$touchEditorMoveIndexHash() =>
     r'bd4bb17bd8548f069a4448a0c8d356e46664c338';
 
-/// See also [TouchEditorMoveIndex].
-@ProviderFor(TouchEditorMoveIndex)
-final touchEditorMoveIndexProvider =
-    AutoDisposeNotifierProvider<TouchEditorMoveIndex, int?>.internal(
-      TouchEditorMoveIndex.new,
-      name: r'touchEditorMoveIndexProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$touchEditorMoveIndexHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$TouchEditorMoveIndex = AutoDisposeNotifier<int?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$TouchEditorMoveIndex extends $Notifier<int?> {
+  int? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<int?, int?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int?, int?>,
+              int?,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

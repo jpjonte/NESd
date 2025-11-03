@@ -41,10 +41,9 @@ class MenuScreen extends ConsumerWidget {
                   child: NesdButton(
                     key: resumeKey,
                     autofocus: true,
-                    onPressed:
-                        () => ref
-                            .read(routerProvider)
-                            .navigate(const EmulatorRoute()),
+                    onPressed: () => ref
+                        .read(routerProvider)
+                        .navigate(const EmulatorRoute()),
                     child: const Text('Resume'),
                   ),
                 ),
@@ -53,20 +52,18 @@ class MenuScreen extends ConsumerWidget {
                   child: NesdButton(
                     key: saveStatesKey,
                     autofocus: true,
-                    onPressed:
-                        () => ref
-                            .read(routerProvider)
-                            .navigate(
-                              SaveStatesRoute(
-                                romInfo:
-                                    ref
-                                        .read(nesControllerProvider)
-                                        .nes!
-                                        .bus
-                                        .cartridge
-                                        .romInfo,
-                              ),
-                            ),
+                    onPressed: () => ref
+                        .read(routerProvider)
+                        .navigate(
+                          SaveStatesRoute(
+                            romInfo: ref
+                                .read(nesControllerProvider)
+                                .nes!
+                                .bus
+                                .cartridge
+                                .romInfo,
+                          ),
+                        ),
                     child: const Text('Save States'),
                   ),
                 ),
@@ -96,10 +93,9 @@ class MenuScreen extends ConsumerWidget {
                 Center(
                   child: NesdButton(
                     key: settingsKey,
-                    onPressed:
-                        () => ref
-                            .read(routerProvider)
-                            .navigate(const SettingsRoute()),
+                    onPressed: () => ref
+                        .read(routerProvider)
+                        .navigate(const SettingsRoute()),
                     child: const Text('Settings'),
                   ),
                 ),

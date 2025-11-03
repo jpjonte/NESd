@@ -186,8 +186,9 @@ class Namco163 extends Mapper {
         0x67ff + (i * 0x0800),
         i,
         type: CpuMemoryType.prgRam,
-        access:
-            _prgRamWriteProtect[i] ? MemoryAccess.read : MemoryAccess.readWrite,
+        access: _prgRamWriteProtect[i]
+            ? MemoryAccess.read
+            : MemoryAccess.readWrite,
       );
     }
   }

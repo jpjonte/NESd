@@ -16,11 +16,10 @@ class ToastOverlay extends ConsumerWidget {
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: toasts.length.toDouble()),
         duration: const Duration(milliseconds: 100),
-        builder:
-            (context, offset, child) => Transform.translate(
-              offset: Offset(0, 32 * (toasts.length.toDouble() - offset)),
-              child: child,
-            ),
+        builder: (context, offset, child) => Transform.translate(
+          offset: Offset(0, 32 * (toasts.length.toDouble() - offset)),
+          child: child,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

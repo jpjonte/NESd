@@ -151,10 +151,9 @@ class DPad extends HookConsumerWidget {
                   topLeft: borderRadius,
                   bottomLeft: borderRadius,
                 ),
-                color:
-                    left.contains(position.value)
-                        ? touchInputColorActive
-                        : touchInputColor,
+                color: left.contains(position.value)
+                    ? touchInputColorActive
+                    : touchInputColor,
               ),
               DPadSegment(
                 rect: right,
@@ -162,10 +161,9 @@ class DPad extends HookConsumerWidget {
                   topRight: borderRadius,
                   bottomRight: borderRadius,
                 ),
-                color:
-                    right.contains(position.value)
-                        ? touchInputColorActive
-                        : touchInputColor,
+                color: right.contains(position.value)
+                    ? touchInputColorActive
+                    : touchInputColor,
               ),
               DPadSegment(
                 rect: up,
@@ -173,10 +171,9 @@ class DPad extends HookConsumerWidget {
                   topLeft: borderRadius,
                   topRight: borderRadius,
                 ),
-                color:
-                    up.contains(position.value)
-                        ? touchInputColorActive
-                        : touchInputColor,
+                color: up.contains(position.value)
+                    ? touchInputColorActive
+                    : touchInputColor,
               ),
               DPadSegment(
                 rect: down,
@@ -184,10 +181,9 @@ class DPad extends HookConsumerWidget {
                   bottomLeft: borderRadius,
                   bottomRight: borderRadius,
                 ),
-                color:
-                    down.contains(position.value)
-                        ? touchInputColorActive
-                        : touchInputColor,
+                color: down.contains(position.value)
+                    ? touchInputColorActive
+                    : touchInputColor,
               ),
             ],
           ),

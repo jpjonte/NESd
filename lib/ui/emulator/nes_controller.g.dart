@@ -6,37 +6,98 @@ part of 'nes_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nesControllerHash() => r'eb0d5269ab37ad8fcffa7cfe36cb75c4b36c25cc';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [nesController].
-@ProviderFor(nesController)
-final nesControllerProvider = AutoDisposeProvider<NesController>.internal(
-  nesController,
-  name: r'nesControllerProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$nesControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(NesState)
+const nesStateProvider = NesStateProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef NesControllerRef = AutoDisposeProviderRef<NesController>;
+final class NesStateProvider extends $NotifierProvider<NesState, NES?> {
+  const NesStateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nesStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nesStateHash();
+
+  @$internal
+  @override
+  NesState create() => NesState();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NES? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NES?>(value),
+    );
+  }
+}
+
 String _$nesStateHash() => r'fef68870adec07eca347dae54e58a5e0f1dd6e6c';
 
-/// See also [NesState].
-@ProviderFor(NesState)
-final nesStateProvider = AutoDisposeNotifierProvider<NesState, NES?>.internal(
-  NesState.new,
-  name: r'nesStateProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$nesStateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$NesState extends $Notifier<NES?> {
+  NES? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<NES?, NES?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<NES?, NES?>,
+              NES?,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$NesState = AutoDisposeNotifier<NES?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+@ProviderFor(nesController)
+const nesControllerProvider = NesControllerProvider._();
+
+final class NesControllerProvider
+    extends $FunctionalProvider<NesController, NesController, NesController>
+    with $Provider<NesController> {
+  const NesControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nesControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nesControllerHash();
+
+  @$internal
+  @override
+  $ProviderElement<NesController> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  NesController create(Ref ref) {
+    return nesController(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NesController value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NesController>(value),
+    );
+  }
+}
+
+String _$nesControllerHash() => r'eb0d5269ab37ad8fcffa7cfe36cb75c4b36c25cc';

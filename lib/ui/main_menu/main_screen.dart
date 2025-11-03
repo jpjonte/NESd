@@ -67,8 +67,8 @@ class MainScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Settings...',
           shortcut: const CharacterActivator(',', meta: true),
-          onSelected:
-              () async => await context.router.navigate(const SettingsRoute()),
+          onSelected: () async =>
+              await context.router.navigate(const SettingsRoute()),
         ),
         PlatformMenuItem(
           label: 'Quit NESd',

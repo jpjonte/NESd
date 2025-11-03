@@ -19,7 +19,7 @@ class BreakpointDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debuggerState = ref.watch(debuggerNotifierProvider);
+    final debuggerState = ref.watch(debuggerStateProvider);
 
     final breakpoints = debuggerState.breakpoints;
     final nonHiddenBreakpoints = breakpoints.where((b) => !b.hidden);
@@ -73,7 +73,7 @@ class BreakpointRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugger = ref.watch(debuggerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return Column(
       children: [
@@ -81,8 +81,8 @@ class BreakpointRow extends ConsumerWidget {
           children: [
             Checkbox(
               value: breakpoint.enabled,
-              onChanged:
-                  (_) => debugger.toggleBreakpointEnabled(breakpoint.address),
+              onChanged: (_) =>
+                  debugger.toggleBreakpointEnabled(breakpoint.address),
             ),
             const SizedBox(width: 8),
             Text(

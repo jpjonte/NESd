@@ -20,30 +20,27 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   autoSave: json['autoSave'] as bool? ?? true,
   autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
   autoLoad: json['autoLoad'] as bool? ?? false,
-  bindings:
-      json['bindings'] == null ? const [] : bindingsFromJson(json['bindings']),
-  lastRomPath:
-      json['lastRomPath'] == null
-          ? null
-          : _lastRomPathFromJson(json['lastRomPath']),
+  bindings: json['bindings'] == null
+      ? const []
+      : bindingsFromJson(json['bindings']),
+  lastRomPath: json['lastRomPath'] == null
+      ? null
+      : _lastRomPathFromJson(json['lastRomPath']),
   recentRomPaths:
       (json['recentRomPaths'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
       const [],
-  recentRoms:
-      json['recentRoms'] == null
-          ? const []
-          : _recentRomsFromJson(json['recentRoms'] as List),
+  recentRoms: json['recentRoms'] == null
+      ? const []
+      : _recentRomsFromJson(json['recentRoms'] as List),
   showTouchControls: json['showTouchControls'] as bool? ?? false,
-  narrowTouchInputConfig:
-      json['narrowTouchInputConfig'] == null
-          ? const []
-          : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
-  wideTouchInputConfig:
-      json['wideTouchInputConfig'] == null
-          ? const []
-          : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
+  narrowTouchInputConfig: json['narrowTouchInputConfig'] == null
+      ? const []
+      : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
+  wideTouchInputConfig: json['wideTouchInputConfig'] == null
+      ? const []
+      : wideTouchInputConfigsFromJson(json['wideTouchInputConfig']),
   breakpoints:
       (json['breakpoints'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -105,23 +102,59 @@ const _$ThemeModeEnumMap = {
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(SettingsController)
+const settingsControllerProvider = SettingsControllerProvider._();
+
+final class SettingsControllerProvider
+    extends $NotifierProvider<SettingsController, Settings> {
+  const SettingsControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'settingsControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$settingsControllerHash();
+
+  @$internal
+  @override
+  SettingsController create() => SettingsController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Settings value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Settings>(value),
+    );
+  }
+}
+
 String _$settingsControllerHash() =>
     r'0dcfb731732fe2afd3dc55ca4cdb7c6e5a9dcb95';
 
-/// See also [SettingsController].
-@ProviderFor(SettingsController)
-final settingsControllerProvider =
-    AutoDisposeNotifierProvider<SettingsController, Settings>.internal(
-      SettingsController.new,
-      name: r'settingsControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$settingsControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$SettingsController = AutoDisposeNotifier<Settings>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$SettingsController extends $Notifier<Settings> {
+  Settings build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Settings, Settings>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Settings, Settings>,
+              Settings,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

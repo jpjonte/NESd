@@ -20,11 +20,8 @@ class RectangleButton extends StatelessWidget {
         label: config.label,
         action: config.action,
         config: config,
-        decorationBuilder:
-            (color) => BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: color,
-            ),
+        decorationBuilder: (color) =>
+            BoxDecoration(borderRadius: BorderRadius.circular(8), color: color),
       ),
     );
   }

@@ -410,10 +410,9 @@ class NesController {
   Uint8List _loadZip(String path, Uint8List data) {
     final archive = ZipDecoder().decodeBytes(data);
 
-    final roms =
-        archive.files
-            .where((file) => p.extension(file.name) == '.nes')
-            .toList();
+    final roms = archive.files
+        .where((file) => p.extension(file.name) == '.nes')
+        .toList();
 
     if (roms.isEmpty) {
       throw EmptyArchive(path);

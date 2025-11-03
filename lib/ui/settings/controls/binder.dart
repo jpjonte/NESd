@@ -10,25 +10,24 @@ class Binder extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(binderStateNotifierProvider(action));
+    final state = ref.watch(binderStateProvider(action));
 
     final theme = Theme.of(context);
 
-    final text =
-        state.editing ? state.input?.label ?? '...' : state.input?.label ?? '';
+    final text = state.editing
+        ? state.input?.label ?? '...'
+        : state.input?.label ?? '';
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color:
-            state.editing
-                ? theme.colorScheme.primary
-                : theme.colorScheme.surfaceContainer,
+        color: state.editing
+            ? theme.colorScheme.primary
+            : theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(8),
-        border:
-            state.editing
-                ? Border.all(color: theme.colorScheme.onPrimary, width: 2.0)
-                : null,
+        border: state.editing
+            ? Border.all(color: theme.colorScheme.onPrimary, width: 2.0)
+            : null,
       ),
       child: Center(
         child: Text(

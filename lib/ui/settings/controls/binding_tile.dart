@@ -18,7 +18,7 @@ class BindingTile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(binderStateNotifierProvider(action));
+    final state = ref.watch(binderStateProvider(action));
     final controller = ref.watch(binderControllerProvider(action));
     final indexController = ref.watch(profileIndexProvider.notifier);
 
@@ -65,18 +65,16 @@ class BindingTile extends HookConsumerWidget {
                   margin: const EdgeInsets.only(left: 8),
                   width: 40,
                   height: 40,
-                  child:
-                      state.input != null && !state.editing
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            iconSize: 16,
-                            onPressed: controller.clearBinding,
-                            color:
-                                focused.value
-                                    ? Theme.of(context).colorScheme.onPrimary
-                                    : null,
-                          )
-                          : null,
+                  child: state.input != null && !state.editing
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          iconSize: 16,
+                          onPressed: controller.clearBinding,
+                          color: focused.value
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : null,
+                        )
+                      : null,
                 ),
               ],
             ),

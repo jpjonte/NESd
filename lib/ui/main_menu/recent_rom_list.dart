@@ -123,27 +123,26 @@ class RecentRomList extends HookConsumerWidget {
                 }
               },
               onRemove: () async => await remove(context, romTileData),
-              contextMenuBuilder:
-                  (context, close) => [
-                    ListTile(
-                      title: const Text('Save states'),
-                      onTap: () {
-                        close();
-                        ref
-                            .read(routerProvider)
-                            .navigate(
-                              SaveStatesRoute(romInfo: romTileData.romInfo),
-                            );
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Remove from list'),
-                      onTap: () async {
-                        close();
-                        await remove(context, romTileData);
-                      },
-                    ),
-                  ],
+              contextMenuBuilder: (context, close) => [
+                ListTile(
+                  title: const Text('Save states'),
+                  onTap: () {
+                    close();
+                    ref
+                        .read(routerProvider)
+                        .navigate(
+                          SaveStatesRoute(romInfo: romTileData.romInfo),
+                        );
+                  },
+                ),
+                ListTile(
+                  title: const Text('Remove from list'),
+                  onTap: () async {
+                    close();
+                    await remove(context, romTileData);
+                  },
+                ),
+              ],
               romTileData: romTileData,
             ),
         ],

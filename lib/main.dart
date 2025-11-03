@@ -34,8 +34,9 @@ void main(List<String> arguments) async {
     migrationCompletedKey: 'migrationCompleted',
   );
 
-  final filesystem =
-      Platform.isAndroid ? AndroidFilesystem() : NativeFilesystem();
+  final filesystem = Platform.isAndroid
+      ? AndroidFilesystem()
+      : NativeFilesystem();
 
   runApp(
     ProviderScope(

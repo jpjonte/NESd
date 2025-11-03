@@ -102,7 +102,7 @@ class FilePickerRouteArgs {
     return title == other.title &&
         initialDirectory == other.initialDirectory &&
         type == other.type &&
-        const ListEquality().equals(
+        const ListEquality<String>().equals(
           allowedExtensions,
           other.allowedExtensions,
         ) &&
@@ -114,7 +114,7 @@ class FilePickerRouteArgs {
       title.hashCode ^
       initialDirectory.hashCode ^
       type.hashCode ^
-      const ListEquality().hash(allowedExtensions) ^
+      const ListEquality<String>().hash(allowedExtensions) ^
       key.hashCode;
 }
 

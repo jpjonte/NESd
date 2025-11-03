@@ -28,15 +28,14 @@ class StrokeText extends StatelessWidget {
           textAlign: textAlign,
           overflow: overflow,
           style: (style ?? const TextStyle()).copyWith(
-            foreground:
-                Paint()
-                  ..imageFilter = ImageFilter.dilate(
-                    radiusX: strokeWidth,
-                    radiusY: strokeWidth,
-                  )
-                  ..filterQuality = FilterQuality.high
-                  ..isAntiAlias = true
-                  ..color = strokeColor,
+            foreground: Paint()
+              ..imageFilter = ImageFilter.dilate(
+                radiusX: strokeWidth,
+                radiusY: strokeWidth,
+              )
+              ..filterQuality = FilterQuality.high
+              ..isAntiAlias = true
+              ..color = strokeColor,
           ),
         ),
         Text(text, textAlign: textAlign, overflow: overflow, style: style),

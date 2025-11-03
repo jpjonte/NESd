@@ -251,10 +251,9 @@ class NES {
 
     _frameTime = DateTime.now().difference(_frameStart);
 
-    final sleepTime =
-        fastForward
-            ? Duration.zero
-            : _calculateSleepTime(_frameTime, apu.sampleIndex);
+    final sleepTime = fastForward
+        ? Duration.zero
+        : _calculateSleepTime(_frameTime, apu.sampleIndex);
 
     apu.sampleIndex = 0;
 

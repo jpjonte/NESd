@@ -6,147 +6,87 @@ part of 'binder_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$binderControllerHash() => r'25b07eb3851a3d6d57f8030f140c654dffb97d12';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [binderController].
 @ProviderFor(binderController)
-const binderControllerProvider = BinderControllerFamily();
+const binderControllerProvider = BinderControllerFamily._();
 
-/// See also [binderController].
-class BinderControllerFamily extends Family<BinderController> {
-  /// See also [binderController].
-  const BinderControllerFamily();
+final class BinderControllerProvider
+    extends
+        $FunctionalProvider<
+          BinderController,
+          BinderController,
+          BinderController
+        >
+    with $Provider<BinderController> {
+  const BinderControllerProvider._({
+    required BinderControllerFamily super.from,
+    required InputAction super.argument,
+  }) : super(
+         retry: null,
+         name: r'binderControllerProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
-  /// See also [binderController].
-  BinderControllerProvider call(InputAction action) {
-    return BinderControllerProvider(action);
+  @override
+  String debugGetCreateSourceHash() => _$binderControllerHash();
+
+  @override
+  String toString() {
+    return r'binderControllerProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  BinderControllerProvider getProviderOverride(
-    covariant BinderControllerProvider provider,
-  ) {
-    return call(provider.action);
+  $ProviderElement<BinderController> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BinderController create(Ref ref) {
+    final argument = this.argument as InputAction;
+    return binderController(ref, argument);
   }
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'binderControllerProvider';
-}
-
-/// See also [binderController].
-class BinderControllerProvider extends AutoDisposeProvider<BinderController> {
-  /// See also [binderController].
-  BinderControllerProvider(InputAction action)
-    : this._internal(
-        (ref) => binderController(ref as BinderControllerRef, action),
-        from: binderControllerProvider,
-        name: r'binderControllerProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$binderControllerHash,
-        dependencies: BinderControllerFamily._dependencies,
-        allTransitiveDependencies:
-            BinderControllerFamily._allTransitiveDependencies,
-        action: action,
-      );
-
-  BinderControllerProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.action,
-  }) : super.internal();
-
-  final InputAction action;
-
-  @override
-  Override overrideWith(
-    BinderController Function(BinderControllerRef provider) create,
-  ) {
-    return ProviderOverride(
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BinderController value) {
+    return $ProviderOverride(
       origin: this,
-      override: BinderControllerProvider._internal(
-        (ref) => create(ref as BinderControllerRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        action: action,
-      ),
+      providerOverride: $SyncValueProvider<BinderController>(value),
     );
   }
 
   @override
-  AutoDisposeProviderElement<BinderController> createElement() {
-    return _BinderControllerProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is BinderControllerProvider && other.action == action;
+    return other is BinderControllerProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, action.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin BinderControllerRef on AutoDisposeProviderRef<BinderController> {
-  /// The parameter `action` of this provider.
-  InputAction get action;
-}
+String _$binderControllerHash() => r'681df25cb9b4b5848f9196c8fb6c7ec6441a978c';
 
-class _BinderControllerProviderElement
-    extends AutoDisposeProviderElement<BinderController>
-    with BinderControllerRef {
-  _BinderControllerProviderElement(super.provider);
+final class BinderControllerFamily extends $Family
+    with $FunctionalFamilyOverride<BinderController, InputAction> {
+  const BinderControllerFamily._()
+    : super(
+        retry: null,
+        name: r'binderControllerProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  BinderControllerProvider call(InputAction action) =>
+      BinderControllerProvider._(argument: action, from: this);
 
   @override
-  InputAction get action => (origin as BinderControllerProvider).action;
+  String toString() => r'binderControllerProvider';
 }
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

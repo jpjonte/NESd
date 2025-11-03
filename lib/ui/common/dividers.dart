@@ -48,11 +48,10 @@ class DividedColumn extends StatelessWidget {
       textDirection: textDirection,
       verticalDirection: verticalDirection,
       textBaseline: textBaseline,
-      children:
-          children
-              .expand((child) => [child, divider])
-              .take(children.length * 2 - 1)
-              .toList(),
+      children: children
+          .expand((child) => [child, divider])
+          .take(children.length * 2 - 1)
+          .toList(),
     );
   }
 }

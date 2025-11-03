@@ -6,13 +6,12 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'file_picker_controller.g.dart';
 
 @riverpod
-class FilePickerNotifier extends _$FilePickerNotifier {
+class FilePickerStateNotifier extends _$FilePickerStateNotifier {
   @override
   FilePickerState build() {
     return FilePickerLoading();
@@ -30,7 +29,7 @@ class FilePickerNotifier extends _$FilePickerNotifier {
 @riverpod
 FilePickerController filePickerController(Ref ref) {
   return FilePickerController(
-    notifier: ref.watch(filePickerNotifierProvider.notifier),
+    notifier: ref.watch(filePickerStateProvider.notifier),
     filesystem: ref.watch(filesystemProvider),
     settingsController: ref.watch(settingsControllerProvider.notifier),
   );
@@ -44,7 +43,7 @@ class FilePickerController {
   });
 
   final Filesystem filesystem;
-  final FilePickerNotifier notifier;
+  final FilePickerStateNotifier notifier;
   final SettingsController settingsController;
 
   final TextEditingController textEditingController = TextEditingController();

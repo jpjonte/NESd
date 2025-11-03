@@ -8,8 +8,8 @@ class EditingHint extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(touchEditorNotifierProvider);
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final state = ref.watch(touchEditorStateProvider);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
     final theme = Theme.of(context);
 
     return Container(
@@ -20,24 +20,23 @@ class EditingHint extends ConsumerWidget {
         borderRadius: const BorderRadius.all(Radius.circular(16)),
       ),
       child: LayoutBuilder(
-        builder:
-            (context, constraints) => GestureDetector(
-              onTap: () => controller.hideHint(),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const BackButton(),
-                  if (state.showHint) const Expanded(child: HintText()),
-                  if (state.showHint) const SizedBox(width: 8),
-                  if (state.showHint)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 12),
-                      child: Icon(Icons.close, size: 16),
-                    ),
-                ],
-              ),
-            ),
+        builder: (context, constraints) => GestureDetector(
+          onTap: () => controller.hideHint(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const BackButton(),
+              if (state.showHint) const Expanded(child: HintText()),
+              if (state.showHint) const SizedBox(width: 8),
+              if (state.showHint)
+                const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Icon(Icons.close, size: 16),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

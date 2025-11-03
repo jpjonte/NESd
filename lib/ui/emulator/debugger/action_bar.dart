@@ -47,7 +47,7 @@ class ResumeButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.read(nesControllerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
       onPressed: state.enabled ? nesController.unpause : null,
@@ -63,7 +63,7 @@ class PauseButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.read(nesControllerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
       onPressed: !state.enabled ? nesController.pause : null,
@@ -79,7 +79,7 @@ class StepIntoButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.read(nesControllerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
       onPressed: state.enabled ? nesController.stepInto : null,
@@ -95,7 +95,7 @@ class StepOverButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.read(nesControllerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
       onPressed: state.enabled ? nesController.stepOver : null,
@@ -111,11 +111,12 @@ class StepOutButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.read(nesControllerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
-      onPressed:
-          state.enabled && state.canStepOut ? nesController.stepOut : null,
+      onPressed: state.enabled && state.canStepOut
+          ? nesController.stepOut
+          : null,
       icon: const Icon(MdiIcons.debugStepOut),
       tooltip: 'Step Out',
     );
@@ -131,21 +132,19 @@ class RunToAddressButton extends ConsumerWidget {
     final nesController = ref.read(nesControllerProvider);
 
     return IconButton(
-      onPressed:
-          () => showDialog(
-            context: context,
-            builder:
-                (_) => AddressDialog(
-                  title: 'Run to address',
-                  onSubmitted: (address) {
-                    debugger.addBreakpoint(
-                      Breakpoint(address, hidden: true, removeOnHit: true),
-                    );
+      onPressed: () => showDialog(
+        context: context,
+        builder: (_) => AddressDialog(
+          title: 'Run to address',
+          onSubmitted: (address) {
+            debugger.addBreakpoint(
+              Breakpoint(address, hidden: true, removeOnHit: true),
+            );
 
-                    nesController.unpause();
-                  },
-                ),
-          ),
+            nesController.unpause();
+          },
+        ),
+      ),
       icon: const Icon(Icons.vertical_align_bottom),
       tooltip: 'Run to address',
     );
@@ -160,19 +159,18 @@ class GoToPcButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugger = ref.read(debuggerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
-      onPressed:
-          state.enabled
-              ? () {
-                final pcOffset = calculateAddressScrollOffset(state, state.PC);
+      onPressed: state.enabled
+          ? () {
+              final pcOffset = calculateAddressScrollOffset(state, state.PC);
 
-                debugger.selectAddress(state.PC);
+              debugger.selectAddress(state.PC);
 
-                jumpTo(scrollController, pcOffset);
-              }
-              : null,
+              jumpTo(scrollController, pcOffset);
+            }
+          : null,
       icon: const Icon(Icons.gps_fixed),
       tooltip: 'Go to program counter',
     );
@@ -187,24 +185,22 @@ class GoToAddressButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final debugger = ref.read(debuggerProvider);
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
     return IconButton(
-      onPressed:
-          () => showDialog(
-            context: context,
-            builder:
-                (_) => AddressDialog(
-                  title: 'Go to address',
-                  onSubmitted: (address) {
-                    final offset = calculateAddressScrollOffset(state, address);
+      onPressed: () => showDialog(
+        context: context,
+        builder: (_) => AddressDialog(
+          title: 'Go to address',
+          onSubmitted: (address) {
+            final offset = calculateAddressScrollOffset(state, address);
 
-                    debugger.selectAddress(address);
+            debugger.selectAddress(address);
 
-                    jumpTo(scrollController, offset);
-                  },
-                ),
-          ),
+            jumpTo(scrollController, offset);
+          },
+        ),
+      ),
       icon: const Icon(Icons.subdirectory_arrow_right),
       tooltip: 'Go to address',
     );

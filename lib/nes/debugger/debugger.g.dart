@@ -6,21 +6,52 @@ part of 'debugger.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$debuggerHash() => r'4fdd7f6141df10aa715552ec49db4fc20ccf6462';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [debugger].
 @ProviderFor(debugger)
-final debuggerProvider = AutoDisposeProvider<DebuggerInterface>.internal(
-  debugger,
-  name: r'debuggerProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$debuggerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const debuggerProvider = DebuggerProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DebuggerRef = AutoDisposeProviderRef<DebuggerInterface>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class DebuggerProvider
+    extends
+        $FunctionalProvider<
+          DebuggerInterface,
+          DebuggerInterface,
+          DebuggerInterface
+        >
+    with $Provider<DebuggerInterface> {
+  const DebuggerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debuggerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debuggerHash();
+
+  @$internal
+  @override
+  $ProviderElement<DebuggerInterface> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DebuggerInterface create(Ref ref) {
+    return debugger(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DebuggerInterface value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DebuggerInterface>(value),
+    );
+  }
+}
+
+String _$debuggerHash() => r'9f9dadc0e056e0efad45b361b833e05bfb0d3138';

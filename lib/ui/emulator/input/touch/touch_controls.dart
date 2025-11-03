@@ -51,10 +51,9 @@ class TouchControls extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return OrientationBuilder(
       builder: (_, orientation) {
-        final config =
-            orientation == Orientation.portrait
-                ? portraitConfig
-                : landscapeConfig;
+        final config = orientation == Orientation.portrait
+            ? portraitConfig
+            : landscapeConfig;
 
         return LayoutBuilder(
           builder: (context, constraints) {

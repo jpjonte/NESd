@@ -182,8 +182,9 @@ class TileDebugContent extends HookWidget {
     final left = xOverflow ? null : position.value.dx + padding;
     final top = yOverflow ? null : position.value.dy + padding;
     final right = xOverflow ? image.width - position.value.dx + padding : null;
-    final bottom =
-        yOverflow ? image.height - position.value.dy + padding : null;
+    final bottom = yOverflow
+        ? image.height - position.value.dy + padding
+        : null;
 
     final show = active.value || locked.value;
 
@@ -344,26 +345,22 @@ class TileDebugPainter extends CustomPainter {
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
 
-  final _highlightFillPaint =
-      Paint()
-        ..color = Colors.black.withAlpha(50)
-        ..style = PaintingStyle.fill;
-  final _highlightBorderPaint =
-      Paint()
-        ..color = Colors.red
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
+  final _highlightFillPaint = Paint()
+    ..color = Colors.black.withAlpha(50)
+    ..style = PaintingStyle.fill;
+  final _highlightBorderPaint = Paint()
+    ..color = Colors.red
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
 
   final _imagePaint = Paint();
-  final _scrollStrokePaint =
-      Paint()
-        ..color = const Color(0xccff00ff)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-  final _scrollFillPaint =
-      Paint()
-        ..color = const Color(0x30ff00ff)
-        ..style = PaintingStyle.fill;
+  final _scrollStrokePaint = Paint()
+    ..color = const Color(0xccff00ff)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2;
+  final _scrollFillPaint = Paint()
+    ..color = const Color(0x30ff00ff)
+    ..style = PaintingStyle.fill;
 
   @override
   void paint(Canvas canvas, Size size) {

@@ -26,40 +26,88 @@ Map<String, dynamic> _$RomInfoToJson(RomInfo instance) => <String, dynamic>{
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(applicationSupportPath)
+const applicationSupportPathProvider = ApplicationSupportPathProvider._();
+
+final class ApplicationSupportPathProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
+  const ApplicationSupportPathProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'applicationSupportPathProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$applicationSupportPathHash();
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    return applicationSupportPath(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
 String _$applicationSupportPathHash() =>
     r'd9da2d8890a3ca61b212204a35e0820482a1f82f';
 
-/// See also [applicationSupportPath].
-@ProviderFor(applicationSupportPath)
-final applicationSupportPathProvider = AutoDisposeProvider<String>.internal(
-  applicationSupportPath,
-  name: r'applicationSupportPathProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$applicationSupportPathHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ApplicationSupportPathRef = AutoDisposeProviderRef<String>;
-String _$romManagerHash() => r'fcd257ebb821ceba2bf526c57ecf36c4689b306a';
-
-/// See also [romManager].
 @ProviderFor(romManager)
-final romManagerProvider = AutoDisposeProvider<RomManager>.internal(
-  romManager,
-  name: r'romManagerProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$romManagerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const romManagerProvider = RomManagerProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef RomManagerRef = AutoDisposeProviderRef<RomManager>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class RomManagerProvider
+    extends $FunctionalProvider<RomManager, RomManager, RomManager>
+    with $Provider<RomManager> {
+  const RomManagerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'romManagerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$romManagerHash();
+
+  @$internal
+  @override
+  $ProviderElement<RomManager> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  RomManager create(Ref ref) {
+    return romManager(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(RomManager value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<RomManager>(value),
+    );
+  }
+}
+
+String _$romManagerHash() => r'fcd257ebb821ceba2bf526c57ecf36c4689b306a';

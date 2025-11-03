@@ -9,7 +9,7 @@ class ActionButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
 
     final navigator = Navigator.of(context);
 
@@ -27,26 +27,25 @@ class ActionButtons extends ConsumerWidget {
                 // open confirmation dialog
                 showDialog(
                   context: context,
-                  builder:
-                      (_) => AlertDialog(
-                        title: const Text('Reset Layout'),
-                        content: const Text(
-                          'Are you sure you want to reset the layout?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => navigator.pop(),
-                            child: const Text('No'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              navigator.pop();
-                              controller.reset(orientation);
-                            },
-                            child: const Text('Yes'),
-                          ),
-                        ],
+                  builder: (_) => AlertDialog(
+                    title: const Text('Reset Layout'),
+                    content: const Text(
+                      'Are you sure you want to reset the layout?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => navigator.pop(),
+                        child: const Text('No'),
                       ),
+                      TextButton(
+                        onPressed: () {
+                          navigator.pop();
+                          controller.reset(orientation);
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

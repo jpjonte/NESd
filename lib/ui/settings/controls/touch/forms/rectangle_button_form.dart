@@ -12,7 +12,7 @@ class RectangleButtonForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(touchEditorNotifierProvider.notifier);
+    final controller = ref.watch(touchEditorStateProvider.notifier);
 
     return DividedColumn(
       mainAxisSize: MainAxisSize.min,
@@ -22,27 +22,27 @@ class RectangleButtonForm extends ConsumerWidget {
           min: 20,
           max: 400,
           value: config.width,
-          onChanged:
-              (value) => controller.update(config.copyWith(width: value)),
+          onChanged: (value) =>
+              controller.update(config.copyWith(width: value)),
         ),
         SliderRow(
           label: 'Height',
           min: 20,
           max: 400,
           value: config.height,
-          onChanged:
-              (value) => controller.update(config.copyWith(height: value)),
+          onChanged: (value) =>
+              controller.update(config.copyWith(height: value)),
         ),
         TextFieldRow(
           label: 'Label',
           value: config.label,
-          onChanged:
-              (label) => controller.update(config.copyWith(label: label)),
+          onChanged: (label) =>
+              controller.update(config.copyWith(label: label)),
         ),
         ActionDropDownRow(
           action: config.action,
-          onChanged:
-              (action) => controller.update(config.copyWith(action: action)),
+          onChanged: (action) =>
+              controller.update(config.copyWith(action: action)),
         ),
       ],
     );

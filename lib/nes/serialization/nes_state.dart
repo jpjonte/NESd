@@ -69,13 +69,12 @@ class NESState {
   final CartridgeState cartridgeState;
 
   Uint8List serialize() {
-    final writer =
-        Payload.write()
-          ..set(const Bytes(4), headerBytes)
-          ..set(uint8, 0) // save state version
-          ..set(uint8, 0) // console type
-          ..set(uint8, 0) // NESState version
-          ;
+    final writer = Payload.write()
+      ..set(const Bytes(4), headerBytes)
+      ..set(uint8, 0) // save state version
+      ..set(uint8, 0) // console type
+      ..set(uint8, 0) // NESState version
+      ;
 
     cpuState.serialize(writer);
     ppuState.serialize(writer);

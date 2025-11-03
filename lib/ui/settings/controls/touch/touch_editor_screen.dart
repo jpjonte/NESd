@@ -16,7 +16,7 @@ class TouchEditorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(touchEditorNotifierProvider);
+    final state = ref.watch(touchEditorStateProvider);
 
     return SafeArea(
       child: NesdScaffold(

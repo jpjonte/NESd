@@ -8,7 +8,6 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger.g.dart';
@@ -16,14 +15,14 @@ part 'debugger.g.dart';
 @riverpod
 DebuggerInterface debugger(Ref ref) {
   final nes = ref.watch(nesStateProvider);
-  final notifier = ref.watch(debuggerNotifierProvider.notifier);
+  final notifier = ref.watch(debuggerStateProvider.notifier);
   final disassembler = ref.watch(disassemblerProvider);
 
   if (nes == null) {
     return DummyDebugger();
   }
 
-  final subscription = ref.listen(debuggerNotifierProvider, (_, _) {});
+  final subscription = ref.listen(debuggerStateProvider, (_, _) {});
 
   final debugger = Debugger(
     eventBus: ref.watch(eventBusProvider),
@@ -87,7 +86,7 @@ class Debugger implements DebuggerInterface {
   final EventBus eventBus;
   final NES nes;
   final DisassemblerInterface disassembler;
-  final DebuggerNotifier notifier;
+  final DebuggerStateNotifier notifier;
   final SettingsController settingsController;
 
   late final StreamSubscription<NesEvent> _subscription;

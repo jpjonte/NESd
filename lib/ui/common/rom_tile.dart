@@ -48,96 +48,90 @@ class RomTile extends ConsumerWidget {
       contextMenuBuilder: contextMenuBuilder,
       child: CustomButton(
         onPressed: onPressed,
-        builder:
-            (_, active) => SizedBox(
-              width: gameTileWidth,
-              height: gameTileHeight,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Stack(
-                  children: [
-                    Container(
+        builder: (_, active) => SizedBox(
+          width: gameTileWidth,
+          height: gameTileHeight,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Stack(
+              children: [
+                Container(
+                  width: 256,
+                  height: 240,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: active ? nesdRed : Theme.of(context).disabledColor,
+                      width: 2,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: RawImage(
                       width: 256,
                       height: 240,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color:
-                              active
-                                  ? nesdRed
-                                  : Theme.of(context).disabledColor,
-                          width: 2,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: RawImage(
-                          width: 256,
-                          height: 240,
-                          filterQuality: FilterQuality.none,
-                          image: romTileData.thumbnail,
-                        ),
-                      ),
+                      filterQuality: FilterQuality.none,
+                      image: romTileData.thumbnail,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(6),
-                        ),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            height: 36,
-                            width: double.infinity,
-                            color: Colors.black.withAlpha(150),
-                            padding: const EdgeInsets.all(8),
-                            child: Center(
-                              child: StrokeText(
-                                romTileData.title,
-                                style: baseTextStyle.copyWith(
-                                  fontSize: 15,
-                                  fontVariations: const [
-                                    FontVariation.weight(700),
-                                  ],
-                                  color: Colors.white,
-                                ),
-                                strokeWidth: 2,
-                                textAlign: TextAlign.center,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (onRemove case final onRemove?)
-                      ExcludeFocus(
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(100),
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                iconSize: 20,
-                                icon: const Icon(Icons.close),
-                                padding: const EdgeInsets.all(4),
-                                color: Colors.white,
-                                onPressed: onRemove,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(6),
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        height: 36,
+                        width: double.infinity,
+                        color: Colors.black.withAlpha(150),
+                        padding: const EdgeInsets.all(8),
+                        child: Center(
+                          child: StrokeText(
+                            romTileData.title,
+                            style: baseTextStyle.copyWith(
+                              fontSize: 15,
+                              fontVariations: const [FontVariation.weight(700)],
+                              color: Colors.white,
+                            ),
+                            strokeWidth: 2,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (onRemove case final onRemove?)
+                  ExcludeFocus(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(100),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            iconSize: 20,
+                            icon: const Icon(Icons.close),
+                            padding: const EdgeInsets.all(4),
+                            color: Colors.white,
+                            onPressed: onRemove,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+        ),
       ),
     );
   }

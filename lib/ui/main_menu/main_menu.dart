@@ -116,8 +116,8 @@ class OpenRomButton extends ConsumerWidget {
               initialDirectory: directory,
               type: FilePickerType.file,
               allowedExtensions: const ['.nes', '.zip'],
-              onChangeDirectory:
-                  (directory) => settingsController.lastRomPath = directory,
+              onChangeDirectory: (directory) =>
+                  settingsController.lastRomPath = directory,
             ),
           );
 
@@ -175,8 +175,8 @@ class SettingsButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: NesdButton(
-        onPressed:
-            () => ref.read(routerProvider).navigate(const SettingsRoute()),
+        onPressed: () =>
+            ref.read(routerProvider).navigate(const SettingsRoute()),
         child: const Text('Settings'),
       ),
     );
@@ -190,11 +190,10 @@ class AboutButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: NesdButton(
-        onPressed:
-            () => showDialog(
-              context: context,
-              builder: (context) => const AboutDialog(),
-            ),
+        onPressed: () => showDialog(
+          context: context,
+          builder: (context) => const AboutDialog(),
+        ),
         child: const Text('About'),
       ),
     );

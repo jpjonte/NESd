@@ -50,7 +50,7 @@ class ExecutionLogLine {
 }
 
 @riverpod
-class ExecutionLogNotifier extends _$ExecutionLogNotifier {
+class ExecutionLogStateNotifier extends _$ExecutionLogStateNotifier {
   @override
   ExecutionLogState build() {
     return const ExecutionLogState();

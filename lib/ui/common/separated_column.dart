@@ -13,17 +13,16 @@ class SeparatedColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children:
-          children.asMap().entries.expand((entry) {
-            final index = entry.key;
-            final child = entry.value;
+      children: children.asMap().entries.expand((entry) {
+        final index = entry.key;
+        final child = entry.value;
 
-            return [
-              if (separatorBuilder case final builder? when index > 0)
-                builder(index - 1),
-              child,
-            ];
-          }).toList(),
+        return [
+          if (separatorBuilder case final builder? when index > 0)
+            builder(index - 1),
+          child,
+        ];
+      }).toList(),
     );
   }
 }

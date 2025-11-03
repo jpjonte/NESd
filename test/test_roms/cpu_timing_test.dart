@@ -10,11 +10,10 @@ void main() {
       ..runUntil(
         0xe1b7,
         maxCycles: 30000000,
-        expect:
-            (nes) => expect(
-              nes.cpu.PC,
-              isNot(equals(0xe116)),
-            ), // E116 is the failure subroutine
+        expect: (nes) => expect(
+          nes.cpu.PC,
+          isNot(equals(0xe116)),
+        ), // E116 is the failure subroutine
       ); // run until all tests passed
   });
 }

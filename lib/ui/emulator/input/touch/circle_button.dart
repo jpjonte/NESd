@@ -20,8 +20,8 @@ class CircleButton extends StatelessWidget {
         label: config.label,
         action: config.action,
         config: config,
-        decorationBuilder:
-            (color) => BoxDecoration(shape: BoxShape.circle, color: color),
+        decorationBuilder: (color) =>
+            BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }

@@ -48,9 +48,8 @@ class RewindBuffer {
   RewindBuffer({required int size, this.fullStateThreshold = 60})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
         size: size,
-        bufferConstructor:
-            (size) =>
-                List<RewindItem>.generate(size, (index) => DummyRewindItem()),
+        bufferConstructor: (size) =>
+            List<RewindItem>.generate(size, (index) => DummyRewindItem()),
       );
 
   /// The size of the buffer in bytes.

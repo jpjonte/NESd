@@ -19,22 +19,18 @@ class RegionSelector extends ConsumerWidget {
     return Actions(
       actions: {
         DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke:
-              (intent) =>
-                  controller.region = switch (setting) {
-                    null => setting,
-                    Region.ntsc => null,
-                    Region.pal => Region.ntsc,
-                  },
+          onInvoke: (intent) => controller.region = switch (setting) {
+            null => setting,
+            Region.ntsc => null,
+            Region.pal => Region.ntsc,
+          },
         ),
         IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke:
-              (intent) =>
-                  controller.region = switch (setting) {
-                    null => Region.ntsc,
-                    Region.ntsc => Region.pal,
-                    Region.pal => setting,
-                  },
+          onInvoke: (intent) => controller.region = switch (setting) {
+            null => Region.ntsc,
+            Region.ntsc => Region.pal,
+            Region.pal => setting,
+          },
         ),
       },
       child: FocusOnHover(

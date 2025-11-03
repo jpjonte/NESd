@@ -6,46 +6,108 @@ part of 'debug_overlay.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$debugOverlayControllerHash() =>
-    r'bf7efd2b466b6386729e1880da6b189711d7d7d6';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [debugOverlayController].
-@ProviderFor(debugOverlayController)
-final debugOverlayControllerProvider =
-    AutoDisposeProvider<DebugOverlayController>.internal(
-      debugOverlayController,
-      name: r'debugOverlayControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$debugOverlayControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+@ProviderFor(DebugOverlayStateNotifier)
+const debugOverlayStateProvider = DebugOverlayStateNotifierProvider._();
+
+final class DebugOverlayStateNotifierProvider
+    extends $NotifierProvider<DebugOverlayStateNotifier, DebugOverlayState> {
+  const DebugOverlayStateNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debugOverlayStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debugOverlayStateNotifierHash();
+
+  @$internal
+  @override
+  DebugOverlayStateNotifier create() => DebugOverlayStateNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DebugOverlayState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DebugOverlayState>(value),
     );
+  }
+}
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DebugOverlayControllerRef =
-    AutoDisposeProviderRef<DebugOverlayController>;
-String _$debugOverlayNotifierHash() =>
-    r'6baa34aac142c2298d7490b6a5b0ba0c529fbb9d';
+String _$debugOverlayStateNotifierHash() =>
+    r'c7b118e5066225ca805b5b4375afebd7ac66c2a2';
 
-/// See also [DebugOverlayNotifier].
-@ProviderFor(DebugOverlayNotifier)
-final debugOverlayNotifierProvider = AutoDisposeNotifierProvider<
-  DebugOverlayNotifier,
-  DebugOverlayState
->.internal(
-  DebugOverlayNotifier.new,
-  name: r'debugOverlayNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$debugOverlayNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$DebugOverlayStateNotifier
+    extends $Notifier<DebugOverlayState> {
+  DebugOverlayState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<DebugOverlayState, DebugOverlayState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<DebugOverlayState, DebugOverlayState>,
+              DebugOverlayState,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$DebugOverlayNotifier = AutoDisposeNotifier<DebugOverlayState>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+@ProviderFor(debugOverlayController)
+const debugOverlayControllerProvider = DebugOverlayControllerProvider._();
+
+final class DebugOverlayControllerProvider
+    extends
+        $FunctionalProvider<
+          DebugOverlayController,
+          DebugOverlayController,
+          DebugOverlayController
+        >
+    with $Provider<DebugOverlayController> {
+  const DebugOverlayControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'debugOverlayControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$debugOverlayControllerHash();
+
+  @$internal
+  @override
+  $ProviderElement<DebugOverlayController> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DebugOverlayController create(Ref ref) {
+    return debugOverlayController(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DebugOverlayController value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DebugOverlayController>(value),
+    );
+  }
+}
+
+String _$debugOverlayControllerHash() =>
+    r'5f376133fcb23aa076d4619d22d9916e322e92f2';

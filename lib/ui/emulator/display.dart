@@ -313,8 +313,8 @@ class DisplayBuilder extends ConsumerWidget {
                     showBorder: settings.showBorder,
                     crossHairPosition:
                         nes?.bus.cartridge.databaseEntry?.hasZapper == true
-                            ? nes?.bus.zapperPosition
-                            : null,
+                        ? nes?.bus.zapperPosition
+                        : null,
                   ),
                   child: const SizedBox.expand(),
                 ),
@@ -337,8 +337,10 @@ class DisplayBuilder extends ConsumerWidget {
       Scaling.x2 => 2.0,
       Scaling.x3 => 3.0,
       Scaling.x4 => 4.0,
-      Scaling.autoInteger =>
-        max(0.5, min(width ~/ image.width, height ~/ image.height)).toDouble(),
+      Scaling.autoInteger => max(
+        0.5,
+        min(width ~/ image.width, height ~/ image.height),
+      ).toDouble(),
       Scaling.autoSmooth => 1000,
     };
   }
@@ -374,44 +376,40 @@ class EmulatorPainter extends CustomPainter {
 
   final _backgroundPaint = Paint()..color = Colors.black;
 
-  final _pauseOverlayPaint =
-      Paint()..color = Colors.black.withValues(alpha: 0.5);
+  final _pauseOverlayPaint = Paint()
+    ..color = Colors.black.withValues(alpha: 0.5);
 
   final _iconPaint = Paint()..color = Colors.white;
 
-  final _outlinePaint =
-      Paint()
-        ..color = Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4;
+  final _outlinePaint = Paint()
+    ..color = Colors.black
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 4;
 
-  final _borderPaint =
-      Paint()
-        ..strokeWidth = 1
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke;
+  final _borderPaint = Paint()
+    ..strokeWidth = 1
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke;
 
-  final _crossHairPaint =
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..blendMode = BlendMode.difference
-        ..strokeWidth = 4;
+  final _crossHairPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..blendMode = BlendMode.difference
+    ..strokeWidth = 4;
 
   final _framePaint = Paint();
 
-  final _fastForwardPath =
-      Path()
-        ..addPolygon([
-          const Offset(0, -16),
-          const Offset(16, 0),
-          const Offset(0, 16),
-        ], true)
-        ..addPolygon([
-          const Offset(14, -16),
-          const Offset(30, 0),
-          const Offset(14, 16),
-        ], true);
+  final _fastForwardPath = Path()
+    ..addPolygon([
+      const Offset(0, -16),
+      const Offset(16, 0),
+      const Offset(0, 16),
+    ], true)
+    ..addPolygon([
+      const Offset(14, -16),
+      const Offset(30, 0),
+      const Offset(14, 16),
+    ], true);
 
   @override
   void paint(Canvas canvas, Size size) {

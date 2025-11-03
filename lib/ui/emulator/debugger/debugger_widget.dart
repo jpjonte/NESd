@@ -44,9 +44,9 @@ class DebuggerWidget extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
 
-    final state = ref.watch(debuggerNotifierProvider);
+    final state = ref.watch(debuggerStateProvider);
 
-    ref.listen(debuggerNotifierProvider, (old, state) {
+    ref.listen(debuggerStateProvider, (old, state) {
       if (!state.enabled || old?.PC == state.PC) {
         return;
       }

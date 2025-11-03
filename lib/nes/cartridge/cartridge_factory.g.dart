@@ -6,23 +6,51 @@ part of 'cartridge_factory.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartridgeFactoryHash() => r'ddd160cb67abc5c89cad415502e9687177364ea0';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [cartridgeFactory].
 @ProviderFor(cartridgeFactory)
-final cartridgeFactoryProvider = AutoDisposeProvider<CartridgeFactory>.internal(
-  cartridgeFactory,
-  name: r'cartridgeFactoryProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$cartridgeFactoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const cartridgeFactoryProvider = CartridgeFactoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CartridgeFactoryRef = AutoDisposeProviderRef<CartridgeFactory>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class CartridgeFactoryProvider
+    extends
+        $FunctionalProvider<
+          CartridgeFactory,
+          CartridgeFactory,
+          CartridgeFactory
+        >
+    with $Provider<CartridgeFactory> {
+  const CartridgeFactoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cartridgeFactoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cartridgeFactoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<CartridgeFactory> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  CartridgeFactory create(Ref ref) {
+    return cartridgeFactory(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CartridgeFactory value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CartridgeFactory>(value),
+    );
+  }
+}
+
+String _$cartridgeFactoryHash() => r'ddd160cb67abc5c89cad415502e9687177364ea0';

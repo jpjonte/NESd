@@ -23,7 +23,7 @@
     {
       "matchManagers": ["pub"],
       "matchPackageNames": ["dart"],
-      "rangeStrategy": "replace"
+      "rangeStrategy": "auto"
     }
   ]
 }

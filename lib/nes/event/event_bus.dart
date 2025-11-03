@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:nesd/nes/event/nes_event.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'event_bus.g.dart';

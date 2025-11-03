@@ -11,7 +11,7 @@ class ExecutionLogWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final log = ref.watch(executionLogProvider);
-    final state = ref.watch(executionLogNotifierProvider);
+    final state = ref.watch(executionLogStateProvider);
 
     return DefaultTextStyle(
       style: monoStyle,
@@ -26,10 +26,9 @@ class ExecutionLogWidget extends ConsumerWidget {
                 child: ListView.builder(
                   itemCount: state.lines.length,
                   itemExtent: 20,
-                  itemBuilder:
-                      (context, index) => ExecutionLogLineWidget(
-                        line: log.printLine(state.lines[index]),
-                      ),
+                  itemBuilder: (context, index) => ExecutionLogLineWidget(
+                    line: log.printLine(state.lines[index]),
+                  ),
                 ),
               ),
             ),

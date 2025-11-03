@@ -65,27 +65,25 @@ class SettingsTile extends StatelessWidget {
             if (subtitle != null) wrappedSubtitle,
           ];
 
-          final wrappedTitles =
-              column
-                  ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: titles,
-                  )
-                  : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: titles,
-                  );
+          final wrappedTitles = column
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: titles,
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: titles,
+                );
 
           final wrappedChild = SizedBox(
             height: 70,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth:
-                    column
-                        ? constraints.maxWidth
-                        : constraints.maxWidth * 2 / 3,
+                maxWidth: column
+                    ? constraints.maxWidth
+                    : constraints.maxWidth * 2 / 3,
               ),
               child: child,
             ),
@@ -97,20 +95,18 @@ class SettingsTile extends StatelessWidget {
             height: column ? 100.0 : 70.0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child:
-                  column
-                      ? Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: children,
-                      )
-                      : Row(
-                        mainAxisAlignment:
-                            title != null
-                                ? MainAxisAlignment.spaceBetween
-                                : MainAxisAlignment.center,
-                        children: children,
-                      ),
+              child: column
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: children,
+                    )
+                  : Row(
+                      mainAxisAlignment: title != null
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      children: children,
+                    ),
             ),
           );
         },

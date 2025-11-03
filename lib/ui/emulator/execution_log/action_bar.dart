@@ -26,7 +26,7 @@ class RecordButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(executionLogNotifierProvider);
+    final state = ref.watch(executionLogStateProvider);
     final log = ref.read(executionLogProvider);
 
     return IconButton(

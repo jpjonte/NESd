@@ -29,15 +29,14 @@ class VolumeSlider extends ConsumerWidget {
           title: const Text('Volume'),
           onTap: () => controller.volume = 0.5,
           child: LayoutBuilder(
-            builder:
-                (_, constraints) => SizedBox(
-                  width: constraints.maxWidth,
-                  child: Slider(
-                    value: setting,
-                    onChanged: (value) => controller.volume = value,
-                    label: 'Volume',
-                  ),
-                ),
+            builder: (_, constraints) => SizedBox(
+              width: constraints.maxWidth,
+              child: Slider(
+                value: setting,
+                onChanged: (value) => controller.volume = value,
+                label: 'Volume',
+              ),
+            ),
           ),
         ),
       ),

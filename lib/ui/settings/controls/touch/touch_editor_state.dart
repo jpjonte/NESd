@@ -21,7 +21,7 @@ sealed class TouchEditorState with _$TouchEditorState {
 }
 
 @riverpod
-class TouchEditorNotifier extends _$TouchEditorNotifier {
+class TouchEditorStateNotifier extends _$TouchEditorStateNotifier {
   @override
   TouchEditorState build() {
     return const TouchEditorState();

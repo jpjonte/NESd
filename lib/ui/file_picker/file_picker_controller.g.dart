@@ -6,43 +6,107 @@ part of 'file_picker_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$filePickerControllerHash() =>
-    r'9acdc34774b09e58ee1b7f6ca4de82c0afcb47d0';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [filePickerController].
+@ProviderFor(FilePickerStateNotifier)
+const filePickerStateProvider = FilePickerStateNotifierProvider._();
+
+final class FilePickerStateNotifierProvider
+    extends $NotifierProvider<FilePickerStateNotifier, FilePickerState> {
+  const FilePickerStateNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'filePickerStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$filePickerStateNotifierHash();
+
+  @$internal
+  @override
+  FilePickerStateNotifier create() => FilePickerStateNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FilePickerState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FilePickerState>(value),
+    );
+  }
+}
+
+String _$filePickerStateNotifierHash() =>
+    r'9d6dc76afb6e5c7f330e476157b557820557a00a';
+
+abstract class _$FilePickerStateNotifier extends $Notifier<FilePickerState> {
+  FilePickerState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<FilePickerState, FilePickerState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<FilePickerState, FilePickerState>,
+              FilePickerState,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(filePickerController)
-final filePickerControllerProvider =
-    AutoDisposeProvider<FilePickerController>.internal(
-      filePickerController,
-      name: r'filePickerControllerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$filePickerControllerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
+const filePickerControllerProvider = FilePickerControllerProvider._();
+
+final class FilePickerControllerProvider
+    extends
+        $FunctionalProvider<
+          FilePickerController,
+          FilePickerController,
+          FilePickerController
+        >
+    with $Provider<FilePickerController> {
+  const FilePickerControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'filePickerControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$filePickerControllerHash();
+
+  @$internal
+  @override
+  $ProviderElement<FilePickerController> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  FilePickerController create(Ref ref) {
+    return filePickerController(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FilePickerController value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FilePickerController>(value),
     );
+  }
+}
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FilePickerControllerRef = AutoDisposeProviderRef<FilePickerController>;
-String _$filePickerNotifierHash() =>
-    r'46a033fd9a5beb73cd9e8c1481601d186d118613';
-
-/// See also [FilePickerNotifier].
-@ProviderFor(FilePickerNotifier)
-final filePickerNotifierProvider =
-    AutoDisposeNotifierProvider<FilePickerNotifier, FilePickerState>.internal(
-      FilePickerNotifier.new,
-      name: r'filePickerNotifierProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$filePickerNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FilePickerNotifier = AutoDisposeNotifier<FilePickerState>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+String _$filePickerControllerHash() =>
+    r'b3fed563e617cec711931378e3bd7b4c14f9f67d';

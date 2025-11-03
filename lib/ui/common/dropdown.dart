@@ -17,8 +17,9 @@ class Dropdown<T> extends StatelessWidget {
     final theme = Theme.of(context);
     final focused = Focus.of(context).hasFocus;
 
-    final color =
-        focused ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
+    final color = focused
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface;
 
     final border = theme.inputDecorationTheme.border!.borderSide;
 

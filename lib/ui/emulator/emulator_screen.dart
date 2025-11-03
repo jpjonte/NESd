@@ -18,7 +18,7 @@ class EmulatorScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nes = ref.watch(nesStateProvider);
-    final debuggerState = ref.watch(debuggerNotifierProvider);
+    final debuggerState = ref.watch(debuggerStateProvider);
 
     final showTiles = ref.watch(
       settingsControllerProvider.select((s) => s.showTiles),

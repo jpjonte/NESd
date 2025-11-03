@@ -58,13 +58,12 @@ class Robot extends BaseRobot {
 
   Future<void> pumpApp() async {
     final mockAudioStream = MockAudioStream();
-    final fileSystem =
-        MockFileSystem()
-          ..addFile(
-            '/test/roms/nestest.nes',
-            File('roms/test/nestest/nestest.nes').readAsBytesSync(),
-          )
-          ..addFile('/test/roms/z_fake.nes', Uint8List(0));
+    final fileSystem = MockFileSystem()
+      ..addFile(
+        '/test/roms/nestest.nes',
+        File('roms/test/nestest/nestest.nes').readAsBytesSync(),
+      )
+      ..addFile('/test/roms/z_fake.nes', Uint8List(0));
 
     final sharedPreferences = await SharedPreferences.getInstance();
 

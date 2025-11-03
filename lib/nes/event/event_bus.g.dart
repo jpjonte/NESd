@@ -6,21 +6,46 @@ part of 'event_bus.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$eventBusHash() => r'cd86b01c7c650bfe197fb00aa7b9c43b204872a0';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [eventBus].
 @ProviderFor(eventBus)
-final eventBusProvider = AutoDisposeProvider<EventBus>.internal(
-  eventBus,
-  name: r'eventBusProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$eventBusHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const eventBusProvider = EventBusProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef EventBusRef = AutoDisposeProviderRef<EventBus>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class EventBusProvider
+    extends $FunctionalProvider<EventBus, EventBus, EventBus>
+    with $Provider<EventBus> {
+  const EventBusProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'eventBusProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$eventBusHash();
+
+  @$internal
+  @override
+  $ProviderElement<EventBus> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  EventBus create(Ref ref) {
+    return eventBus(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(EventBus value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<EventBus>(value),
+    );
+  }
+}
+
+String _$eventBusHash() => r'cd86b01c7c650bfe197fb00aa7b9c43b204872a0';

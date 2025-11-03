@@ -47,13 +47,12 @@ class PaginatedGrid extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * tileHeight,
-              child:
-                  page.value > 0
-                      ? InkWell(
-                        onTap: () => page.value--,
-                        child: const Icon(Icons.arrow_back_ios),
-                      )
-                      : const SizedBox(),
+              child: page.value > 0
+                  ? InkWell(
+                      onTap: () => page.value--,
+                      child: const Icon(Icons.arrow_back_ios),
+                    )
+                  : const SizedBox(),
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -68,13 +67,12 @@ class PaginatedGrid extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * tileHeight,
-              child:
-                  page.value < pages - 1
-                      ? InkWell(
-                        onTap: () => page.value++,
-                        child: const Icon(Icons.arrow_forward_ios),
-                      )
-                      : const SizedBox(),
+              child: page.value < pages - 1
+                  ? InkWell(
+                      onTap: () => page.value++,
+                      child: const Icon(Icons.arrow_forward_ios),
+                    )
+                  : const SizedBox(),
             ),
           ],
         );

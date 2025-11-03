@@ -6,22 +6,57 @@ part of 'main_menu.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(InitialRom)
+const initialRomProvider = InitialRomProvider._();
+
+final class InitialRomProvider extends $NotifierProvider<InitialRom, String?> {
+  const InitialRomProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'initialRomProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$initialRomHash();
+
+  @$internal
+  @override
+  InitialRom create() => InitialRom();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String?>(value),
+    );
+  }
+}
+
 String _$initialRomHash() => r'ff3fa5ae8bc382ca1b1f86e007519a22a04da47e';
 
-/// See also [InitialRom].
-@ProviderFor(InitialRom)
-final initialRomProvider =
-    AutoDisposeNotifierProvider<InitialRom, String?>.internal(
-      InitialRom.new,
-      name: r'initialRomProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$initialRomHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$InitialRom = AutoDisposeNotifier<String?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$InitialRom extends $Notifier<String?> {
+  String? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<String?, String?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String?, String?>,
+              String?,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}

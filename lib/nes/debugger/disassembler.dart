@@ -8,7 +8,6 @@ import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'disassembler.g.dart';
@@ -52,10 +51,9 @@ abstract class DisassemblerInterface {
 
 class Disassembler implements DisassemblerInterface {
   Disassembler({required this.eventBus, required this.cpu}) {
-    final bus =
-        Bus(cpu.bus.cartridge)
-          ..ppu = cpu.bus.ppu
-          ..apu = cpu.bus.apu;
+    final bus = Bus(cpu.bus.cartridge)
+      ..ppu = cpu.bus.ppu
+      ..apu = cpu.bus.apu;
 
     debugCpu = DebugCPU(bus: bus)..state = cpu.state;
 

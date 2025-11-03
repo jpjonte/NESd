@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // This won't be called in normal operation, so we ignore it
 // coverage:ignore-start

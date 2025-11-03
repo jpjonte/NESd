@@ -6,24 +6,52 @@ part of 'disassembler.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$disassemblerHash() => r'aecf898fa0e7b33d8fd0c435ec5f85ba28df0d15';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [disassembler].
 @ProviderFor(disassembler)
-final disassemblerProvider =
-    AutoDisposeProvider<DisassemblerInterface>.internal(
-      disassembler,
-      name: r'disassemblerProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$disassemblerHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const disassemblerProvider = DisassemblerProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DisassemblerRef = AutoDisposeProviderRef<DisassemblerInterface>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class DisassemblerProvider
+    extends
+        $FunctionalProvider<
+          DisassemblerInterface,
+          DisassemblerInterface,
+          DisassemblerInterface
+        >
+    with $Provider<DisassemblerInterface> {
+  const DisassemblerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'disassemblerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$disassemblerHash();
+
+  @$internal
+  @override
+  $ProviderElement<DisassemblerInterface> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  DisassemblerInterface create(Ref ref) {
+    return disassembler(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DisassemblerInterface value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DisassemblerInterface>(value),
+    );
+  }
+}
+
+String _$disassemblerHash() => r'aecf898fa0e7b33d8fd0c435ec5f85ba28df0d15';

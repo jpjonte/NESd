@@ -6,21 +6,46 @@ part of 'execution_log.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$executionLogHash() => r'6c426e8c2b647a58176fabd34980121b77aede39';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [executionLog].
 @ProviderFor(executionLog)
-final executionLogProvider = AutoDisposeProvider<ExecutionLog>.internal(
-  executionLog,
-  name: r'executionLogProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$executionLogHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const executionLogProvider = ExecutionLogProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ExecutionLogRef = AutoDisposeProviderRef<ExecutionLog>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ExecutionLogProvider
+    extends $FunctionalProvider<ExecutionLog, ExecutionLog, ExecutionLog>
+    with $Provider<ExecutionLog> {
+  const ExecutionLogProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'executionLogProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$executionLogHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExecutionLog> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ExecutionLog create(Ref ref) {
+    return executionLog(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExecutionLog value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExecutionLog>(value),
+    );
+  }
+}
+
+String _$executionLogHash() => r'cf9cda751ff3dbf019d2786520cabe71e837c881';

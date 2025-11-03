@@ -26,7 +26,7 @@ sealed class DebugOverlayState with _$DebugOverlayState {
 }
 
 @riverpod
-class DebugOverlayNotifier extends _$DebugOverlayNotifier {
+class DebugOverlayStateNotifier extends _$DebugOverlayStateNotifier {
   @override
   DebugOverlayState build() {
     return const DebugOverlayState();
@@ -43,7 +43,7 @@ class DebugOverlayNotifier extends _$DebugOverlayNotifier {
 DebugOverlayController debugOverlayController(Ref ref) {
   final controller = DebugOverlayController(
     eventBus: ref.watch(eventBusProvider),
-    notifier: ref.watch(debugOverlayNotifierProvider.notifier),
+    notifier: ref.watch(debugOverlayStateProvider.notifier),
   );
 
   ref.onDispose(controller.dispose);
@@ -60,7 +60,7 @@ class DebugOverlayController {
   }
 
   final EventBus eventBus;
-  final DebugOverlayNotifier notifier;
+  final DebugOverlayStateNotifier notifier;
 
   late final StreamSubscription<FrameNesEvent> _subscription;
 
@@ -88,7 +88,7 @@ class DebugOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(debugOverlayNotifierProvider);
+    final state = ref.watch(debugOverlayStateProvider);
     final nes = ref.watch(nesStateProvider);
 
     ref.watch(debugOverlayControllerProvider);

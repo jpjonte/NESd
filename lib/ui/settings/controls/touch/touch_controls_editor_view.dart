@@ -13,7 +13,7 @@ class TouchControlsEditorView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final offset = useState<Offset>(Offset.zero);
 
-    final editorController = ref.watch(touchEditorNotifierProvider.notifier);
+    final editorController = ref.watch(touchEditorStateProvider.notifier);
 
     final moveController = ref.watch(touchEditorMoveIndexProvider.notifier);
 

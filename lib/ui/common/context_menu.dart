@@ -30,41 +30,33 @@ class ContextMenu extends HookWidget {
     void open(Offset offset) {
       controller.show(
         context: context,
-        contextMenuBuilder:
-            (context) => ListTileTheme(
-              data: const ListTileThemeData(
-                titleTextStyle: TextStyle(fontSize: 13),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
-                ),
-                minTileHeight: 12,
-              ),
-              child: CustomSingleChildLayout(
-                delegate: DesktopTextSelectionToolbarLayoutDelegate(
-                  anchor: offset,
-                ),
-                child: TapRegion(
-                  onTapOutside: (_) => close(),
-                  child: SizedBox(
-                    width: 250,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Material(
-                        child: Actions(
-                          actions: {
-                            DismissIntent: CallbackAction<DismissIntent>(
-                              onInvoke: (_) => close(),
-                            ),
-                          },
-                          child: FocusChild(
-                            autofocus: true,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: contextMenuBuilder!(context, close),
-                            ),
-                          ),
+        contextMenuBuilder: (context) => ListTileTheme(
+          data: const ListTileThemeData(
+            titleTextStyle: TextStyle(fontSize: 13),
+            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            minTileHeight: 12,
+          ),
+          child: CustomSingleChildLayout(
+            delegate: DesktopTextSelectionToolbarLayoutDelegate(anchor: offset),
+            child: TapRegion(
+              onTapOutside: (_) => close(),
+              child: SizedBox(
+                width: 250,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Material(
+                    child: Actions(
+                      actions: {
+                        DismissIntent: CallbackAction<DismissIntent>(
+                          onInvoke: (_) => close(),
+                        ),
+                      },
+                      child: FocusChild(
+                        autofocus: true,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: contextMenuBuilder!(context, close),
                         ),
                       ),
                     ),
@@ -72,6 +64,8 @@ class ContextMenu extends HookWidget {
                 ),
               ),
             ),
+          ),
+        ),
       );
     }
 
