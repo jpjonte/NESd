@@ -8,7 +8,7 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh
       - uses: subosito/flutter-action@v2
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [lint]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh
       - uses: subosito/flutter-action@v2
@@ -55,7 +55,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
       - id: deployment
         uses: actions/deploy-pages@v4
@@ -66,7 +66,7 @@ jobs:
     outputs:
       release_name: ${{ steps.env.outputs.release_name }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh
       - uses: subosito/flutter-action@v2
@@ -98,7 +98,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ test ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: subosito/flutter-action@v2
@@ -117,7 +117,7 @@ jobs:
     runs-on: windows-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: ci/1-build/windows/prepare.ps1
       - id: env
         shell: bash
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [test]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -171,7 +171,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v4
@@ -192,7 +192,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v4
@@ -218,7 +218,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: |
           git config --global --add safe.directory $(pwd)
           sudo dnf install -y yq jq
@@ -228,7 +228,7 @@ jobs:
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
@@ -280,7 +280,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v4
@@ -308,8 +308,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
@@ -363,8 +363,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
