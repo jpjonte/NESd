@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   archive: ^4.0.7
-  auto_route: ^10.1.0+1
+  auto_route: 11.0.0
   binarize: ^2.0.0
   build_runner: ^2.5.4
   collection: ^1.19.1
