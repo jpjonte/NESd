@@ -149,7 +149,7 @@ void main() {
       });
     });
 
-    group('applyOnRead', () {
+    group('apply', () {
       test('applies cheat without compare value on read', () {
         final cheat = Cheat(
           id: '1',
@@ -160,7 +160,7 @@ void main() {
         );
         engine.addCheat(cheat);
 
-        final result = engine.applyOnRead(0x1234, 0x56);
+        final result = engine.apply(0x1234, 0x56);
 
         expect(result, equals(0xAB));
       });
@@ -175,7 +175,7 @@ void main() {
         );
         engine.addCheat(cheat);
 
-        final result = engine.applyOnRead(0x5678, 0x56);
+        final result = engine.apply(0x5678, 0x56);
 
         expect(result, equals(0x56));
       });
@@ -192,10 +192,10 @@ void main() {
         engine.addCheat(cheat);
 
         // Matching compare value
-        expect(engine.applyOnRead(0x1234, 0x56), equals(0xAB));
+        expect(engine.apply(0x1234, 0x56), equals(0xAB));
 
         // Non-matching compare value
-        expect(engine.applyOnRead(0x1234, 0x78), equals(0x78));
+        expect(engine.apply(0x1234, 0x78), equals(0x78));
       });
 
       test('does not apply disabled cheat', () {
@@ -209,7 +209,7 @@ void main() {
         );
         engine.addCheat(cheat);
 
-        final result = engine.applyOnRead(0x1234, 0x56);
+        final result = engine.apply(0x1234, 0x56);
 
         expect(result, equals(0x56));
       });
@@ -234,75 +234,9 @@ void main() {
           ..addCheat(cheat1)
           ..addCheat(cheat2);
 
-        final result = engine.applyOnRead(0x1234, 0x56);
+        final result = engine.apply(0x1234, 0x56);
 
         expect(result, equals(0xAB));
-      });
-    });
-
-    group('applyOnWrite', () {
-      test('applies cheat without compare value on write', () {
-        final cheat = Cheat(
-          id: '1',
-          name: 'Test',
-          type: CheatType.gameGenie,
-          address: 0x1234,
-          value: 0xAB,
-        );
-        engine.addCheat(cheat);
-
-        final result = engine.applyOnWrite(0x1234, 0x56);
-
-        expect(result, equals(0xAB));
-      });
-
-      test('does not apply cheat to different address', () {
-        final cheat = Cheat(
-          id: '1',
-          name: 'Test',
-          type: CheatType.gameGenie,
-          address: 0x1234,
-          value: 0xAB,
-        );
-        engine.addCheat(cheat);
-
-        final result = engine.applyOnWrite(0x5678, 0x56);
-
-        expect(result, equals(0x56));
-      });
-
-      test('applies cheat with compare value only when value matches', () {
-        final cheat = Cheat(
-          id: '1',
-          name: 'Test',
-          type: CheatType.gameGenie,
-          address: 0x1234,
-          value: 0xAB,
-          compareValue: 0x56,
-        );
-        engine.addCheat(cheat);
-
-        // Matching compare value
-        expect(engine.applyOnWrite(0x1234, 0x56), equals(0xAB));
-
-        // Non-matching compare value
-        expect(engine.applyOnWrite(0x1234, 0x78), equals(0x78));
-      });
-
-      test('does not apply disabled cheat', () {
-        final cheat = Cheat(
-          id: '1',
-          name: 'Test',
-          type: CheatType.gameGenie,
-          address: 0x1234,
-          value: 0xAB,
-          enabled: false,
-        );
-        engine.addCheat(cheat);
-
-        final result = engine.applyOnWrite(0x1234, 0x56);
-
-        expect(result, equals(0x56));
       });
     });
 
@@ -441,24 +375,6 @@ void main() {
         engine.fromJson(json);
 
         expect(engine.cheats, isEmpty);
-      });
-    });
-
-    group('reset', () {
-      test('reset does not remove cheats', () {
-        final cheat = Cheat(
-          id: '1',
-          name: 'Test',
-          type: CheatType.gameGenie,
-          address: 0x1234,
-          value: 0x56,
-        );
-
-        engine
-          ..addCheat(cheat)
-          ..reset();
-
-        expect(engine.cheats, hasLength(1));
       });
     });
   });
