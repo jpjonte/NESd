@@ -174,6 +174,10 @@ class NES {
       final vblankBefore = ppu.PPUSTATUS_V;
 
       try {
+        bus.cheatEngine.applyFrameCheats(
+          (address, value) => bus.cpuWrite(address, value),
+        );
+
         step();
       } on NesdException catch (e) {
         eventBus.add(ErrorNesEvent(e));
