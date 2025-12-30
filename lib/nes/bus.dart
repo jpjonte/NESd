@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cheat/cheat_engine.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/input/controller.dart';
@@ -34,6 +35,8 @@ class Bus {
 
   late final Zapper _zapper = Zapper(bus: this);
 
+  final CheatEngine cheatEngine = CheatEngine();
+
   int cpuRead(int address, {bool disableSideEffects = false}) {
     if (address == addressA) {
       return cpu.A;
@@ -42,7 +45,9 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      return cpu.ram[address & 0x07ff];
+      final value = cpu.ram[address & 0x07ff];
+
+      return cheatEngine.applyOnRead(address & 0x07ff, value);
     }
 
     if (address < 0x4000) {
@@ -83,7 +88,10 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      cpu.ram[address & 0x7ff] = value;
+      final maskedAddress = address & 0x7ff;
+      final modifiedValue = cheatEngine.applyOnWrite(maskedAddress, value);
+
+      cpu.ram[maskedAddress] = modifiedValue;
 
       return;
     }

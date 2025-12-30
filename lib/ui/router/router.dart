@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:nesd/ui/cheats/cheats_screen.dart';
 import 'package:nesd/ui/emulator/emulator_screen.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
@@ -38,6 +39,7 @@ class Router extends RootStackRouter {
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: TouchEditorRoute.page, path: '/touch_editor'),
     AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
+    AutoRoute(page: CheatsRoute.page, path: '/cheats'),
     CustomRoute(
       page: MenuRoute.page,
       path: '/menu',
