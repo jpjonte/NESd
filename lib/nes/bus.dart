@@ -47,7 +47,7 @@ class Bus {
     if (address < 0x2000) {
       final value = cpu.ram[address & 0x07ff];
 
-      return cheatEngine.applyOnRead(address & 0x07ff, value);
+      return cheatEngine.apply(address & 0x07ff, value);
     }
 
     if (address < 0x4000) {
@@ -89,7 +89,7 @@ class Bus {
 
     if (address < 0x2000) {
       final maskedAddress = address & 0x7ff;
-      final modifiedValue = cheatEngine.applyOnWrite(maskedAddress, value);
+      final modifiedValue = cheatEngine.apply(maskedAddress, value);
 
       cpu.ram[maskedAddress] = modifiedValue;
 

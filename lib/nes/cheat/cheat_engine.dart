@@ -30,32 +30,9 @@ class CheatEngine {
     _cheats[index] = cheat.copyWith(enabled: enabled);
   }
 
-  /// Apply cheats during CPU write operations
-  /// This intercepts writes to modify the value being written
-  int applyOnWrite(int address, int value) {
-    for (final cheat in _cheats) {
-      if (!cheat.enabled) {
-        continue;
-      }
-
-      // For cheats with compare values, only apply if current value matches
-      if (cheat.address == address) {
-        if (cheat.compareValue != null) {
-          if (value == cheat.compareValue) {
-            return cheat.value;
-          }
-        } else {
-          return cheat.value;
-        }
-      }
-    }
-
-    return value;
-  }
-
-  /// Apply cheats during CPU read operations
-  /// This modifies the value being read from memory
-  int applyOnRead(int address, int value) {
+  /// Apply cheats to memory access (both read and write operations)
+  /// Cheats with compare values are only applied if the current value matches
+  int apply(int address, int value) {
     for (final cheat in _cheats) {
       if (!cheat.enabled) {
         continue;
@@ -84,10 +61,6 @@ class CheatEngine {
         writeMemory(cheat.address, cheat.value);
       }
     }
-  }
-
-  void reset() {
-    // Keep cheats in memory but they'll be reapplied on next frame
   }
 
   Map<String, dynamic> toJson() => {
