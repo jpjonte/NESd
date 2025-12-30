@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'cheat.g.dart';
+
 // Game Genie and Pro Action Replay cheat code types
 enum CheatType {
   // Game Genie codes (6 or 8 character codes)
@@ -5,6 +9,7 @@ enum CheatType {
 }
 
 // Represents a single cheat code
+@JsonSerializable()
 class Cheat {
   Cheat({
     required this.id,
@@ -42,25 +47,9 @@ class Cheat {
     enabled: enabled ?? this.enabled,
   );
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'type': type.name,
-    'address': address,
-    'value': value,
-    if (compareValue != null) 'compareValue': compareValue,
-    'enabled': enabled,
-  };
+  Map<String, dynamic> toJson() => _$CheatToJson(this);
 
-  factory Cheat.fromJson(Map<String, dynamic> json) => Cheat(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    type: CheatType.values.firstWhere((e) => e.name == json['type']),
-    address: json['address'] as int,
-    value: json['value'] as int,
-    compareValue: json['compareValue'] as int?,
-    enabled: json['enabled'] as bool? ?? true,
-  );
+  factory Cheat.fromJson(Map<String, dynamic> json) => _$CheatFromJson(json);
 
   @override
   String toString() {
