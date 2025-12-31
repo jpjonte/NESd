@@ -389,8 +389,10 @@ class DisplayFrameController extends ChangeNotifier
 
     _textureInFlight = true;
 
+    final pixelPointer = _frameBuffer?.pointerForBuffer(buffer);
+
     texture
-        .update(buffer)
+        .update(buffer, pixelPointer: pixelPointer)
         .whenComplete(() => _frameBuffer?.releaseDisplayBuffer(buffer))
         .then<void>((_) {
           if (_disposed) {

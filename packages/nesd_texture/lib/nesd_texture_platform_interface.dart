@@ -33,7 +33,9 @@ abstract class NesdTexturePlatform extends PlatformInterface {
     required int textureId,
     required int width,
     required int height,
-    required Uint8List pixels,
+    required int length,
+    Uint8List? pixels,
+    int? pixelPointer,
   }) {
     throw UnimplementedError('updateTexture() has not been implemented.');
   }
