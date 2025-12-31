@@ -67,7 +67,7 @@ class RewindBuffer {
 
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;
 
-  void reset() => _buffer.clear();
+  void clear() => _buffer.clear();
 
   void add(NESState state) {
     scheduleMicrotask(() => _addState(state));

@@ -58,6 +58,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   renderer:
       $enumDecodeNullable(_$RendererPreferenceEnumMap, json['renderer']) ??
       RendererPreference.auto,
+  rewind: json['rewind'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -83,6 +84,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'region': _$RegionEnumMap[instance.region],
   'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
   'renderer': _$RendererPreferenceEnumMap[instance.renderer]!,
+  'rewind': instance.rewind,
 };
 
 const _$ScalingEnumMap = {
@@ -148,7 +150,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'308fe58815323228cd04c3e4581c57ec692227a5';
+    r'3c04699a4bb4c25260582e5b56fdc4380c1b7ac4';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

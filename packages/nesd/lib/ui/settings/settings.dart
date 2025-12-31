@@ -104,6 +104,7 @@ sealed class Settings with _$Settings {
     @Default(null) Region? region,
     @Default(ThemeMode.system) ThemeMode themeMode,
     @Default(RendererPreference.auto) RendererPreference renderer,
+    @Default(true) bool rewind,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -391,6 +392,12 @@ class SettingsController extends _$SettingsController {
 
   set rendererPreference(RendererPreference renderer) {
     _update(state.copyWith(renderer: renderer));
+  }
+
+  bool get rewind => state.rewind;
+
+  set rewind(bool rewind) {
+    _update(state.copyWith(rewind: rewind));
   }
 
   void _update(Settings settings) {
