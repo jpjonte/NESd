@@ -2,6 +2,7 @@ package dev.jpj.nesd_texture
 
 import android.graphics.Bitmap
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.util.LongSparseArray
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -10,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.view.TextureRegistry
+import java.nio.ByteBuffer
 
 class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
 
@@ -18,9 +20,16 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
 
   private val textures = LongSparseArray<TextureWrapper>()
   private val mainHandler = Handler(Looper.getMainLooper())
+  private lateinit var workerThread: HandlerThread
+  private lateinit var workerHandler: Handler
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     textureRegistry = binding.textureRegistry
+
+    workerThread = HandlerThread("nesd_texture_worker")
+    workerThread.start()
+
+    workerHandler = Handler(workerThread.looper)
 
     channel = MethodChannel(binding.binaryMessenger, "nesd_texture")
     channel.setMethodCallHandler(this)
@@ -34,6 +43,10 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     textures.clear()
+
+    if (::workerThread.isInitialized) {
+      workerThread.quitSafely()
+    }
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
@@ -86,7 +99,17 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
-    val pixels = args["pixels"] as? ByteArray ?: run {
+    val pixelPointer = (args["pixelPointer"] as? Number)?.toLong()
+    val pixels = args["pixels"] as? ByteArray
+    val length = (args["length"] as? Number)?.toInt()
+      ?: pixels?.size
+      ?: run {
+        result.error("invalid-argument", "updateTexture missing length", null)
+
+        return
+      }
+
+    if (pixelPointer == null && pixels == null) {
       result.error("invalid-argument", "updateTexture missing pixels", null)
 
       return
@@ -98,17 +121,23 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
-    try {
-      texture.update(pixels)
-
-      mainHandler.post { result.success(null) }
-    } catch (error: Throwable) {
-      mainHandler.post {
-        result.error(
-          "texture-update-failed",
-          "Failed to update texture: ${error.message}",
-          null,
+    workerHandler.post {
+      try {
+        texture.update(
+          pixels = pixels,
+          pixelPointer = pixelPointer,
+          length = length,
         )
+
+        mainHandler.post { result.success(null) }
+      } catch (error: Throwable) {
+        mainHandler.post {
+          result.error(
+            "texture-update-failed",
+            "Failed to update texture: ${error.message}",
+            null,
+          )
+        }
       }
     }
   }
@@ -143,7 +172,6 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
     private val height: Int,
     private val mainHandler: Handler,
   ) : TextureRegistry.SurfaceProducer.Callback {
-    private var scratch: IntArray
     private val bitmapLock = Any()
     private var bitmap: Bitmap
 
@@ -152,25 +180,28 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
       producer.setCallback(this)
 
       bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-
-      scratch = IntArray(width * height)
     }
 
-    fun update(pixels: ByteArray) {
-      var src = 0
-
-      for (i in scratch.indices) {
-        val r = pixels[src].toInt() and 0xFF
-        val g = pixels[src + 1].toInt() and 0xFF
-        val b = pixels[src + 2].toInt() and 0xFF
-        val a = pixels[src + 3].toInt() and 0xFF
-
-        scratch[i] = (a shl 24) or (r shl 16) or (g shl 8) or b
-        src += 4
+    fun update(pixels: ByteArray?, pixelPointer: Long?, length: Int) {
+      when {
+        pixelPointer != null -> updateFromPointer(pixelPointer, length)
+        pixels != null -> updateFromBytes(pixels)
+        else -> throw IllegalArgumentException("Missing pixel data")
       }
+    }
 
+    private fun updateFromPointer(pixelPointer: Long, length: Int) {
       synchronized(bitmapLock) {
-        bitmap.setPixels(scratch, 0, width, 0, 0, width, height)
+        NativeBindings.copyPixelsToBitmap(bitmap, pixelPointer, length)
+
+        draw()
+      }
+    }
+
+    private fun updateFromBytes(pixels: ByteArray) {
+      val buffer = ByteBuffer.wrap(pixels)
+      synchronized(bitmapLock) {
+        bitmap.copyPixelsFromBuffer(buffer)
 
         draw()
       }
