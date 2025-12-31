@@ -1,12 +1,15 @@
 import 'dart:collection';
+import 'dart:ffi';
 
 import 'package:binarize/binarize.dart';
+import 'package:ffi/ffi.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class FrameBuffer {
   FrameBuffer({required this.width, required this.height})
-    : size = width * height * 4,
-      pixels = Uint8List(width * height * 4);
+    : size = width * height * 4 {
+    pixels = _allocateBuffer();
+  }
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
@@ -26,7 +29,7 @@ class FrameBuffer {
   final int height;
   final int size;
 
-  Uint8List pixels;
+  late Uint8List pixels;
 
   final Queue<Uint8List> _ready = Queue<Uint8List>();
   final List<Uint8List> _available = <Uint8List>[];
@@ -34,6 +37,12 @@ class FrameBuffer {
 
   static const int _maxAvailable = 2;
   static const int _maxQueued = 2;
+  static final Expando<Pointer<Uint8>> _bufferPointers =
+      Expando<Pointer<Uint8>>();
+  static final Finalizer<Pointer<Uint8>> _bufferFinalizer =
+      Finalizer<Pointer<Uint8>>((pointer) {
+        malloc.free(pointer);
+      });
 
   int getPixelBrightness(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
@@ -94,7 +103,9 @@ class FrameBuffer {
 
     _ready.add(pixels);
 
-    pixels = _available.isNotEmpty ? _available.removeLast() : Uint8List(size);
+    pixels = _available.isNotEmpty
+        ? _available.removeLast()
+        : _allocateBuffer();
   }
 
   Uint8List? takeReadyBuffer() {
@@ -123,5 +134,17 @@ class FrameBuffer {
     _ready.clear();
     _inUse.clear();
     _available.clear();
+  }
+
+  int? pointerForBuffer(Uint8List buffer) => _bufferPointers[buffer]?.address;
+
+  Uint8List _allocateBuffer() {
+    final pointer = malloc<Uint8>(size);
+    final buffer = pointer.asTypedList(size);
+
+    _bufferPointers[buffer] = pointer;
+    _bufferFinalizer.attach(buffer, pointer);
+
+    return buffer;
   }
 }

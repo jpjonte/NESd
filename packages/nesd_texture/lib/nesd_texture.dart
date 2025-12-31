@@ -25,12 +25,14 @@ class NesdTexture {
     return NesdTexture._(textureId: textureId, width: width, height: height);
   }
 
-  Future<void> update(Uint8List pixels) async {
+  Future<void> update(Uint8List pixels, {int? pixelPointer}) async {
     await NesdTexturePlatform.instance.updateTexture(
       textureId: textureId,
       width: width,
       height: height,
-      pixels: pixels,
+      length: pixels.length,
+      pixels: pixelPointer == null ? pixels : null,
+      pixelPointer: pixelPointer,
     );
   }
 

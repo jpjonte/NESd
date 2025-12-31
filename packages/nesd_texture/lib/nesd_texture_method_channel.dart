@@ -31,13 +31,17 @@ class MethodChannelNesdTexture extends NesdTexturePlatform {
     required int textureId,
     required int width,
     required int height,
-    required Uint8List pixels,
+    required int length,
+    Uint8List? pixels,
+    int? pixelPointer,
   }) async {
     await methodChannel.invokeMethod<void>('updateTexture', <String, Object?>{
       'textureId': textureId,
       'width': width,
       'height': height,
-      'pixels': pixels,
+      'length': length,
+      if (pixels != null) 'pixels': pixels,
+      if (pixelPointer != null) 'pixelPointer': pixelPointer,
     });
   }
 
