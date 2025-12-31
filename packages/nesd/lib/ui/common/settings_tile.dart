@@ -120,10 +120,12 @@ class SwitchSettingsTile extends StatelessWidget {
     required this.title,
     required this.value,
     required this.onChanged,
+    this.subtitle,
     super.key,
   });
 
   final Widget title;
+  final Widget? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -131,6 +133,7 @@ class SwitchSettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsTile(
       title: title,
+      subtitle: subtitle,
       onTap: () => onChanged(!value),
       child: Switch(value: value, onChanged: onChanged),
     );

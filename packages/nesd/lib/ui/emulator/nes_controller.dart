@@ -95,6 +95,18 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(regionSubscription.close);
 
+  final rewindSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.rewind),
+    (_, rewind) {
+      if (controller.nes case final nes?) {
+        controller._setRewindEnabled(nes, rewind);
+      }
+    },
+    fireImmediately: true,
+  );
+
+  ref.onDispose(rewindSubscription.close);
+
   final routeSubscription = ref.listen(
     routerObserverProvider,
     (_, route) => controller._updateRoute(route),
@@ -306,6 +318,10 @@ class NesController {
 
   void _setRegion(NES nes, Region? region) {
     nes.region = region ?? _autoDetectRegion(nes.bus.cartridge) ?? Region.ntsc;
+  }
+
+  void _setRewindEnabled(NES nes, bool rewindEnabled) {
+    nes.rewindEnabled = rewindEnabled;
   }
 
   void saveState(int slot) {

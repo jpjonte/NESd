@@ -45,6 +45,8 @@ class NES {
   bool fastForward = false;
   bool rewind = false;
 
+  bool rewindEnabled = false;
+
   // 1 minute of rewind
   final RewindBuffer _rewindBuffer = RewindBuffer(size: 3600);
 
@@ -147,7 +149,7 @@ class NES {
     apu.reset();
     ppu.reset();
 
-    _rewindBuffer.reset();
+    _rewindBuffer.clear();
 
     if (paused) {
       eventBus.add(DebuggerNesEvent());
@@ -256,7 +258,9 @@ class NES {
 
     _lastState = state;
 
-    _rewindBuffer.add(state);
+    if (rewindEnabled) {
+      _rewindBuffer.add(state);
+    }
 
     if (stopAfterNextFrame) {
       stopAfterNextFrame = false;
@@ -313,7 +317,11 @@ class NES {
   }
 
   void toggleRewind() {
-    rewind = !rewind;
+    rewind = rewindEnabled && !rewind;
+
+    if (!rewind) {
+      _rewindBuffer.clear();
+    }
   }
 
   void unpause() {
