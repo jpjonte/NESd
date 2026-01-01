@@ -265,7 +265,7 @@ class PPU {
     cycle = state.cycle;
     scanline = state.scanline;
     frames = state.frames;
-    _pixelBase = scanline * frameBuffer.width * 4;
+    _pixelBase = scanline * frameBuffer.width;
     nametableLatch = state.nametableLatch;
     patternTableHighLatch = state.patternTableHighLatch;
     patternTableLowLatch = state.patternTableLowLatch;
@@ -652,7 +652,7 @@ class PPU {
       cycle = 0;
       scanline++;
 
-      _pixelBase = scanline * frameBuffer.width * 4;
+      _pixelBase = scanline * frameBuffer.width;
 
       if (scanline > _preRenderScanline) {
         scanline = 0;
@@ -697,6 +697,14 @@ class PPU {
         : blue;
 
     return (resultBlue << 16) | (resultGreen << 8) | resultRed;
+  }
+
+  int _packPaletteColor(int color) {
+    final red = (color >> 16) & 0xff;
+    final green = (color >> 8) & 0xff;
+    final blue = color & 0xff;
+
+    return 0xff000000 | (blue << 16) | (green << 8) | red;
   }
 
   int _getPixelColor() {
@@ -1085,7 +1093,9 @@ class PPU {
     final palVal = palette[idx] & greyMask;
     final rgb = systemPalette[palVal];
 
-    return _applyEmphasis(rgb);
+    final emphasized = _applyEmphasis(rgb);
+
+    return _packPaletteColor(emphasized);
   }
 
   int _remapPaletteIndex(int index) {
