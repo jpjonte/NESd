@@ -362,7 +362,7 @@ class PPU {
   }
 
   int getPixelBrightness(int x, int y) {
-    if (!renderingEnabled) {
+    if (!_showBackground && !_showSprites) {
       return 0;
     }
 
@@ -424,30 +424,6 @@ class PPU {
 
   int get currentX => cycle - 1;
 
-  @pragma('vm:prefer-inline')
-  bool get lineVisible => scanline < 240;
-  @pragma('vm:prefer-inline')
-  bool get linePreRender => scanline == _preRenderScanline;
-  @pragma('vm:prefer-inline')
-  bool get lineVblank => scanline == 241;
-  @pragma('vm:prefer-inline')
-  bool get lineFetch => lineVisible || linePreRender;
-
-  @pragma('vm:prefer-inline')
-  bool get cycleVisible => cycle >= 1 && cycle <= 256;
-  @pragma('vm:prefer-inline')
-  bool get cyclePreFetch => cycle >= 321 && cycle <= 336;
-  @pragma('vm:prefer-inline')
-  bool get cycleFetch => cycleVisible || cyclePreFetch;
-
-  @pragma('vm:prefer-inline')
-  bool get renderingEnabled => _showBackground || _showSprites;
-  @pragma('vm:prefer-inline')
-  bool get rendering => lineVisible && cycleVisible;
-
-  @pragma('vm:prefer-inline')
-  bool get fetching => lineFetch && cycleFetch;
-
   void stepUntil(int targetCycles) {
     while (consoleCycles < targetCycles) {
       step();
@@ -455,62 +431,67 @@ class PPU {
   }
 
   void step() {
-    if (renderingEnabled) {
-      _handleRendering();
-    }
+    final renderingActive = _showBackground || _showSprites;
+    final visibleLine = scanline < 240;
+    final preRenderLine = scanline == _preRenderScanline;
+    final vblankLine = scanline == 241;
+    final renderingLine = renderingActive && (visibleLine || preRenderLine);
 
-    _handleGarbageFetches();
+    if (renderingLine) {
+      final renderPixel = visibleLine && cycle >= 1 && cycle <= 256;
+      final fetchCycle =
+          (cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336);
 
-    _handleOAMADDRReset();
+      if (renderPixel) {
+        _renderPixel();
+      }
 
-    _handleVBlank();
+      if (fetchCycle) {
+        _shiftRegisters();
 
-    _handleRegisterReset();
+        final subcycle = cycle & 7;
 
-    _evaluateSprites();
+        switch (subcycle) {
+          case 0:
+            _loadShiftRegisters();
+            _incrementX();
+          case 1:
+            _fetchNametable();
+          case 3:
+            _fetchAttributeTable();
+          case 5:
+            _fetchPatternTableLow();
+          case 7:
+            _fetchPatternTableHigh();
+        }
+      }
 
-    _handleBusAddressUpdate();
+      if (cycle == 256) {
+        _incrementY();
+      }
 
-    _updateCounters();
-  }
+      if (cycle == 257) {
+        _copyHorizontalBits();
+      }
 
-  void _handleRendering() {
-    final visible = lineVisible;
-    final preRender = linePreRender;
-    final render = visible && cycleVisible;
-    final fetch = (visible || preRender) && cycleFetch;
-
-    if (render) {
-      _renderPixel();
-    }
-
-    if (render || fetch) {
-      _shiftRegisters();
-    }
-
-    if (fetch) {
-      _fetch();
-    }
-
-    if ((visible || preRender) && cycle == 257) {
-      _copyHorizontalBits();
-    }
-
-    if (preRender && cycle >= 280 && cycle <= 304) {
-      _copyVerticalBits();
-    }
-  }
-
-  void _handleGarbageFetches() {
-    if (scanline <= 239 || scanline == _preRenderScanline) {
-      if (cycle == 337 || cycle == 339) {
-        readPpuMemory(_nametableAddress());
+      if (preRenderLine && cycle >= 280 && cycle <= 304) {
+        _copyVerticalBits();
       }
     }
-  }
 
-  void _handleVBlank() {
-    if (lineVblank && cycle == 1) {
+    if ((visibleLine || preRenderLine) && (cycle == 337 || cycle == 339)) {
+      readPpuMemory(_nametableAddress());
+    }
+
+    if (visibleLine) {
+      _evaluateSprites();
+    }
+
+    if ((visibleLine || preRenderLine) && cycle >= 257 && cycle <= 320) {
+      OAMADDR = 0x0000;
+    }
+
+    if (vblankLine && cycle == 1) {
       PPUSTATUS_V = 1;
 
       spriteCount = 0;
@@ -520,24 +501,24 @@ class PPU {
         bus.triggerNmi();
       }
     }
-  }
 
-  void _handleRegisterReset() {
-    if (linePreRender && cycle == 1) {
+    if (preRenderLine && cycle == 1) {
       PPUSTATUS_O = 0;
       PPUSTATUS_S = 0;
       PPUSTATUS_V = 0;
 
       bus.clearNmi();
     }
-  }
 
-  void _handleOAMADDRReset() {
-    if (lineVisible || linePreRender) {
-      if (cycle >= 257 && cycle <= 320) {
-        OAMADDR = 0x0000;
+    if (cycle == 0) {
+      if (visibleLine && renderingActive && (scanline > 0 || frames.isEven)) {
+        _updateBusAddress(_nametableAddress());
+      } else if (vblankLine) {
+        _updateBusAddress(v & 0x3fff);
       }
     }
+
+    _updateCounters();
   }
 
   int _readPPUSTATUS({bool disableSideEffects = false}) {
@@ -604,7 +585,8 @@ class PPU {
   }
 
   void _writeOAMDATA(int value) {
-    if (rendering) {
+    // ignore writes while rendering
+    if (scanline < 240 && cycle >= 1 && cycle <= 256) {
       return;
     }
 
@@ -649,18 +631,6 @@ class PPU {
     writePpuMemory(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
-  }
-
-  void _handleBusAddressUpdate() {
-    if (cycle > 0) {
-      return;
-    }
-
-    if (lineVisible && renderingEnabled && (scanline > 0 || frames.isEven)) {
-      _updateBusAddress(_nametableAddress());
-    } else if (lineVblank) {
-      _updateBusAddress(v & 0x3fff);
-    }
   }
 
   void _updateCounters() {
@@ -883,28 +853,6 @@ class PPU {
     return address;
   }
 
-  void _fetch() {
-    final subcycle = cycle & 7;
-
-    switch (subcycle) {
-      case 0:
-        _loadShiftRegisters();
-        _incrementX();
-      case 1:
-        _fetchNametable();
-      case 3:
-        _fetchAttributeTable();
-      case 5:
-        _fetchPatternTableLow();
-      case 7:
-        _fetchPatternTableHigh();
-    }
-
-    if (cycle == 256) {
-      _incrementY();
-    }
-  }
-
   void _fetchPatternTableLow() {
     final address = _bgPatternBase | (nametableLatch << 4) | v_fineY;
 
@@ -957,10 +905,6 @@ class PPU {
   }
 
   void _evaluateSprites() {
-    if (!lineVisible) {
-      return;
-    }
-
     _clearSecondaryOam();
 
     _handleCopyToSecondaryOam();
