@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:binarize/binarize.dart';
 import 'package:ffi/ffi.dart';
@@ -9,6 +10,7 @@ class FrameBuffer {
   FrameBuffer({required this.width, required this.height})
     : size = width * height * 4 {
     pixels = _allocateBuffer();
+    pixels32 = _bufferUint32[pixels]!;
   }
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
@@ -30,6 +32,7 @@ class FrameBuffer {
   final int size;
 
   late Uint8List pixels;
+  late Uint32List pixels32;
 
   final Queue<Uint8List> _ready = Queue<Uint8List>();
   final List<Uint8List> _available = <Uint8List>[];
@@ -39,43 +42,32 @@ class FrameBuffer {
   static const int _maxQueued = 2;
   static final Expando<Pointer<Uint8>> _bufferPointers =
       Expando<Pointer<Uint8>>();
+  static final Expando<Uint32List> _bufferUint32 = Expando<Uint32List>();
   static final Finalizer<Pointer<Uint8>> _bufferFinalizer =
-      Finalizer<Pointer<Uint8>>((pointer) {
-        malloc.free(pointer);
-      });
+      Finalizer<Pointer<Uint8>>((pointer) => malloc.free(pointer));
 
   int getPixelBrightness(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return 0;
     }
 
-    final base = (y * width + x) * 4;
+    final color = pixels32[y * width + x];
 
-    final red = pixels[base];
-    final green = pixels[base + 1];
-    final blue = pixels[base + 2];
+    final blue = color & 0xff;
+    final green = (color >> 8) & 0xff;
+    final red = (color >> 16) & 0xff;
 
     return red + green + blue;
   }
 
   void setPixel(int x, int y, int color) {
-    final index = (y * width + x) * 4;
+    final index = y * width + x;
 
-    // no need to mask with 0xff because we are using Uint8List
-    pixels[index] = color >> 16;
-    pixels[index + 1] = color >> 8;
-    pixels[index + 2] = color;
-    pixels[index + 3] = 0xff;
+    pixels32[index] = _packColor(color);
   }
 
   void setPixelWithBase(int base, int x, int color) {
-    final index = base + (x * 4);
-
-    // no need to mask with 0xff because we are using Uint8List
-    pixels[index] = color >> 16;
-    pixels[index + 1] = color >> 8;
-    pixels[index + 2] = color;
-    pixels[index + 3] = 0xff;
+    pixels32[base + x] = color;
   }
 
   void setPixels(Uint8List pixels) {
@@ -106,6 +98,7 @@ class FrameBuffer {
     pixels = _available.isNotEmpty
         ? _available.removeLast()
         : _allocateBuffer();
+    pixels32 = _bufferUint32[pixels]!;
   }
 
   Uint8List? takeReadyBuffer() {
@@ -141,10 +134,20 @@ class FrameBuffer {
   Uint8List _allocateBuffer() {
     final pointer = malloc<Uint8>(size);
     final buffer = pointer.asTypedList(size);
+    final buffer32 = pointer.cast<Uint32>().asTypedList(width * height);
 
     _bufferPointers[buffer] = pointer;
+    _bufferUint32[buffer] = buffer32;
     _bufferFinalizer.attach(buffer, pointer);
 
     return buffer;
+  }
+
+  static int _packColor(int rgb) {
+    final red = (rgb >> 16) & 0xff;
+    final green = (rgb >> 8) & 0xff;
+    final blue = rgb & 0xff;
+
+    return 0xff000000 | (blue << 16) | (green << 8) | red;
   }
 }
