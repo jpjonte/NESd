@@ -83,6 +83,11 @@ const palConsoleCyclesPerCycle = 5;
 const ntscPreRenderScanline = 261;
 const palPreRenderScanline = 311;
 
+const _ppuBlockAddressWidth = 10;
+const _ppuBlockSize = 1 << _ppuBlockAddressWidth;
+const _ppuBlockMask = _ppuBlockSize - 1;
+const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
+
 class PPU {
   PPU(this.bus);
 
@@ -150,14 +155,17 @@ class PPU {
   final Uint8List ram = Uint8List(0x0800);
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
-  late final Uint32List _secondaryOamWords =
-      secondaryOam.buffer.asUint32List();
+  late final Uint32List _secondaryOamWords = secondaryOam.buffer.asUint32List();
   final Uint8List palette = Uint8List(0x20);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
   final Uint32List _paletteLut = Uint32List(0x20);
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
+  final List<Uint8List?> _ppuBlocks = List<Uint8List?>.filled(
+    _ppuBlockCount,
+    null,
+  );
 
   bool _showBackground = false;
   bool _showSprites = false;
@@ -353,6 +361,7 @@ class PPU {
     oam.fillRange(0, oam.length, 0);
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
+    _ppuBlocks.fillRange(0, _ppuBlocks.length, null);
 
     _pixelBase = 0;
 
@@ -378,7 +387,17 @@ class PPU {
       _updateBusAddress(address);
     }
 
-    return bus.ppuRead(address);
+    final maskedAddress = address & 0x3fff;
+
+    if (maskedAddress < 0x3f00) {
+      final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
+
+      if (source != null) {
+        return source[maskedAddress & _ppuBlockMask];
+      }
+    }
+
+    return bus.ppuRead(maskedAddress);
   }
 
   void writePpuMemory(int address, int value, {bool updateBusAddress = true}) {
@@ -1111,4 +1130,11 @@ class PPU {
     };
   }
 
+  void updatePpuMapping(int block, Uint8List? source) {
+    if (block < 0 || block >= _ppuBlocks.length) {
+      return;
+    }
+
+    _ppuBlocks[block] = source;
+  }
 }
