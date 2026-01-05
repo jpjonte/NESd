@@ -354,6 +354,8 @@ abstract class Mapper {
               access: resolvedAccess,
             )
           : null;
+
+      bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
     }
   }
 }
