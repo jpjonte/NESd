@@ -150,6 +150,8 @@ class PPU {
   final Uint8List ram = Uint8List(0x0800);
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
+  late final Uint32List _secondaryOamWords =
+      secondaryOam.buffer.asUint32List();
   final Uint8List palette = Uint8List(0x20);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
@@ -197,6 +199,8 @@ class PPU {
 
   int spriteCount = 0;
   int secondarySpriteCount = 0;
+
+  int _spriteRangeMinY = 0;
 
   bool sprite0OnNextLine = false;
   bool sprite0OnCurrentLine = false;
@@ -913,118 +917,117 @@ class PPU {
   }
 
   void _evaluateSprites() {
-    _clearSecondaryOam();
-
-    _handleCopyToSecondaryOam();
-
-    _handleSpriteOutput();
-
-    _handleSprite0();
-  }
-
-  void _clearSecondaryOam() {
     if (cycle >= 1 && cycle <= 64) {
-      secondaryOam[currentX >> 1] = 0xff;
-    }
-  }
-
-  void _handleCopyToSecondaryOam() {
-    if (cycle < 65 || cycle > 256) {
-      return;
-    }
-
-    if (cycle == 65) {
-      oamAddress = OAMADDR;
-      secondarySpriteCount = 0;
-      oamBuffer = 0;
-    }
-
-    if (cycle.isOdd) {
-      // read from OAM
-      oamBuffer = oam[oamAddress & 0xff];
-
-      return;
-    }
-
-    // don't write to secondary OAM if it is full
-    if (oamAddress > 252) {
-      return;
-    }
-
-    final y = oamBuffer;
-
-    final spriteSize = PPUCTRL_H == 0 ? 8 : 16;
-
-    if (secondarySpriteCount < 8) {
-      if (scanline >= y && scanline < y + spriteSize) {
-        if (oamAddress == 0) {
-          sprite0OnNextLine = true;
-        }
-
-        final base = secondarySpriteCount * 4;
-
-        secondaryOam[base] = y;
-        secondaryOam[base + 1] = oam[oamAddress + 1];
-        secondaryOam[base + 2] = oam[oamAddress + 2];
-        secondaryOam[base + 3] = oam[oamAddress + 3];
-
-        secondarySpriteCount++;
+      if (cycle.isOdd) {
+        secondaryOam[currentX >> 1] = 0xff;
       }
 
-      oamAddress += 4;
-
-      return;
-    }
-    // from here on, secondarySpriteCount must >= 8
-
-    if (scanline >= y && scanline < y + spriteSize) {
-      PPUSTATUS_O = 1; // set overflow flag
-
-      oamAddress += 4;
-
       return;
     }
 
-    // if this looks like a bug, that's because it is -
-    // it's present on real hardware as well
-    oamAddress += 5;
+    if (cycle >= 65 && cycle <= 256) {
+      if (cycle == 65) {
+        oamAddress = OAMADDR;
+        secondarySpriteCount = 0;
+        oamBuffer = 0;
+        _resetSpriteEvaluationRange();
+      }
+
+      if (cycle.isOdd) {
+        oamBuffer = oam[oamAddress & 0xff];
+
+        return;
+      }
+
+      if (oamAddress > 252) {
+        return;
+      }
+
+      final spriteY = oamBuffer;
+      final inRange = _spriteVisibleOnScanline(spriteY);
+
+      if (secondarySpriteCount < 8) {
+        if (inRange) {
+          if (oamAddress == 0) {
+            sprite0OnNextLine = true;
+          }
+
+          final srcBase = oamAddress & 0xff;
+          final tile = oam[srcBase + 1];
+          final attribute = oam[srcBase + 2];
+          final x = oam[srcBase + 3];
+          final packed = spriteY | (tile << 8) | (attribute << 16) | (x << 24);
+
+          _secondaryOamWords[secondarySpriteCount] = packed;
+
+          secondarySpriteCount++;
+        }
+
+        oamAddress += 4;
+
+        return;
+      }
+
+      if (inRange) {
+        PPUSTATUS_O = 1;
+        oamAddress += 4;
+      } else {
+        oamAddress += 5;
+      }
+
+      return;
+    }
+
+    if (cycle >= 257 && cycle <= 320) {
+      if (cycle == 257) {
+        spriteCount = secondarySpriteCount;
+      }
+
+      final subcycle = cycle - 257;
+      final sprite = subcycle >> 3;
+      final offset = subcycle & 0x7;
+      final spriteWord = _secondaryOamWords[sprite];
+
+      switch (offset) {
+        case 0:
+          readPpuMemory(_nametableAddress());
+        case 2:
+          readPpuMemory(_attributeAddress());
+
+          _spriteOutputs[sprite].attribute = (spriteWord >> 16) & 0xff;
+        case 3:
+          _spriteOutputs[sprite].x = spriteWord >> 24;
+        case 4:
+          _loadSprite(sprite);
+      }
+
+      return;
+    }
+
+    if (cycle == 328) {
+      sprite0OnCurrentLine = sprite0OnNextLine;
+      sprite0OnNextLine = false;
+    }
   }
 
-  void _handleSpriteOutput() {
-    if (cycle < 257 || cycle > 320) {
-      return;
-    }
+  void _resetSpriteEvaluationRange() {
+    final spriteHeight = PPUCTRL_H == 0 ? 8 : 16;
 
-    if (cycle == 257) {
-      spriteCount = secondarySpriteCount;
-    }
+    _spriteRangeMinY = scanline - spriteHeight + 1;
+  }
 
-    final subcycle = cycle - 257;
-    final sprite = subcycle ~/ 8;
-    final offset = subcycle % 8;
-
-    switch (offset) {
-      case 0:
-        readPpuMemory(_nametableAddress());
-      case 2:
-        readPpuMemory(_attributeAddress());
-
-        _spriteOutputs[sprite].attribute = secondaryOam[sprite * 4 + 2];
-      case 3:
-        _spriteOutputs[sprite].x = secondaryOam[sprite * 4 + 3];
-      case 4:
-        _loadSprite(sprite);
-    }
+  bool _spriteVisibleOnScanline(int spriteY) {
+    return spriteY <= scanline && spriteY >= _spriteRangeMinY;
   }
 
   void _loadSprite(int sprite) {
     final bigSprites = PPUCTRL_H == 1;
-
-    final tileIndex = secondaryOam[sprite * 4 + 1];
+    final spriteWord = _secondaryOamWords[sprite];
+    final tileIndex = (spriteWord >> 8) & 0xff;
     final attribute = _spriteOutputs[sprite].attribute;
     final flipV = (attribute >> 7) > 0;
 
-    final y = secondaryOam[sprite * 4];
+    final y = spriteWord & 0xff;
     final yOffset = scanline - y;
     final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
 
@@ -1108,10 +1111,4 @@ class PPU {
     };
   }
 
-  void _handleSprite0() {
-    if (cycle == 328) {
-      sprite0OnCurrentLine = sprite0OnNextLine;
-      sprite0OnNextLine = false;
-    }
-  }
 }
