@@ -455,39 +455,74 @@ class PPU {
   }
 
   void step() {
+    if (scanline < 240) {
+      _stepVisibleScanline();
+    } else if (scanline == _preRenderScanline) {
+      _stepPreRenderScanline();
+    } else if (scanline == 241) {
+      _stepVblankLine();
+    }
+    // Idle scanlines 242-260: just update counters
+
+    _updateCounters();
+  }
+
+  @pragma('vm:prefer-inline')
+  void _stepVisibleScanline() {
     final renderingActive = _showBackground || _showSprites;
-    final visibleLine = scanline < 240;
-    final preRenderLine = scanline == _preRenderScanline;
-    final vblankLine = scanline == 241;
-    final renderingLine = renderingActive && (visibleLine || preRenderLine);
 
-    if (renderingLine) {
-      final renderPixel = visibleLine && cycle >= 1 && cycle <= 256;
-      final fetchCycle =
-          (cycle >= 1 && cycle <= 256) || (cycle >= 321 && cycle <= 336);
+    // Sprite evaluation always runs on visible lines
+    _evaluateSprites();
 
-      if (renderPixel) {
+    if (renderingActive) {
+      // Pixel rendering at cycles 1-256
+      if (cycle >= 1 && cycle <= 256) {
         _renderPixel();
+        _shiftRegisters();
+        _stepFetchCycle();
+      } else if (cycle >= 321 && cycle <= 336) {
+        // Pre-fetch for next scanline
+        _shiftRegisters();
+        _stepFetchCycle();
       }
 
-      if (fetchCycle) {
+      if (cycle == 256) {
+        _incrementY();
+      }
+
+      if (cycle == 257) {
+        _copyHorizontalBits();
+      }
+    }
+
+    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
+    if (cycle >= 257 && cycle <= 320) {
+      OAMADDR = 0x0000;
+    }
+
+    // Nametable reads at cycles 337, 339 (regardless of rendering)
+    if (cycle == 337 || cycle == 339) {
+      readPpuMemory(_nametableAddress());
+    }
+
+    // Cycle 0 bus address update
+    if (cycle == 0 && renderingActive && (scanline > 0 || (frames & 1) == 0)) {
+      _updateBusAddress(_nametableAddress());
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _stepPreRenderScanline() {
+    final renderingActive = _showBackground || _showSprites;
+
+    if (renderingActive) {
+      // Fetch cycles (no pixel rendering on pre-render line)
+      if (cycle >= 1 && cycle <= 256) {
         _shiftRegisters();
-
-        final subcycle = cycle & 7;
-
-        switch (subcycle) {
-          case 0:
-            _loadShiftRegisters();
-            _incrementX();
-          case 1:
-            _fetchNametable();
-          case 3:
-            _fetchAttributeTable();
-          case 5:
-            _fetchPatternTableLow();
-          case 7:
-            _fetchPatternTableHigh();
-        }
+        _stepFetchCycle();
+      } else if (cycle >= 321 && cycle <= 336) {
+        _shiftRegisters();
+        _stepFetchCycle();
       }
 
       if (cycle == 256) {
@@ -498,24 +533,36 @@ class PPU {
         _copyHorizontalBits();
       }
 
-      if (preRenderLine && cycle >= 280 && cycle <= 304) {
+      // Copy vertical bits at cycles 280-304
+      if (cycle >= 280 && cycle <= 304) {
         _copyVerticalBits();
       }
     }
 
-    if ((visibleLine || preRenderLine) && (cycle == 337 || cycle == 339)) {
-      readPpuMemory(_nametableAddress());
-    }
-
-    if (visibleLine) {
-      _evaluateSprites();
-    }
-
-    if ((visibleLine || preRenderLine) && cycle >= 257 && cycle <= 320) {
+    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
+    if (cycle >= 257 && cycle <= 320) {
       OAMADDR = 0x0000;
     }
 
-    if (vblankLine && cycle == 1) {
+    // Nametable reads at cycles 337, 339 (regardless of rendering)
+    if (cycle == 337 || cycle == 339) {
+      readPpuMemory(_nametableAddress());
+    }
+
+    // Clear status flags at cycle 1
+    if (cycle == 1) {
+      PPUSTATUS_O = 0;
+      PPUSTATUS_S = 0;
+      PPUSTATUS_V = 0;
+
+      bus.clearNmi();
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _stepVblankLine() {
+    // Set vblank flag and trigger NMI at cycle 1
+    if (cycle == 1) {
       PPUSTATUS_V = 1;
 
       spriteCount = 0;
@@ -526,23 +573,29 @@ class PPU {
       }
     }
 
-    if (preRenderLine && cycle == 1) {
-      PPUSTATUS_O = 0;
-      PPUSTATUS_S = 0;
-      PPUSTATUS_V = 0;
-
-      bus.clearNmi();
-    }
-
+    // Cycle 0 bus address update
     if (cycle == 0) {
-      if (visibleLine && renderingActive && (scanline > 0 || frames.isEven)) {
-        _updateBusAddress(_nametableAddress());
-      } else if (vblankLine) {
-        _updateBusAddress(v & 0x3fff);
-      }
+      _updateBusAddress(v & 0x3fff);
     }
+  }
 
-    _updateCounters();
+  @pragma('vm:prefer-inline')
+  void _stepFetchCycle() {
+    final subcycle = cycle & 7;
+
+    switch (subcycle) {
+      case 0:
+        _loadShiftRegisters();
+        _incrementX();
+      case 1:
+        _fetchNametable();
+      case 3:
+        _fetchAttributeTable();
+      case 5:
+        _fetchPatternTableLow();
+      case 7:
+        _fetchPatternTableHigh();
+    }
   }
 
   int _readPPUSTATUS({bool disableSideEffects = false}) {
