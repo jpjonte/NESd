@@ -66,6 +66,7 @@ class FrameBuffer {
     pixels32[index] = _packColor(color);
   }
 
+  @pragma('vm:prefer-inline')
   void setPixelWithBase(int base, int x, int color) {
     pixels32[base + x] = color;
   }

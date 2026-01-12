@@ -93,6 +93,7 @@ class NoiseChannel {
     envelope.start = true;
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
     if (timer > 0) {
       timer--;
@@ -106,6 +107,7 @@ class NoiseChannel {
     }
   }
 
+  @pragma('vm:prefer-inline')
   int get output {
     if (!enabled) {
       return 0;
