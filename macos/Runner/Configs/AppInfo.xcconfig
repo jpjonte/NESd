@@ -11,4 +11,4 @@ PRODUCT_NAME = NESd
 PRODUCT_BUNDLE_IDENTIFIER = dev.jpj.nesd
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 John Paul Jonte. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2024-2026 John Paul Jonte. All rights reserved.
