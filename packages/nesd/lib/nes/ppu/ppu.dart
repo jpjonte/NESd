@@ -835,23 +835,24 @@ class PPU {
       return 0;
     }
 
+    // patternShift ranges from 8-15 (since x is 0-7), so patternShift-1 is always safe
     final patternShift = 15 - x;
 
-    final patternHigh = (patternTableHighShift >> patternShift) & 0x1;
-    final patternLow = (patternTableLowShift >> patternShift) & 0x1;
-
-    final pattern = patternHigh << 1 | patternLow;
+    // Combine bit extractions: extract high bit directly to position 1, low bit to position 0
+    final pattern = ((patternTableHighShift >> (patternShift - 1)) & 0x2) |
+        ((patternTableLowShift >> patternShift) & 0x1);
 
     if (pattern == 0) {
       return 0;
     }
 
+    // attributeShift ranges from 0-7, so we can't use the same optimization
     final attributeShift = 7 - x;
 
-    final paletteIndexHigh = (attributeTableHighShift >> attributeShift) & 0x1;
-    final paletteIndexLow = (attributeTableLowShift >> attributeShift) & 0x1;
-
-    return paletteIndexHigh << 3 | paletteIndexLow << 2 | pattern;
+    // Combine palette index extraction and final result in one expression
+    return ((attributeTableHighShift >> attributeShift) & 0x1) << 3 |
+        ((attributeTableLowShift >> attributeShift) & 0x1) << 2 |
+        pattern;
   }
 
   @pragma('vm:prefer-inline')
