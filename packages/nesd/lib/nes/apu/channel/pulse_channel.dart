@@ -113,6 +113,7 @@ class PulseChannel {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
     if (timer > 0) {
       timer--;
@@ -122,6 +123,7 @@ class PulseChannel {
     }
   }
 
+  @pragma('vm:prefer-inline')
   int get output {
     if (!enabled) {
       return 0;

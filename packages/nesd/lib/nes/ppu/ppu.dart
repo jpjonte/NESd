@@ -382,6 +382,7 @@ class PPU {
     return frameBuffer.getPixelBrightness(x, y);
   }
 
+  @pragma('vm:prefer-inline')
   int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
@@ -656,6 +657,7 @@ class PPU {
     v += PPUCTRL_I == 0 ? 1 : 32;
   }
 
+  @pragma('vm:prefer-inline')
   void _updateCounters() {
     consoleCycles += _consoleCyclesPerCycle;
     cycles++;
@@ -686,6 +688,7 @@ class PPU {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _loadShiftRegisters() {
     patternTableHighShift &= ~0xFF;
     patternTableHighShift |= patternTableHighLatch;
@@ -696,6 +699,7 @@ class PPU {
     attribute = attributeTableLatch;
   }
 
+  @pragma('vm:prefer-inline')
   void _renderPixel() {
     final color = _getPixelColor();
 
@@ -730,6 +734,7 @@ class PPU {
     return 0xff000000 | (blue << 16) | (green << 8) | red;
   }
 
+  @pragma('vm:prefer-inline')
   int _getPixelColor() {
     if (!_showBackground && !_showSprites) {
       return 0;
@@ -767,6 +772,7 @@ class PPU {
     return spriteColorValue;
   }
 
+  @pragma('vm:prefer-inline')
   int _getBackgroundPixelColor() {
     if (!_showBackground) {
       return 0;
@@ -795,6 +801,7 @@ class PPU {
     return paletteIndexHigh << 3 | paletteIndexLow << 2 | pattern;
   }
 
+  @pragma('vm:prefer-inline')
   int _getSpritePixelColor(int backgroundColor) {
     if (!_showLeftSprites && currentX < 8) {
       return 0;
@@ -840,6 +847,7 @@ class PPU {
     return 0;
   }
 
+  @pragma('vm:prefer-inline')
   void _shiftRegisters() {
     patternTableHighShift <<= 1;
     patternTableLowShift <<= 1;
@@ -851,14 +859,26 @@ class PPU {
     attributeTableLowShift |= attribute & 1;
   }
 
+  @pragma('vm:prefer-inline')
   void _fetchNametable() {
     nametableLatch = readPpuMemory(_nametableAddress());
   }
 
-  int _nametableAddress() => 0x2000 | v_nametable << 10 | v_coarseScroll;
+  @pragma('vm:prefer-inline')
+  int _nametableAddress() => 0x2000 | ((v >> 10) & 0x3) << 10 | (v & 0x3ff);
 
+  @pragma('vm:prefer-inline')
   void _fetchAttributeTable() {
-    final address = _attributeAddress();
+    // Cache getter values locally to avoid repeated computation
+    final coarseX = v & 0x1F;
+    final coarseY = (v >> 5) & 0x1F;
+    final nametable = (v >> 10) & 0x3;
+
+    final address =
+        0x23c0 |
+        (nametable << 10) |
+        ((coarseY & 0x1C) << 1) |
+        ((coarseX & 0x1C) >> 2);
 
     final value = readPpuMemory(address);
 
@@ -869,11 +889,12 @@ class PPU {
 
     // result is 0, 2, 4, or 6
     // this is the location of the low bit of the quadrant in the fetched byte
-    final quadrantShift = ((v_coarseY & 0x2) << 1) | (v_coarseX & 0x2);
+    final quadrantShift = ((coarseY & 0x2) << 1) | (coarseX & 0x2);
 
     attributeTableLatch = (value >> quadrantShift) & 0x03;
   }
 
+  @pragma('vm:prefer-inline')
   int _attributeAddress() {
     final address =
         0x23c0 |
@@ -884,18 +905,23 @@ class PPU {
     return address;
   }
 
+  @pragma('vm:prefer-inline')
   void _fetchPatternTableLow() {
-    final address = _bgPatternBase | (nametableLatch << 4) | v_fineY;
+    final fineY = (v >> 12) & 0x7;
+    final address = _bgPatternBase | (nametableLatch << 4) | fineY;
 
     patternTableLowLatch = readPpuMemory(address);
   }
 
+  @pragma('vm:prefer-inline')
   void _fetchPatternTableHigh() {
-    final address = _bgPatternBase | (nametableLatch << 4) | (v_fineY + 8);
+    final fineY = (v >> 12) & 0x7;
+    final address = _bgPatternBase | (nametableLatch << 4) | (fineY + 8);
 
     patternTableHighLatch = readPpuMemory(address);
   }
 
+  @pragma('vm:prefer-inline')
   void _incrementX() {
     if (v_coarseX == 31) {
       v_coarseX = 0;
@@ -905,6 +931,7 @@ class PPU {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _incrementY() {
     if (v_fineY < 7) {
       v_fineY++;
@@ -924,11 +951,13 @@ class PPU {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _copyHorizontalBits() {
     v_coarseX = t_coarseX;
     v_nametableX = t_nametableX;
   }
 
+  @pragma('vm:prefer-inline')
   void _copyVerticalBits() {
     v_coarseY = t_coarseY;
     v_fineY = t_fineY;

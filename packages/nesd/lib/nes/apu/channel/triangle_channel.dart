@@ -93,6 +93,7 @@ class TriangleChannel {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
     if (timerPeriod < 2 && timer == 0) {
       return;
@@ -114,6 +115,7 @@ class TriangleChannel {
     }
   }
 
+  @pragma('vm:prefer-inline')
   int get output {
     if (!enabled) {
       return 0;

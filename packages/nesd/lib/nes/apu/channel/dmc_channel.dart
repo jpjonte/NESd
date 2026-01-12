@@ -108,6 +108,7 @@ class DMCChannel {
     length = 0;
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
     if (timer > 0) {
       timer--;
@@ -144,6 +145,7 @@ class DMCChannel {
     length = sampleLength;
   }
 
+  @pragma('vm:prefer-inline')
   int get output => level;
 
   int get status => length > 0 ? 1 : 0;

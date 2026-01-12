@@ -183,6 +183,7 @@ class APU {
     dmc.reset();
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
     // triangle and DMC are stepped every CPU cycle
     triangle.step();
@@ -222,6 +223,7 @@ class APU {
     bus.clearIrq(IrqSource.apuDmc);
   }
 
+  @pragma('vm:prefer-inline')
   void _handleSampling() {
     _gatherSamples();
 
@@ -235,6 +237,7 @@ class APU {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _gatherSamples() {
     _pulse1Samples += pulse1.output;
     _pulse2Samples += pulse2.output;
