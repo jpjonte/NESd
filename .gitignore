@@ -23,6 +23,9 @@ devtools_options.yaml
 # FVM Version Cache
 .fvm/
 
+
+bin/perf/results/*
+
 roms/
 !roms/test/nestest/nestest.nes
 !roms/test/cpu_timing_test6/cpu_timing_test.nes
