@@ -1,0 +1,11 @@
+name: nesd_perf_tools
+publish_to: none
+
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+
+resolution: workspace
+
+dependencies:
+  nesd: any
+  path: ^1.9.1
