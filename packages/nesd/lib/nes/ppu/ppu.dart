@@ -506,7 +506,7 @@ class PPU {
     }
 
     // Cycle 0 bus address update
-    if (cycle == 0 && renderingActive && (scanline > 0 || (frames & 1) == 0)) {
+    if (cycle == 0 && renderingActive && (scanline > 0 || frames.isEven)) {
       _updateBusAddress(_nametableAddress());
     }
   }
@@ -835,11 +835,14 @@ class PPU {
       return 0;
     }
 
-    // patternShift ranges from 8-15 (since x is 0-7), so patternShift-1 is always safe
+    // patternShift ranges from 8-15 (since x is 0-7),
+    // so patternShift-1 is always safe
     final patternShift = 15 - x;
 
-    // Combine bit extractions: extract high bit directly to position 1, low bit to position 0
-    final pattern = ((patternTableHighShift >> (patternShift - 1)) & 0x2) |
+    // Combine bit extractions: extract high bit to position 1,
+    // low bit to position 0
+    final pattern =
+        ((patternTableHighShift >> (patternShift - 1)) & 0x2) |
         ((patternTableLowShift >> patternShift) & 0x1);
 
     if (pattern == 0) {
@@ -1018,97 +1021,107 @@ class PPU {
     v_nametableY = t_nametableY;
   }
 
+  @pragma('vm:prefer-inline')
   void _evaluateSprites() {
-    if (cycle >= 1 && cycle <= 64) {
-      if (cycle.isOdd) {
-        secondaryOam[currentX >> 1] = 0xff;
+    // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch, 328 flag
+    if (cycle <= 64) {
+      if (cycle >= 1) {
+        _clearSecondaryOam();
       }
-
-      return;
-    }
-
-    if (cycle >= 65 && cycle <= 256) {
-      if (cycle == 65) {
-        oamAddress = OAMADDR;
-        secondarySpriteCount = 0;
-        oamBuffer = 0;
-        _resetSpriteEvaluationRange();
-      }
-
-      if (cycle.isOdd) {
-        oamBuffer = oam[oamAddress & 0xff];
-
-        return;
-      }
-
-      if (oamAddress > 252) {
-        return;
-      }
-
-      final spriteY = oamBuffer;
-      final inRange = _spriteVisibleOnScanline(spriteY);
-
-      if (secondarySpriteCount < 8) {
-        if (inRange) {
-          if (oamAddress == 0) {
-            sprite0OnNextLine = true;
-          }
-
-          final srcBase = oamAddress & 0xff;
-          final tile = oam[srcBase + 1];
-          final attribute = oam[srcBase + 2];
-          final x = oam[srcBase + 3];
-          final packed = spriteY | (tile << 8) | (attribute << 16) | (x << 24);
-
-          _secondaryOamWords[secondarySpriteCount] = packed;
-
-          secondarySpriteCount++;
-        }
-
-        oamAddress += 4;
-
-        return;
-      }
-
-      if (inRange) {
-        PPUSTATUS_O = 1;
-        oamAddress += 4;
-      } else {
-        oamAddress += 5;
-      }
-
-      return;
-    }
-
-    if (cycle >= 257 && cycle <= 320) {
-      if (cycle == 257) {
-        spriteCount = secondarySpriteCount;
-      }
-
-      final subcycle = cycle - 257;
-      final sprite = subcycle >> 3;
-      final offset = subcycle & 0x7;
-      final spriteWord = _secondaryOamWords[sprite];
-
-      switch (offset) {
-        case 0:
-          readPpuMemory(_nametableAddress());
-        case 2:
-          readPpuMemory(_attributeAddress());
-
-          _spriteOutputs[sprite].attribute = (spriteWord >> 16) & 0xff;
-        case 3:
-          _spriteOutputs[sprite].x = spriteWord >> 24;
-        case 4:
-          _loadSprite(sprite);
-      }
-
-      return;
-    }
-
-    if (cycle == 328) {
+    } else if (cycle <= 256) {
+      _evaluateSpriteRange();
+    } else if (cycle <= 320) {
+      _fetchSprites();
+    } else if (cycle == 328) {
       sprite0OnCurrentLine = sprite0OnNextLine;
       sprite0OnNextLine = false;
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _clearSecondaryOam() {
+    // Cycles 1-64: Clear secondary OAM on odd cycles
+    if (cycle.isOdd) {
+      secondaryOam[currentX >> 1] = 0xff;
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _evaluateSpriteRange() {
+    // Cycles 65-256: Sprite evaluation
+    if (cycle == 65) {
+      oamAddress = OAMADDR;
+      secondarySpriteCount = 0;
+      oamBuffer = 0;
+      _resetSpriteEvaluationRange();
+    }
+
+    if (cycle.isOdd) {
+      oamBuffer = oam[oamAddress & 0xff];
+
+      return;
+    }
+
+    if (oamAddress > 252) {
+      return;
+    }
+
+    final spriteY = oamBuffer;
+    final inRange = _spriteVisibleOnScanline(spriteY);
+
+    if (secondarySpriteCount < 8) {
+      if (inRange) {
+        if (oamAddress == 0) {
+          sprite0OnNextLine = true;
+        }
+
+        final srcBase = oamAddress & 0xff;
+        final tile = oam[srcBase + 1];
+        final attribute = oam[srcBase + 2];
+        final x = oam[srcBase + 3];
+        final packed = spriteY | (tile << 8) | (attribute << 16) | (x << 24);
+
+        _secondaryOamWords[secondarySpriteCount] = packed;
+
+        secondarySpriteCount++;
+      }
+
+      oamAddress += 4;
+
+      return;
+    }
+
+    if (inRange) {
+      PPUSTATUS_O = 1;
+      oamAddress += 4;
+    } else {
+      oamAddress += 5;
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _fetchSprites() {
+    // Cycles 257-320: Sprite fetch
+    if (cycle == 257) {
+      spriteCount = secondarySpriteCount;
+    }
+
+    final subcycle = cycle - 257;
+    final sprite = subcycle >> 3;
+    final offset = subcycle & 0x7;
+    final spriteWord = _secondaryOamWords[sprite];
+
+    switch (offset) {
+      case 0:
+        readPpuMemory(_nametableAddress());
+      case 2:
+        readPpuMemory(_attributeAddress());
+
+        _spriteOutputs[sprite].attribute = (spriteWord >> 16) & 0xff;
+      case 3:
+        _spriteOutputs[sprite].x = spriteWord >> 24;
+      case 4:
+        _loadSprite(sprite);
     }
   }
 
