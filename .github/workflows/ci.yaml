@@ -31,7 +31,7 @@ jobs:
           flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
       - uses: hrishikesh-kadam/setup-lcov@v1
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           key: lcov
           path: |
@@ -108,7 +108,7 @@ jobs:
           cache: true
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/linux/build.sh
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v5
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
@@ -174,7 +174,7 @@ jobs:
       - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
@@ -195,7 +195,7 @@ jobs:
       - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
@@ -224,7 +224,7 @@ jobs:
           sudo dnf install -y yq jq
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
@@ -264,11 +264,11 @@ jobs:
           name: ${{ steps.env.outputs.artifact }}.linux-${{ matrix.arch }}.flatpak
           path: '*.flatpak'
           if-no-files-found: error
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v5
         with:
           path: flatpak/stable
           key: flatpak-stable-${{ github.sha }}
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v5
         with:
           path: flatpak/nightly
           key: flatpak-nightly-${{ github.sha }}
@@ -283,7 +283,7 @@ jobs:
       - uses: actions/checkout@v6
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
@@ -315,7 +315,7 @@ jobs:
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: flatpak/nightly
           key: flatpak-nightly-${{ github.sha }}
@@ -370,7 +370,7 @@ jobs:
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: flatpak/stable
           key: flatpak-stable-${{ github.sha }}
