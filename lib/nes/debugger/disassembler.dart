@@ -101,10 +101,6 @@ class Disassembler implements DisassemblerInterface {
 
     final op = ops[opcode];
 
-    if (op == null) {
-      return null;
-    }
-
     final operandCount = op.addressMode.operandCount;
 
     final operands = List.generate(

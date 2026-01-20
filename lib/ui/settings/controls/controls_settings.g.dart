@@ -10,11 +10,11 @@ part of 'controls_settings.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(maxIndex)
-const maxIndexProvider = MaxIndexProvider._();
+final maxIndexProvider = MaxIndexProvider._();
 
 final class MaxIndexProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
-  const MaxIndexProvider._()
+  MaxIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,10 +50,10 @@ final class MaxIndexProvider extends $FunctionalProvider<int, int, int>
 String _$maxIndexHash() => r'eb1f948d0c86a333e6e6949cbcfc609dd607c24c';
 
 @ProviderFor(ProfileIndex)
-const profileIndexProvider = ProfileIndexProvider._();
+final profileIndexProvider = ProfileIndexProvider._();
 
 final class ProfileIndexProvider extends $NotifierProvider<ProfileIndex, int> {
-  const ProfileIndexProvider._()
+  ProfileIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -87,7 +87,6 @@ abstract class _$ProfileIndex extends $Notifier<int> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -97,6 +96,6 @@ abstract class _$ProfileIndex extends $Notifier<int> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

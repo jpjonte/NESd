@@ -1,9 +1,12 @@
+import 'dart:collection';
+
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 
 class FrameBuffer {
   FrameBuffer({required this.width, required this.height})
-    : pixels = Uint8List(height * width * 4);
+    : size = width * height * 4,
+      pixels = Uint8List(width * height * 4);
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
@@ -21,7 +24,16 @@ class FrameBuffer {
 
   final int width;
   final int height;
-  final Uint8List pixels;
+  final int size;
+
+  Uint8List pixels;
+
+  final Queue<Uint8List> _ready = Queue<Uint8List>();
+  final List<Uint8List> _available = <Uint8List>[];
+  final Set<Uint8List> _inUse = <Uint8List>{};
+
+  static const int _maxAvailable = 2;
+  static const int _maxQueued = 2;
 
   int getPixelBrightness(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
@@ -58,6 +70,8 @@ class FrameBuffer {
   }
 
   void setPixels(Uint8List pixels) {
+    resetBuffers();
+
     this.pixels.setAll(0, pixels);
   }
 
@@ -67,5 +81,47 @@ class FrameBuffer {
       ..set(uint32, width)
       ..set(uint32, height)
       ..set(uint8List(lengthType: uint32), pixels);
+  }
+
+  void swap() {
+    while (_ready.length >= _maxQueued) {
+      final dropped = _ready.removeFirst();
+
+      if (_available.length < _maxAvailable) {
+        _available.add(dropped);
+      }
+    }
+
+    _ready.add(pixels);
+
+    pixels = _available.isNotEmpty ? _available.removeLast() : Uint8List(size);
+  }
+
+  Uint8List? takeReadyBuffer() {
+    if (_ready.isEmpty) {
+      return null;
+    }
+
+    final buffer = _ready.removeFirst();
+
+    _inUse.add(buffer);
+
+    return buffer;
+  }
+
+  void releaseDisplayBuffer(Uint8List buffer) {
+    if (!_inUse.remove(buffer)) {
+      return;
+    }
+
+    if (_available.length < _maxAvailable) {
+      _available.add(buffer);
+    }
+  }
+
+  void resetBuffers() {
+    _ready.clear();
+    _inUse.clear();
+    _available.clear();
   }
 }

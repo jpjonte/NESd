@@ -17,7 +17,7 @@ class AboutDialog extends ConsumerWidget {
       data: theme.copyWith(textTheme: _updateTextTheme(theme)),
       child: material.AboutDialog(
         applicationVersion: packageInfo.version,
-        applicationLegalese: '© 2024 - 2025 John Paul Jonte',
+        applicationLegalese: '© 2024-2026 John Paul Jonte',
         applicationIcon: Image.asset(
           'assets/logo.png',
           width: 128,

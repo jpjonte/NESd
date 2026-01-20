@@ -10,7 +10,7 @@ part of 'binder_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(binderController)
-const binderControllerProvider = BinderControllerFamily._();
+final binderControllerProvider = BinderControllerFamily._();
 
 final class BinderControllerProvider
     extends
@@ -20,7 +20,7 @@ final class BinderControllerProvider
           BinderController
         >
     with $Provider<BinderController> {
-  const BinderControllerProvider._({
+  BinderControllerProvider._({
     required BinderControllerFamily super.from,
     required InputAction super.argument,
   }) : super(
@@ -75,7 +75,7 @@ String _$binderControllerHash() => r'681df25cb9b4b5848f9196c8fb6c7ec6441a978c';
 
 final class BinderControllerFamily extends $Family
     with $FunctionalFamilyOverride<BinderController, InputAction> {
-  const BinderControllerFamily._()
+  BinderControllerFamily._()
     : super(
         retry: null,
         name: r'binderControllerProvider',

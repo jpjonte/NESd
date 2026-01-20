@@ -10,7 +10,7 @@ part of 'gamepad_input_handler.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(gamepadInputHandler)
-const gamepadInputHandlerProvider = GamepadInputHandlerProvider._();
+final gamepadInputHandlerProvider = GamepadInputHandlerProvider._();
 
 final class GamepadInputHandlerProvider
     extends
@@ -20,7 +20,7 @@ final class GamepadInputHandlerProvider
           GamepadInputHandler
         >
     with $Provider<GamepadInputHandler> {
-  const GamepadInputHandlerProvider._()
+  GamepadInputHandlerProvider._()
     : super(
         from: null,
         argument: null,

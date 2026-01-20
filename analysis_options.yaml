@@ -81,8 +81,6 @@ linter:
     unnecessary_string_interpolations: true
 
 dart_code_metrics:
-  extends:
-    - recommended
   rules:
     - no-boolean-literal-compare
     - no-empty-block: false

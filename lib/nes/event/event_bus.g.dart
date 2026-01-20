@@ -10,12 +10,12 @@ part of 'event_bus.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(eventBus)
-const eventBusProvider = EventBusProvider._();
+final eventBusProvider = EventBusProvider._();
 
 final class EventBusProvider
     extends $FunctionalProvider<EventBus, EventBus, EventBus>
     with $Provider<EventBus> {
-  const EventBusProvider._()
+  EventBusProvider._()
     : super(
         from: null,
         argument: null,

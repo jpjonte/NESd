@@ -10,11 +10,11 @@ part of 'debug_overlay.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(DebugOverlayStateNotifier)
-const debugOverlayStateProvider = DebugOverlayStateNotifierProvider._();
+final debugOverlayStateProvider = DebugOverlayStateNotifierProvider._();
 
 final class DebugOverlayStateNotifierProvider
     extends $NotifierProvider<DebugOverlayStateNotifier, DebugOverlayState> {
-  const DebugOverlayStateNotifierProvider._()
+  DebugOverlayStateNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,7 +50,6 @@ abstract class _$DebugOverlayStateNotifier
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<DebugOverlayState, DebugOverlayState>;
     final element =
         ref.element
@@ -60,12 +59,12 @@ abstract class _$DebugOverlayStateNotifier
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(debugOverlayController)
-const debugOverlayControllerProvider = DebugOverlayControllerProvider._();
+final debugOverlayControllerProvider = DebugOverlayControllerProvider._();
 
 final class DebugOverlayControllerProvider
     extends
@@ -75,7 +74,7 @@ final class DebugOverlayControllerProvider
           DebugOverlayController
         >
     with $Provider<DebugOverlayController> {
-  const DebugOverlayControllerProvider._()
+  DebugOverlayControllerProvider._()
     : super(
         from: null,
         argument: null,

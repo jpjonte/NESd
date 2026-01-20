@@ -10,11 +10,11 @@ part of 'file_picker_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(FilePickerStateNotifier)
-const filePickerStateProvider = FilePickerStateNotifierProvider._();
+final filePickerStateProvider = FilePickerStateNotifierProvider._();
 
 final class FilePickerStateNotifierProvider
     extends $NotifierProvider<FilePickerStateNotifier, FilePickerState> {
-  const FilePickerStateNotifierProvider._()
+  FilePickerStateNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$FilePickerStateNotifier extends $Notifier<FilePickerState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<FilePickerState, FilePickerState>;
     final element =
         ref.element
@@ -59,12 +58,12 @@ abstract class _$FilePickerStateNotifier extends $Notifier<FilePickerState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(filePickerController)
-const filePickerControllerProvider = FilePickerControllerProvider._();
+final filePickerControllerProvider = FilePickerControllerProvider._();
 
 final class FilePickerControllerProvider
     extends
@@ -74,7 +73,7 @@ final class FilePickerControllerProvider
           FilePickerController
         >
     with $Provider<FilePickerController> {
-  const FilePickerControllerProvider._()
+  FilePickerControllerProvider._()
     : super(
         from: null,
         argument: null,

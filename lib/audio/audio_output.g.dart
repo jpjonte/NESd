@@ -10,12 +10,12 @@ part of 'audio_output.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(audioOutput)
-const audioOutputProvider = AudioOutputProvider._();
+final audioOutputProvider = AudioOutputProvider._();
 
 final class AudioOutputProvider
     extends $FunctionalProvider<AudioOutput, AudioOutput, AudioOutput>
     with $Provider<AudioOutput> {
-  const AudioOutputProvider._()
+  AudioOutputProvider._()
     : super(
         from: null,
         argument: null,

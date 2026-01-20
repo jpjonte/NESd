@@ -10,11 +10,11 @@ part of 'touch_editor_state.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TouchEditorStateNotifier)
-const touchEditorStateProvider = TouchEditorStateNotifierProvider._();
+final touchEditorStateProvider = TouchEditorStateNotifierProvider._();
 
 final class TouchEditorStateNotifierProvider
     extends $NotifierProvider<TouchEditorStateNotifier, TouchEditorState> {
-  const TouchEditorStateNotifierProvider._()
+  TouchEditorStateNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$TouchEditorStateNotifier extends $Notifier<TouchEditorState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<TouchEditorState, TouchEditorState>;
     final element =
         ref.element
@@ -59,16 +58,16 @@ abstract class _$TouchEditorStateNotifier extends $Notifier<TouchEditorState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(TouchEditorMoveIndex)
-const touchEditorMoveIndexProvider = TouchEditorMoveIndexProvider._();
+final touchEditorMoveIndexProvider = TouchEditorMoveIndexProvider._();
 
 final class TouchEditorMoveIndexProvider
     extends $NotifierProvider<TouchEditorMoveIndex, int?> {
-  const TouchEditorMoveIndexProvider._()
+  TouchEditorMoveIndexProvider._()
     : super(
         from: null,
         argument: null,
@@ -103,7 +102,6 @@ abstract class _$TouchEditorMoveIndex extends $Notifier<int?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<int?, int?>;
     final element =
         ref.element
@@ -113,6 +111,6 @@ abstract class _$TouchEditorMoveIndex extends $Notifier<int?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

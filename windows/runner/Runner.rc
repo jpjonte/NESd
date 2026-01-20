@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "nesd" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "nesd" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 John Paul Jonte. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 - 2026 John Paul Jonte. All rights reserved." "\0"
             VALUE "OriginalFilename", "nesd.exe" "\0"
             VALUE "ProductName", "nesd" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

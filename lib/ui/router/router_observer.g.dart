@@ -10,11 +10,11 @@ part of 'router_observer.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(RouterObserver)
-const routerObserverProvider = RouterObserverProvider._();
+final routerObserverProvider = RouterObserverProvider._();
 
 final class RouterObserverProvider
     extends $NotifierProvider<RouterObserver, String?> {
-  const RouterObserverProvider._()
+  RouterObserverProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,7 +48,6 @@ abstract class _$RouterObserver extends $Notifier<String?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<String?, String?>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$RouterObserver extends $Notifier<String?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

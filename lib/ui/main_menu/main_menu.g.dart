@@ -10,10 +10,10 @@ part of 'main_menu.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(InitialRom)
-const initialRomProvider = InitialRomProvider._();
+final initialRomProvider = InitialRomProvider._();
 
 final class InitialRomProvider extends $NotifierProvider<InitialRom, String?> {
-  const InitialRomProvider._()
+  InitialRomProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,7 +47,6 @@ abstract class _$InitialRom extends $Notifier<String?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<String?, String?>;
     final element =
         ref.element
@@ -57,6 +56,6 @@ abstract class _$InitialRom extends $Notifier<String?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

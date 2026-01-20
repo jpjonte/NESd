@@ -131,17 +131,10 @@ class PPU {
   int get PPUCTRL_S => (PPUCTRL >> 3) & 1; // sprite pattern table address (8x8)
   int get PPUCTRL_B => (PPUCTRL >> 4) & 1; // background pattern table address
   int get PPUCTRL_H => (PPUCTRL >> 5) & 1; // sprite size
-  int get PPUCTRL_V => (PPUCTRL >> 7) & 1; // enable vblank NMI
-
   int get PPUCTRL_X => PPUCTRL & 1; // scroll X high bit
   int get PPUCTRL_Y => (PPUCTRL >> 1) & 1; // scroll Y high bit
 
   int get PPUMASK_Gr => PPUMASK & 1; // greyscale
-  int get PPUMASK_m =>
-      (PPUMASK >> 1) & 1; // show background in leftmost 8 pixels
-  int get PPUMASK_M => (PPUMASK >> 2) & 1; // show sprites in leftmost 8 pixels
-  int get PPUMASK_b => (PPUMASK >> 3) & 1; // show background
-  int get PPUMASK_s => (PPUMASK >> 4) & 1; // show sprites
   int get PPUMASK_ER => (PPUMASK >> 5) & 1; // emphasize red
   int get PPUMASK_EG => (PPUMASK >> 6) & 1; // emphasize green
   int get PPUMASK_EB => (PPUMASK >> 7) & 1; // emphasize blue
@@ -163,6 +156,12 @@ class PPU {
   final Uint32List _paletteLut = Uint32List(0x20);
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
+
+  bool _showBackground = false;
+  bool _showSprites = false;
+  bool _showLeftBackground = false;
+  bool _showLeftSprites = false;
+  bool _nmiEnabled = false;
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
@@ -266,6 +265,7 @@ class PPU {
     cycle = state.cycle;
     scanline = state.scanline;
     frames = state.frames;
+    _pixelBase = scanline * frameBuffer.width * 4;
     nametableLatch = state.nametableLatch;
     patternTableHighLatch = state.patternTableHighLatch;
     patternTableLowLatch = state.patternTableLowLatch;
@@ -285,6 +285,10 @@ class PPU {
     for (var i = 0; i < _spriteOutputs.length; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
     }
+
+    _nmiEnabled = (PPUCTRL & 0x80) != 0;
+    _bgPatternBase = (PPUCTRL_B & 1) << 12;
+    _updateMaskFlags();
 
     _rebuildPaletteLut();
   }
@@ -346,6 +350,14 @@ class PPU {
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
 
+    _pixelBase = 0;
+
+    _nmiEnabled = false;
+    _bgPatternBase = 0;
+    _updateMaskFlags();
+
+    frameBuffer.resetBuffers();
+
     _rebuildPaletteLut();
   }
 
@@ -392,8 +404,7 @@ class PPU {
       case 0:
         _writePPUCTRL(value);
       case 1:
-        PPUMASK = value;
-        _rebuildPaletteLut();
+        _writePPUMASK(value);
       case 3:
         OAMADDR = value;
       case 4:
@@ -430,7 +441,7 @@ class PPU {
   bool get cycleFetch => cycleVisible || cyclePreFetch;
 
   @pragma('vm:prefer-inline')
-  bool get renderingEnabled => PPUMASK_b == 1 || PPUMASK_s == 1;
+  bool get renderingEnabled => _showBackground || _showSprites;
   @pragma('vm:prefer-inline')
   bool get rendering => lineVisible && cycleVisible;
 
@@ -438,9 +449,9 @@ class PPU {
   bool get fetching => lineFetch && cycleFetch;
 
   void stepUntil(int targetCycles) {
-    do {
+    while (consoleCycles < targetCycles) {
       step();
-    } while (consoleCycles < targetCycles);
+    }
   }
 
   void step() {
@@ -505,7 +516,7 @@ class PPU {
       spriteCount = 0;
       secondarySpriteCount = 0;
 
-      if (PPUCTRL_V == 1) {
+      if (_nmiEnabled) {
         bus.triggerNmi();
       }
     }
@@ -569,10 +580,27 @@ class PPU {
   void _writePPUCTRL(int value) {
     PPUCTRL = value;
 
+    _nmiEnabled = (value & 0x80) != 0;
+
     t = (t & 0xF3FF) | (PPUCTRL_N << 10);
 
     // cache pattern table bases (<< 12)
     _bgPatternBase = (PPUCTRL_B & 1) << 12;
+  }
+
+  void _writePPUMASK(int value) {
+    PPUMASK = value;
+
+    _updateMaskFlags();
+
+    _rebuildPaletteLut();
+  }
+
+  void _updateMaskFlags() {
+    _showLeftBackground = (PPUMASK & 0x02) != 0;
+    _showLeftSprites = (PPUMASK & 0x04) != 0;
+    _showBackground = (PPUMASK & 0x08) != 0;
+    _showSprites = (PPUMASK & 0x10) != 0;
   }
 
   void _writeOAMDATA(int value) {
@@ -679,7 +707,7 @@ class PPU {
     final color = _getPixelColor();
 
     // Use precomputed final RGB color for this palette index (with mirroring)
-    final rgb = _paletteLut[_remapPaletteIndex(color & 0x1f)];
+    final rgb = _paletteLut[color & 0x1f];
 
     frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
@@ -702,13 +730,13 @@ class PPU {
   }
 
   int _getPixelColor() {
-    if (PPUMASK_b == 0 && PPUMASK_s == 0) {
+    if (!_showBackground && !_showSprites) {
       return 0;
     }
 
     final backgroundColor = _getBackgroundPixelColor();
 
-    if (PPUMASK_s == 0) {
+    if (!_showSprites) {
       return backgroundColor;
     }
 
@@ -717,7 +745,7 @@ class PPU {
     // if the sprite color is selected, bit 4 is set
     final spriteColorValue = spriteColor | 0x10;
 
-    if (PPUMASK_b == 0) {
+    if (!_showBackground) {
       return spriteColorValue;
     }
 
@@ -739,16 +767,18 @@ class PPU {
   }
 
   int _getBackgroundPixelColor() {
-    if (PPUMASK_b == 0) {
+    if (!_showBackground) {
       return 0;
     }
 
-    if (PPUMASK_m == 0 && currentX < 8) {
+    if (!_showLeftBackground && currentX < 8) {
       return 0;
     }
 
-    final patternHigh = (patternTableHighShift >> (15 - x)) & 0x1;
-    final patternLow = (patternTableLowShift >> (15 - x)) & 0x1;
+    final patternShift = 15 - x;
+
+    final patternHigh = (patternTableHighShift >> patternShift) & 0x1;
+    final patternLow = (patternTableLowShift >> patternShift) & 0x1;
 
     final pattern = patternHigh << 1 | patternLow;
 
@@ -756,14 +786,16 @@ class PPU {
       return 0;
     }
 
-    final paletteIndexHigh = (attributeTableHighShift >> (7 - x)) & 0x1;
-    final paletteIndexLow = (attributeTableLowShift >> (7 - x)) & 0x1;
+    final attributeShift = 7 - x;
+
+    final paletteIndexHigh = (attributeTableHighShift >> attributeShift) & 0x1;
+    final paletteIndexLow = (attributeTableLowShift >> attributeShift) & 0x1;
 
     return paletteIndexHigh << 3 | paletteIndexLow << 2 | pattern;
   }
 
   int _getSpritePixelColor(int backgroundColor) {
-    if (PPUMASK_M == 0 && currentX < 8) {
+    if (!_showLeftSprites && currentX < 8) {
       return 0;
     }
 
@@ -854,17 +886,18 @@ class PPU {
   void _fetch() {
     final subcycle = cycle & 7;
 
-    if (subcycle == 0) {
-      _loadShiftRegisters();
-      _incrementX();
-    } else if (subcycle == 1) {
-      _fetchNametable();
-    } else if (subcycle == 3) {
-      _fetchAttributeTable();
-    } else if (subcycle == 5) {
-      _fetchPatternTableLow();
-    } else if (subcycle == 7) {
-      _fetchPatternTableHigh();
+    switch (subcycle) {
+      case 0:
+        _loadShiftRegisters();
+        _incrementX();
+      case 1:
+        _fetchNametable();
+      case 3:
+        _fetchAttributeTable();
+      case 5:
+        _fetchPatternTableLow();
+      case 7:
+        _fetchPatternTableHigh();
     }
 
     if (cycle == 256) {
@@ -976,10 +1009,12 @@ class PPU {
           sprite0OnNextLine = true;
         }
 
-        secondaryOam[secondarySpriteCount * 4] = y;
-        secondaryOam[secondarySpriteCount * 4 + 1] = oam[oamAddress + 1];
-        secondaryOam[secondarySpriteCount * 4 + 2] = oam[oamAddress + 2];
-        secondaryOam[secondarySpriteCount * 4 + 3] = oam[oamAddress + 3];
+        final base = secondarySpriteCount * 4;
+
+        secondaryOam[base] = y;
+        secondaryOam[base + 1] = oam[oamAddress + 1];
+        secondaryOam[base + 2] = oam[oamAddress + 2];
+        secondaryOam[base + 3] = oam[oamAddress + 3];
 
         secondarySpriteCount++;
       }
@@ -1063,7 +1098,10 @@ class PPU {
   // Called when PPUMASK changes or palette memory is written to, to update LUT.
   void _rebuildPaletteLut() {
     for (var i = 0; i < 0x20; i++) {
-      _paletteLut[i] = _computePaletteEntry(i);
+      final remapped = _remapPaletteIndex(i);
+      final value = _computePaletteEntry(remapped);
+
+      _setPaletteEntry(remapped, value);
     }
   }
 
@@ -1075,23 +1113,25 @@ class PPU {
     final rem = _remapPaletteIndex(index);
     final val = _computePaletteEntry(rem);
 
-    _paletteLut[rem] = val;
+    _setPaletteEntry(rem, val);
+  }
 
-    // keep mirrored indices in sync to avoid remap at render
-    if (rem == 0x00) {
-      _paletteLut[0x10] = val;
-    }
-
-    if (rem == 0x04) {
-      _paletteLut[0x14] = val;
-    }
-
-    if (rem == 0x08) {
-      _paletteLut[0x18] = val;
-    }
-
-    if (rem == 0x0c) {
-      _paletteLut[0x1c] = val;
+  void _setPaletteEntry(int index, int value) {
+    switch (index) {
+      case 0x00:
+        _paletteLut[0x00] = value;
+        _paletteLut[0x10] = value;
+      case 0x04:
+        _paletteLut[0x04] = value;
+        _paletteLut[0x14] = value;
+      case 0x08:
+        _paletteLut[0x08] = value;
+        _paletteLut[0x18] = value;
+      case 0x0c:
+        _paletteLut[0x0c] = value;
+        _paletteLut[0x1c] = value;
+      default:
+        _paletteLut[index] = value;
     }
   }
 

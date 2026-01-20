@@ -10,7 +10,7 @@ part of 'debugger.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(debugger)
-const debuggerProvider = DebuggerProvider._();
+final debuggerProvider = DebuggerProvider._();
 
 final class DebuggerProvider
     extends
@@ -20,7 +20,7 @@ final class DebuggerProvider
           DebuggerInterface
         >
     with $Provider<DebuggerInterface> {
-  const DebuggerProvider._()
+  DebuggerProvider._()
     : super(
         from: null,
         argument: null,

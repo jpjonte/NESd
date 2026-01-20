@@ -10,10 +10,10 @@ part of 'nes_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(NesState)
-const nesStateProvider = NesStateProvider._();
+final nesStateProvider = NesStateProvider._();
 
 final class NesStateProvider extends $NotifierProvider<NesState, NES?> {
-  const NesStateProvider._()
+  NesStateProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,7 +47,6 @@ abstract class _$NesState extends $Notifier<NES?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<NES?, NES?>;
     final element =
         ref.element
@@ -57,17 +56,17 @@ abstract class _$NesState extends $Notifier<NES?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(nesController)
-const nesControllerProvider = NesControllerProvider._();
+final nesControllerProvider = NesControllerProvider._();
 
 final class NesControllerProvider
     extends $FunctionalProvider<NesController, NesController, NesController>
     with $Provider<NesController> {
-  const NesControllerProvider._()
+  NesControllerProvider._()
     : super(
         from: null,
         argument: null,

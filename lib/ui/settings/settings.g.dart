@@ -106,11 +106,11 @@ const _$ThemeModeEnumMap = {
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SettingsController)
-const settingsControllerProvider = SettingsControllerProvider._();
+final settingsControllerProvider = SettingsControllerProvider._();
 
 final class SettingsControllerProvider
     extends $NotifierProvider<SettingsController, Settings> {
-  const SettingsControllerProvider._()
+  SettingsControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -145,7 +145,6 @@ abstract class _$SettingsController extends $Notifier<Settings> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<Settings, Settings>;
     final element =
         ref.element
@@ -155,6 +154,6 @@ abstract class _$SettingsController extends $Notifier<Settings> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
