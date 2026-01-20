@@ -65,6 +65,10 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   themeMode:
       $enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']) ??
       ThemeMode.system,
+  renderer:
+      $enumDecodeNullable(_$RendererPreferenceEnumMap, json['renderer']) ??
+      RendererPreference.auto,
+  rewind: json['rewind'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -90,6 +94,8 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'cheats': instance.cheats,
   'region': _$RegionEnumMap[instance.region],
   'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
+  'renderer': _$RendererPreferenceEnumMap[instance.renderer]!,
+  'rewind': instance.rewind,
 };
 
 const _$ScalingEnumMap = {
@@ -107,6 +113,12 @@ const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+const _$RendererPreferenceEnumMap = {
+  RendererPreference.auto: 'auto',
+  RendererPreference.gpu: 'gpu',
+  RendererPreference.cpu: 'cpu',
 };
 
 // **************************************************************************
@@ -149,7 +161,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'30bd449c96d5c9b762ad39d1289f8250e076fff6';
+    r'840db93b6aabef8be008595f00f27ac0fae57b96';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
