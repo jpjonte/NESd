@@ -113,8 +113,6 @@ class DisplayFrameController extends ChangeNotifier
 
   DisplayFrameState _state = const EmptyDisplayFrameState();
 
-  bool _disposed = false;
-
   bool _inFlight = false;
 
   bool _textureInFlight = false;
