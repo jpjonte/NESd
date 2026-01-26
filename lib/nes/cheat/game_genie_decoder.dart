@@ -58,6 +58,7 @@ class GameGenieDecoder {
         type: CheatType.gameGenie,
         address: address,
         value: value,
+        code: code,
         compareValue: compareValue,
       );
     } on Exception {
@@ -122,15 +123,5 @@ class GameGenieDecoder {
         ((values[6] & 0x8) << 4) |
         (values[6] & 0x7) |
         (values[5] & 0x8);
-  }
-
-  static bool isValidCode(String code) {
-    final cleaned = code.toUpperCase().replaceAll(
-      RegExp('[^APZLGITYEOXUKSVN]'),
-      '',
-    );
-
-    return (cleaned.length == 6 || cleaned.length == 8) &&
-        cleaned.split('').every((c) => _charMap.containsKey(c));
   }
 }

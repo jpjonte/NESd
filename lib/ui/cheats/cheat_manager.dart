@@ -1,121 +1,64 @@
-import 'dart:convert';
-
 import 'package:nesd/nes/cheat/cheat.dart';
-import 'package:nesd/nes/cheat/game_genie_decoder.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 part 'cheat_manager.g.dart';
 
 @riverpod
 class CheatManager extends _$CheatManager {
   @override
-  List<Cheat> build() => [];
-
-  Future<void> loadCheats(RomInfo romInfo) async {
-    final prefs = await SharedPreferences.getInstance();
+  List<Cheat> build(RomInfo romInfo) {
+    final settings = ref.watch(settingsControllerProvider);
     final key = _getCheatsKey(romInfo);
-    final json = prefs.getString(key);
 
-    if (json != null) {
-      try {
-        final data = jsonDecode(json) as Map<String, dynamic>;
-        final cheatsList = data['cheats'] as List<dynamic>?;
-        if (cheatsList != null) {
-          state = cheatsList
-              .map((c) => Cheat.fromJson(c as Map<String, dynamic>))
-              .toList();
+    return settings.cheats[key] ?? const [];
+  }
 
-          // Sync cheats to active NES instance
-          _syncCheatsToNes();
-        }
-      } on Exception {
-        // Invalid JSON, start fresh
-        state = [];
-      }
+  String _getCheatsKey(RomInfo romInfo) =>
+      romInfo.romHash ?? romInfo.hash ?? romInfo.file.name;
+
+  void _updateSettings(List<Cheat> newCheats) {
+    final key = _getCheatsKey(romInfo);
+    ref.read(settingsControllerProvider.notifier).setCheats(key, newCheats);
+
+    final nes = ref.read(nesStateProvider);
+
+    if (nes != null && nes.bus.cartridge.romInfo == romInfo) {
+      nes.cheats = newCheats;
     }
   }
 
-  Future<void> _saveCheats(RomInfo romInfo) async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = _getCheatsKey(romInfo);
-    final data = {'cheats': state.map((c) => c.toJson()).toList()};
-    await prefs.setString(key, jsonEncode(data));
+  Future<void> addCheat(Cheat cheat) async {
+    final newCheats = [...state, cheat];
+
+    _updateSettings(newCheats);
   }
 
-  String _getCheatsKey(RomInfo romInfo) {
-    final hash = romInfo.romHash ?? romInfo.hash ?? romInfo.file.name;
-    return 'cheats_$hash';
+  Future<void> removeCheat(String id) async {
+    final newCheats = state.where((c) => c.id != id).toList();
+
+    _updateSettings(newCheats);
   }
 
-  void _syncCheatsToNes() {
-    final nes = ref.read(nesStateProvider);
-    if (nes != null) {
-      nes.bus.cheatEngine.removeAllCheats();
-      for (final cheat in state) {
-        nes.bus.cheatEngine.addCheat(cheat);
-      }
-    }
-  }
-
-  Future<void> addCheat(Cheat cheat, RomInfo romInfo) async {
-    state = [...state, cheat];
-    await _saveCheats(romInfo);
-
-    // Add to active NES instance
-    final nes = ref.read(nesStateProvider);
-    nes?.bus.cheatEngine.addCheat(cheat);
-  }
-
-  Future<void> removeCheat(String id, RomInfo romInfo) async {
-    state = state.where((c) => c.id != id).toList();
-    await _saveCheats(romInfo);
-
-    // Remove from active NES instance
-    final nes = ref.read(nesStateProvider);
-    nes?.bus.cheatEngine.removeCheat(id);
-  }
-
-  Future<void> updateCheat(Cheat updatedCheat, RomInfo romInfo) async {
-    state = [
+  Future<void> updateCheat(Cheat updatedCheat) async {
+    final newCheats = [
       for (final cheat in state)
         if (cheat.id == updatedCheat.id) updatedCheat else cheat,
     ];
 
-    await _saveCheats(romInfo);
-
-    // Update in active NES instance
-    final nes = ref.read(nesStateProvider);
-    nes?.bus.cheatEngine.updateCheat(updatedCheat);
+    _updateSettings(newCheats);
   }
 
-  Future<void> toggleCheat(String id, RomInfo romInfo) async {
-    state = [
+  Future<void> toggleCheat(String id) async {
+    final newCheats = [
       for (final cheat in state)
         if (cheat.id == id) cheat.copyWith(enabled: !cheat.enabled) else cheat,
     ];
 
-    await _saveCheats(romInfo);
-
-    // Toggle in active NES instance
-    final nes = ref.read(nesStateProvider);
-    final cheat = state.firstWhere((c) => c.id == id);
-    nes?.bus.cheatEngine.enableCheat(id, enabled: cheat.enabled);
+    _updateSettings(newCheats);
   }
 
-  Future<void> clearAllCheats(RomInfo romInfo) async {
-    state = [];
-    await _saveCheats(romInfo);
-
-    // Clear from active NES instance
-    final nes = ref.read(nesStateProvider);
-    nes?.bus.cheatEngine.removeAllCheats();
-  }
-
-  Cheat? decodeGameGenie(String code, {String? name}) =>
-      GameGenieDecoder.decode(code, name: name);
-
-  bool isValidGameGenieCode(String code) => GameGenieDecoder.isValidCode(code);
+  Future<void> clearAllCheats() async => _updateSettings([]);
 }

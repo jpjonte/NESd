@@ -1,36 +1,24 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
+import 'package:nesd/nes/cheat/game_genie_decoder.dart';
 import 'package:nesd/ui/cheats/cheat_manager.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 
 @RoutePage()
-class CheatsScreen extends ConsumerStatefulWidget {
+class CheatsScreen extends ConsumerWidget {
   const CheatsScreen({required this.romInfo, super.key});
 
   final RomInfo romInfo;
 
   @override
-  ConsumerState<CheatsScreen> createState() => _CheatsScreenState();
-}
-
-class _CheatsScreenState extends ConsumerState<CheatsScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    // Load cheats for this ROM
-    Future.microtask(
-      () => ref.read(cheatManagerProvider.notifier).loadCheats(widget.romInfo),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cheats = ref.watch(cheatManagerProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cheats = ref.watch(cheatManagerProvider(romInfo));
     final theme = Theme.of(context);
 
     return NesdScaffold(
@@ -41,12 +29,12 @@ class _CheatsScreenState extends ConsumerState<CheatsScreen> {
             IconButton(
               icon: const Icon(Icons.delete_sweep),
               tooltip: 'Clear all cheats',
-              onPressed: () => _confirmClearAll(),
+              onPressed: () => _confirmClearAll(context, ref),
             ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'Add cheat',
-            onPressed: () => _showAddCheatDialog(),
+            onPressed: () => _showAddCheatDialog(context),
           ),
         ],
       ),
@@ -77,77 +65,81 @@ class _CheatsScreenState extends ConsumerState<CheatsScreen> {
                 ],
               ),
             )
-          : ListView.builder(
+          : ListView.separated(
               itemCount: cheats.length,
+              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final cheat = cheats[index];
                 return _CheatListItem(
                   cheat: cheat,
-                  romInfo: widget.romInfo,
-                  onEdit: () => _showEditCheatDialog(cheat),
-                  onDelete: () => _confirmDelete(cheat),
+                  romInfo: romInfo,
+                  onEdit: () => _showEditCheatDialog(context, cheat),
+                  onDelete: () => _confirmDelete(context, ref, cheat),
                 );
               },
             ),
     );
   }
 
-  void _showAddCheatDialog() => showDialog<void>(
+  void _showAddCheatDialog(BuildContext context) => showDialog<void>(
     context: context,
-    builder: (context) => _AddEditCheatDialog(romInfo: widget.romInfo),
+    builder: (context) => _AddEditCheatDialog(romInfo: romInfo),
   );
 
-  void _showEditCheatDialog(Cheat cheat) => showDialog<void>(
-    context: context,
-    builder: (context) =>
-        _AddEditCheatDialog(romInfo: widget.romInfo, cheat: cheat),
-  );
+  void _showEditCheatDialog(BuildContext context, Cheat cheat) =>
+      showDialog<void>(
+        context: context,
+        builder: (context) =>
+            _AddEditCheatDialog(romInfo: romInfo, cheat: cheat),
+      );
 
-  void _confirmDelete(Cheat cheat) => showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Delete Cheat'),
-      content: Text('Are you sure you want to delete "${cheat.name}"?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+  void _confirmDelete(BuildContext context, WidgetRef ref, Cheat cheat) =>
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Cheat'),
+          content: Text('Are you sure you want to delete "${cheat.name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                ref
+                    .read(cheatManagerProvider(romInfo).notifier)
+                    .removeCheat(cheat.id);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () {
-            ref
-                .read(cheatManagerProvider.notifier)
-                .removeCheat(cheat.id, widget.romInfo);
-            Navigator.of(context).pop();
-          },
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
-  );
+      );
 
-  void _confirmClearAll() => showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Clear All Cheats'),
-      content: const Text('Are you sure you want to remove all cheats?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+  void _confirmClearAll(BuildContext context, WidgetRef ref) =>
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Clear All Cheats'),
+          content: const Text('Are you sure you want to remove all cheats?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                ref
+                    .read(cheatManagerProvider(romInfo).notifier)
+                    .clearAllCheats();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Clear All'),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () {
-            ref
-                .read(cheatManagerProvider.notifier)
-                .clearAllCheats(widget.romInfo);
-            Navigator.of(context).pop();
-          },
-          child: const Text('Clear All'),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class _CheatListItem extends ConsumerWidget {
@@ -165,7 +157,6 @@ class _CheatListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final addressHex = cheat.address
         .toRadixString(16)
         .toUpperCase()
@@ -179,157 +170,172 @@ class _CheatListItem extends ConsumerWidget {
         .toUpperCase()
         .padLeft(2, '0');
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        title: Text(cheat.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Address: \$$addressHex', style: theme.textTheme.bodySmall),
-            Text('Value: \$$valueHex', style: theme.textTheme.bodySmall),
-            if (compareHex != null)
-              Text('Compare: \$$compareHex', style: theme.textTheme.bodySmall),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Switch(
-              value: cheat.enabled,
-              onChanged: (value) {
-                ref
-                    .read(cheatManagerProvider.notifier)
-                    .toggleCheat(cheat.id, romInfo);
-              },
+    return FocusOnHover(
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final colorScheme = theme.colorScheme;
+          final focused = Focus.of(context).hasFocus;
+
+          final textColor = focused ? colorScheme.onPrimary : null;
+          final subTextColor = focused
+              ? colorScheme.onPrimary
+              : theme.textTheme.bodySmall?.color;
+
+          return ListTile(
+            tileColor: focused ? colorScheme.primary : null,
+            title: Text(cheat.name, style: TextStyle(color: textColor)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Code: ${cheat.code}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: subTextColor,
+                  ),
+                ),
+                Text(
+                  'Address: \$$addressHex',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: subTextColor,
+                  ),
+                ),
+                Text(
+                  'Value: \$$valueHex',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: subTextColor,
+                  ),
+                ),
+                if (compareHex != null)
+                  Text(
+                    'Compare: \$$compareHex',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: subTextColor,
+                    ),
+                  ),
+              ],
             ),
-            IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
-            IconButton(icon: const Icon(Icons.delete), onPressed: onDelete),
-          ],
-        ),
+            onTap: onEdit,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  value: cheat.enabled,
+                  onChanged: (value) {
+                    ref
+                        .read(cheatManagerProvider(romInfo).notifier)
+                        .toggleCheat(cheat.id);
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete,
+                    color: focused ? colorScheme.onPrimary : null,
+                  ),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-class _AddEditCheatDialog extends ConsumerStatefulWidget {
+class _AddEditCheatDialog extends HookConsumerWidget {
   const _AddEditCheatDialog({required this.romInfo, this.cheat});
 
   final RomInfo romInfo;
   final Cheat? cheat;
 
   @override
-  ConsumerState<_AddEditCheatDialog> createState() =>
-      _AddEditCheatDialogState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nameController = useTextEditingController(text: cheat?.name ?? '');
+    final codeController = useTextEditingController(text: cheat?.code ?? '');
+    final errorText = useState<String?>(null);
 
-class _AddEditCheatDialogState extends ConsumerState<_AddEditCheatDialog> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _codeController;
+    void saveCheat() {
+      final name = nameController.text.trim();
 
-  String? _errorText;
+      if (name.isEmpty) {
+        errorText.value = 'Name is required';
+        return;
+      }
 
-  @override
-  void initState() {
-    super.initState();
+      final code = codeController.text.trim();
+      if (code.isEmpty) {
+        errorText.value = 'Code is required';
+        return;
+      }
 
-    final cheat = widget.cheat;
+      final decodedCheat = GameGenieDecoder.decode(code, name: name);
 
-    _nameController = TextEditingController(text: cheat?.name ?? '');
-    _codeController = TextEditingController();
-  }
+      if (decodedCheat == null) {
+        errorText.value = 'Invalid Game Genie code';
+        return;
+      }
 
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.cheat == null ? 'Add Cheat' : 'Edit Cheat'),
-    content: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'e.g., Infinite Lives',
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _codeController,
-            decoration: InputDecoration(
-              labelText: 'Game Genie Code',
-              hintText: 'e.g., SLXPLOVS',
-              errorText: _errorText,
-              helperText: '6 or 8 character code',
-            ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(
-                RegExp('[APZLGITYEOXUKSVNapzlgityeoxuksvn]'),
+      final manager = ref.read(cheatManagerProvider(romInfo).notifier);
+
+      if (cheat == null) {
+        manager.addCheat(decodedCheat);
+      } else {
+        final updatedCheat = decodedCheat.copyWith(id: cheat!.id);
+        manager.updateCheat(updatedCheat);
+      }
+
+      Navigator.of(context).pop();
+    }
+
+    return AlertDialog(
+      title: Text(cheat == null ? 'Add Cheat' : 'Edit Cheat'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                hintText: 'e.g., Infinite Lives',
               ),
-              TextInputFormatter.withFunction((oldValue, newValue) {
-                return TextEditingValue(
-                  text: newValue.text.toUpperCase(),
-                  selection: newValue.selection,
-                );
-              }),
-            ],
-            onChanged: (_) => setState(() => _errorText = null),
-          ),
-        ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: codeController,
+              decoration: InputDecoration(
+                labelText: 'Game Genie Code',
+                hintText: 'e.g., SLXPLOVS',
+                errorText: errorText.value,
+                helperText: '6 or 8 character code',
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                  RegExp('[APZLGITYEOXUKSVNapzlgityeoxuksvn]'),
+                ),
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  return TextEditingValue(
+                    text: newValue.text.toUpperCase(),
+                    selection: newValue.selection,
+                  );
+                }),
+              ],
+              onChanged: (_) => errorText.value = null,
+            ),
+          ],
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
-      ),
-      TextButton(
-        onPressed: _saveCheat,
-        child: Text(widget.cheat == null ? 'Add' : 'Save'),
-      ),
-    ],
-  );
-
-  void _saveCheat() {
-    final name = _nameController.text.trim();
-
-    if (name.isEmpty) {
-      setState(() => _errorText = 'Name is required');
-      return;
-    }
-
-    final code = _codeController.text.trim();
-    if (code.isEmpty) {
-      setState(() => _errorText = 'Code is required');
-      return;
-    }
-
-    final cheat = ref
-        .read(cheatManagerProvider.notifier)
-        .decodeGameGenie(code, name: name);
-
-    if (cheat == null) {
-      setState(() => _errorText = 'Invalid Game Genie code');
-      return;
-    }
-
-    if (widget.cheat == null) {
-      ref.read(cheatManagerProvider.notifier).addCheat(cheat, widget.romInfo);
-    } else {
-      final updatedCheat = cheat.copyWith(id: widget.cheat!.id);
-      ref
-          .read(cheatManagerProvider.notifier)
-          .updateCheat(updatedCheat, widget.romInfo);
-    }
-
-    Navigator.of(context).pop();
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _codeController.dispose();
-
-    super.dispose();
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: saveCheat,
+          child: Text(cheat == null ? 'Add' : 'Save'),
+        ),
+      ],
+    );
   }
 }

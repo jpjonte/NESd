@@ -12,6 +12,7 @@ Cheat _$CheatFromJson(Map<String, dynamic> json) => Cheat(
   type: $enumDecode(_$CheatTypeEnumMap, json['type']),
   address: (json['address'] as num).toInt(),
   value: (json['value'] as num).toInt(),
+  code: json['code'] as String,
   compareValue: (json['compareValue'] as num?)?.toInt(),
   enabled: json['enabled'] as bool? ?? true,
 );
@@ -22,6 +23,7 @@ Map<String, dynamic> _$CheatToJson(Cheat instance) => <String, dynamic>{
   'type': _$CheatTypeEnumMap[instance.type]!,
   'address': instance.address,
   'value': instance.value,
+  'code': instance.code,
   'compareValue': instance.compareValue,
   'enabled': instance.enabled,
 };

@@ -5,6 +5,7 @@ import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
@@ -63,6 +64,16 @@ class NES {
     _breakpoints
       ..clear()
       ..addAll(breakpoints);
+  }
+
+  List<Cheat> get cheats => bus.cheatEngine.cheats;
+
+  set cheats(List<Cheat> cheats) {
+    bus.cheatEngine.removeAllCheats();
+
+    for (final cheat in cheats) {
+      bus.cheatEngine.addCheat(cheat);
+    }
   }
 
   void addBreakpoint(Breakpoint breakpoint) {
@@ -174,10 +185,6 @@ class NES {
       final vblankBefore = ppu.PPUSTATUS_V;
 
       try {
-        bus.cheatEngine.applyFrameCheats(
-          (address, value) => bus.cpuWrite(address, value),
-        );
-
         step();
       } on NesdException catch (e) {
         eventBus.add(ErrorNesEvent(e));

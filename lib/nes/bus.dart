@@ -45,9 +45,7 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      final value = cpu.ram[address & 0x07ff];
-
-      return cheatEngine.apply(address & 0x07ff, value);
+      return cpu.ram[address & 0x07ff];
     }
 
     if (address < 0x4000) {
@@ -73,7 +71,16 @@ class Bus {
       return 0;
     }
 
-    return cartridge.cpuRead(address, disableSideEffects: disableSideEffects);
+    final value = cartridge.cpuRead(
+      address,
+      disableSideEffects: disableSideEffects,
+    );
+
+    if (disableSideEffects) {
+      return value;
+    }
+
+    return cheatEngine.apply(address, value);
   }
 
   void cpuWrite(int address, int value) {
@@ -88,10 +95,7 @@ class Bus {
     address &= 0xffff;
 
     if (address < 0x2000) {
-      final maskedAddress = address & 0x7ff;
-      final modifiedValue = cheatEngine.apply(maskedAddress, value);
-
-      cpu.ram[maskedAddress] = modifiedValue;
+      cpu.ram[address & 0x7ff] = value;
 
       return;
     }

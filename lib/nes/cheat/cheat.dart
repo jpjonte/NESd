@@ -5,6 +5,8 @@ part 'cheat.g.dart';
 // Game Genie and Pro Action Replay cheat code types
 enum CheatType {
   // Game Genie codes (6 or 8 character codes)
+  // Format: [APZLGITYEOXUKSVN]{6,8}
+  // Example: SLXPLOVS (Infinite Lives in SMB)
   gameGenie,
 }
 
@@ -17,6 +19,7 @@ class Cheat {
     required this.type,
     required this.address,
     required this.value,
+    required this.code,
     this.compareValue,
     this.enabled = true,
   });
@@ -26,8 +29,9 @@ class Cheat {
   final CheatType type;
   final int address;
   final int value;
+  final String code;
   final int? compareValue;
-  bool enabled;
+  final bool enabled;
 
   Cheat copyWith({
     String? id,
@@ -35,6 +39,7 @@ class Cheat {
     CheatType? type,
     int? address,
     int? value,
+    String? code,
     int? compareValue,
     bool? enabled,
   }) => Cheat(
@@ -43,6 +48,7 @@ class Cheat {
     type: type ?? this.type,
     address: address ?? this.address,
     value: value ?? this.value,
+    code: code ?? this.code,
     compareValue: compareValue ?? this.compareValue,
     enabled: enabled ?? this.enabled,
   );
