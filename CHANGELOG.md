@@ -6,8 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Added a GPU rendering mode that renders the PPU output to a texture, which should improve performance on supported systems
+- Added a settings toggle for rewind
+- Added tools and scripts for measuring performance
+
 ### Changed
-- Improved performance across many internal components
+- Greatly improved performance across many internal components
+
+### Fixed
+- Fixed the game menu not having a transparent background
 
 ## [0.13.0] - 2025-09-16
 

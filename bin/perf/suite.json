@@ -1,0 +1,19 @@
+{
+    "defaults": { "frames": 180, "warmup": 60, "runs": 6},
+    "items": [
+        {"label": "cpu_test5", "rom": "roms/test/blargg_nes_cpu_test5/cpu.nes"},
+        {"label": "cpu_timing6", "rom": "roms/test/cpu_timing_test6/cpu_timing_test.nes"},
+        {"label": "nrom_1942", "rom": "roms/all/1/1942 (JU) [!].nes"},
+        {"label": "mmc1_zelda_u_prg1", "rom": "roms/all/L/Legend of Zelda, The (U) (PRG1).nes"},
+        {"label": "uxrom_megaman2", "rom": "roms/all/M/Mega Man 2 (U).nes"},
+        {"label": "cnrom_aso", "rom": "roms/all/A/ASO - Armored Scrum Object (J).nes"},
+        {"label": "mmc3_smb3_prg1", "rom": "roms/all/S/Super Mario Bros. 3 (U) (PRG1) [!].nes"},
+        {"label": "mmc5_castlevania3_u", "rom": "roms/all/C/Castlevania III - Dracula's Curse (U) [!].nes"},
+        {"label": "axrom_battletoads_u", "rom": "roms/all/B/Battletoads (U).nes"},
+        {"label": "mmc2_punchout_u_prg1", "rom": "roms/all/M/Mike Tyson's Punch-Out!! (U) (PRG1).nes"},
+        {"label": "n163_megami2_j", "rom": "roms/all/D/Digital Devil Monogatari - Megami Tensei II (J).nes"},
+        {"label": "gxrom_bomberman2_j", "rom": "roms/all/B/Bomberman II (J) [o1].nes"},
+        {"label": "br909x_bee_52_u", "rom": "roms/all/B/Bee 52 (U).nes"},
+        {"label": "txsrom_play_action_football_u", "rom": "roms/all/N/NES Play Action Football (U).nes"}
+    ]
+}
