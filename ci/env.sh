@@ -12,7 +12,7 @@ fi
 
 flutter_version=$(jq -r '.flutter' .fvmrc)
 
-version=$(yq '.version' pubspec.yaml)
+version=$(yq '.version' packages/nesd/pubspec.yaml)
 
 flavor="dev"
 flavored_id="nesd-dev"

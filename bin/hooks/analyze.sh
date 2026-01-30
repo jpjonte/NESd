@@ -3,5 +3,8 @@
 # exit on error, treat unset variables as errors, and fail if a pipeline fails
 set -euo pipefail
 
-git diff --cached --name-only --diff-filter=ACMR -z | \
-    xargs -0 flutter analyze
+repo_root=$(git rev-parse --show-toplevel)
+
+pushd "$repo_root/packages/nesd" >/dev/null
+flutter analyze
+popd >/dev/null

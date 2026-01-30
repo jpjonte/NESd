@@ -37,7 +37,9 @@ jobs:
           path: |
             /usr/bin
       - run: flutter pub get
-      - run: flutter test --coverage
+      - run: |
+          cd packages/nesd
+          flutter test --coverage
       - run: ci/0-test/extract_coverage.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
@@ -110,7 +112,7 @@ jobs:
       - run: ci/1-build/linux/build.sh
       - uses: actions/cache/save@v5
         with:
-          path: build/linux/${{ matrix.arch }}/release/bundle
+          path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
 
   build-windows:
@@ -176,7 +178,7 @@ jobs:
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
         with:
-          path: build/linux/${{ matrix.arch }}/release/bundle
+          path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_deb.sh
       - uses: actions/upload-artifact@v6
@@ -197,7 +199,7 @@ jobs:
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
         with:
-          path: build/linux/${{ matrix.arch }}/release/bundle
+          path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_rpm.sh
       - uses: actions/upload-artifact@v6
@@ -226,7 +228,7 @@ jobs:
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
         with:
-          path: build/linux/${{ matrix.arch }}/release/bundle
+          path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - uses: actions/checkout@v6
         with:
@@ -252,7 +254,7 @@ jobs:
           passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
       - uses: andyholmes/flatter@main
         with:
-          files: linux/packaging/dev.jpj.NESd.json
+          files: packages/nesd/linux/packaging/dev.jpj.NESd.json
           arch: ${{ matrix.arch == 'x64' && 'x86_64' || 'aarch64' }}
           gpg-sign: ${{ steps.gpg.outputs.fingerprint }}
           cache-key: flatter-${{ github.sha }}
@@ -285,7 +287,7 @@ jobs:
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
         with:
-          path: build/linux/${{ matrix.arch }}/release/bundle
+          path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_appimage.sh
       - uses: actions/upload-artifact@v6
