@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:es_compression/lz4.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   if (Platform.isMacOS) {
@@ -14,9 +15,11 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
     throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   }
 
-  final directory = Directory('/tmp/nesd');
+  final directory = Directory(path.join(Directory.systemTemp.path, 'nesd'));
 
-  await directory.create();
+  if (!directory.existsSync()) {
+    await directory.create();
+  }
 
   for (final file in directory.listSync()) {
     file.deleteSync(recursive: true);

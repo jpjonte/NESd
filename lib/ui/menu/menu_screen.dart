@@ -70,6 +70,25 @@ class MenuScreen extends ConsumerWidget {
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(
+                    key: const Key('cheats'),
+                    onPressed: () => ref
+                        .read(routerProvider)
+                        .navigate(
+                          CheatsRoute(
+                            romInfo: ref
+                                .read(nesControllerProvider)
+                                .nes!
+                                .bus
+                                .cartridge
+                                .romInfo,
+                          ),
+                        ),
+                    child: const Text('Cheats'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
                     key: resetGameKey,
                     onPressed: () {
                       ref.read(nesControllerProvider).reset();

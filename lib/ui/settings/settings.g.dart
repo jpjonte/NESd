@@ -51,6 +51,16 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
         ),
       ) ??
       const {},
+  cheats:
+      (json['cheats'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+          k,
+          (e as List<dynamic>)
+              .map((e) => Cheat.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+      ) ??
+      const {},
   region: $enumDecodeNullable(_$RegionEnumMap, json['region']) ?? null,
   themeMode:
       $enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']) ??
@@ -77,6 +87,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'narrowTouchInputConfig': instance.narrowTouchInputConfig,
   'wideTouchInputConfig': instance.wideTouchInputConfig,
   'breakpoints': instance.breakpoints,
+  'cheats': instance.cheats,
   'region': _$RegionEnumMap[instance.region],
   'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
 };
@@ -138,7 +149,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'0dcfb731732fe2afd3dc55ca4cdb7c6e5a9dcb95';
+    r'30bd449c96d5c9b762ad39d1289f8250e076fff6';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
