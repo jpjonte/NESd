@@ -73,7 +73,7 @@ jobs:
         with:
           flutter-version: ${{ steps.env.outputs.flutter_version }}
           cache: true
-      - uses: webfactory/ssh-agent@v0.9.1
+      - uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: |
             ${{ secrets.GAMEPADS_PRIVATE_KEY }}
