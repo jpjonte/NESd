@@ -246,7 +246,7 @@ jobs:
           FLATPAK_NIGHTLY_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_NIGHTLY_GPG_PRIVATE_KEY }}
           FLATPAK_NIGHTLY_GPG_PASSPHRASE: ${{ secrets.FLATPAK_NIGHTLY_GPG_PASSPHRASE }}
       - id: gpg
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ steps.gpg-key.outputs.gpg_private_key }}
           passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
