@@ -26,6 +26,7 @@ if [ "$GITHUB_REF_TYPE" == "tag" ]; then
 elif [ "$GITHUB_REF_NAME" == "main" ]; then
   release_name="nightly"
 else
+  git config --global --add safe.directory $(pwd)
   release_name=$(git rev-parse --short HEAD)
 fi
 
