@@ -6,8 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Added support for Game Genie cheats (thanks @hamed-rezaee!)
+
 ### Changed
 - Improved performance across many internal components
+- Updated dependencies
 
 ## [0.13.0] - 2025-09-16
 
