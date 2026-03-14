@@ -11,6 +11,53 @@
 part of 'router.dart';
 
 /// generated route for
+/// [CheatsScreen]
+class CheatsRoute extends PageRouteInfo<CheatsRouteArgs> {
+  CheatsRoute({
+    required RomInfo romInfo,
+    Key? key,
+    List<PageRouteInfo>? children,
+  }) : super(
+         CheatsRoute.name,
+         args: CheatsRouteArgs(romInfo: romInfo, key: key),
+         initialChildren: children,
+       );
+
+  static const String name = 'CheatsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<CheatsRouteArgs>();
+      return CheatsScreen(romInfo: args.romInfo, key: args.key);
+    },
+  );
+}
+
+class CheatsRouteArgs {
+  const CheatsRouteArgs({required this.romInfo, this.key});
+
+  final RomInfo romInfo;
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'CheatsRouteArgs{romInfo: $romInfo, key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! CheatsRouteArgs) return false;
+    return romInfo == other.romInfo && key == other.key;
+  }
+
+  @override
+  int get hashCode => romInfo.hashCode ^ key.hashCode;
+}
+
+/// generated route for
 /// [EmulatorScreen]
 class EmulatorRoute extends PageRouteInfo<void> {
   const EmulatorRoute({List<PageRouteInfo>? children})

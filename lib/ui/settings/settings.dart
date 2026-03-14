@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
@@ -99,6 +100,7 @@ sealed class Settings with _$Settings {
     @Default([])
     List<TouchInputConfig> wideTouchInputConfig,
     @Default({}) Map<String, List<Breakpoint>> breakpoints,
+    @Default({}) Map<String, List<Cheat>> cheats,
     @Default(null) Region? region,
     @Default(ThemeMode.system) ThemeMode themeMode,
   }) = _Settings;
@@ -371,6 +373,14 @@ class SettingsController extends _$SettingsController {
       state.copyWith(breakpoints: {...state.breakpoints, hash: breakpoints}),
     );
   }
+
+  Map<String, List<Cheat>> get cheats => state.cheats;
+
+  set cheats(Map<String, List<Cheat>> cheats) =>
+      _update(state.copyWith(cheats: cheats));
+
+  void setCheats(String hash, List<Cheat> cheats) =>
+      _update(state.copyWith(cheats: {...state.cheats, hash: cheats}));
 
   Region? get region => state.region;
 
