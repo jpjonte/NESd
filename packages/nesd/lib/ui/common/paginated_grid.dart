@@ -39,7 +39,12 @@ class PaginatedGrid extends HookConsumerWidget {
 
         final pages = count > 0 ? (children.length / count).ceil() : 1;
 
-        final romPaths = children.skip(page.value * count).take(count).toList();
+        final currentPage = page.value.clamp(0, pages - 1);
+
+        final romPaths = children
+            .skip(currentPage * count)
+            .take(count)
+            .toList();
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -47,9 +52,9 @@ class PaginatedGrid extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * tileHeight,
-              child: page.value > 0
+              child: currentPage > 0
                   ? InkWell(
-                      onTap: () => page.value--,
+                      onTap: () => page.value = currentPage - 1,
                       child: const Icon(Icons.arrow_back_ios),
                     )
                   : const SizedBox(),
@@ -67,9 +72,9 @@ class PaginatedGrid extends HookConsumerWidget {
             SizedBox(
               width: 40,
               height: rowCount * tileHeight,
-              child: page.value < pages - 1
+              child: currentPage < pages - 1
                   ? InkWell(
-                      onTap: () => page.value++,
+                      onTap: () => page.value = currentPage + 1,
                       child: const Icon(Icons.arrow_forward_ios),
                     )
                   : const SizedBox(),

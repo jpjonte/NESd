@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Fixed the game menu not having a transparent background
+- Fixed an issue where increasing the window size could lead to a blank page in the main menu
 
 ## [0.13.0] - 2025-09-16
 
