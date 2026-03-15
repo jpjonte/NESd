@@ -8,7 +8,6 @@ class NoiseChannelState {
     required this.enabled,
     required this.constantVolume,
     required this.volume,
-    required this.period,
     required this.timerPeriod,
     required this.timer,
     required this.shiftRegister,
@@ -21,17 +20,37 @@ class NoiseChannelState {
     final version = reader.get(uint8);
 
     return switch (version) {
+      1 => NoiseChannelState._version1(reader),
       0 => NoiseChannelState._version0(reader),
       _ => throw InvalidSerializationVersion('NoiseChannelState', version),
     };
   }
 
-  factory NoiseChannelState._version0(PayloadReader reader) {
+  factory NoiseChannelState._version1(PayloadReader reader) {
     return NoiseChannelState(
       enabled: reader.get(boolean),
       constantVolume: reader.get(boolean),
       volume: reader.get(uint8),
-      period: reader.get(uint8),
+      timerPeriod: reader.get(uint8),
+      timer: reader.get(uint8),
+      shiftRegister: reader.get(uint8),
+      mode: reader.get(boolean),
+      envelopeState: EnvelopeUnitState.deserialize(reader),
+      lengthCounterState: LengthCounterUnitState.deserialize(reader),
+    );
+  }
+
+  factory NoiseChannelState._version0(PayloadReader reader) {
+    final enabled = reader.get(boolean);
+    final constantVolume = reader.get(boolean);
+    final volume = reader.get(uint8);
+
+    reader.get(uint8); // period
+
+    return NoiseChannelState(
+      enabled: enabled,
+      constantVolume: constantVolume,
+      volume: volume,
       timerPeriod: reader.get(uint8),
       timer: reader.get(uint8),
       shiftRegister: reader.get(uint8),
@@ -46,8 +65,6 @@ class NoiseChannelState {
   final bool constantVolume;
   final int volume;
 
-  final int period;
-
   final int timerPeriod;
   final int timer;
 
@@ -60,11 +77,10 @@ class NoiseChannelState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(boolean, enabled)
       ..set(boolean, constantVolume)
       ..set(uint8, volume)
-      ..set(uint8, period)
       ..set(uint8, timerPeriod)
       ..set(uint8, timer)
       ..set(uint8, shiftRegister)

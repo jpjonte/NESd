@@ -13,8 +13,6 @@ class NoiseChannel {
   bool constantVolume = false;
   int volume = 0;
 
-  int period = 0;
-
   int timerPeriod = 0;
   int timer = 0;
 
@@ -26,7 +24,6 @@ class NoiseChannel {
     enabled: enabled,
     constantVolume: constantVolume,
     volume: volume,
-    period: period,
     timerPeriod: timerPeriod,
     timer: timer,
     shiftRegister: shiftRegister,
@@ -39,7 +36,6 @@ class NoiseChannel {
     enabled = state.enabled;
     constantVolume = state.constantVolume;
     volume = state.volume;
-    period = state.period;
     timerPeriod = state.timerPeriod;
     timer = state.timer;
     shiftRegister = state.shiftRegister;
@@ -82,7 +78,7 @@ class NoiseChannel {
 
   void writePeriod(int value) {
     mode = value.bit(7) == 1;
-    period = noiseTable[value & 0x0f];
+    timerPeriod = noiseTable[value & 0x0f] - 1;
   }
 
   void writeLength(int value) {
