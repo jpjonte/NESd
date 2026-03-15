@@ -12,7 +12,7 @@ fi
 
 flutter_version=$(jq -r '.flutter' .fvmrc)
 
-version=$(yq '.version' pubspec.yaml)
+version=$(yq '.version' packages/nesd/pubspec.yaml)
 
 flavor="dev"
 flavored_id="nesd-dev"
@@ -26,6 +26,7 @@ if [ "$GITHUB_REF_TYPE" == "tag" ]; then
 elif [ "$GITHUB_REF_NAME" == "main" ]; then
   release_name="nightly"
 else
+  git config --global --add safe.directory $(pwd)
   release_name=$(git rev-parse --short HEAD)
 fi
 

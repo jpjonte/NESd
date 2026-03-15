@@ -9,9 +9,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Added support for Game Genie cheats (thanks @hamed-rezaee!)
 
+### Added
+- Added a GPU rendering mode that renders the PPU output to a texture, which should improve performance on supported systems
+- Added a settings toggle for rewind
+- Added tools and scripts for measuring performance
+
 ### Changed
-- Improved performance across many internal components
+- Greatly improved performance across many internal components
 - Updated dependencies
+
+### Fixed
+- Fixed the game menu not having a transparent background
+- Fixed an issue where increasing the window size could lead to a blank page in the main menu
+- Fixed a bug in the noise channel leading to incorrect sounds
 
 ## [0.13.0] - 2025-09-16
 
