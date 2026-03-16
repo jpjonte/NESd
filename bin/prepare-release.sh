@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 version=$1
 
 if [ -z "$version" ]; then
@@ -22,9 +24,9 @@ date=$(date +'%Y-%m-%d')
 
 sed -i '' -e 's/\[Unreleased\]/['"$version"'] - '"$date"'/' CHANGELOG.md
 
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/deb/control-x64
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/deb/control-arm64
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' linux/packaging/rpm/nesd.spec
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-x64
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-arm64
+sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/rpm/nesd.spec
 
 awk '
 BEGIN {
@@ -34,8 +36,8 @@ BEGIN {
   gsub("<releases>", tag);
   print
 }
-' linux/packaging/dev.jpj.NESd.metainfo.xml > metainfo.xml
+' packages/nesd/linux/packaging/dev.jpj.NESd.metainfo.xml > metainfo.xml
 
-mv -f metainfo.xml linux/packaging/dev.jpj.NESd.metainfo.xml
+mv -f metainfo.xml packages/nesd/linux/packaging/dev.jpj.NESd.metainfo.xml
 
-sed -i '' -e '/version:/s/.*/version: '"$version"'/' pubspec.yaml
+sed -i '' -e '/version:/s/.*/version: '"$version"'/' packages/nesd/pubspec.yaml
