@@ -293,6 +293,8 @@ class NesController {
 
       _setRegion(newNes, settingsController.region);
 
+      _setRewindEnabled(newNes, settingsController.rewind);
+
       nesState.run(newNes);
 
       setAutoSave(
