@@ -69,6 +69,14 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       $enumDecodeNullable(_$RendererPreferenceEnumMap, json['renderer']) ??
       RendererPreference.auto,
   rewind: json['rewind'] as bool? ?? true,
+  pixelAspectRatio:
+      $enumDecodeNullable(
+        _$PixelAspectRatioEnumMap,
+        json['pixelAspectRatio'],
+      ) ??
+      PixelAspectRatio.auto,
+  customPixelAspectRatio:
+      (json['customPixelAspectRatio'] as num?)?.toDouble() ?? 1.0,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -96,6 +104,8 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
   'renderer': _$RendererPreferenceEnumMap[instance.renderer]!,
   'rewind': instance.rewind,
+  'pixelAspectRatio': _$PixelAspectRatioEnumMap[instance.pixelAspectRatio]!,
+  'customPixelAspectRatio': instance.customPixelAspectRatio,
 };
 
 const _$ScalingEnumMap = {
@@ -119,6 +129,15 @@ const _$RendererPreferenceEnumMap = {
   RendererPreference.auto: 'auto',
   RendererPreference.gpu: 'gpu',
   RendererPreference.cpu: 'cpu',
+};
+
+const _$PixelAspectRatioEnumMap = {
+  PixelAspectRatio.auto: 'auto',
+  PixelAspectRatio.ntsc: 'ntsc',
+  PixelAspectRatio.pal: 'pal',
+  PixelAspectRatio.square: 'square',
+  PixelAspectRatio.stretch: 'stretch',
+  PixelAspectRatio.custom: 'custom',
 };
 
 // **************************************************************************
@@ -161,7 +180,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'840db93b6aabef8be008595f00f27ac0fae57b96';
+    r'8f9f6a9f52317f0cadaec97e31f7398b49c01158';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

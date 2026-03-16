@@ -188,3 +188,54 @@ class ButtonSettingsTile extends StatelessWidget {
     );
   }
 }
+
+class SliderSettingsTile extends StatelessWidget {
+  const SliderSettingsTile({
+    required this.value,
+    required this.displayValue,
+    this.label,
+    this.onTap,
+    this.onChanged,
+    this.min = 0.0,
+    this.max = 1.0,
+    this.enabled = true,
+    super.key,
+  });
+
+  final bool enabled;
+  final String? label;
+  final GestureTapCallback? onTap;
+  final ValueChanged<double>? onChanged;
+  final double value;
+  final String displayValue;
+  final double min;
+  final double max;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsTile(
+      enabled: enabled,
+      title: label != null ? Text(label!) : null,
+      onTap: onTap,
+      child: LayoutBuilder(
+        builder: (_, constraints) => SizedBox(
+          width: constraints.maxWidth,
+          child: Row(
+            children: [
+              Expanded(
+                child: Slider(
+                  value: value,
+                  min: min,
+                  max: max,
+                  onChanged: enabled ? onChanged : null,
+                  label: label,
+                ),
+              ),
+              SizedBox(width: 50, child: Text(displayValue)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

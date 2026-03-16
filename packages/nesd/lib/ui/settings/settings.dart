@@ -24,6 +24,8 @@ part 'settings.g.dart';
 
 enum RendererPreference { auto, gpu, cpu }
 
+enum PixelAspectRatio { auto, ntsc, pal, square, stretch, custom }
+
 List<RomInfo> _recentRomsFromJson(List<dynamic> json) {
   return json
       .map((e) {
@@ -107,6 +109,8 @@ sealed class Settings with _$Settings {
     @Default(ThemeMode.system) ThemeMode themeMode,
     @Default(RendererPreference.auto) RendererPreference renderer,
     @Default(true) bool rewind,
+    @Default(PixelAspectRatio.auto) PixelAspectRatio pixelAspectRatio,
+    @Default(1.0) double customPixelAspectRatio,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -408,6 +412,18 @@ class SettingsController extends _$SettingsController {
 
   set rewind(bool rewind) {
     _update(state.copyWith(rewind: rewind));
+  }
+
+  PixelAspectRatio get pixelAspectRatio => state.pixelAspectRatio;
+
+  set pixelAspectRatio(PixelAspectRatio pixelAspectRatio) {
+    _update(state.copyWith(pixelAspectRatio: pixelAspectRatio));
+  }
+
+  double get customPixelAspectRatio => state.customPixelAspectRatio;
+
+  set customPixelAspectRatio(double customPixelAspectRatio) {
+    _update(state.copyWith(customPixelAspectRatio: customPixelAspectRatio));
   }
 
   void _update(Settings settings) {

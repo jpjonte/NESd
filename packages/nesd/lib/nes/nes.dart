@@ -52,6 +52,8 @@ class NES {
 
   int frameRate = 60;
 
+  Region? _region;
+
   late DateTime _frameStart;
 
   Duration _frameTime = Duration.zero;
@@ -116,9 +118,11 @@ class NES {
     bus.cartridge.state = state.cartridgeState;
   }
 
-  // we don't need a getter
-  // ignore: avoid_setters_without_getters
+  Region get region => _region ?? Region.ntsc;
+
   set region(Region region) {
+    _region = region;
+
     cpu.region = region;
     apu.region = region;
     ppu.region = region;

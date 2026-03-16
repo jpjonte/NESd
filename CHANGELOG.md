@@ -13,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added a GPU rendering mode that renders the PPU output to a texture, which should improve performance on supported systems
 - Added a settings toggle for rewind
 - Added tools and scripts for measuring performance
+- Added an option for the pixel aspect ratio:
+  - **Auto** selects NTSC or PAL based on the game's region
+  - **NTSC** (8 / 7)
+  - **PAL** (11 / 8)
+  - **Square** (1.0)
+  - **Stretch** (unlimited, fills the screen)
+  - **Custom** (select a value between 0.5 and 2.0)
 
 ### Changed
 - Greatly improved performance across many internal components

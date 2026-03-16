@@ -40,8 +40,8 @@ class MethodChannelNesdTexture extends NesdTexturePlatform {
       'width': width,
       'height': height,
       'length': length,
-      if (pixels != null) 'pixels': pixels,
-      if (pixelPointer != null) 'pixelPointer': pixelPointer,
+      'pixels': ?pixels,
+      'pixelPointer': ?pixelPointer,
     });
   }
 

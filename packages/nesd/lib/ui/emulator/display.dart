@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class FrameBufferStreamBuilder extends HookConsumerWidget {
@@ -86,12 +86,21 @@ class DisplayBuilder extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final nes = ref.watch(nesStateProvider);
 
-    final widthScale = settings.stretch ? 8 / 7 : 1.0;
-
     return LayoutBuilder(
       builder: (_, constraints) {
+        final region = nes?.region ?? Region.ntsc;
+        final pixelAspectRatio = _calculatePixelAspectRatio(
+          settings,
+          constraints,
+          region,
+        );
+        final imageAspectRatio = imageWidth / imageHeight;
+        final aspectRatio = imageAspectRatio * pixelAspectRatio;
+
+        final effectiveImageWidth = (aspectRatio * imageHeight).round();
+
         final maxScale = min(
-          constraints.maxWidth / imageWidth,
+          constraints.maxWidth / effectiveImageWidth,
           constraints.maxHeight / imageHeight,
         );
 
@@ -101,15 +110,15 @@ class DisplayBuilder extends ConsumerWidget {
             settings,
             constraints.maxWidth,
             constraints.maxHeight,
-            imageWidth,
+            effectiveImageWidth,
             imageHeight,
           ),
         );
 
         final narrow = constraints.maxWidth < constraints.maxHeight;
 
-        final screenWidth = imageWidth;
-        final screenHeight = (imageHeight / widthScale).round();
+        final screenWidth = effectiveImageWidth;
+        final screenHeight = imageHeight;
 
         final screenSize = Size(
           screenWidth.toDouble(),
@@ -235,15 +244,33 @@ class DisplayBuilder extends ConsumerWidget {
     int imageHeight,
   ) {
     return switch (settings.scaling) {
-      Scaling.x1 => 1.0,
-      Scaling.x2 => 2.0,
-      Scaling.x3 => 3.0,
-      Scaling.x4 => 4.0,
-      Scaling.autoInteger => max(
+      .x1 => 1.0,
+      .x2 => 2.0,
+      .x3 => 3.0,
+      .x4 => 4.0,
+      .autoInteger => max(
         0.5,
         min(width ~/ imageWidth, height ~/ imageHeight),
       ).toDouble(),
-      Scaling.autoSmooth => 1000,
+      .autoSmooth => 1000,
+    };
+  }
+
+  double _calculatePixelAspectRatio(
+    Settings settings,
+    BoxConstraints constraints,
+    Region region,
+  ) {
+    return switch (settings.pixelAspectRatio) {
+      .auto => switch (region) {
+        .ntsc => 8 / 7,
+        .pal => 11 / 8,
+      },
+      .ntsc => 8 / 7,
+      .pal => 11 / 8,
+      .square => 1,
+      .stretch => constraints.maxWidth / constraints.maxHeight,
+      .custom => settings.customPixelAspectRatio,
     };
   }
 }
