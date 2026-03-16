@@ -25,19 +25,12 @@ class VolumeSlider extends ConsumerWidget {
         ),
       },
       child: FocusOnHover(
-        child: SettingsTile(
-          title: const Text('Volume'),
+        child: SliderSettingsTile(
+          label: 'Volume',
           onTap: () => controller.volume = 0.5,
-          child: LayoutBuilder(
-            builder: (_, constraints) => SizedBox(
-              width: constraints.maxWidth,
-              child: Slider(
-                value: setting,
-                onChanged: (value) => controller.volume = value,
-                label: 'Volume',
-              ),
-            ),
-          ),
+          onChanged: (value) => controller.volume = value,
+          value: setting,
+          displayValue: (setting * 100).toStringAsFixed(0),
         ),
       ),
     );
