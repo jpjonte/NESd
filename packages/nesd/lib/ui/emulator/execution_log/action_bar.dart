@@ -47,7 +47,7 @@ class WriteToFileButton extends ConsumerWidget {
 
     return IconButton(
       onPressed: () async {
-        final file = await FilePicker.platform.saveFile(
+        final file = await FilePicker.saveFile(
           type: FileType.custom,
           allowedExtensions: ['log', 'txt'],
         );

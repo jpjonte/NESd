@@ -247,7 +247,7 @@ class NesController {
   Future<void> selectRom() async {
     suspend();
 
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['nes', 'zip'],
     );
