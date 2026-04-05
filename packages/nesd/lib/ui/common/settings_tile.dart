@@ -65,17 +65,14 @@ class SettingsTile extends StatelessWidget {
             if (subtitle != null) wrappedSubtitle,
           ];
 
-          final wrappedTitles = column
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: titles,
-                )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: titles,
-                );
+          final wrappedTitles = ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 2 / 3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: titles,
+            ),
+          );
 
           final wrappedChild = SizedBox(
             height: 70,
@@ -215,6 +212,7 @@ class SliderSettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsTile(
       enabled: enabled,
+      adaptive: true,
       title: label != null ? Text(label!) : null,
       onTap: onTap,
       child: LayoutBuilder(

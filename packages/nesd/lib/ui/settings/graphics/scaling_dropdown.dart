@@ -24,6 +24,7 @@ class ScalingDropdown extends HookConsumerWidget {
       focusNode: focusNode,
       child: SettingsTile(
         title: const Text('Scaling'),
+        adaptive: true,
         onTap: () => _activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
