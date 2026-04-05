@@ -32,26 +32,24 @@ class EmulatorScreen extends HookConsumerWidget {
 
     final cartridge = nes?.bus.cartridge;
 
-    return SafeArea(
-      child: NesdScaffold(
-        body: Row(
-          children: [
-            const Expanded(child: EmulatorWidget()),
-            if (showTiles || showCartridgeInfo || showDebugger)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 512),
-                child: Column(
-                  children: [
-                    if (showTiles) const TileDebugWidget(),
-                    if (cartridge != null && showCartridgeInfo)
-                      CartridgeInfoWidget(cartridge: cartridge),
-                    if (showDebugger) const DebuggerWidget(),
-                  ],
-                ),
+    return NesdScaffold(
+      body: Row(
+        children: [
+          const Expanded(child: EmulatorWidget()),
+          if (showTiles || showCartridgeInfo || showDebugger)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 512),
+              child: Column(
+                children: [
+                  if (showTiles) const TileDebugWidget(),
+                  if (cartridge != null && showCartridgeInfo)
+                    CartridgeInfoWidget(cartridge: cartridge),
+                  if (showDebugger) const DebuggerWidget(),
+                ],
               ),
-            if (debuggerState.executionLogOpen) const ExecutionLogWidget(),
-          ],
-        ),
+            ),
+          if (debuggerState.executionLogOpen) const ExecutionLogWidget(),
+        ],
       ),
     );
   }

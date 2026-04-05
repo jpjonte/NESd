@@ -21,6 +21,7 @@ class GraphicsSettings extends ConsumerWidget {
       index: 1,
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const RendererSelector(),
             const BorderSwitch(),

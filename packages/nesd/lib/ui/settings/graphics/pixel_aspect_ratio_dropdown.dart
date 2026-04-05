@@ -23,6 +23,7 @@ class PixelAspectRatioDropdown extends HookConsumerWidget {
       focusNode: focusNode,
       child: SettingsTile(
         title: const Text('Pixel Aspect Ratio'),
+        adaptive: true,
         onTap: () => _activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
