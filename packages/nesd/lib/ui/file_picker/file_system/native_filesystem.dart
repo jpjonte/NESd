@@ -50,7 +50,7 @@ class NativeFilesystem extends Filesystem {
 
   @override
   Future<FilesystemFile?> chooseDirectory(String initialDirectory) async {
-    final result = await FilePicker.platform.getDirectoryPath(
+    final result = await FilePicker.getDirectoryPath(
       initialDirectory: initialDirectory,
     );
 
