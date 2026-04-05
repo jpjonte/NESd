@@ -30,8 +30,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "dev.jpj.nesd"
+
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -39,7 +40,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     sourceSets {
