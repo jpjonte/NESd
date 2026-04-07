@@ -5,6 +5,24 @@ env:
   GH_TOKEN: ${{ github.token }}
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      build-relevant: ${{ steps.filter.outputs.build-relevant }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            build-relevant:
+              - 'packages/**'
+              - '.fvmrc'
+              - 'macos/**'
+              - 'linux/**'
+              - 'windows/**'
+              - 'android/**'
+
   lint:
     runs-on: ubuntu-22.04
     container:
@@ -84,7 +102,7 @@ jobs:
       matrix:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
-    needs: [ test ]
+    needs: [test]
     steps:
       - uses: actions/checkout@v6
       - id: env
@@ -276,9 +294,10 @@ jobs:
           if-no-files-found: error
 
   release_nightly:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.detect-changes.outputs.build-relevant == 'true'
     runs-on: ubuntu-22.04
     needs:
+      - detect-changes
       - build-macos
       - package-linux-deb
       - package-linux-rpm
