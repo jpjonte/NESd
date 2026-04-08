@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'base_robot.dart';
@@ -86,6 +88,14 @@ class Robot extends BaseRobot {
     tester.view.physicalSize =
         const Size(1920, 1080) * tester.view.devicePixelRatio;
 
+    final tempDir = _createTempDir();
+
+    addTearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -95,12 +105,20 @@ class Robot extends BaseRobot {
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           packageInfoProvider.overrideWithValue(packageInfo),
           filesystemProvider.overrideWithValue(fileSystem),
-          applicationSupportPathProvider.overrideWithValue('/tmp/nesd'),
+          applicationSupportPathProvider.overrideWithValue(tempDir.path),
         ],
         child: const NesdApp(),
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  Directory _createTempDir() {
+    final random = Random().nextInt(1 << 32).toRadixString(36);
+    final dir = Directory(path.join(Directory.systemTemp.path, 'nesd_$random'))
+      ..createSync();
+
+    return dir;
   }
 
   Future<void> screenshot(String filename) async {
