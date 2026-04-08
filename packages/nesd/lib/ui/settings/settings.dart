@@ -435,7 +435,11 @@ class SettingsController extends _$SettingsController {
     final raw = _prefs.getString(settingsKey);
 
     if (raw == null) {
-      final settings = Settings(bindings: defaultBindings);
+      final settings = Settings(
+        bindings: defaultBindings,
+        narrowTouchInputConfig: defaultPortraitConfig,
+        wideTouchInputConfig: defaultLandscapeConfig,
+      );
 
       _prefs.setString(settingsKey, jsonEncode(settings.toJson()));
 
