@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode
+- Fixed touch controls not getting enabled when enabling them for the first time
 
 ## [0.14.0] - 2026-03-16
 
