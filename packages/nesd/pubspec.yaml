@@ -40,7 +40,7 @@ dependencies:
       url: https://github.com/jpjonte/mp-audio-stream.git
       ref: feature/buffer-size
   nesd_texture: any
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.0.0
   path: ^1.9.1
   path_provider: ^2.1.5
   riverpod: ^3.0.3
@@ -49,7 +49,7 @@ dependencies:
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.2
-  xml: ^6.5.0
+  xml: ^7.0.0
 
 dev_dependencies:
   auto_route_generator: ^10.2.3
