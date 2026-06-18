@@ -10,7 +10,7 @@ jobs:
     outputs:
       build-relevant: ${{ steps.filter.outputs.build-relevant }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -28,7 +28,7 @@ jobs:
     container:
       image: ghcr.io/jpjonte/flutter:stable
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: flutter pub get
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
@@ -39,7 +39,7 @@ jobs:
       image: ghcr.io/jpjonte/flutter:stable
     needs: [lint]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: flutter pub get
       - run: |
           cd packages/nesd
@@ -61,7 +61,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
       - id: deployment
         uses: actions/deploy-pages@v5
@@ -72,7 +72,7 @@ jobs:
     outputs:
       release_name: ${{ steps.env.outputs.release_name }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh
       - uses: subosito/flutter-action@v2
@@ -104,7 +104,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [test]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: subosito/flutter-action@v2
@@ -123,7 +123,7 @@ jobs:
     runs-on: windows-latest
     needs: [test]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: ci/1-build/windows/prepare.ps1
       - id: env
         shell: bash
@@ -148,7 +148,7 @@ jobs:
       image: ghcr.io/jpjonte/flutter:stable
     needs: [test]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh
       - run: ci/1-build/prepare.sh
@@ -170,7 +170,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
@@ -191,7 +191,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
@@ -217,7 +217,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: |
           git config --global --add safe.directory $(pwd)
           sudo dnf install -y yq jq
@@ -227,7 +227,7 @@ jobs:
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
@@ -279,7 +279,7 @@ jobs:
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
         run: ci/env.sh ${{ matrix.arch }}
       - uses: actions/cache/restore@v5
@@ -308,8 +308,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
@@ -363,8 +363,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
