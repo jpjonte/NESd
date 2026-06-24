@@ -47,14 +47,12 @@ class WriteToFileButton extends ConsumerWidget {
 
     return IconButton(
       onPressed: () async {
-        final file = await FilePicker.saveFile(
+        await FilePicker.saveFile(
+          bytes: log.dumpAsBytes(),
+          fileName: 'nesd.log',
           type: FileType.custom,
           allowedExtensions: ['log', 'txt'],
         );
-
-        if (file != null) {
-          log.dumpToFile(file);
-        }
       },
       icon: const Icon(MdiIcons.fileDownload),
       color: Colors.white,

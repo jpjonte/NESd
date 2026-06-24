@@ -2,7 +2,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/extension/hex_extension.dart';
@@ -106,20 +107,14 @@ class ExecutionLog {
     return result.toString();
   }
 
-  void dumpToFile(String filename) {
-    final file = File(filename);
-
-    if (!file.existsSync()) {
-      file.createSync();
-    }
-
+  Uint8List dumpAsBytes() {
     final contents = StringBuffer();
 
     for (final line in lines) {
       contents.writeln(printLine(line));
     }
 
-    file.writeAsStringSync(contents.toString());
+    return utf8.encode(contents.toString());
   }
 
   void _handleEvent(NesEvent event) {
