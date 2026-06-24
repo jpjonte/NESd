@@ -2,6 +2,12 @@
 
 set -eu
 
+if [[ "$ARCH" == "arm64" ]]; then
+  full_arch="aarch64"
+else
+  full_arch="x86_64"
+fi
+
 repo_root=$(git rev-parse --show-toplevel)
 app_root="$repo_root/packages/nesd"
 
@@ -22,7 +28,7 @@ cp "$app_root/linux/packaging/rpm/nesd.spec" rpmbuild/SPECS/
 rpmbuild \
   --buildroot "$(pwd)/rpmbuild/BUILDROOT" \
   --define '_topdir rpmbuild' \
-  --define "arch_ $FULL_ARCH" \
+  --define "arch_ $full_arch" \
   --define 'source_date_epoch_from_changelog 0' \
   -bb rpmbuild/SPECS/nesd.spec
 
