@@ -15,6 +15,10 @@ class StopAction extends InputAction {
   const StopAction({required super.title, required super.code});
 }
 
+class ResetAction extends InputAction {
+  const ResetAction({required super.title, required super.code});
+}
+
 class FastForward extends InputAction {
   const FastForward({required super.title, required super.code})
     : super(toggleable: true);
@@ -45,6 +49,8 @@ const unpause = PauseAction(
   title: 'Unpause',
   code: 'state.unpause',
 );
+
+const reset = ResetAction(title: 'Reset', code: 'state.reset');
 
 const stop = StopAction(title: 'Stop Game', code: 'state.stop');
 

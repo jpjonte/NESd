@@ -195,6 +195,8 @@ class ActionHandler {
         } else {
           nes?.unpause();
         }
+      case ResetAction():
+        nesController.reset();
       case StopAction():
         nesController.stop();
         router.navigate(const MainRoute());
