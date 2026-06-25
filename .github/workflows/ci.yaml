@@ -10,7 +10,7 @@ jobs:
     outputs:
       build-relevant: ${{ steps.filter.outputs.build-relevant }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -26,9 +26,9 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/jpjonte/flutter:stable
+      image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: flutter pub get
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
@@ -36,10 +36,10 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/jpjonte/flutter:stable
+      image: ghcr.io/jpjonte/flutter:stable-ci
     needs: [lint]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: flutter pub get
       - run: |
           cd packages/nesd
@@ -61,7 +61,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
       - id: deployment
         uses: actions/deploy-pages@v5
@@ -72,12 +72,12 @@ jobs:
     outputs:
       release_name: ${{ steps.env.outputs.release_name }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh
+        uses: ./.github/actions/env
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ steps.env.outputs.flutter_version }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - uses: webfactory/ssh-agent@v0.10.0
         with:
@@ -93,7 +93,7 @@ jobs:
       - run: ci/1-build/macos/build.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact_flavored }}.macos-universal.dmg
+          name: ${{ env.ARTIFACT_FLAVORED }}.macos-universal.dmg
           path: '*.dmg'
           if-no-files-found: error
 
@@ -102,55 +102,53 @@ jobs:
       matrix:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
-    needs: [test]
+    needs: [ test ]
+    env:
+      ARCH: ${{ matrix.arch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh ${{ matrix.arch }}
+        uses: ./.github/actions/env
       - uses: subosito/flutter-action@v2
         with:
           channel: master
-          flutter-version: ${{ steps.env.outputs.flutter_version }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/linux/build.sh
-      - uses: actions/cache/save@v5
+      - uses: actions/cache/save@v6
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
 
   build-windows:
     runs-on: windows-latest
-    needs: [test]
+    needs: [ test ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: ci/1-build/windows/prepare.ps1
       - id: env
-        shell: bash
-        run: |
-          alias yq="/C/ProgramData/chocolatey/lib/yq/tools/yq.exe"
-          alias jq="/C/ProgramData/chocolatey/lib/jq/tools/jq.exe"
-          ci/env.sh
+        uses: ./.github/actions/env
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ steps.env.outputs.flutter_version }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: ci/1-build/windows/build.ps1
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact }}.windows-x64.zip
+          name: ${{ env.ARTIFACT }}.windows-x64.zip
           path: dist/
           if-no-files-found: error
 
   build-android:
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/jpjonte/flutter:stable
-    needs: [test]
+      image: ghcr.io/jpjonte/flutter:stable-android-ci
+    needs: [ test ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh
+        uses: ./.github/actions/env
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/android/prepare.sh
         env:
@@ -159,7 +157,7 @@ jobs:
       - run: ci/1-build/android/build.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact_flavored }}.android.apk
+          name: ${{ env.ARTIFACT_FLAVORED }}.android.apk
           path: '*.apk'
           if-no-files-found: error
 
@@ -169,18 +167,20 @@ jobs:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
+    env:
+      ARCH: ${{ matrix.arch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v5
+        uses: ./.github/actions/env
+      - uses: actions/cache/restore@v6
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_deb.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact }}.linux-${{ matrix.arch }}.deb
+          name: ${{ env.ARTIFACT }}.linux-${{ matrix.arch }}.deb
           path: '*.deb'
           if-no-files-found: error
 
@@ -190,18 +190,20 @@ jobs:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
+    env:
+      ARCH: ${{ matrix.arch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v5
+        uses: ./.github/actions/env
+      - uses: actions/cache/restore@v6
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_rpm.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact }}.linux-${{ matrix.arch }}.rpm
+          name: ${{ env.ARTIFACT }}.linux-${{ matrix.arch }}.rpm
           path: '*.rpm'
           if-no-files-found: error
 
@@ -211,23 +213,25 @@ jobs:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
+    env:
+      ARCH: ${{ matrix.arch }}
     container:
       image: ghcr.io/andyholmes/flatter/freedesktop:24.08
       options: --privileged
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: |
           git config --global --add safe.directory $(pwd)
           sudo dnf install -y yq jq
       - id: env
-        run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v5
+        uses: ./.github/actions/env
+      - uses: actions/cache/restore@v6
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
@@ -260,14 +264,14 @@ jobs:
           GPG_KEY_ID: ${{ steps.gpg.outputs.fingerprint }}
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact }}.linux-${{ matrix.arch }}.flatpak
+          name: ${{ env.ARTIFACT }}.linux-${{ matrix.arch }}.flatpak
           path: '*.flatpak'
           if-no-files-found: error
-      - uses: actions/cache/save@v5
+      - uses: actions/cache/save@v6
         with:
           path: flatpak/stable
           key: flatpak-stable-${{ github.sha }}
-      - uses: actions/cache/save@v5
+      - uses: actions/cache/save@v6
         with:
           path: flatpak/nightly
           key: flatpak-nightly-${{ github.sha }}
@@ -278,18 +282,20 @@ jobs:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
     needs: [ build-linux ]
+    env:
+      ARCH: ${{ matrix.arch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: env
-        run: ci/env.sh ${{ matrix.arch }}
-      - uses: actions/cache/restore@v5
+        uses: ./.github/actions/env
+      - uses: actions/cache/restore@v6
         with:
           path: packages/nesd/build/linux/${{ matrix.arch }}/release/bundle
           key: linux-${{ matrix.arch }}-${{ github.sha }}
       - run: ci/2-package/linux/package_appimage.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.env.outputs.artifact }}.linux-${{ matrix.arch }}.AppImage
+          name: ${{ env.ARTIFACT }}.linux-${{ matrix.arch }}.AppImage
           path: '*.AppImage'
           if-no-files-found: error
 
@@ -308,14 +314,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: flatpak/nightly
           key: flatpak-nightly-${{ github.sha }}
@@ -335,7 +341,7 @@ jobs:
           path: artifacts
           merge-multiple: true
       - id: env
-        run: ci/env.sh
+        uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
       - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
@@ -363,14 +369,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: jpjonte/flatpak
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: flatpak/stable
           key: flatpak-stable-${{ github.sha }}
@@ -390,7 +396,7 @@ jobs:
           path: artifacts
           merge-multiple: true
       - id: env
-        run: ci/env.sh
+        uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
       - uses: ncipollo/release-action@v1
         with:

@@ -1,0 +1,27 @@
+name: Compute build env
+description: Computes shared build/release environment variables and exports them
+runs:
+  using: composite
+  steps:
+    - id: env
+      shell: bash
+      run: ci/env.sh
+outputs:
+  flutter_version:
+    description: Flutter version from .fvmrc
+    value: ${{ steps.env.outputs.flutter_version }}
+  version:
+    description: App version from pubspec.yaml
+    value: ${{ steps.env.outputs.version }}
+  release_name:
+    description: Release name (version, nightly, or short SHA)
+    value: ${{ steps.env.outputs.release_name }}
+  artifact:
+    description: Base artifact name (nesd.<release_name>)
+    value: ${{ steps.env.outputs.artifact }}
+  artifact_flavored:
+    description: Flavored artifact name (<flavored_id>.<release_name>)
+    value: ${{ steps.env.outputs.artifact_flavored }}
+  flavored_name:
+    description: Human-readable flavored app name
+    value: ${{ steps.env.outputs.flavored_name }}

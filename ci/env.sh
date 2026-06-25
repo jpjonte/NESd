@@ -2,14 +2,6 @@
 
 set -eux
 
-arch=${1:-}
-
-if [[ "$arch" == "arm64" ]]; then
-  full_arch="aarch64"
-else
-  full_arch="x86_64"
-fi
-
 flutter_version=$(jq -r '.flutter' .fvmrc)
 
 version=$(yq '.version' packages/nesd/pubspec.yaml)
@@ -44,9 +36,7 @@ artifact_flavored="$flavored_id.$release_name"
 } >> "$GITHUB_OUTPUT"
 
 {
-  echo "ARCH=$arch"
   echo "FLUTTER_VERSION=$flutter_version"
-  echo "FULL_ARCH=$full_arch"
   echo "VERSION=$version"
   echo "RELEASE_NAME=$release_name"
   echo "ARTIFACT=$artifact"

@@ -2,13 +2,19 @@
 
 set -eux
 
+if [[ "$ARCH" == "arm64" ]]; then
+  full_arch="aarch64"
+else
+  full_arch="x86_64"
+fi
+
 repo_root=$(git rev-parse --show-toplevel)
 app_root="$repo_root/packages/nesd"
 
 sudo apt-get update -y
 sudo apt-get install -y locate
 
-wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$FULL_ARCH.AppImage"
+wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$full_arch.AppImage"
 chmod +x appimagetool
 mv appimagetool /usr/local/bin/
 

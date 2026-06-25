@@ -20,6 +20,7 @@ const menuActions = [
 const emulatorActions = [
   pause,
   unpause,
+  reset,
   stop,
   fastForward,
   rewind,

@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 0.14.0
 
 environment:
-  sdk: '>=3.10.0 <4.0.0'
+  sdk: '>=3.12.0 <4.0.0'
 
 resolution: workspace
 
@@ -18,12 +18,12 @@ dependencies:
   crypto: ^3.0.6
   es_compression: ^2.0.14
   ffi: ^2.1.4
-  file_picker: ^11.0.0
+  file_picker: ^12.0.0-beta.7
   flutter:
     sdk: flutter
   flutter_hooks: ^0.21.2
   flutter_launcher_icons: ^0.14.4
-  flutter_material_design_icons: 3.0.0+7447
+  flutter_material_design_icons: ^3.1.0+7447
   flutter_riverpod: ^3.0.3
   freezed_annotation: ^3.1.0
   gamepads:
@@ -40,7 +40,7 @@ dependencies:
       url: https://github.com/jpjonte/mp-audio-stream.git
       ref: feature/buffer-size
   nesd_texture: any
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.1.0
   path: ^1.9.1
   path_provider: ^2.1.5
   riverpod: ^3.0.3
@@ -49,7 +49,7 @@ dependencies:
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.2
-  xml: ^6.5.0
+  xml: ^7.0.1
 
 dev_dependencies:
   auto_route_generator: ^10.2.3

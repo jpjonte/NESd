@@ -19,6 +19,7 @@ devtools_options.yaml
 build/
 
 **/flutter/ephemeral/
+**/Flutter/ephemeral/
 
 # Python (dmgbuild)
 .venv/
