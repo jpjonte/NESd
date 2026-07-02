@@ -127,6 +127,6 @@ class Cartridge {
       return;
     }
 
-    prgSaveRam.setAll(0, prgSaveRam);
+    prgSaveRam.setRange(0, min(prgSaveRam.length, save.length), save);
   }
 }
