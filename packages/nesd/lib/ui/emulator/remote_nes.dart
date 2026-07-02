@@ -10,6 +10,7 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 
@@ -32,6 +33,7 @@ class RemoteNes {
     required this.romInfo,
     required this.fileHash,
     required this.hasZapper,
+    required this.cartridgeInfo,
     this.requestTimeout = const Duration(seconds: 5),
     // ignore: prefer_initializing_formals
   }) : _isolate = isolate {
@@ -43,6 +45,7 @@ class RemoteNes {
   final RomInfo romInfo;
   final String fileHash;
   final bool hasZapper;
+  final CartridgeInfo cartridgeInfo;
   final Duration requestTimeout;
 
   late final RemoteFrameSource frameSource;

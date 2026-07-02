@@ -4,12 +4,14 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -47,6 +49,23 @@ RomInfo _testRomInfo() => const RomInfo(
   ),
 );
 
+CartridgeInfo _testCartridgeInfo() => const CartridgeInfo(
+  filename: 'test.nes',
+  romFormat: RomFormat.iNes,
+  prgRomSize: 0,
+  chrRomSize: 0,
+  nametableLayout: NametableLayout.horizontal,
+  alternativeNametableLayout: false,
+  hasBattery: false,
+  hasTrainer: false,
+  consoleType: ConsoleType.nes,
+  mapperName: 'NROM',
+  mapperId: 0,
+  prgRamSize: 0,
+  prgSaveRamSize: 0,
+  tvSystem: TvSystem.ntsc,
+);
+
 DebuggerEvent _debuggerEvent({
   required DebuggerState state,
   Uint8List? cpuMemory,
@@ -73,6 +92,7 @@ void main() {
       romInfo: _testRomInfo(),
       fileHash: fileHash,
       hasZapper: false,
+      cartridgeInfo: _testCartridgeInfo(),
     );
 
     SharedPreferences.setMockInitialValues({});

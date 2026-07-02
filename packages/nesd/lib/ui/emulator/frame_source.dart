@@ -3,7 +3,6 @@ import 'dart:ffi';
 import 'package:flutter/foundation.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
-import 'package:nesd/nes/ppu/frame_buffer.dart';
 
 class FrameHandle {
   const FrameHandle({
@@ -23,43 +22,6 @@ abstract class FrameSource extends ChangeNotifier {
   FrameHandle? takeFrame();
 
   void releaseFrame(FrameHandle handle);
-}
-
-class LocalFrameSource extends FrameSource {
-  LocalFrameSource({required this.frameBuffer});
-
-  final FrameBuffer frameBuffer;
-
-  @override
-  FrameHandle? takeFrame() {
-    final buffer = frameBuffer.takeReadyBuffer();
-
-    if (buffer == null) {
-      return null;
-    }
-
-    final pointerAddress = frameBuffer.pointerForBuffer(buffer);
-
-    if (pointerAddress == null) {
-      frameBuffer.releaseDisplayBuffer(buffer);
-
-      return null;
-    }
-
-    return FrameHandle(
-      bytes: buffer,
-      width: frameBuffer.width,
-      height: frameBuffer.height,
-      pointerAddress: pointerAddress,
-    );
-  }
-
-  @override
-  void releaseFrame(FrameHandle handle) {
-    frameBuffer.releaseDisplayBuffer(handle.bytes);
-  }
-
-  void frameAvailable() => notifyListeners();
 }
 
 /// [FrameSource] backed by frames delivered from the emulator isolate as

@@ -4,10 +4,66 @@ import 'package:flutter/material.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/ui/common/key_value.dart';
 
-class CartridgeInfoWidget extends StatelessWidget {
-  const CartridgeInfoWidget({required this.cartridge, super.key});
+/// Cartridge metadata for the debug info panel.
+///
+/// The full [Cartridge] lives in the emulator isolate and isn't reachable
+/// from the UI, so this carries only the fields the panel displays.
+@immutable
+class CartridgeInfo {
+  const CartridgeInfo({
+    required this.filename,
+    required this.romFormat,
+    required this.prgRomSize,
+    required this.chrRomSize,
+    required this.nametableLayout,
+    required this.alternativeNametableLayout,
+    required this.hasBattery,
+    required this.hasTrainer,
+    required this.consoleType,
+    required this.mapperName,
+    required this.mapperId,
+    required this.prgRamSize,
+    required this.prgSaveRamSize,
+    required this.tvSystem,
+  });
 
-  final Cartridge cartridge;
+  factory CartridgeInfo.fromCartridge(Cartridge cartridge) => CartridgeInfo(
+    filename: File(cartridge.file.name).uri.pathSegments.last,
+    romFormat: cartridge.romFormat,
+    prgRomSize: cartridge.prgRom.length,
+    chrRomSize: cartridge.chrRom.length,
+    nametableLayout: cartridge.nametableLayout,
+    alternativeNametableLayout: cartridge.alternativeNametableLayout,
+    hasBattery: cartridge.hasBattery,
+    hasTrainer: cartridge.hasTrainer,
+    consoleType: cartridge.consoleType,
+    mapperName: cartridge.mapper.name,
+    mapperId: cartridge.mapper.id,
+    prgRamSize: cartridge.prgRam.length,
+    prgSaveRamSize: cartridge.prgSaveRam.length,
+    tvSystem: cartridge.tvSystem,
+  );
+
+  final String filename;
+  final RomFormat romFormat;
+  final int prgRomSize;
+  final int chrRomSize;
+  final NametableLayout nametableLayout;
+  final bool alternativeNametableLayout;
+  final bool hasBattery;
+  final bool hasTrainer;
+  final ConsoleType consoleType;
+  final String mapperName;
+  final int mapperId;
+  final int prgRamSize;
+  final int prgSaveRamSize;
+  final TvSystem tvSystem;
+}
+
+class CartridgeInfoWidget extends StatelessWidget {
+  const CartridgeInfoWidget({required this.info, super.key});
+
+  final CartridgeInfo info;
 
   @override
   Widget build(BuildContext context) {
@@ -18,31 +74,22 @@ class CartridgeInfoWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            KeyValue(
-              'Filename',
-              File(cartridge.file.name).uri.pathSegments.last,
-            ),
-            KeyValue('ROM format', cartridge.romFormat.toString()),
-            KeyValue('PRG ROM size', '${cartridge.prgRom.length} bytes'),
-            KeyValue('CHR ROM size', '${cartridge.chrRom.length} bytes'),
-            KeyValue('Nametable layout', '${cartridge.nametableLayout}'),
+            KeyValue('Filename', info.filename),
+            KeyValue('ROM format', info.romFormat.toString()),
+            KeyValue('PRG ROM size', '${info.prgRomSize} bytes'),
+            KeyValue('CHR ROM size', '${info.chrRomSize} bytes'),
+            KeyValue('Nametable layout', '${info.nametableLayout}'),
             KeyValue(
               'Alternative nametable layout',
-              '${cartridge.alternativeNametableLayout}',
+              '${info.alternativeNametableLayout}',
             ),
-            KeyValue('Has battery', '${cartridge.hasBattery}'),
-            KeyValue('Has trainer', '${cartridge.hasTrainer}'),
-            KeyValue('Console type', '${cartridge.consoleType}'),
-            KeyValue(
-              'Mapper',
-              '${cartridge.mapper.name} (${cartridge.mapper.id})',
-            ),
-            KeyValue('PRG Work RAM size', '${cartridge.prgRam.length} bytes'),
-            KeyValue(
-              'PRG Save RAM size',
-              '${cartridge.prgSaveRam.length} bytes',
-            ),
-            KeyValue('TV system', '${cartridge.tvSystem}'),
+            KeyValue('Has battery', '${info.hasBattery}'),
+            KeyValue('Has trainer', '${info.hasTrainer}'),
+            KeyValue('Console type', '${info.consoleType}'),
+            KeyValue('Mapper', '${info.mapperName} (${info.mapperId})'),
+            KeyValue('PRG Work RAM size', '${info.prgRamSize} bytes'),
+            KeyValue('PRG Save RAM size', '${info.prgSaveRamSize} bytes'),
+            KeyValue('TV system', '${info.tvSystem}'),
           ],
         ),
       ),

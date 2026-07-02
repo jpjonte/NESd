@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/emulator_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -15,28 +17,33 @@ class EmulatorScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final nes = ref.watch(nesStateProvider);
     final debuggerState = ref.watch(debuggerStateProvider);
 
     final showTiles = ref.watch(
       settingsControllerProvider.select((s) => s.showTiles),
     );
+    final showCartridgeInfo = ref.watch(
+      settingsControllerProvider.select((s) => s.showCartridgeInfo),
+    );
     final showDebugger = ref.watch(
       settingsControllerProvider.select((s) => s.showDebugger),
     );
 
-    // TEMPORARY: the cartridge-info panel read the full Cartridge from the NES,
-    // which now lives in the emulator isolate. Will be reconnected; until then
-    // only tiles/debugger occupy the side column.
+    final cartridgeInfo = nes?.cartridgeInfo;
+
     return NesdScaffold(
       body: Row(
         children: [
           const Expanded(child: EmulatorWidget()),
-          if (showTiles || showDebugger)
+          if (showTiles || showCartridgeInfo || showDebugger)
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 512),
               child: Column(
                 children: [
                   if (showTiles) const TileDebugWidget(),
+                  if (cartridgeInfo != null && showCartridgeInfo)
+                    CartridgeInfoWidget(info: cartridgeInfo),
                   if (showDebugger) const DebuggerWidget(),
                 ],
               ),

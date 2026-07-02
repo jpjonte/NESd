@@ -14,6 +14,7 @@ import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -307,6 +308,7 @@ class NesController {
         romInfo: romInfo,
         fileHash: cartridge.fileHash,
         hasZapper: databaseEntry?.hasZapper ?? false,
+        cartridgeInfo: CartridgeInfo.fromCartridge(cartridge),
       );
 
       isolate.send(

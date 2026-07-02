@@ -6,11 +6,13 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -44,6 +46,23 @@ RomInfo _testRomInfo() => const RomInfo(
     name: 'test.nes',
     type: FilesystemFileType.file,
   ),
+);
+
+CartridgeInfo _testCartridgeInfo() => const CartridgeInfo(
+  filename: 'test.nes',
+  romFormat: RomFormat.iNes,
+  prgRomSize: 0,
+  chrRomSize: 0,
+  nametableLayout: NametableLayout.horizontal,
+  alternativeNametableLayout: false,
+  hasBattery: false,
+  hasTrainer: false,
+  consoleType: ConsoleType.nes,
+  mapperName: 'NROM',
+  mapperId: 0,
+  prgRamSize: 0,
+  prgSaveRamSize: 0,
+  tvSystem: TvSystem.ntsc,
 );
 
 FrameEvent _frameEvent(int pointerAddress, {int width = 2, int height = 2}) =>
@@ -173,6 +192,7 @@ void main() {
       romInfo: _testRomInfo(),
       fileHash: 'abc123',
       hasZapper: true,
+      cartridgeInfo: _testCartridgeInfo(),
       requestTimeout: requestTimeout ?? const Duration(seconds: 5),
     );
 
