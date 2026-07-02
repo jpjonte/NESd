@@ -1,7 +1,11 @@
 import 'dart:isolate';
 
 class NesIsolateConfig {
-  const NesIsolateConfig({required this.hostPort, this.lz4LibraryPath});
+  const NesIsolateConfig({
+    required this.hostPort,
+    this.lz4LibraryPath,
+    this.disableAudio = false,
+  });
 
   final SendPort hostPort;
 
@@ -10,4 +14,11 @@ class NesIsolateConfig {
   /// flutter_test_config.dart) must forward it to the spawned isolate.
   /// Null in production builds (es_compression resolves bundled libs).
   final String? lz4LibraryPath;
+
+  /// When true, the worker uses `NullAudioStream` instead of the real
+  /// platform audio backend. On macOS/iOS `mp_audio_stream` resolves its
+  /// FFI symbols via `DynamicLibrary.executable()`, which under
+  /// `flutter test` has no miniaudio symbols, so real audio init throws.
+  /// Tests set this; production callers leave it false.
+  final bool disableAudio;
 }
