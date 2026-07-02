@@ -457,7 +457,20 @@ class NesController {
 
   void _saveThumbnail() {
     if (nes case final nes?) {
-      romManager.saveThumbnail(nes.bus.cartridge.romInfo, nes.ppu.frameBuffer);
+      final frameBuffer = nes.ppu.frameBuffer;
+      final queued = frameBuffer.takeReadyBuffer();
+      final pixels = queued ?? Uint8List.fromList(frameBuffer.pixels);
+
+      romManager.saveThumbnail(
+        nes.bus.cartridge.romInfo,
+        width: frameBuffer.width,
+        height: frameBuffer.height,
+        pixels: pixels,
+      );
+
+      if (queued != null) {
+        frameBuffer.releaseDisplayBuffer(queued);
+      }
     }
   }
 
