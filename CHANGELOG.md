@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The emulator display can now fill the entire screen
 - Improved compatibility with Android and macOS
+- Greatly reduced the performance cost of the rewind feature, especially
+  on lower-end devices
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode
