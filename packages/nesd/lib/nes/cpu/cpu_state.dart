@@ -1,6 +1,8 @@
 // register names don't follow dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:typed_data';
+
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 
@@ -40,6 +42,7 @@ class CPUState {
       0 => CPUState._version0(reader),
       1 => CPUState._version1(reader),
       2 => CPUState._version2(reader),
+      3 => CPUState._version3(reader),
       _ => throw InvalidSerializationVersion('CPUState', version),
     };
   }
@@ -134,6 +137,36 @@ class CPUState {
     );
   }
 
+  factory CPUState._version3(PayloadReader reader) {
+    return CPUState(
+      PC: reader.get(uint16),
+      SP: reader.get(uint8),
+      A: reader.get(uint8),
+      X: reader.get(uint8),
+      Y: reader.get(uint8),
+      P: reader.get(uint8),
+      irq: reader.get(uint8),
+      doIrq: reader.get(boolean),
+      previousDoIrq: reader.get(boolean),
+      nmi: reader.get(boolean),
+      previousNmi: reader.get(boolean),
+      doNmi: reader.get(boolean),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oamDma: reader.get(boolean),
+      oamDmaStarted: reader.get(boolean),
+      oamDmaOffset: reader.get(uint8),
+      oamDmaValue: reader.get(uint8),
+      dmcDma: reader.get(boolean),
+      dmcDmaRead: reader.get(boolean),
+      dmcDmaDummy: reader.get(boolean),
+      dmcDmaValue: reader.get(uint8),
+      oamDmaPage: reader.get(uint8),
+      cycles: reader.get(uint64),
+      consoleCycles: reader.get(uint64),
+      callStack: reader.get(uint16List(lengthType: uint32)),
+    );
+  }
+
   final int PC;
   final int SP;
   final int A;
@@ -169,7 +202,7 @@ class CPUState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 2) // version
+      ..set(uint8, 3) // version
       ..set(uint16, PC)
       ..set(uint8, SP)
       ..set(uint8, A)
@@ -182,7 +215,7 @@ class CPUState {
       ..set(boolean, nmi)
       ..set(boolean, previousNmi)
       ..set(boolean, doNmi)
-      ..set(list(uint8), ram)
+      ..set(uint8List(lengthType: uint32), ram)
       ..set(boolean, oamDma)
       ..set(boolean, oamDmaStarted)
       ..set(uint8, oamDmaOffset)
@@ -194,6 +227,6 @@ class CPUState {
       ..set(uint8, oamDmaPage)
       ..set(uint64, cycles)
       ..set(uint64, consoleCycles)
-      ..set(list(uint16), callStack);
+      ..set(uint16List(lengthType: uint32), Uint16List.fromList(callStack));
   }
 }
