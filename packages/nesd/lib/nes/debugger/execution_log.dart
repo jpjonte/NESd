@@ -7,25 +7,19 @@ import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/extension/hex_extension.dart';
-import 'package:nesd/nes/debugger/disassembler.dart';
 import 'package:nesd/nes/debugger/execution_log_state.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'execution_log.g.dart';
 
-// TEMPORARY: the live NES now runs in the emulator isolate, so the execution
-// log has no local NES to observe. Will be reconnected through the isolate
-// protocol; until then it stays inert (`nes: null`).
 @riverpod
 ExecutionLog executionLog(Ref ref) {
   final executionLog = ExecutionLog(
-    eventBus: ref.watch(eventBusProvider),
+    nes: ref.watch(nesStateProvider),
     notifier: ref.watch(executionLogStateProvider.notifier),
-    nes: null,
-    disassembler: ref.watch(disassemblerProvider),
   );
 
   ref.onDispose(executionLog.dispose);
@@ -33,26 +27,23 @@ ExecutionLog executionLog(Ref ref) {
   return executionLog;
 }
 
+/// Message client for the execution log: appends the [ExecutionLogLine]
+/// batches the isolate-side `ExecutionLogBackend` flushes via
+/// [ExecutionLogEvent], instead of building lines from a live CPU/
+/// disassembler of its own.
 class ExecutionLog {
-  ExecutionLog({
-    required this.eventBus,
-    required this.notifier,
-    required this.nes,
-    required this.disassembler,
-  }) {
-    _eventSubscription = eventBus.stream.listen(_handleEvent);
+  ExecutionLog({required this.nes, required this.notifier}) {
+    _subscription = nes?.events.listen(_handleEvent);
   }
 
-  final EventBus eventBus;
+  final RemoteNes? nes;
   final ExecutionLogStateNotifier notifier;
-  final NES? nes;
-  final DisassemblerInterface disassembler;
   final List<ExecutionLogLine> lines = [];
 
-  late final StreamSubscription<NesEvent> _eventSubscription;
+  StreamSubscription<NesIsolateEvent>? _subscription;
 
   void dispose() {
-    _eventSubscription.cancel();
+    unawaited(_subscription?.cancel());
   }
 
   void clear() {
@@ -62,12 +53,12 @@ class ExecutionLog {
 
   void enable() {
     notifier.enable();
-    nes?.cpu.executionLogEnabled = true;
+    nes?.setExecutionLogEnabled(true);
   }
 
   void disable() {
     notifier.disable();
-    nes?.cpu.executionLogEnabled = false;
+    nes?.setExecutionLogEnabled(false);
   }
 
   void toggle() {
@@ -119,48 +110,12 @@ class ExecutionLog {
     return utf8.encode(contents.toString());
   }
 
-  void _handleEvent(NesEvent event) {
-    final nes = this.nes;
-
-    if (event is! StepNesEvent ||
-        nes == null ||
-        !notifier.executionLogState.enabled) {
+  void _handleEvent(NesIsolateEvent event) {
+    if (event is! ExecutionLogEvent || !notifier.executionLogState.enabled) {
       return;
     }
 
-    final state = nes.cpu.state;
-    final opcode = event.opcode;
-
-    final disassemblyLine = disassembler.disassembleLine(
-      state.PC,
-      state: state,
-    );
-
-    lines.add(
-      ExecutionLogLine(
-        address: state.PC,
-        opcode: opcode,
-        operands: disassemblyLine?.operands ?? [],
-        instruction: disassemblyLine?.operation.instruction.name ?? '',
-        disassembly: disassemblyLine?.disassembly ?? '',
-        effectiveAddress: disassemblyLine?.addressIsCalculated == true
-            ? disassemblyLine?.readAddress
-            : null,
-        value: disassemblyLine?.isRead == true
-            ? nes.bus.cpuRead(
-                disassemblyLine!.readAddress,
-                disableSideEffects: true,
-              )
-            : null,
-        A: state.A,
-        X: state.X,
-        Y: state.Y,
-        SP: state.SP,
-        P: state.P,
-        scanline: nes.ppu.scanline,
-        cycle: nes.ppu.cycle,
-      ),
-    );
+    lines.addAll(event.lines);
 
     notifier.setLines(lines);
   }
