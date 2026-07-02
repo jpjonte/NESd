@@ -38,16 +38,19 @@ class SaveStatesScreenController {
 
   Stream<List<RomTileData>> get stream => streamController.stream;
 
-  void save(RomTileData romTileData) {
+  Future<void> save(RomTileData romTileData) async {
     final slot = romTileData.slot;
 
     if (slot == null) {
       return;
     }
 
-    nesController.saveState(slot);
+    // Await the save before refreshing: _fetch() reads the on-disk slots,
+    // so kicking it off before saveState resolves would race the write and
+    // show a stale (or missing) thumbnail for the slot just saved.
+    await nesController.saveState(slot);
 
-    _fetch();
+    await _fetch();
   }
 
   void delete(RomTileData romTileData) {

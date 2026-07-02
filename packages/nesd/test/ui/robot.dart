@@ -6,8 +6,8 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/nesd_app.dart';
@@ -58,14 +58,21 @@ class Robot extends BaseRobot {
   void initSettings(Map<String, Object> values) =>
       SharedPreferences.setMockInitialValues({'settings': jsonEncode(values)});
 
-  Future<void> pumpApp() async {
-    final mockAudioStream = MockAudioStream();
+  Future<void> pumpApp({Map<String, Uint8List> extraFiles = const {}}) async {
     final fileSystem = MockFileSystem()
       ..addFile(
         '/test/roms/nestest.nes',
         File('../../roms/test/nestest/nestest.nes').readAsBytesSync(),
       )
       ..addFile('/test/roms/z_fake.nes', Uint8List(0));
+
+    // `MockFileSystem.list` ignores its `path` argument and returns every
+    // registered file, so extra fixtures are opt-in per test (added here,
+    // after the fixed set above) rather than always-on. Otherwise they'd
+    // inflate file-picker directory-listing counts in unrelated tests.
+    for (final entry in extraFiles.entries) {
+      fileSystem.addFile(entry.key, entry.value);
+    }
 
     final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -99,8 +106,8 @@ class Robot extends BaseRobot {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          audioOutputProvider.overrideWithValue(
-            AudioOutput(audioStream: mockAudioStream),
+          nesIsolateSpawnerProvider.overrideWithValue(
+            () async => FakeNesIsolateHandle(),
           ),
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           packageInfoProvider.overrideWithValue(packageInfo),

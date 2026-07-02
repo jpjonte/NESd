@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
-import 'package:nesd/audio/audio_output.dart';
-import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'action_handler.g.dart';
@@ -58,7 +58,7 @@ ActionHandler actionHandler(Ref ref) {
     nesController: ref.watch(nesControllerProvider),
     router: ref.read(routerProvider),
     romManager: ref.watch(romManagerProvider),
-    audioOutput: ref.watch(audioOutputProvider),
+    settingsController: ref.read(settingsControllerProvider.notifier),
     actionStream: actionStream.stream,
   );
 
@@ -80,17 +80,17 @@ class ActionHandler {
     required this.nesController,
     required this.router,
     required this.romManager,
-    required this.audioOutput,
+    required this.settingsController,
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
   }
 
-  final NES? nes;
+  final RemoteNes? nes;
   final NesController nesController;
   final Router router;
   final RomManager romManager;
-  final AudioOutput audioOutput;
+  final SettingsController settingsController;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
@@ -198,12 +198,18 @@ class ActionHandler {
       case ResetAction():
         nesController.reset();
       case StopAction():
-        nesController.stop();
+        unawaited(nesController.stop());
         router.navigate(const MainRoute());
       case DecreaseVolume():
-        audioOutput.volume -= 0.1;
+        settingsController.volume = (settingsController.volume - 0.1).clamp(
+          0,
+          1,
+        );
       case IncreaseVolume():
-        audioOutput.volume += 0.1;
+        settingsController.volume = (settingsController.volume + 0.1).clamp(
+          0,
+          1,
+        );
       case OpenMenu():
         router.navigate(const MenuRoute());
       default:
@@ -247,7 +253,7 @@ class ActionHandler {
   }
 
   void _saveState(int slot) {
-    nesController.saveState(slot);
+    unawaited(nesController.saveState(slot));
   }
 
   void _loadState(int slot) {

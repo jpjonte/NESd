@@ -88,7 +88,7 @@ class DisplayBuilder extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (_, constraints) {
-        final region = nes?.region ?? Region.ntsc;
+        final region = settings.region ?? Region.ntsc;
         final pixelAspectRatio = _calculatePixelAspectRatio(
           settings,
           constraints,
@@ -157,9 +157,8 @@ class DisplayBuilder extends ConsumerWidget {
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
             rewind: nes?.rewind ?? false,
-            crossHairPosition:
-                nes?.bus.cartridge.databaseEntry?.hasZapper == true
-                ? nes?.bus.zapperPosition
+            crossHairPosition: nes?.hasZapper == true
+                ? nes?.zapperPosition
                 : null,
           ),
           child: const SizedBox.expand(),
@@ -200,9 +199,9 @@ class DisplayBuilder extends ConsumerWidget {
                 final nesPosition = displayPosition / scale;
 
                 if (!screenSize.contains(nesPosition)) {
-                  nes?.bus.zapperPosition = null;
+                  nes?.setZapperPosition(null);
                 } else {
-                  nes?.bus.zapperPosition = nesPosition;
+                  nes?.setZapperPosition(nesPosition);
                 }
               },
               child: GestureDetector(
@@ -214,18 +213,18 @@ class DisplayBuilder extends ConsumerWidget {
                     return;
                   }
 
-                  nes?.bus.zapperPosition = nesPosition;
-                  nes?.bus.zapperPull();
+                  nes?.setZapperPosition(nesPosition);
+                  nes?.zapperPull();
                 },
                 onTapUp: (details) {
                   final displayPosition = details.localPosition - topLeft;
                   final nesPosition = displayPosition / scale;
 
                   if (screenSize.contains(nesPosition)) {
-                    nes?.bus.zapperPosition = nesPosition;
+                    nes?.setZapperPosition(nesPosition);
                   }
 
-                  nes?.bus.zapperRelease();
+                  nes?.zapperRelease();
                 },
                 child: child,
               ),

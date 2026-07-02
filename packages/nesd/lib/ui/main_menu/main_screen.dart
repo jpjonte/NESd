@@ -74,7 +74,7 @@ class MainScreen extends HookConsumerWidget {
           label: 'Quit NESd',
           shortcut: const CharacterActivator('q', meta: true),
           onSelected: () {
-            controller.stop();
+            unawaited(controller.stop());
             quit();
           },
         ),

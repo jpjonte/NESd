@@ -12,17 +12,19 @@ import 'package:nesd/nes/debugger/execution_log_state.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'execution_log.g.dart';
 
+// TEMPORARY: the live NES now runs in the emulator isolate, so the execution
+// log has no local NES to observe. Will be reconnected through the isolate
+// protocol; until then it stays inert (`nes: null`).
 @riverpod
 ExecutionLog executionLog(Ref ref) {
   final executionLog = ExecutionLog(
     eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(executionLogStateProvider.notifier),
-    nes: ref.watch(nesStateProvider),
+    nes: null,
     disassembler: ref.watch(disassemblerProvider),
   );
 

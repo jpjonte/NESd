@@ -54,4 +54,4 @@ final class DebuggerProvider
   }
 }
 
-String _$debuggerHash() => r'9f9dadc0e056e0efad45b361b833e05bfb0d3138';
+String _$debuggerHash() => r'c9662bee0f1ee9b53e03c11d8a5fa64d82c927b3';

@@ -55,4 +55,4 @@ final class DisplayFrameControllerProvider
 }
 
 String _$displayFrameControllerHash() =>
-    r'3cb7a17b6dfcaec031ac0a9cbcd403682372580b';
+    r'05c835d36485911af75d829ac9ed1c2c70711ee3';

@@ -6,38 +6,16 @@ import 'package:nesd/nes/debugger/disassembler.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'debugger.g.dart';
 
+// TEMPORARY: the real [Debugger] reads live CPU/PPU state that now lives in the
+// emulator isolate. This will be reconnected through the isolate protocol;
+// until then the debugger UI is inert.
 @riverpod
-DebuggerInterface debugger(Ref ref) {
-  final nes = ref.watch(nesStateProvider);
-  final notifier = ref.watch(debuggerStateProvider.notifier);
-  final disassembler = ref.watch(disassemblerProvider);
-
-  if (nes == null) {
-    return DummyDebugger();
-  }
-
-  final subscription = ref.listen(debuggerStateProvider, (_, _) {});
-
-  final debugger = Debugger(
-    eventBus: ref.watch(eventBusProvider),
-    nes: nes,
-    notifier: notifier,
-    disassembler: disassembler,
-    settingsController: ref.watch(settingsControllerProvider.notifier),
-  );
-
-  ref
-    ..onDispose(debugger.dispose)
-    ..onDispose(subscription.close);
-
-  return debugger;
-}
+DebuggerInterface debugger(Ref ref) => DummyDebugger();
 
 abstract class DebuggerInterface {
   void addBreakpoint(Breakpoint breakpoint);

@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -15,11 +13,9 @@ part 'display_controller.g.dart';
 
 @riverpod
 DisplayFrameController displayFrameController(Ref ref) {
-  final eventBus = ref.watch(eventBusProvider);
   final settingsController = ref.read(settingsControllerProvider.notifier);
 
   final controller = DisplayFrameController(
-    eventBus: eventBus,
     settingsController: settingsController,
   );
 
@@ -27,9 +23,7 @@ DisplayFrameController displayFrameController(Ref ref) {
     ..onDispose(controller.dispose)
     ..listen(
       nesStateProvider,
-      (_, nes) => controller.updateFrameSource(
-        nes == null ? null : LocalFrameSource(frameBuffer: nes.ppu.frameBuffer),
-      ),
+      (_, nes) => controller.updateFrameSource(nes?.frameSource),
       fireImmediately: true,
     )
     ..listen(
@@ -82,21 +76,8 @@ class ImageDisplayFrameState extends DisplayFrameState {
 
 class DisplayFrameController extends ChangeNotifier
     implements ValueListenable<DisplayFrameState> {
-  DisplayFrameController({
-    required this.eventBus,
-    required this.settingsController,
-  }) {
-    _subscription = eventBus.stream
-        .where(
-          (event) =>
-              event is FrameNesEvent ||
-              event is SuspendNesEvent ||
-              event is DebuggerNesEvent,
-        )
-        .listen((_) => scheduleFrame());
-  }
+  DisplayFrameController({required this.settingsController});
 
-  final EventBus eventBus;
   final SettingsController settingsController;
 
   FrameSource? _frameSource;
@@ -117,9 +98,11 @@ class DisplayFrameController extends ChangeNotifier
 
   NesdTexture? _texture;
 
-  FrameHandle? _pending;
-
-  StreamSubscription<NesEvent>? _subscription;
+  // A queued frame together with the [FrameSource] that produced it. The
+  // producing source (not the current [_frameSource]) owns the release, so
+  // an in-flight frame is still returned to the right worker even if
+  // [updateFrameSource] swaps or nulls the source mid-flight.
+  ({FrameHandle handle, FrameSource source})? _pending;
 
   @override
   DisplayFrameState get value => _state;
@@ -129,13 +112,14 @@ class DisplayFrameController extends ChangeNotifier
       return;
     }
 
-    final handle = _frameSource?.takeFrame();
+    final source = _frameSource;
+    final handle = source?.takeFrame();
 
-    if (handle == null) {
+    if (source == null || handle == null) {
       return;
     }
 
-    _processFrame(handle);
+    _processFrame(handle, source);
   }
 
   @override
@@ -146,11 +130,8 @@ class DisplayFrameController extends ChangeNotifier
 
     _disposed = true;
 
-    _subscription?.cancel();
-    _subscription = null;
-
     if (_pending case final pending?) {
-      _frameSource?.releaseFrame(pending);
+      pending.source.releaseFrame(pending.handle);
 
       _pending = null;
     }
@@ -175,7 +156,7 @@ class DisplayFrameController extends ChangeNotifier
     _frameSource?.removeListener(scheduleFrame);
 
     if (_pending case final pending?) {
-      _frameSource?.releaseFrame(pending);
+      pending.source.releaseFrame(pending.handle);
 
       _pending = null;
     }
@@ -193,13 +174,13 @@ class DisplayFrameController extends ChangeNotifier
     scheduleFrame();
   }
 
-  Future<void> _decodeAndSet(FrameHandle handle) async {
+  Future<void> _decodeAndSet(FrameHandle handle, FrameSource source) async {
     ui.Image? image;
 
     try {
       image = await _decode(handle.bytes, handle.width, handle.height);
     } finally {
-      _frameSource?.releaseFrame(handle);
+      source.releaseFrame(handle);
     }
 
     if (_disposed) {
@@ -332,9 +313,9 @@ class DisplayFrameController extends ChangeNotifier
     scheduleFrame();
   }
 
-  void _processFrame(FrameHandle handle) {
+  void _processFrame(FrameHandle handle, FrameSource source) {
     if (_disposed) {
-      _frameSource?.releaseFrame(handle);
+      source.releaseFrame(handle);
 
       return;
     }
@@ -353,34 +334,34 @@ class DisplayFrameController extends ChangeNotifier
       }
 
       if (_texture != null && !_textureInFlight) {
-        _startTextureUpdate(handle);
+        _startTextureUpdate(handle, source);
 
         return;
       }
 
       unawaited(_ensureTexture(width, height));
 
-      _enqueuePending(handle);
+      _enqueuePending(handle, source);
 
       return;
     }
 
     if (_inFlight) {
-      _enqueuePending(handle);
+      _enqueuePending(handle, source);
 
       return;
     }
 
     _inFlight = true;
 
-    unawaited(_decodeAndSet(handle));
+    unawaited(_decodeAndSet(handle, source));
   }
 
-  void _startTextureUpdate(FrameHandle handle) {
+  void _startTextureUpdate(FrameHandle handle, FrameSource source) {
     final texture = _texture;
 
     if (texture == null) {
-      _frameSource?.releaseFrame(handle);
+      source.releaseFrame(handle);
 
       return;
     }
@@ -393,7 +374,7 @@ class DisplayFrameController extends ChangeNotifier
 
     texture
         .update(buffer, pixelPointer: handle.pointerAddress)
-        .whenComplete(() => _frameSource?.releaseFrame(handle))
+        .whenComplete(() => source.releaseFrame(handle))
         .then<void>((_) {
           if (_disposed) {
             return;
@@ -425,12 +406,12 @@ class DisplayFrameController extends ChangeNotifier
         });
   }
 
-  void _enqueuePending(FrameHandle handle) {
+  void _enqueuePending(FrameHandle handle, FrameSource source) {
     if (_pending case final pending?) {
-      _frameSource?.releaseFrame(pending);
+      pending.source.releaseFrame(pending.handle);
     }
 
-    _pending = handle;
+    _pending = (handle: handle, source: source);
   }
 
   void _processPending() {
@@ -439,7 +420,13 @@ class DisplayFrameController extends ChangeNotifier
     }
 
     if (_frameSource == null) {
-      _pending = null;
+      // The source was nulled while a frame was queued; release it through
+      // the source that produced it so its worker buffer isn't pinned.
+      if (_pending case final pending?) {
+        pending.source.releaseFrame(pending.handle);
+
+        _pending = null;
+      }
 
       return;
     }
@@ -447,7 +434,7 @@ class DisplayFrameController extends ChangeNotifier
     if (_pending case final pending?) {
       _pending = null;
 
-      _processFrame(pending);
+      _processFrame(pending.handle, pending.source);
     }
   }
 }

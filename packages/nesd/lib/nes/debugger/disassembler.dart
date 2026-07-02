@@ -7,23 +7,16 @@ import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'disassembler.g.dart';
 
 typedef Disassembly = List<DisassemblyLine>;
 
+// TEMPORARY: the real [Disassembler] needs the live CPU, which now lives in the
+// emulator isolate. Will be reconnected soon; until then it is inert.
 @riverpod
-DisassemblerInterface disassembler(Ref ref) {
-  final nes = ref.watch(nesStateProvider);
-
-  if (nes == null) {
-    return DummyDisassembler();
-  }
-
-  return Disassembler(eventBus: ref.watch(eventBusProvider), cpu: nes.cpu);
-}
+DisassemblerInterface disassembler(Ref ref) => DummyDisassembler();
 
 class DisassemblerSearchNode {
   const DisassemblerSearchNode(

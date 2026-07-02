@@ -25,7 +25,7 @@ class CheatManager extends _$CheatManager {
 
     final nes = ref.read(nesStateProvider);
 
-    if (nes != null && nes.bus.cartridge.romInfo == romInfo) {
+    if (nes != null && nes.romInfo == romInfo) {
       nes.cheats = newCheats;
     }
   }
