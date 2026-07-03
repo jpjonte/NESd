@@ -33,11 +33,9 @@ class AudioOutput {
   );
 
   void reset() {
-    audioStream.uninit();
-
+    // Keep the device running: re-initializing miniaudio can take tens of
+    // milliseconds on Android. Stale samples (max 50 ms) drain naturally.
     _audioBuffer.clear();
-
-    _init();
   }
 
   void dispose() {

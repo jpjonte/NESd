@@ -9,16 +9,25 @@ class _FakeAudioStream implements AudioStream {
 
   final List<Float32List> pushed = [];
 
+  int initCount = 0;
+  int uninitCount = 0;
+
   @override
   int init({
     int bufferMilliSec = 3000,
     int waitingBufferMilliSec = 100,
     int channels = 1,
     int sampleRate = 44100,
-  }) => 0;
+  }) {
+    initCount++;
+
+    return 0;
+  }
 
   @override
-  void uninit() {}
+  void uninit() {
+    uninitCount++;
+  }
 
   @override
   void resume() {}
@@ -112,5 +121,12 @@ void main() {
 
     expect(samples, [1.0, -1.0, 0.5]);
     expect(stream.pushed.single, [1.0, -1.0, 0.5]);
+  });
+
+  test('reset does not tear down the audio device', () {
+    output.reset();
+
+    expect(stream.uninitCount, 0);
+    expect(stream.initCount, 1); // constructor only
   });
 }
