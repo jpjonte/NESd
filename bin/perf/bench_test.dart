@@ -1,6 +1,15 @@
 // Perf suite runner under flutter_test to ensure dart:ui availability.
-// Run:
-//   fvm flutter test -t perf bin/perf/bench_test.dart
+//
+// Suite mode (runs bin/perf/suite.json):
+//   fvm flutter test bin/perf/bench_test.dart
+//
+// Single-ROM mode (skips suite.json, benches one ROM):
+//   NESD_BENCH_ROM=roms/test/scanline/scanline.nes \
+//     fvm flutter test bin/perf/bench_test.dart
+//
+// Single-ROM env vars: NESD_BENCH_ROM (required to enable this mode),
+// NESD_BENCH_FRAMES (default 240), NESD_BENCH_WARMUP (default 60),
+// NESD_BENCH_RUNS (default 6), NESD_BENCH_LABEL (default ROM filename).
 
 import 'dart:convert';
 import 'dart:io';
@@ -17,38 +26,96 @@ import 'package:path/path.dart' as p;
 
 void main() {
   test('perf_suite', timeout: Timeout.none, () async {
-    final cfg = await _loadConfig(_workspacePath('bin/perf/suite.json'));
-    final def = (cfg['defaults'] as Map<String, dynamic>?) ?? {};
-    final frames = (def['frames'] as num?)?.toInt() ?? 300;
-    final warmup = (def['warmup'] as num?)?.toInt() ?? 60;
-    final runs = (def['runs'] as num?)?.toInt() ?? 9;
+    final envRom = Platform.environment['NESD_BENCH_ROM'];
 
-    for (final raw in (cfg['items'] as List)) {
-      final it = raw as Map<String, dynamic>;
-      final romPath = it['rom'] as String;
-      final label = it['label'] as String? ?? romPath;
-      final f = (it['frames'] as num?)?.toInt() ?? frames;
-      final w = (it['warmup'] as num?)?.toInt() ?? warmup;
-      final r = (it['runs'] as num?)?.toInt() ?? runs;
+    if (envRom != null && envRom.isNotEmpty) {
+      await _runSingle(envRom);
 
-      final results = <Map<String, dynamic>>[];
-      for (var i = 0; i < r; i++) {
-        results.add(await _runOne('../../$romPath', f, w, label));
-      }
-
-      results.sort((a, b) => (a['fps'] as num).compareTo(b['fps'] as num));
-
-      await Directory(
-        _workspacePath('bin/perf/results'),
-      ).create(recursive: true);
-
-      // append runs to JSONL only (one consolidated artifact)
-      File(_workspacePath('bin/perf/results/results.jsonl')).writeAsStringSync(
-        '${results.map(jsonEncode).join('\n')}\n',
-        mode: FileMode.append,
-      );
+      return;
     }
+
+    await _runSuite();
   });
+}
+
+Future<void> _runSingle(String romPath) async {
+  final frames = _envInt('NESD_BENCH_FRAMES', 240);
+  final warmup = _envInt('NESD_BENCH_WARMUP', 60);
+  final runs = _envInt('NESD_BENCH_RUNS', 6);
+  final label = Platform.environment['NESD_BENCH_LABEL'] ?? p.basename(romPath);
+
+  final results = <Map<String, dynamic>>[];
+
+  for (var i = 0; i < runs; i++) {
+    results.add(await _runOne(romPath, frames, warmup, label));
+  }
+
+  await _appendResults(results);
+}
+
+Future<void> _runSuite() async {
+  final cfg = await _loadConfig(_workspacePath('bin/perf/suite.json'));
+  final def = (cfg['defaults'] as Map<String, dynamic>?) ?? {};
+  final frames = (def['frames'] as num?)?.toInt() ?? 300;
+  final warmup = (def['warmup'] as num?)?.toInt() ?? 60;
+  final runs = (def['runs'] as num?)?.toInt() ?? 9;
+
+  for (final raw in (cfg['items'] as List)) {
+    final it = raw as Map<String, dynamic>;
+    final romPath = it['rom'] as String;
+    final label = it['label'] as String? ?? romPath;
+    final f = (it['frames'] as num?)?.toInt() ?? frames;
+    final w = (it['warmup'] as num?)?.toInt() ?? warmup;
+    final r = (it['runs'] as num?)?.toInt() ?? runs;
+
+    final results = <Map<String, dynamic>>[];
+    for (var i = 0; i < r; i++) {
+      results.add(await _runOne('../../$romPath', f, w, label));
+    }
+
+    await _appendResults(results);
+  }
+}
+
+Future<void> _appendResults(List<Map<String, dynamic>> results) async {
+  results.sort((a, b) => (a['fps'] as num).compareTo(b['fps'] as num));
+
+  await Directory(_workspacePath('bin/perf/results')).create(recursive: true);
+
+  // append runs to JSONL only (one consolidated artifact)
+  File(_workspacePath('bin/perf/results/results.jsonl')).writeAsStringSync(
+    '${results.map(jsonEncode).join('\n')}\n',
+    mode: FileMode.append,
+  );
+
+  final median = _median(results.map((r) => r['fps'] as num).toList());
+
+  // ignore: avoid_print
+  print(
+    'Appended ${results.length} runs to bin/perf/results/results.jsonl; '
+    'median fps=$median',
+  );
+}
+
+double _median(List<num> sortedValues) {
+  final count = sortedValues.length;
+  final mid = count ~/ 2;
+
+  if (count.isOdd) {
+    return sortedValues[mid].toDouble();
+  }
+
+  return (sortedValues[mid - 1] + sortedValues[mid]) / 2.0;
+}
+
+int _envInt(String name, int fallback) {
+  final raw = Platform.environment[name];
+
+  if (raw == null || raw.isEmpty) {
+    return fallback;
+  }
+
+  return int.tryParse(raw) ?? fallback;
 }
 
 Future<Map<String, dynamic>> _loadConfig(String path) async {
