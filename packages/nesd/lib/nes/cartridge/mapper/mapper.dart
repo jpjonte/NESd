@@ -159,6 +159,10 @@ abstract class Mapper {
 
   void step() {}
 
+  /// Whether [step] must be called every CPU cycle. Only mappers that
+  /// override [step] should return true.
+  bool get needsStep => false;
+
   int cpuRead(int address, {bool disableSideEffects = false}) {
     final mapping = _mapCpuAddress(address);
 

@@ -32,6 +32,7 @@ class NES {
       ..apu = apu;
 
     cartridge.mapper.bus = bus;
+    cpu.cartridgeNeedsStep = cartridge.mapper.needsStep;
   }
 
   final Bus bus;

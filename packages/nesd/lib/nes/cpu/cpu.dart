@@ -34,6 +34,10 @@ class CPU {
 
   int consoleCycles = 0;
 
+  /// Set by NES at power-on; skips the empty mapper step call for
+  /// mappers without cycle-driven logic.
+  bool cartridgeNeedsStep = false;
+
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
 
   int cycles = 0;
@@ -439,7 +443,10 @@ class CPU {
 
     bus.ppu.stepUntil(consoleCycles);
 
-    bus.cartridge.step();
+    if (cartridgeNeedsStep) {
+      bus.cartridge.step();
+    }
+
     bus.apu.step();
   }
 
