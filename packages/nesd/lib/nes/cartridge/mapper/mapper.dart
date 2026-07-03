@@ -48,12 +48,14 @@ class MemoryMapping {
     : readable = (access.value & MemoryAccess.read.value) != 0,
       writable = (access.value & MemoryAccess.write.value) != 0;
 
-  Uint8List source;
-  MemoryAccess access;
+  final Uint8List source;
+  final MemoryAccess access;
 
   final bool readable;
   final bool writable;
 }
+
+typedef MappingCache = Map<Uint8List, Map<int, MemoryMapping>>;
 
 abstract class Mapper {
   Mapper(this.id);
@@ -138,12 +140,32 @@ abstract class Mapper {
     null,
   );
 
+  final MappingCache _cpuMappingCache = {};
+
   int get chrPageSize => 0x2000;
 
   late final List<MemoryMapping?> _ppuMapping = List.filled(
     _ppuBlockCount,
     null,
   );
+
+  final MappingCache _ppuMappingCache = {};
+
+  MemoryMapping _cachedMapping(
+    MappingCache cache,
+    Uint8List source,
+    int offset,
+    int size,
+    MemoryAccess access,
+  ) {
+    final bySource = cache[source] ??= {};
+    final key = (offset << 2) | access.value;
+
+    return bySource[key] ??= MemoryMapping(
+      source: Uint8List.sublistView(source, offset, offset + size),
+      access: access,
+    );
+  }
 
   void reset() {
     nametableLayout = cartridge.nametableLayout;
@@ -290,13 +312,12 @@ abstract class Mapper {
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
       _cpuMapping[block] = resolvedSource.isNotEmpty
-          ? MemoryMapping(
-              source: Uint8List.sublistView(
-                resolvedSource,
-                offset,
-                offset + _cpuBlockSize,
-              ),
-              access: resolvedAccess,
+          ? _cachedMapping(
+              _cpuMappingCache,
+              resolvedSource,
+              offset,
+              _cpuBlockSize,
+              resolvedAccess,
             )
           : null;
     }
@@ -353,13 +374,12 @@ abstract class Mapper {
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
       _ppuMapping[block] = resolvedSource.isNotEmpty
-          ? MemoryMapping(
-              source: Uint8List.sublistView(
-                resolvedSource,
-                offset,
-                offset + _ppuBlockSize,
-              ),
-              access: resolvedAccess,
+          ? _cachedMapping(
+              _ppuMappingCache,
+              resolvedSource,
+              offset,
+              _ppuBlockSize,
+              resolvedAccess,
             )
           : null;
 
