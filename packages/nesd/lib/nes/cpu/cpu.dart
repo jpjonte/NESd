@@ -55,7 +55,7 @@ class CPU {
   int address = 0;
   int result = 0;
 
-  late Operation operation;
+  final List<Operation> _ops = ops;
 
   Uint8List ram = Uint8List(0x0800);
 
@@ -276,9 +276,7 @@ class CPU {
   void step() {
     final opcode = read(PC);
 
-    final op = ops[opcode];
-
-    operation = op;
+    final op = _ops[opcode];
 
     if (executionLogEnabled) {
       eventBus.add(StepNesEvent(opcode, op));
