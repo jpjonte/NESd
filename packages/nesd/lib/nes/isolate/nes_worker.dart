@@ -191,7 +191,11 @@ class NesWorker {
       // frame before _nes/_subscription are set below, so the very first
       // FrameNesEvent is dropped. Harmless (the next frame arrives ~16ms
       // later); do not reorder to chase it.
-      final nes = NES(cartridge: cartridge, eventBus: eventBus)..reset();
+      final nes = NES(
+        cartridge: cartridge,
+        eventBus: eventBus,
+        audioFillProbe: () => _audioOutput?.bufferStatus,
+      )..reset();
 
       if (command.initialState case final state?) {
         nes.state = NESState.fromBytes(state.materialize().asUint8List());
