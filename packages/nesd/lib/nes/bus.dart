@@ -76,7 +76,7 @@ class Bus {
       disableSideEffects: disableSideEffects,
     );
 
-    if (disableSideEffects) {
+    if (disableSideEffects || !cheatEngine.hasCheats) {
       return value;
     }
 
