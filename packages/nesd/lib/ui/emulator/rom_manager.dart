@@ -70,12 +70,12 @@ class RomManager {
 
   final String baseDirectory;
 
-  void save(RomInfo romInfo, Uint8List data) {
+  Future<void> save(RomInfo romInfo, Uint8List data) async {
     final file = _getSaveFile(romInfo);
 
-    _ensureDirectoryExists(file);
+    await _ensureDirectoryExists(file);
 
-    file.writeAsBytesSync(data);
+    await file.writeAsBytes(data);
   }
 
   Uint8List? load(RomInfo romInfo) {
@@ -88,12 +88,12 @@ class RomManager {
     return saveFile.readAsBytesSync();
   }
 
-  void saveState(RomInfo romInfo, int slot, List<int> data) {
+  Future<void> saveState(RomInfo romInfo, int slot, List<int> data) async {
     final file = _getSaveStateFile(romInfo, slot);
 
-    _ensureDirectoryExists(file);
+    await _ensureDirectoryExists(file);
 
-    file.writeAsBytesSync(data);
+    await file.writeAsBytes(data);
   }
 
   Uint8List? loadState(RomInfo romInfo, int slot) {
@@ -126,12 +126,12 @@ class RomManager {
     return files.first.readAsBytesSync();
   }
 
-  void saveThumbnail(
+  Future<void> saveThumbnail(
     RomInfo romInfo, {
     required int width,
     required int height,
     required Uint8List pixels,
-  }) {
+  }) async {
     final image = img.Image.fromBytes(
       width: width,
       height: height,
@@ -141,13 +141,14 @@ class RomManager {
       order: img.ChannelOrder.rgba,
     );
 
+    // PNG encode stays synchronous: one-shot at stop(), not a hot path
     final png = img.encodePng(image);
 
     final file = getThumbnailFile(romInfo);
 
-    _ensureDirectoryExists(file);
+    await _ensureDirectoryExists(file);
 
-    file.writeAsBytesSync(png);
+    await file.writeAsBytes(png);
   }
 
   File getThumbnailFile(RomInfo romInfo) {
@@ -191,7 +192,7 @@ class RomManager {
     }
   }
 
-  void deleteSaveState(RomTileData romTileData) {
+  Future<void> deleteSaveState(RomTileData romTileData) async {
     final slot = romTileData.slot;
 
     if (slot == null) {
@@ -201,13 +202,12 @@ class RomManager {
     final saveStateFile = _getSaveStateFile(romTileData.romInfo, slot);
 
     if (saveStateFile.existsSync()) {
-      saveStateFile.deleteSync();
+      await saveStateFile.delete();
     }
   }
 
-  void _ensureDirectoryExists(File file) {
-    Directory(p.dirname(file.path)).createSync(recursive: true);
-  }
+  Future<void> _ensureDirectoryExists(File file) =>
+      Directory(p.dirname(file.path)).create(recursive: true);
 
   Future<ui.Image> _getStateThumbnail(NESState state) async {
     final frameBuffer = state.ppuState.frameBuffer;

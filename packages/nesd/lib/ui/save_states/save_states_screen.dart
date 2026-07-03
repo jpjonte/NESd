@@ -62,7 +62,7 @@ class SaveStatesScreen extends HookConsumerWidget {
       );
 
       if (confirmed == true) {
-        controller.delete(romTileData);
+        unawaited(controller.delete(romTileData));
       }
     }
 

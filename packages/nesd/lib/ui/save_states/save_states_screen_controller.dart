@@ -53,10 +53,10 @@ class SaveStatesScreenController {
     await _fetch();
   }
 
-  void delete(RomTileData romTileData) {
-    romManager.deleteSaveState(romTileData);
+  Future<void> delete(RomTileData romTileData) async {
+    await romManager.deleteSaveState(romTileData);
 
-    _fetch();
+    await _fetch();
   }
 
   Future<void> _fetch() async {

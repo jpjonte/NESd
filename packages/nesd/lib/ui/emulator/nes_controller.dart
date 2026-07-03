@@ -210,7 +210,7 @@ class NesController {
       final sram = await nes.requestSram();
 
       if (sram != null) {
-        romManager.save(nes.romInfo, sram);
+        await romManager.save(nes.romInfo, sram);
 
         toaster.send(Toast.info('SRAM saved'));
       }
@@ -218,7 +218,7 @@ class NesController {
       final thumbnail = await nes.requestThumbnail();
 
       if (thumbnail != null) {
-        romManager.saveThumbnail(
+        await romManager.saveThumbnail(
           nes.romInfo,
           width: thumbnail.width,
           height: thumbnail.height,
@@ -289,7 +289,7 @@ class NesController {
         final oldSram = await oldNes.requestSram();
 
         if (oldSram != null) {
-          romManager.save(oldNes.romInfo, oldSram);
+          await romManager.save(oldNes.romInfo, oldSram);
         }
       }
 
@@ -409,7 +409,7 @@ class NesController {
         return;
       }
 
-      romManager.saveState(nes.romInfo, slot, data);
+      await romManager.saveState(nes.romInfo, slot, data);
 
       toaster.send(Toast.info('Saved state to slot $slot'));
     }
@@ -527,7 +527,7 @@ class NesController {
         return;
       }
 
-      romManager.saveState(nes.romInfo, 0, data);
+      await romManager.saveState(nes.romInfo, 0, data);
 
       toaster.send(Toast.info('Saved state to slot 0'));
     }

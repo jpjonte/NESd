@@ -62,4 +62,27 @@ abstract class BaseRobot {
     );
     await pumpFrames(const Duration(milliseconds: 50));
   }
+
+  /// Repeatedly drains real async work and fake-clock frames (see
+  /// [fixAsync]) until [condition] is satisfied.
+  ///
+  /// Some fire-and-forget async chains (e.g. `unawaited(controller.stop())`
+  /// triggered by a button tap) now perform real file IO before they settle.
+  /// A single [fixAsync] round trip isn't always enough real time to drain
+  /// such a chain, so poll for the condition instead of guessing a fixed
+  /// pump count.
+  Future<void> waitUntil(
+    bool Function() condition, {
+    int maxAttempts = 20,
+  }) async {
+    for (var attempt = 0; attempt < maxAttempts && !condition(); attempt++) {
+      await fixAsync();
+    }
+
+    expect(
+      condition(),
+      isTrue,
+      reason: 'condition not met after $maxAttempts fixAsync cycles',
+    );
+  }
 }
