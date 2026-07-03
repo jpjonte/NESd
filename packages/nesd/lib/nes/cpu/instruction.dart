@@ -29,8 +29,11 @@ class BRK extends Instruction {
 
   @override
   void execute(CPU cpu) {
+    if (cpu.callStackEnabled) {
+      cpu.callStack.add(cpu.PC + 1);
+    }
+
     cpu
-      ..callStack.add(cpu.PC + 1)
       ..pushStack16(cpu.PC + 1)
       ..pushStack(cpu.P.setBit(4, 1).setBit(5, 1));
 

@@ -495,6 +495,12 @@ class NesWorker {
       return;
     }
 
+    nes.cpu.callStackEnabled = _debuggerActive;
+
+    if (!_debuggerActive) {
+      nes.cpu.callStack.clear();
+    }
+
     if (_debuggerActive || _executionLogEnabled) {
       _disassembler ??= Disassembler(eventBus: eventBus, cpu: nes.cpu);
     }

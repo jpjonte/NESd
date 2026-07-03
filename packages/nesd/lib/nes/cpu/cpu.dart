@@ -32,6 +32,9 @@ class CPU {
 
   bool executionLogEnabled = false;
 
+  /// Maintained only while the debugger UI is open (drives step-out).
+  bool callStackEnabled = false;
+
   int consoleCycles = 0;
 
   /// Set by NES at power-on; skips the empty mapper step call for
@@ -283,7 +286,9 @@ class CPU {
 
     PC++;
 
-    _updateCallStack(opcode);
+    if (callStackEnabled) {
+      _updateCallStack(opcode);
+    }
 
     op.execute(this);
 
@@ -370,7 +375,9 @@ class CPU {
   }
 
   void _handleIrq(int address) {
-    callStack.add(PC);
+    if (callStackEnabled) {
+      callStack.add(PC);
+    }
 
     read(PC); // dummy read
     read(PC); // dummy read
