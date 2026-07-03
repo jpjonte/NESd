@@ -28,6 +28,9 @@ class AudioStreamImpl implements AudioStream {
   late _MAInt _getBufferSizeFfi;
   late _MAInt _getBufferFilledSizeFfi;
 
+  Pointer<Float> _pushBuffer = nullptr;
+  int _pushBufferCapacity = 0;
+
   @override
   int init({
     int bufferMilliSec = 3000,
@@ -85,13 +88,19 @@ class AudioStreamImpl implements AudioStream {
 
   @override
   int push(Float32List buf) {
-    final ffiBuf = calloc<Float>(buf.length);
-    for (int i = 0; i < buf.length; i++) {
-      ffiBuf[i] = buf[i];
+    if (buf.isEmpty) {
+      return 0;
     }
-    final result = _pushFfi(ffiBuf, buf.length);
-    calloc.free(ffiBuf);
-    return result;
+
+    if (_pushBufferCapacity < buf.length) {
+      if (_pushBuffer != nullptr) {
+        calloc.free(_pushBuffer);
+      }
+      _pushBuffer = calloc<Float>(buf.length);
+      _pushBufferCapacity = buf.length;
+    }
+    _pushBuffer.asTypedList(buf.length).setAll(0, buf);
+    return _pushFfi(_pushBuffer, buf.length);
   }
 
   @override
@@ -105,6 +114,11 @@ class AudioStreamImpl implements AudioStream {
   @override
   void uninit() {
     _uninitFfi();
+    if (_pushBuffer != nullptr) {
+      calloc.free(_pushBuffer);
+      _pushBuffer = nullptr;
+      _pushBufferCapacity = 0;
+    }
   }
 
   @override
