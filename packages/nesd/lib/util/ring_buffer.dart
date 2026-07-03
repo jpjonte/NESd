@@ -27,40 +27,37 @@ class RingBuffer<T, S extends List<T>> {
     _end = 0;
   }
 
-  S read(int size) {
-    final readSize = min(size, current);
-    final data = bufferConstructor(readSize);
+  int readInto(S target, int size) {
+    final readSize = min(min(size, current), target.length);
 
     if (_start + readSize <= this.size) {
-      data.setAll(0, _buffer.sublist(_start, _start + readSize));
+      target.setRange(0, readSize, _buffer, _start);
     } else {
       // read wraps around
       final firstSegmentSize = this.size - _start;
-      final secondSegmentSize = readSize - firstSegmentSize;
 
-      data
-        ..setAll(0, _buffer.sublist(_start, this.size))
-        ..setAll(firstSegmentSize, _buffer.sublist(0, secondSegmentSize));
+      target
+        ..setRange(0, firstSegmentSize, _buffer, _start)
+        ..setRange(firstSegmentSize, readSize, _buffer);
     }
 
     _start = (_start + readSize) % this.size;
 
-    return data;
+    return readSize;
   }
 
   int write(S data) {
     final writeSize = min(data.length, remaining);
 
     if (_end + writeSize <= size) {
-      _buffer.setAll(_end, data.sublist(0, writeSize));
+      _buffer.setRange(_end, _end + writeSize, data);
     } else {
       // write wraps around
-
       final firstSegmentSize = size - _end;
 
       _buffer
-        ..setAll(_end, data.sublist(0, firstSegmentSize))
-        ..setAll(0, data.sublist(firstSegmentSize, writeSize));
+        ..setRange(_end, size, data)
+        ..setRange(0, writeSize - firstSegmentSize, data, firstSegmentSize);
     }
 
     _end = (_end + writeSize) % size;

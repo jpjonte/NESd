@@ -67,6 +67,10 @@ class AudioOutput {
       return;
     }
 
-    audioStream.push(_audioBuffer.read(flushSize));
+    final samples = Float32List(flushSize);
+
+    _audioBuffer.readInto(samples, flushSize);
+
+    audioStream.push(samples);
   }
 }
