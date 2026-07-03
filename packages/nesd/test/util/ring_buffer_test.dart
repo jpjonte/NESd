@@ -5,7 +5,7 @@ import 'package:nesd/util/ring_buffer.dart';
 
 void main() {
   RingBuffer<double, Float32List> createBuffer(int size) =>
-      RingBuffer(bufferConstructor: Float32List.new, size: size);
+      RingBuffer(buffer: Float32List(size));
 
   Float32List samples(List<double> values) => Float32List.fromList(values);
 

@@ -27,9 +27,7 @@ class DiffRewindItem extends RewindItem {
 class RewindBuffer {
   RewindBuffer({required int size})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
-        size: size,
-        bufferConstructor: (size) =>
-            List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
+        buffer: List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
       );
 
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;

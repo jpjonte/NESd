@@ -25,7 +25,8 @@ class _FakeAudioStream implements AudioStream {
 
   @override
   int push(Float32List buf) {
-    pushed.add(buf);
+    // copy: the caller reuses its flush buffer between pushes
+    pushed.add(Float32List.fromList(buf));
 
     return 0;
   }
@@ -90,5 +91,26 @@ void main() {
     stream.filledSize = 1000;
 
     expect(output.bufferStatus, (fill: 1100, capacity: 2400));
+  });
+
+  test('applies volume in place before pushing', () {
+    output.volume = 0.5;
+
+    final samples = Float32List.fromList([1.0, -1.0, 0.5]);
+
+    output.processSamples(samples);
+
+    // the input buffer itself is mutated (documented contract)
+    expect(samples, [0.5, -0.5, 0.25]);
+    expect(stream.pushed.single, [0.5, -0.5, 0.25]);
+  });
+
+  test('leaves samples untouched at volume 1.0', () {
+    final samples = Float32List.fromList([1.0, -1.0, 0.5]);
+
+    output.processSamples(samples);
+
+    expect(samples, [1.0, -1.0, 0.5]);
+    expect(stream.pushed.single, [1.0, -1.0, 0.5]);
   });
 }
