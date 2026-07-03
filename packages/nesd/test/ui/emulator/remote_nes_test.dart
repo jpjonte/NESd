@@ -71,7 +71,7 @@ FrameEvent _frameEvent(int pointerAddress, {int width = 2, int height = 2}) =>
       width: width,
       height: height,
       frameTimeMicroseconds: 0,
-      sleepBudgetMicroseconds: 0,
+      sleepTimeMicroseconds: 0,
       frame: 0,
       rewindSize: 0,
     );

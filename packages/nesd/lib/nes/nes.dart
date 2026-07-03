@@ -12,6 +12,7 @@ import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
@@ -19,8 +20,12 @@ import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/wait.dart';
 
 class NES {
-  NES({required Cartridge cartridge, required this.eventBus})
-    : bus = Bus(cartridge) {
+  NES({
+    required Cartridge cartridge,
+    required this.eventBus,
+    this.governor = const PacingGovernor(),
+    this.audioFillProbe,
+  }) : bus = Bus(cartridge) {
     bus
       ..cpu = cpu
       ..ppu = ppu
@@ -35,6 +40,9 @@ class NES {
   late final APU apu = APU(bus);
 
   final EventBus eventBus;
+
+  final PacingGovernor governor;
+  final AudioFillProbe? audioFillProbe;
 
   bool on = false;
   bool running = false;
@@ -56,11 +64,19 @@ class NES {
 
   Region? _region;
 
-  late DateTime _frameStart;
+  final Stopwatch _clock = Stopwatch();
+
+  /// Marked when a frame's sleep ends; measures pure work time per frame
+  /// (the governor input).
+  int _lastFrameMarkMicros = 0;
+
+  /// Marked when a frame event is emitted; measures the full frame period
+  /// (what the debug overlay reports as frame time / fps).
+  int _lastEventMarkMicros = 0;
 
   Duration _frameTime = Duration.zero;
 
-  var _sleepBudget = Duration.zero;
+  static final Float32List _emptySamples = Float32List(0);
 
   final List<Breakpoint> _breakpoints = [];
 
@@ -115,8 +131,7 @@ class NES {
 
     _applyState(state);
 
-    _frameStart = DateTime.now();
-    _sleepBudget = Duration.zero;
+    _resetPacing();
   }
 
   NESState _captureState() => NESState(
@@ -152,9 +167,17 @@ class NES {
 
   void load(Uint8List save) => bus.cartridge.load(save);
 
+  void _resetPacing() {
+    if (!_clock.isRunning) {
+      _clock.start();
+    }
+
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+    _lastEventMarkMicros = _lastFrameMarkMicros;
+  }
+
   void reset() {
-    _frameStart = DateTime.now();
-    _sleepBudget = Duration.zero;
+    _resetPacing();
 
     if (!_inLoop) {
       run();
@@ -186,7 +209,7 @@ class NES {
     running = true;
     paused = false;
 
-    _frameStart = DateTime.now();
+    _resetPacing();
 
     _frameTime = Duration.zero;
 
@@ -234,6 +257,13 @@ class NES {
 
     ppu.frameBuffer.swap();
 
+    final nowMicros = _clock.elapsedMicroseconds;
+
+    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
+
+    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
+    _lastEventMarkMicros = nowMicros;
+
     eventBus.add(
       FrameNesEvent(
         samples: Float32List.fromList(
@@ -241,29 +271,49 @@ class NES {
         ),
         frameTime: _frameTime,
         frame: ppu.frames,
-        sleepBudget: Duration.zero,
+        sleepTime: Duration.zero,
         rewindSize: _rewindBuffer.size,
       ),
     );
 
-    _frameTime = DateTime.now().difference(_frameStart);
-
-    final sleepTime = _calculateSleepTime(_frameTime, apu.sampleIndex);
-
-    _frameStart = DateTime.now();
+    final sleepTime = governor.sleepFor(
+      samplesProduced: apu.sampleIndex,
+      elapsed: workTime,
+    );
 
     await wait(sleepTime);
+
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
   }
 
   Future<void> _sendFrame() async {
     ppu.frameBuffer.swap();
 
+    final nowMicros = _clock.elapsedMicroseconds;
+
+    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
+
+    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
+    _lastEventMarkMicros = nowMicros;
+
+    final samples = fastForward
+        ? _emptySamples
+        : apu.sampleBuffer.sublist(0, apu.sampleIndex);
+
+    final sleepTime = fastForward
+        ? Duration.zero
+        : governor.sleepFor(
+            samplesProduced: apu.sampleIndex,
+            elapsed: workTime,
+            audio: audioFillProbe?.call(),
+          );
+
     eventBus.add(
       FrameNesEvent(
-        samples: apu.sampleBuffer.sublist(0, apu.sampleIndex),
-        frameTime: _frameTime, // last frame time
+        samples: samples,
+        frameTime: _frameTime,
         frame: ppu.frames,
-        sleepBudget: _sleepBudget,
+        sleepTime: sleepTime,
         rewindSize: _rewindBuffer.size,
       ),
     );
@@ -278,30 +328,11 @@ class NES {
       pause();
     }
 
-    _frameTime = DateTime.now().difference(_frameStart);
-
-    final sleepTime = fastForward
-        ? Duration.zero
-        : _calculateSleepTime(_frameTime, apu.sampleIndex);
-
     apu.sampleIndex = 0;
 
-    _sleepBudget += sleepTime;
+    await wait(sleepTime);
 
-    if (_sleepBudget.isNegative) {
-      _sleepBudget = Duration.zero;
-    }
-
-    _frameStart = DateTime.now();
-
-    await wait(_sleepBudget);
-  }
-
-  Duration _calculateSleepTime(Duration elapsedTime, int samples) {
-    final targetAudioTime = 1000000 * samples / apuSampleRate;
-    final time = targetAudioTime - elapsedTime.inMicroseconds;
-
-    return Duration(microseconds: time.floor());
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
   }
 
   void pause() {
@@ -321,9 +352,7 @@ class NES {
   void toggleFastForward() {
     fastForward = !fastForward;
 
-    if (fastForward) {
-      _sleepBudget = Duration.zero;
-    }
+    _resetPacing();
   }
 
   void toggleRewind() {
@@ -349,8 +378,8 @@ class NES {
   void resume() {
     if (!paused) {
       running = true;
-      _frameStart = DateTime.now();
-      _sleepBudget = Duration.zero;
+
+      _resetPacing();
 
       eventBus.add(ResumeNesEvent());
     }

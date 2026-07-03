@@ -313,7 +313,7 @@ class NesWorker {
         width: frameBuffer.width,
         height: frameBuffer.height,
         frameTimeMicroseconds: event?.frameTime.inMicroseconds ?? 0,
-        sleepBudgetMicroseconds: event?.sleepBudget.inMicroseconds ?? 0,
+        sleepTimeMicroseconds: event?.sleepTime.inMicroseconds ?? 0,
         frame: event?.frame ?? 0,
         rewindSize: event?.rewindSize ?? 0,
       ),

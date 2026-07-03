@@ -11,14 +11,14 @@ class FrameNesEvent extends NesEvent {
     required this.samples,
     required this.frameTime,
     required this.frame,
-    required this.sleepBudget,
+    required this.sleepTime,
     required this.rewindSize,
   });
 
   final Float32List samples;
   final Duration frameTime;
   final int frame;
-  final Duration sleepBudget;
+  final Duration sleepTime;
   final int rewindSize;
 }
 

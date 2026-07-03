@@ -32,7 +32,7 @@ class FrameEvent extends NesIsolateEvent {
     required this.width,
     required this.height,
     required this.frameTimeMicroseconds,
-    required this.sleepBudgetMicroseconds,
+    required this.sleepTimeMicroseconds,
     required this.frame,
     required this.rewindSize,
   });
@@ -41,7 +41,7 @@ class FrameEvent extends NesIsolateEvent {
   final int width;
   final int height;
   final int frameTimeMicroseconds;
-  final int sleepBudgetMicroseconds;
+  final int sleepTimeMicroseconds;
   final int frame;
   final int rewindSize;
 }
