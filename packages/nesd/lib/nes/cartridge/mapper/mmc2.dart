@@ -99,6 +99,9 @@ class MMC2 extends Mapper {
   }
 
   @override
+  bool get needsPpuAddressUpdates => true;
+
+  @override
   void cpuWrite(int address, int value) {
     super.cpuWrite(address, value);
 

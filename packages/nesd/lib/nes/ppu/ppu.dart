@@ -175,6 +175,11 @@ class PPU {
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
+
+  /// Set by NES at power-on; skips the empty mapper hook for mappers
+  /// that don't watch the PPU address bus.
+  bool mapperNeedsPpuAddress = false;
+
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -409,8 +414,11 @@ class PPU {
     bus.ppuWrite(address, value);
   }
 
-  void _updateBusAddress(int address) =>
+  void _updateBusAddress(int address) {
+    if (mapperNeedsPpuAddress) {
       bus.cartridge.mapper.updatePpuAddress(address);
+    }
+  }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
     return switch (address) {

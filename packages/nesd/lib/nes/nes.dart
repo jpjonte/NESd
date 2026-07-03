@@ -33,6 +33,7 @@ class NES {
 
     cartridge.mapper.bus = bus;
     cpu.cartridgeNeedsStep = cartridge.mapper.needsStep;
+    ppu.mapperNeedsPpuAddress = cartridge.mapper.needsPpuAddressUpdates;
   }
 
   final Bus bus;

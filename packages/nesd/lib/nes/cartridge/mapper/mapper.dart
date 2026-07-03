@@ -233,6 +233,10 @@ abstract class Mapper {
 
   void updatePpuAddress(int address) {}
 
+  /// Whether [updatePpuAddress] must be called on every PPU memory
+  /// access (A12-edge / address-latch mappers: MMC3 family, MMC2).
+  bool get needsPpuAddressUpdates => false;
+
   void mapCpu(
     int fromAddress,
     int toAddress,
