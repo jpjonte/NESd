@@ -473,7 +473,7 @@ void main() {
         ..loadState(Uint8List.fromList([1]))
         ..loadSram(Uint8List.fromList([2]));
 
-      expect(remote.zapperPosition, const Offset(1, 2));
+      expect(remote.zapperPosition.value, const Offset(1, 2));
 
       expect(handle.commands, [
         isA<ButtonDownCommand>(),
@@ -513,11 +513,11 @@ void main() {
     test('setZapperPosition(null) clears the mirror', () {
       final remote = build()..setZapperPosition(const Offset(1, 2));
 
-      expect(remote.zapperPosition, isNotNull);
+      expect(remote.zapperPosition.value, isNotNull);
 
       remote.setZapperPosition(null);
 
-      expect(remote.zapperPosition, isNull);
+      expect(remote.zapperPosition.value, isNull);
 
       final command = handle.commands
           .whereType<SetZapperPositionCommand>()
@@ -527,6 +527,36 @@ void main() {
       expect(command.y, isNull);
 
       remote.dispose();
+    });
+
+    test('setZapperPosition updates the crosshair notifier', () {
+      final handle = _FakeNesIsolateHandle();
+
+      final nes = RemoteNes(
+        isolate: handle,
+        romInfo: _testRomInfo(),
+        fileHash: 'hash',
+        hasZapper: true,
+        cartridgeInfo: _testCartridgeInfo(),
+      );
+
+      addTearDown(nes.dispose);
+
+      var notified = 0;
+
+      nes.zapperPosition.addListener(() => notified++);
+
+      nes.setZapperPosition(const Offset(12, 34));
+
+      expect(nes.zapperPosition.value, const Offset(12, 34));
+      expect(notified, 1);
+
+      final command = handle.commands
+          .whereType<SetZapperPositionCommand>()
+          .single;
+
+      expect(command.x, 12);
+      expect(command.y, 34);
     });
 
     test(
