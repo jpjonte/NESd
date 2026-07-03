@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   session-only value.
 - Emulation speed now locks to actual audio playback, fixing gradual
   audio drift and pops after stutters
+- Frames are now presented in sync with the display refresh, reducing
+  judder
 - Audio recovers from underruns faster (single 20 ms threshold instead
   of a double buffer-refill wait)
 - Fast-forward now mutes audio instead of producing crackling
