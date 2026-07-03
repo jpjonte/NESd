@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed battery-backed save RAM not being restored when loading a game
 - Fixed a memory leak that slowly increased memory usage during play while
   rewind was enabled
+- Fixed CHR RAM not being writable for iNES 1.0 ROMs without CHR banks
 
 ## [0.14.0] - 2026-03-16
 

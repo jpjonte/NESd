@@ -141,7 +141,11 @@ class CartridgeFactory {
 
   int _parseChrRamSize(Uint8List rom) {
     if (_parseRomFormat(rom) == RomFormat.iNes) {
-      return 0;
+      final chrRomSize = rom[5] * 0x2000;
+
+      // iNES 1.0 has no CHR-RAM size field; boards with 0 CHR-ROM banks
+      // default to the standard 8KB CHR RAM.
+      return chrRomSize == 0 ? 0x2000 : 0;
     } else {
       return 64 << (rom[11] & 0x0f);
     }
