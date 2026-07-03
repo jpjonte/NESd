@@ -8,9 +8,11 @@ add_library(nesd_texture_native SHARED
 
 find_library(log-lib log)
 find_library(jnigraphics-lib jnigraphics)
+find_library(android-lib android)
 
 target_link_libraries(
     nesd_texture_native
     ${log-lib}
     ${jnigraphics-lib}
+    ${android-lib}
 )

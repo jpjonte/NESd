@@ -96,7 +96,9 @@ class DisplayFrameController extends ChangeNotifier
 
   bool _inFlight = false;
 
-  bool _textureInFlight = false;
+  static const _maxTextureUpdatesInFlight = 2;
+
+  int _textureUpdatesInFlight = 0;
   bool _textureFailed = false;
 
   bool _revertingRenderer = false;
@@ -426,7 +428,8 @@ class DisplayFrameController extends ChangeNotifier
         }
       }
 
-      if (_texture != null && !_textureInFlight) {
+      if (_texture != null &&
+          _textureUpdatesInFlight < _maxTextureUpdatesInFlight) {
         _startTextureUpdate(handle, source);
 
         return;
@@ -459,7 +462,7 @@ class DisplayFrameController extends ChangeNotifier
       return;
     }
 
-    _textureInFlight = true;
+    _textureUpdatesInFlight++;
 
     final buffer = handle.bytes;
     final width = handle.width;
@@ -493,7 +496,7 @@ class DisplayFrameController extends ChangeNotifier
             return;
           }
 
-          _textureInFlight = false;
+          _textureUpdatesInFlight--;
 
           _processPending();
         });

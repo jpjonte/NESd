@@ -1,6 +1,7 @@
 package dev.jpj.nesd_texture
 
 import android.graphics.Bitmap
+import android.view.Surface
 
 internal object NativeBindings {
 
@@ -9,4 +10,11 @@ internal object NativeBindings {
   }
 
   external fun copyPixelsToBitmap(bitmap: Bitmap, sourcePointer: Long, length: Int)
+
+  external fun copyPixelsToSurface(
+    surface: Surface,
+    sourcePointer: Long,
+    width: Int,
+    height: Int,
+  ): Boolean
 }

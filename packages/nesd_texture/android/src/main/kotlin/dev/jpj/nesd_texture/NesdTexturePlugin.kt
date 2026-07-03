@@ -173,13 +173,12 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
     private val mainHandler: Handler,
   ) : TextureRegistry.SurfaceProducer.Callback {
     private val bitmapLock = Any()
-    private var bitmap: Bitmap
+    private var bitmap: Bitmap? = null
+    private var surfacePathFailed = false
 
     init {
       producer.setSize(width, height)
       producer.setCallback(this)
-
-      bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     }
 
     fun update(pixels: ByteArray?, pixelPointer: Long?, length: Int) {
@@ -191,20 +190,64 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun updateFromPointer(pixelPointer: Long, length: Int) {
-      synchronized(bitmapLock) {
-        NativeBindings.copyPixelsToBitmap(bitmap, pixelPointer, length)
+      require(length >= width * height * 4) {
+        "Pixel buffer too small: $length < ${width * height * 4}"
+      }
 
-        draw()
+      // The surface upload deliberately runs outside bitmapLock:
+      // ANativeWindow_fromSurface holds its own reference across the
+      // lock/unlockAndPost window, and a released or abandoned surface
+      // makes ANativeWindow_lock fail gracefully (returns false -> Bitmap
+      // fallback). Do not add work here that assumes the producer is
+      // still alive.
+      if (!surfacePathFailed) {
+        val posted = NativeBindings.copyPixelsToSurface(
+          producer.surface,
+          pixelPointer,
+          width,
+          height,
+        )
+
+        if (posted) {
+          return
+        }
+
+        // e.g. unsupported buffer format on this device: fall back for good
+        surfacePathFailed = true
+      }
+
+      synchronized(bitmapLock) {
+        val target = obtainBitmap()
+
+        NativeBindings.copyPixelsToBitmap(target, pixelPointer, length)
+
+        draw(target)
       }
     }
 
     private fun updateFromBytes(pixels: ByteArray) {
       val buffer = ByteBuffer.wrap(pixels)
-      synchronized(bitmapLock) {
-        bitmap.copyPixelsFromBuffer(buffer)
 
-        draw()
+      synchronized(bitmapLock) {
+        val target = obtainBitmap()
+
+        target.copyPixelsFromBuffer(buffer)
+
+        draw(target)
       }
+    }
+
+    private fun obtainBitmap(): Bitmap {
+      val existing = bitmap
+
+      if (existing != null) {
+        return existing
+      }
+
+      val created = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+      bitmap = created
+
+      return created
     }
 
     fun release() {
@@ -216,16 +259,18 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     override fun onSurfaceAvailable() {
+      // Direct-surface path keeps no pixel copy; the next 60 Hz update
+      // repaints. Only the Bitmap fallback can restore the last frame.
       synchronized(bitmapLock) {
-        draw()
+        bitmap?.let { draw(it) }
       }
     }
 
-    private fun draw() {
+    private fun draw(target: Bitmap) {
       val canvas = producer.surface.lockHardwareCanvas()
 
       try {
-        canvas.drawBitmap(bitmap, 0.0f, 0.0f, null)
+        canvas.drawBitmap(target, 0.0f, 0.0f, null)
       } finally {
         producer.surface.unlockCanvasAndPost(canvas)
       }
@@ -235,7 +280,8 @@ class NesdTexturePlugin : FlutterPlugin, MethodCallHandler {
       synchronized(bitmapLock) {
         producer.release()
 
-        bitmap.recycle()
+        bitmap?.recycle()
+        bitmap = null
       }
     }
   }

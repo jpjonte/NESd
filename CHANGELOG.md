@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improved emulation core performance (CPU dispatch, PPU sprite
   rendering, bus/mapper hot paths): Reduces CPU usage and stuttering,
   especially on lower-end devices
+- Frames are now uploaded directly to the display surface on Android,
+  removing a per-frame bitmap copy and render pass
 - Auto-save and save states no longer cause a periodic hitch (async file IO)
 - Console reset no longer restarts the audio device
 
