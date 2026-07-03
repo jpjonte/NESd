@@ -13,7 +13,7 @@ class Operation {
 
   void execute(CPU cpu) {
     addressMode.execute(cpu, isWrite: isWrite);
-    instruction.execute(cpu);
+    instruction.execute(cpu, addressMode);
   }
 }
 

@@ -11,16 +11,15 @@ enum InstructionType { jump, branch, other }
 abstract class Instruction {
   String get name;
 
-  void execute(CPU cpu);
+  void execute(CPU cpu, AddressMode mode);
 
   bool get isWrite => false;
 
   InstructionType get type => InstructionType.other;
 
-  int read(CPU cpu) => cpu.operation.addressMode.read(cpu);
+  int read(CPU cpu, AddressMode mode) => mode.read(cpu);
 
-  void write(CPU cpu, int result) =>
-      cpu.operation.addressMode.write(cpu, result);
+  void write(CPU cpu, AddressMode mode, int result) => mode.write(cpu, result);
 }
 
 class BRK extends Instruction {
@@ -28,7 +27,7 @@ class BRK extends Instruction {
   String get name => 'BRK';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     if (cpu.callStackEnabled) {
       cpu.callStack.add(cpu.PC + 1);
     }
@@ -56,8 +55,8 @@ class ORA extends Instruction {
   String get name => 'ORA';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A |= operand
@@ -71,8 +70,8 @@ class ASL extends Instruction {
   String get name => 'ASL';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = (operand << 1) & 0xff;
 
     cpu
@@ -80,8 +79,8 @@ class ASL extends Instruction {
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -93,7 +92,7 @@ class PHP extends Instruction {
   String get name => 'PHP';
 
   @override
-  void execute(CPU cpu) => cpu.pushStack(cpu.P.setBit(4, 1));
+  void execute(CPU cpu, AddressMode _) => cpu.pushStack(cpu.P.setBit(4, 1));
 }
 
 class BPL extends Instruction {
@@ -101,7 +100,7 @@ class BPL extends Instruction {
   String get name => 'BPL';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.N == 0);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.N == 0);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -112,7 +111,7 @@ class CLC extends Instruction {
   String get name => 'CLC';
 
   @override
-  void execute(CPU cpu) => cpu.C = 0;
+  void execute(CPU cpu, AddressMode _) => cpu.C = 0;
 }
 
 class JSR extends Instruction {
@@ -120,7 +119,7 @@ class JSR extends Instruction {
   String get name => 'JSR';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     cpu
       ..read(cpu.PC) // dummy read
       ..pushStack16(cpu.PC - 1)
@@ -136,8 +135,8 @@ class AND extends Instruction {
   String get name => 'AND';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A &= operand
@@ -151,8 +150,8 @@ class BIT extends Instruction {
   String get name => 'BIT';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.A & operand;
 
     cpu
@@ -167,8 +166,8 @@ class ROL extends Instruction {
   String get name => 'ROL';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = ((operand << 1) | cpu.C) & 0xff;
 
     cpu
@@ -176,8 +175,8 @@ class ROL extends Instruction {
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -189,7 +188,7 @@ class PLP extends Instruction {
   String get name => 'PLP';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     cpu.read(cpu.PC); // dummy read
 
     final result = cpu.popStack();
@@ -209,7 +208,7 @@ class BMI extends Instruction {
   String get name => 'BMI';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.N == 1);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.N == 1);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -220,7 +219,7 @@ class SEC extends Instruction {
   String get name => 'SEC';
 
   @override
-  void execute(CPU cpu) => cpu.C = 1;
+  void execute(CPU cpu, AddressMode _) => cpu.C = 1;
 }
 
 class RTI extends Instruction {
@@ -228,7 +227,7 @@ class RTI extends Instruction {
   String get name => 'RTI';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     cpu
       ..read(cpu.PC) // dummy read
       ..P = cpu.popStack().setBit(5, 1)
@@ -241,8 +240,8 @@ class EOR extends Instruction {
   String get name => 'EOR';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A ^= operand
@@ -256,8 +255,8 @@ class LSR extends Instruction {
   String get name => 'LSR';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = operand >> 1;
 
     cpu
@@ -265,8 +264,8 @@ class LSR extends Instruction {
       ..zero(result)
       ..N = 0;
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -278,7 +277,7 @@ class PHA extends Instruction {
   String get name => 'PHA';
 
   @override
-  void execute(CPU cpu) => cpu.pushStack(cpu.A);
+  void execute(CPU cpu, AddressMode _) => cpu.pushStack(cpu.A);
 }
 
 class JMP extends Instruction {
@@ -286,7 +285,7 @@ class JMP extends Instruction {
   String get name => 'JMP';
 
   @override
-  void execute(CPU cpu) => cpu.PC = cpu.address;
+  void execute(CPU cpu, AddressMode _) => cpu.PC = cpu.address;
 
   @override
   InstructionType get type => InstructionType.jump;
@@ -297,7 +296,7 @@ class BVC extends Instruction {
   String get name => 'BVC';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.V == 0);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.V == 0);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -308,7 +307,7 @@ class CLI extends Instruction {
   String get name => 'CLI';
 
   @override
-  void execute(CPU cpu) => cpu.I = 0;
+  void execute(CPU cpu, AddressMode _) => cpu.I = 0;
 }
 
 class RTS extends Instruction {
@@ -316,7 +315,7 @@ class RTS extends Instruction {
   String get name => 'RTS';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     final target = cpu.popStack16();
 
     cpu
@@ -331,8 +330,8 @@ class ADC extends Instruction {
   String get name => 'ADC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.A + operand + cpu.C;
     final maskedResult = result & 0xff;
 
@@ -350,8 +349,8 @@ class ROR extends Instruction {
   String get name => 'ROR';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = (cpu.C << 7) | (operand >> 1);
 
     cpu
@@ -359,8 +358,8 @@ class ROR extends Instruction {
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -372,7 +371,7 @@ class PLA extends Instruction {
   String get name => 'PLA';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode _) {
     cpu.read(cpu.PC); // dummy read
 
     final result = cpu.popStack();
@@ -389,7 +388,7 @@ class BVS extends Instruction {
   String get name => 'BVS';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.V == 1);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.V == 1);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -400,7 +399,7 @@ class SEI extends Instruction {
   String get name => 'SEI';
 
   @override
-  void execute(CPU cpu) => cpu.I = 1;
+  void execute(CPU cpu, AddressMode _) => cpu.I = 1;
 }
 
 class STA extends Instruction {
@@ -408,7 +407,7 @@ class STA extends Instruction {
   String get name => 'STA';
 
   @override
-  void execute(CPU cpu) => write(cpu, cpu.A);
+  void execute(CPU cpu, AddressMode mode) => write(cpu, mode, cpu.A);
 
   @override
   bool get isWrite => true;
@@ -419,7 +418,7 @@ class STY extends Instruction {
   String get name => 'STY';
 
   @override
-  void execute(CPU cpu) => write(cpu, cpu.Y);
+  void execute(CPU cpu, AddressMode mode) => write(cpu, mode, cpu.Y);
 
   @override
   bool get isWrite => true;
@@ -430,7 +429,7 @@ class STX extends Instruction {
   String get name => 'STX';
 
   @override
-  void execute(CPU cpu) => write(cpu, cpu.X);
+  void execute(CPU cpu, AddressMode mode) => write(cpu, mode, cpu.X);
 
   @override
   bool get isWrite => true;
@@ -441,7 +440,7 @@ class DEY extends Instruction {
   String get name => 'DEY';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..Y = (cpu.Y - 1) & 0xff
     ..zero(cpu.Y)
     ..negative(cpu.Y);
@@ -452,7 +451,7 @@ class TXA extends Instruction {
   String get name => 'TXA';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..A = cpu.X
     ..zero(cpu.A)
     ..negative(cpu.A);
@@ -463,7 +462,7 @@ class BCC extends Instruction {
   String get name => 'BCC';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.C == 0);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.C == 0);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -474,7 +473,7 @@ class TYA extends Instruction {
   String get name => 'TYA';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..A = cpu.Y
     ..zero(cpu.A)
     ..negative(cpu.A);
@@ -485,7 +484,7 @@ class TXS extends Instruction {
   String get name => 'TXS';
 
   @override
-  void execute(CPU cpu) => cpu.SP = cpu.X;
+  void execute(CPU cpu, AddressMode _) => cpu.SP = cpu.X;
 }
 
 class LDY extends Instruction {
@@ -493,8 +492,8 @@ class LDY extends Instruction {
   String get name => 'LDY';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..Y = operand
@@ -508,8 +507,8 @@ class LDA extends Instruction {
   String get name => 'LDA';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A = operand
@@ -523,8 +522,8 @@ class LDX extends Instruction {
   String get name => 'LDX';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..X = operand
@@ -538,7 +537,7 @@ class TAY extends Instruction {
   String get name => 'TAY';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..Y = cpu.A
     ..zero(cpu.Y)
     ..negative(cpu.Y);
@@ -549,7 +548,7 @@ class TAX extends Instruction {
   String get name => 'TAX';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..X = cpu.A
     ..zero(cpu.X)
     ..negative(cpu.X);
@@ -560,7 +559,7 @@ class BCS extends Instruction {
   String get name => 'BCS';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.C == 1);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.C == 1);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -571,7 +570,7 @@ class CLV extends Instruction {
   String get name => 'CLV';
 
   @override
-  void execute(CPU cpu) => cpu.V = 0;
+  void execute(CPU cpu, AddressMode _) => cpu.V = 0;
 }
 
 class TSX extends Instruction {
@@ -579,7 +578,7 @@ class TSX extends Instruction {
   String get name => 'TSX';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..X = cpu.SP
     ..zero(cpu.X)
     ..negative(cpu.X);
@@ -590,8 +589,8 @@ class CPY extends Instruction {
   String get name => 'CPY';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.Y - operand;
 
     cpu
@@ -606,8 +605,8 @@ class CMP extends Instruction {
   String get name => 'CMP';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.A - operand;
 
     cpu
@@ -622,16 +621,16 @@ class DEC extends Instruction {
   String get name => 'DEC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = (operand - 1) & 0xff;
 
     cpu
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -643,7 +642,7 @@ class INY extends Instruction {
   String get name => 'INY';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..Y = (cpu.Y + 1) & 0xff
     ..zero(cpu.Y)
     ..negative(cpu.Y);
@@ -654,7 +653,7 @@ class DEX extends Instruction {
   String get name => 'DEX';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..X = (cpu.X - 1) & 0xff
     ..zero(cpu.X)
     ..negative(cpu.X);
@@ -665,7 +664,7 @@ class BNE extends Instruction {
   String get name => 'BNE';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.Z == 0);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.Z == 0);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -676,7 +675,7 @@ class CLD extends Instruction {
   String get name => 'CLD';
 
   @override
-  void execute(CPU cpu) => cpu.D = 0;
+  void execute(CPU cpu, AddressMode _) => cpu.D = 0;
 }
 
 class CPX extends Instruction {
@@ -684,8 +683,8 @@ class CPX extends Instruction {
   String get name => 'CPX';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.X - operand;
 
     cpu
@@ -700,8 +699,8 @@ class SBC extends Instruction {
   String get name => 'SBC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = cpu.A - operand - (1 - cpu.C);
     final maskedResult = result & 0xff;
 
@@ -719,16 +718,16 @@ class INC extends Instruction {
   String get name => 'INC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final result = (operand + 1) & 0xff;
 
     cpu
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -740,7 +739,7 @@ class INX extends Instruction {
   String get name => 'INX';
 
   @override
-  void execute(CPU cpu) => cpu
+  void execute(CPU cpu, AddressMode _) => cpu
     ..X = (cpu.X + 1) & 0xff
     ..zero(cpu.X)
     ..negative(cpu.X);
@@ -751,7 +750,7 @@ class NOP extends Instruction {
   String get name => 'NOP';
 
   @override
-  void execute(CPU cpu) => read(cpu); // dummy read
+  void execute(CPU cpu, AddressMode mode) => read(cpu, mode); // dummy read
 }
 
 class BEQ extends Instruction {
@@ -759,7 +758,7 @@ class BEQ extends Instruction {
   String get name => 'BEQ';
 
   @override
-  void execute(CPU cpu) => cpu.branch(doBranch: cpu.Z == 1);
+  void execute(CPU cpu, AddressMode _) => cpu.branch(doBranch: cpu.Z == 1);
 
   @override
   InstructionType get type => InstructionType.branch;
@@ -770,7 +769,7 @@ class SED extends Instruction {
   String get name => 'SED';
 
   @override
-  void execute(CPU cpu) => cpu.D = 1;
+  void execute(CPU cpu, AddressMode _) => cpu.D = 1;
 }
 
 class LAX extends Instruction {
@@ -778,8 +777,8 @@ class LAX extends Instruction {
   String get name => 'LAX';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       // LDA
@@ -796,7 +795,7 @@ class SAX extends Instruction {
   String get name => 'SAX';
 
   @override
-  void execute(CPU cpu) => write(cpu, cpu.A & cpu.X);
+  void execute(CPU cpu, AddressMode mode) => write(cpu, mode, cpu.A & cpu.X);
 
   @override
   bool get isWrite => true;
@@ -807,9 +806,9 @@ class DCP extends Instruction {
   String get name => 'DCP';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode mode) {
     // DEC
-    final operand = read(cpu);
+    final operand = read(cpu, mode);
     final decResult = (operand - 1) & 0xff;
 
     // CMP
@@ -820,8 +819,8 @@ class DCP extends Instruction {
       ..zero(result)
       ..negative(result);
 
-    write(cpu, operand); // dummy write
-    write(cpu, decResult);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, decResult);
   }
 
   @override
@@ -833,8 +832,8 @@ class ISC extends Instruction {
   String get name => 'ISC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     // INC
     final incResult = (operand + 1) & 0xff;
@@ -850,8 +849,8 @@ class ISC extends Instruction {
       ..negative(result)
       ..A = maskedResult;
 
-    write(cpu, operand); // dummy write
-    write(cpu, incResult);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, incResult);
   }
 
   @override
@@ -863,8 +862,8 @@ class SLO extends Instruction {
   String get name => 'SLO';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
     final aslResult = (operand << 1) & 0xff;
 
     cpu
@@ -874,8 +873,8 @@ class SLO extends Instruction {
       ..zero(cpu.A)
       ..negative(cpu.A);
 
-    write(cpu, operand); // dummy write
-    write(cpu, aslResult);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, aslResult);
   }
 
   @override
@@ -887,8 +886,8 @@ class RLA extends Instruction {
   String get name => 'RLA';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     // ROL
     final result = ((operand << 1) | cpu.C) & 0xff;
@@ -900,8 +899,8 @@ class RLA extends Instruction {
       ..zero(cpu.A)
       ..negative(cpu.A);
 
-    write(cpu, operand); // dummy write
-    write(cpu, result);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, result);
   }
 
   @override
@@ -913,8 +912,8 @@ class SRE extends Instruction {
   String get name => 'SRE';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     // LSR
     final lsrResult = operand >> 1;
@@ -926,8 +925,8 @@ class SRE extends Instruction {
       ..zero(cpu.A)
       ..negative(cpu.A);
 
-    write(cpu, operand); // dummy write
-    write(cpu, lsrResult);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, lsrResult);
   }
 
   @override
@@ -939,8 +938,8 @@ class RRA extends Instruction {
   String get name => 'RRA';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     // ROR
     final rorResult = (operand >> 1) | (cpu.C << 7);
@@ -961,8 +960,8 @@ class RRA extends Instruction {
       ..negative(result)
       ..A = maskedResult;
 
-    write(cpu, operand); // dummy write
-    write(cpu, rorResult);
+    write(cpu, mode, operand); // dummy write
+    write(cpu, mode, rorResult);
   }
 
   @override
@@ -974,7 +973,7 @@ class STP extends Instruction {
   String get name => 'STP';
 
   @override
-  void execute(CPU cpu) => throw Stop();
+  void execute(CPU cpu, AddressMode _) => throw Stop();
 }
 
 class ANC extends Instruction {
@@ -982,8 +981,8 @@ class ANC extends Instruction {
   String get name => 'ANC';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A &= operand
@@ -998,8 +997,8 @@ class ALR extends Instruction {
   String get name => 'ALR';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       // AND
@@ -1017,8 +1016,8 @@ class ARR extends Instruction {
   String get name => 'ARR';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       // AND
@@ -1040,8 +1039,8 @@ class XAA extends Instruction {
   String get name => 'XAA';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..negative(cpu.A)
@@ -1055,7 +1054,8 @@ class AHX extends Instruction {
   String get name => 'AHX';
 
   @override
-  void execute(CPU cpu) => write(cpu, cpu.A & cpu.X & ((cpu.address >> 8) + 1));
+  void execute(CPU cpu, AddressMode mode) =>
+      write(cpu, mode, cpu.A & cpu.X & ((cpu.address >> 8) + 1));
 
   @override
   bool get isWrite => true;
@@ -1066,10 +1066,10 @@ class TAS extends Instruction {
   String get name => 'TAS';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode mode) {
     cpu.SP = cpu.A & cpu.X;
 
-    write(cpu, cpu.SP & ((cpu.address >> 8) + 1));
+    write(cpu, mode, cpu.SP & ((cpu.address >> 8) + 1));
   }
 
   @override
@@ -1081,7 +1081,7 @@ class SHY extends Instruction {
   String get name => 'SHY';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode mode) {
     final address = cpu.address;
     final baseAddress = cpu.address - cpu.X;
 
@@ -1095,7 +1095,7 @@ class SHY extends Instruction {
 
     cpu.address = (addressHigh << 8) | addressLow;
 
-    write(cpu, cpu.Y & ((cpu.address >> 8) + 1));
+    write(cpu, mode, cpu.Y & ((cpu.address >> 8) + 1));
   }
 
   @override
@@ -1107,7 +1107,7 @@ class SHX extends Instruction {
   String get name => 'SHX';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode mode) {
     final address = cpu.address;
     final baseAddress = cpu.address - cpu.Y;
 
@@ -1121,7 +1121,7 @@ class SHX extends Instruction {
 
     cpu.address = (addressHigh << 8) | addressLow;
 
-    write(cpu, cpu.X & ((cpu.address >> 8) + 1));
+    write(cpu, mode, cpu.X & ((cpu.address >> 8) + 1));
   }
 
   @override
@@ -1133,8 +1133,8 @@ class LAS extends Instruction {
   String get name => 'LAS';
 
   @override
-  void execute(CPU cpu) {
-    final operand = read(cpu);
+  void execute(CPU cpu, AddressMode mode) {
+    final operand = read(cpu, mode);
 
     cpu
       ..A = cpu.SP & operand
@@ -1150,9 +1150,9 @@ class AXS extends Instruction {
   String get name => 'AXS';
 
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, AddressMode mode) {
     final ax = cpu.A & cpu.X;
-    final operand = read(cpu);
+    final operand = read(cpu, mode);
     final result = (ax - operand) & 0xff;
 
     cpu
