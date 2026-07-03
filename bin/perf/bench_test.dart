@@ -43,11 +43,12 @@ Future<void> _runSingle(String romPath) async {
   final warmup = _envInt('NESD_BENCH_WARMUP', 60);
   final runs = _envInt('NESD_BENCH_RUNS', 6);
   final label = Platform.environment['NESD_BENCH_LABEL'] ?? p.basename(romPath);
+  final resolvedRomPath = _workspacePath(romPath);
 
   final results = <Map<String, dynamic>>[];
 
   for (var i = 0; i < runs; i++) {
-    results.add(await _runOne(romPath, frames, warmup, label));
+    results.add(await _runOne(resolvedRomPath, frames, warmup, label));
   }
 
   await _appendResults(results);
