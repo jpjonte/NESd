@@ -477,6 +477,19 @@ class PPU {
   int get currentX => cycle - 1;
 
   void stepUntil(int targetCycles) {
+    // NTSC: the CPU advances consoleCycles in fixed 3-dot increments, so the
+    // common call needs exactly 3 steps. Inlining them removes per-dot
+    // loop-condition overhead (~89k calls/frame). PAL (3.2:1) keeps the generic
+    // loop below.
+    if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle &&
+        targetCycles - consoleCycles == 3 * ntscConsoleCyclesPerCycle) {
+      step();
+      step();
+      step();
+
+      return;
+    }
+
     while (consoleCycles < targetCycles) {
       step();
     }
