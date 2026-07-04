@@ -1,6 +1,7 @@
 // Simple plot generator: reads JSONL runs (one JSON object per line)
 // from bin/perf/results/results.jsonl and writes perf/plot.html with
-// inline SVG charts of FPS over commits, grouped by ROM.
+// inline SVG charts of FPS, one chart per benchmark type (cpu, ppu, ...)
+// and one point per phase label (baseline, task2, ..., phase4-final).
 // Usage:
 //   dart run bin/perf/plot.dart [--jsonl bin/perf/results/results.jsonl] \
 //     [--out bin/perf/results/plot.html]
@@ -33,7 +34,7 @@ void main(List<String> args) {
 
     final rec = Record.fromJson(line);
 
-    groups.putIfAbsent(rec.rom, () => []).add(rec);
+    groups.putIfAbsent(rec.type, () => []).add(rec);
   }
 
   for (final list in groups.values) {
@@ -45,25 +46,64 @@ void main(List<String> args) {
   stdout.writeln('Wrote $outPath');
 }
 
+// Known benchmark-type suffixes, longest first so e.g. "mmc5-smoke" wins
+// over a bare "smoke" split. Used only as a fallback for legacy rows that
+// still carry a combined `rom` field instead of split `label`/`type`.
+const _knownTypes = ['mmc5-smoke', 'pathcheck', 'mmc3', 'cpu', 'ppu'];
+
+({String label, String type}) _splitRom(String name) {
+  for (final t in _knownTypes) {
+    if (name.endsWith('-$t')) {
+      return (label: name.substring(0, name.length - t.length - 1), type: t);
+    }
+  }
+
+  final i = name.lastIndexOf('-');
+  if (i >= 0) {
+    return (label: name.substring(0, i), type: name.substring(i + 1));
+  }
+
+  return (label: name, type: name);
+}
+
 class Record {
   Record({
     required this.commit,
     required this.ts,
-    required this.rom,
+    required this.label,
+    required this.type,
     required this.fps,
   });
 
   final String commit;
   final DateTime ts;
-  final String rom;
+  final String label;
+  final String type;
   final double fps;
 
   factory Record.fromJson(String line) {
     final m = jsonDecode(line) as Map<String, dynamic>;
+
+    final rawLabel = m['label'] as String?;
+    final rawType = m['type'] as String?;
+
+    final String label;
+    final String type;
+
+    if (rawLabel != null && rawType != null) {
+      label = rawLabel;
+      type = rawType;
+    } else {
+      final split = _splitRom(m['rom'] as String);
+      label = split.label;
+      type = split.type;
+    }
+
     return Record(
       commit: m['commit'] as String,
       ts: DateTime.parse(m['ts'] as String),
-      rom: m['rom'] as String,
+      label: label,
+      type: type,
       fps: (m['fps'] as num).toDouble(),
     );
   }
@@ -88,26 +128,34 @@ Map<String, String> _args(List<String> a) {
 }
 
 class _Point {
-  _Point({required this.commit, required this.ts, required this.fps});
+  _Point({
+    required this.label,
+    required this.commit,
+    required this.ts,
+    required this.fps,
+  });
+  final String label;
   final String commit;
   final DateTime ts;
   final double fps;
 }
 
-List<_Point> _aggregateByCommit(List<Record> data) {
-  // Group by commit, compute median FPS per commit, and keep earliest ts
-  final byCommit = <String, List<Record>>{};
+List<_Point> _aggregateByLabel(List<Record> data) {
+  // Group by phase label, compute median FPS per label, and keep earliest ts.
+  final byLabel = <String, List<Record>>{};
   for (final r in data) {
-    (byCommit[r.commit] ??= []).add(r);
+    (byLabel[r.label] ??= []).add(r);
   }
 
   final points = <_Point>[];
-  byCommit.forEach((commit, rows) {
+  byLabel.forEach((label, rows) {
     rows.sort((a, b) => a.fps.compareTo(b.fps));
-    final median = rows[rows.length ~/ 2].fps;
+    final median = rows[rows.length ~/ 2];
     // choose earliest timestamp for ordering on x-axis
     final ts = rows.map((e) => e.ts).reduce((a, b) => a.isBefore(b) ? a : b);
-    points.add(_Point(commit: commit, ts: ts, fps: median));
+    points.add(
+      _Point(label: label, commit: median.commit, ts: ts, fps: median.fps),
+    );
   });
 
   // Order points by timestamp to give a temporal left-to-right trend
@@ -137,6 +185,7 @@ String _renderHtml(Map<String, List<Record>> groups) {
     ..writeln('.axis{stroke:var(--axis);stroke-width:1}')
     ..writeln('.grid{stroke:var(--grid);stroke-width:1}')
     ..writeln('text.ylabel{fill:var(--label);}')
+    ..writeln('text.xlabel{fill:var(--label);}')
     ..writeln('</style>');
 
   final colors = [
@@ -153,12 +202,15 @@ String _renderHtml(Map<String, List<Record>> groups) {
   var ci = 0;
 
   groups.forEach((title, data) {
-    // Aggregate per-commit medians for this group (rom)
-    final series = _aggregateByCommit(data);
+    // Aggregate per-label medians for this benchmark type.
+    final series = _aggregateByLabel(data);
 
     const w = 1000;
-    const h = 500;
-    const pad = 48; // extra left pad to accommodate right-aligned labels
+    const h = 520;
+    const padL = 48; // extra left pad to accommodate right-aligned labels
+    const padR = 24;
+    const padT = 40;
+    const padB = 90; // bottom pad for rotated x-axis labels
 
     final maxFps = series.map((e) => e.fps).reduce(_max);
 
@@ -184,10 +236,10 @@ String _renderHtml(Map<String, List<Record>> groups) {
       ..writeln('<svg width="$w" height="$h">');
 
     // axes
-    const ax = pad;
-    const ay = h - pad;
-    const rx = w - pad;
-    const ty = pad;
+    const ax = padL;
+    const ay = h - padB;
+    const rx = w - padR;
+    const ty = padT;
 
     buf
       ..writeln('<line class="axis" x1="$ax" y1="$ay" x2="$rx" y2="$ay" />')
@@ -195,7 +247,7 @@ String _renderHtml(Map<String, List<Record>> groups) {
 
     for (var i = 0; i < tickCount; i++) {
       final t = 0 + step * i;
-      final y = _mapY(t, 0, hi, h, pad);
+      final y = _mapY(t, 0, hi, h, padT, padB);
 
       buf
         ..writeln('<line class="grid" x1="$ax" y1="$y" x2="$rx" y2="$y" />')
@@ -212,26 +264,37 @@ String _renderHtml(Map<String, List<Record>> groups) {
 
     for (var i = 0; i < n; i++) {
       final x = ax + dx * (i + 1);
-      final y = _mapY(series[i].fps, 0, hi, h, pad);
+      final y = _mapY(series[i].fps, 0, hi, h, padT, padB);
+
+      final xs = x.toStringAsFixed(1);
+      final ys = y.toStringAsFixed(1);
 
       // stem
       buf.writeln(
-        '<line x1="${x.toStringAsFixed(1)}" y1="$ay" '
-        'x2="${x.toStringAsFixed(1)}" y2="${y.toStringAsFixed(1)}" '
+        '<line x1="$xs" y1="$ay" x2="$xs" y2="$ys" '
         'stroke="$color" stroke-opacity="0.5" stroke-width="2" />',
       );
 
       // lollipop head
       final tip = htmlEscape.convert(
-        '${series[i].commit} | ${series[i].fps.toStringAsFixed(2)} fps',
+        '${series[i].label} | ${series[i].commit} | '
+        '${series[i].fps.toStringAsFixed(2)} fps',
       );
 
-      final circle =
-          '''
-<circle cx="${x.toStringAsFixed(1)}" cy="${y.toStringAsFixed(1)}" r="4" stroke="$color" stroke-width="2" fill="none"><title>$tip</title></circle>
-''';
+      buf.writeln(
+        '<circle cx="$xs" cy="$ys" r="4" stroke="$color" '
+        'stroke-width="2" fill="none"><title>$tip</title></circle>',
+      );
 
-      buf.writeln(circle.replaceAll('\n', ''));
+      // x-axis label (phase), rotated to avoid overlap
+      final lbl = htmlEscape.convert(series[i].label);
+      final lx = xs;
+      final ly = (ay + 14).toStringAsFixed(1);
+
+      buf.writeln(
+        '<text class="xlabel" x="$lx" y="$ly" '
+        'transform="rotate(-30 $lx $ly)" text-anchor="end">$lbl</text>',
+      );
     }
 
     buf
@@ -242,9 +305,9 @@ String _renderHtml(Map<String, List<Record>> groups) {
   return buf.toString();
 }
 
-double _mapY(double v, double lo, double hi, int height, int pad) {
-  final ay = height - pad;
-  final ty = pad;
+double _mapY(double v, double lo, double hi, int height, int padT, int padB) {
+  final ay = height - padB;
+  final ty = padT;
   final t = (v - lo) / ((hi - lo) == 0 ? 1 : (hi - lo));
 
   return ay - (ay - ty) * t;
