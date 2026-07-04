@@ -194,15 +194,16 @@ class PPU {
   int patternTableHighLatch = 0;
   int patternTableLowLatch = 0;
 
-  int patternTableHighShift = 0;
-  int patternTableLowShift = 0;
-
   int attributeTableLatch = 0;
 
-  int attributeTableHighShift = 0;
-  int attributeTableLowShift = 0;
-
   int attribute = 0;
+
+  /// Decoded background pixels for the two tiles currently held by the
+  /// shift registers.
+  final Uint8List _bgWindow = Uint8List(16);
+
+  /// Shifts since the window was last rebuilt.
+  int _bgWindowPos = 0;
 
   // Cached pattern table base for background when using 8x8 sprites.
   int _bgPatternBase = 0;
@@ -250,11 +251,11 @@ class PPU {
     nametableLatch: nametableLatch,
     patternTableHighLatch: patternTableHighLatch,
     patternTableLowLatch: patternTableLowLatch,
-    patternTableHighShift: patternTableHighShift,
-    patternTableLowShift: patternTableLowShift,
+    patternTableHighShift: _windowPatternBits(high: true),
+    patternTableLowShift: _windowPatternBits(high: false),
     attributeTableLatch: attributeTableLatch,
-    attributeTableHighShift: attributeTableHighShift,
-    attributeTableLowShift: attributeTableLowShift,
+    attributeTableHighShift: _windowAttributeBits(high: true),
+    attributeTableLowShift: _windowAttributeBits(high: false),
     attribute: attribute,
     oamAddress: oamAddress,
     oamBuffer: oamBuffer,
@@ -291,12 +292,17 @@ class PPU {
     nametableLatch = state.nametableLatch;
     patternTableHighLatch = state.patternTableHighLatch;
     patternTableLowLatch = state.patternTableLowLatch;
-    patternTableHighShift = state.patternTableHighShift;
-    patternTableLowShift = state.patternTableLowShift;
     attributeTableLatch = state.attributeTableLatch;
-    attributeTableHighShift = state.attributeTableHighShift;
-    attributeTableLowShift = state.attributeTableLowShift;
     attribute = state.attribute;
+
+    _rebuildWindowFromShiftRegisters(
+      state.patternTableHighShift,
+      state.patternTableLowShift,
+      state.attributeTableHighShift,
+      state.attributeTableLowShift,
+      state.attribute,
+    );
+
     oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
     spriteCount = state.spriteCount;
@@ -353,12 +359,11 @@ class PPU {
     nametableLatch = 0;
     patternTableHighLatch = 0;
     patternTableLowLatch = 0;
-    patternTableHighShift = 0;
-    patternTableLowShift = 0;
     attributeTableLatch = 0;
-    attributeTableHighShift = 0;
-    attributeTableLowShift = 0;
     attribute = 0;
+
+    _bgWindow.fillRange(0, _bgWindow.length, 0);
+    _bgWindowPos = 0;
 
     oamAddress = 0;
     oamBuffer = 0;
@@ -762,13 +767,95 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _loadShiftRegisters() {
-    patternTableHighShift &= ~0xFF;
-    patternTableHighShift |= patternTableHighLatch;
+    // Slide the window by the number of shifts since it was last
+    // rebuilt, then decode the newly fetched latches into the
+    // next-tile slots.
+    final slide = _bgWindowPos;
 
-    patternTableLowShift &= ~0xFF;
-    patternTableLowShift |= patternTableLowLatch;
+    for (var i = 0; i < 8; i++) {
+      final from = i + slide;
+
+      _bgWindow[i] = from < 16 ? _bgWindow[from] : 0;
+    }
+
+    final low = patternTableLowLatch;
+    final high = patternTableHighLatch;
+    final attrBits = attributeTableLatch << 2;
+
+    for (var i = 0; i < 8; i++) {
+      final shift = 7 - i;
+      final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
+
+      _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+    }
+
+    _bgWindowPos = 0;
 
     attribute = attributeTableLatch;
+  }
+
+  int _windowPatternBits({required bool high}) {
+    final bitIndex = high ? 1 : 0;
+    var bits = 0;
+
+    for (var i = 0; i < 16; i++) {
+      final position = i - _bgWindowPos;
+
+      if (position < 0 || position > 15) {
+        continue;
+      }
+
+      bits |= ((_bgWindow[i] >> bitIndex) & 0x1) << (15 - position);
+    }
+
+    return bits & 0xffff;
+  }
+
+  int _windowAttributeBits({required bool high}) {
+    final bitIndex = high ? 3 : 2;
+    var bits = 0;
+
+    for (var i = 0; i < 8; i++) {
+      final slot = _bgWindowPos + i;
+
+      if (slot > 15) {
+        continue;
+      }
+
+      bits |= ((_bgWindow[slot] >> bitIndex) & 0x1) << (7 - i);
+    }
+
+    return bits & 0xff;
+  }
+
+  void _rebuildWindowFromShiftRegisters(
+    int patternHigh,
+    int patternLow,
+    int attributeHigh,
+    int attributeLow,
+    int attributeLatchValue,
+  ) {
+    for (var i = 0; i < 16; i++) {
+      final shift = 15 - i;
+      final pattern =
+          ((patternHigh >> shift) & 0x1) << 1 | ((patternLow >> shift) & 0x1);
+
+      int attrBits;
+
+      if (i < 8) {
+        final attrShift = 7 - i;
+
+        attrBits =
+            (((attributeHigh >> attrShift) & 0x1) << 3) |
+            (((attributeLow >> attrShift) & 0x1) << 2);
+      } else {
+        attrBits = (attributeLatchValue & 0x3) << 2;
+      }
+
+      _bgWindow[i] = pattern == 0 ? 0 : attrBits | pattern;
+    }
+
+    _bgWindowPos = 0;
   }
 
   @pragma('vm:prefer-inline')
@@ -854,27 +941,12 @@ class PPU {
       return 0;
     }
 
-    // patternShift ranges from 8-15 (since x is 0-7),
-    // so patternShift-1 is always safe
-    final patternShift = 15 - x;
+    final slot = _bgWindowPos + x;
 
-    // Combine bit extractions: extract high bit to position 1,
-    // low bit to position 0
-    final pattern =
-        ((patternTableHighShift >> (patternShift - 1)) & 0x2) |
-        ((patternTableLowShift >> patternShift) & 0x1);
-
-    if (pattern == 0) {
-      return 0;
-    }
-
-    // attributeShift ranges from 0-7, so we can't use the same optimization
-    final attributeShift = 7 - x;
-
-    // Combine palette index extraction and final result in one expression
-    return ((attributeTableHighShift >> attributeShift) & 0x1) << 3 |
-        ((attributeTableLowShift >> attributeShift) & 0x1) << 2 |
-        pattern;
+    // Beyond the window the hardware registers have shifted in zeros;
+    // only reachable when rendering was disabled and re-enabled
+    // between reload dots.
+    return slot < 16 ? _bgWindow[slot] : 0;
   }
 
   @pragma('vm:prefer-inline')
@@ -902,14 +974,7 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _shiftRegisters() {
-    patternTableHighShift <<= 1;
-    patternTableLowShift <<= 1;
-
-    attributeTableHighShift <<= 1;
-    attributeTableLowShift <<= 1;
-
-    attributeTableHighShift |= (attribute >> 1) & 1;
-    attributeTableLowShift |= attribute & 1;
+    _bgWindowPos++;
   }
 
   @pragma('vm:prefer-inline')

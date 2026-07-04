@@ -65,6 +65,45 @@ int _findNonUniformRow(NES nes) {
   throw StateError('No non-uniform row found in framebuffer');
 }
 
+/// Writes [values] to PPU memory at [address] via $2006/$2007, the way
+/// a program would during vblank. Leaves `w` at 0 (two $2006 writes).
+void _writeVram(NES nes, int address, List<int> values) {
+  nes.bus.cpuWrite(0x2006, (address >> 8) & 0x3f);
+  nes.bus.cpuWrite(0x2006, address & 0xff);
+
+  for (final value in values) {
+    nes.bus.cpuWrite(0x2007, value);
+  }
+}
+
+/// Runs [robot] to the end of the frame currently in flight.
+void _finishFrame(RomRobot robot) {
+  final nes = robot.nes;
+  final frame = nes.ppu.frames;
+
+  while (nes.ppu.frames == frame) {
+    nes.step();
+
+    nes.apu.sampleIndex = 0;
+  }
+}
+
+/// Finds a background tile whose top row is opaque at pixels 1 and 2,
+/// so a mid-tile save always has visibly colored next-tile pixels.
+int _findTextTile(NES nes) {
+  for (var tile = 1; tile < 256; tile++) {
+    final base = 0x1000 | (tile << 4);
+    final low = nes.ppu.readPpuMemory(base, updateBusAddress: false);
+    final high = nes.ppu.readPpuMemory(base | 8, updateBusAddress: false);
+
+    if (((low | high) & 0x60) == 0x60) {
+      return tile;
+    }
+  }
+
+  throw StateError('no suitable tile found in CHR');
+}
+
 void main() {
   test('mid-scanline fine-x write shifts background pixels immediately', () {
     final robot = RomRobot(_romPath)..runFrames(60);
@@ -158,5 +197,133 @@ void main() {
     robot2.runFrames(2);
 
     expect(robot2.framebufferHash(), expected);
+  });
+
+  test('savestate round trip at a reload boundary continues '
+      'byte-identically', () {
+    final robot = RomRobot(_romPath)..runFrames(60);
+
+    final nes = robot.nes;
+
+    // Land on a background reload dot (cycle & 7 == 0), where the pixel
+    // window has just slid and _bgWindowPos is (near) zero.
+    stepTo(nes, 120, 96);
+
+    final state = nes.state!.serialize();
+
+    robot.runFrames(2);
+
+    final expected = robot.framebufferHash();
+
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = NESState.fromBytes(state);
+
+    robot2.runFrames(2);
+
+    expect(robot2.framebufferHash(), expected);
+  });
+
+  test('savestate round trip with fine-x set continues byte-identically', () {
+    final robot = RomRobot(_romPath)..runFrames(60);
+
+    final nes = robot.nes;
+
+    stepTo(nes, 120, 100); // mid-scanline, mid-tile (_bgWindowPos != 0)
+
+    // Force a non-zero fine-x so the pixel window is read through the
+    // fine-x mux at save time (pos + x reaches into the next-tile
+    // window slots). Reset the $2005 write toggle first so the first
+    // write lands as the fine-x/coarse-X write.
+    nes.ppu.w = 0;
+
+    nes.bus.cpuWrite(0x2005, 0x05); // fine-x = 5
+    nes.bus.cpuWrite(0x2005, 0x00); // second write completes the pair
+
+    final state = nes.state!.serialize();
+
+    robot.runFrames(2);
+
+    final expected = robot.framebufferHash();
+
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = NESState.fromBytes(state);
+
+    robot2.runFrames(2);
+
+    expect(robot2.framebufferHash(), expected);
+  });
+
+  test('state round trip preserves next-tile attributes mid-tile', () {
+    final robot = RomRobot(_romPath)..runFrames(60);
+
+    final nes = robot.nes;
+
+    // During vblank, repaint tile row 5 (scanlines 40-47, inside the
+    // ROM's static title section) with an opaque tile, set nonzero
+    // attributes for the whole screen, and give background palette 1
+    // colors distinct from palette 0, so row 40's pixels carry
+    // observable attribute bits.
+    stepTo(nes, 241, 8);
+
+    final tile = _findTextTile(nes);
+
+    nes.ppu.w = 0;
+
+    _writeVram(nes, 0x20a0, List.filled(32, tile));
+    _writeVram(nes, 0x23c0, List.filled(64, 0x55)); // attribute 1
+    _writeVram(nes, 0x3f05, const [0x16, 0x27, 0x18]);
+
+    // The ROM's own NMI handler restores scroll; render a full frame
+    // so the new tiles and attributes are fetched.
+    robot.runFrames(2);
+
+    // Land mid-tile on row 40: 2-5 dots past a reload, so the
+    // (conceptual) attribute registers have been serially fed bits of
+    // the next tile's attribute.
+    stepTo(nes, 40, 100);
+
+    bool midTile() {
+      final sinceReload = (nes.ppu.cycle - 1) & 7;
+
+      return sinceReload >= 2 && sinceReload <= 5;
+    }
+
+    while (nes.ppu.scanline == 40 && !midTile()) {
+      nes.step();
+
+      nes.apu.sampleIndex = 0;
+    }
+
+    expect(nes.ppu.scanline, 40);
+    expect(nes.ppu.cycle, lessThanOrEqualTo(200));
+
+    // Non-zero fine-x so the pixel mux reads into the next-tile
+    // window slots for the remaining dots of this tile.
+    nes.ppu.w = 0;
+
+    nes.bus.cpuWrite(0x2005, 0x05); // fine-x = 5
+    nes.bus.cpuWrite(0x2005, 0x00); // second write completes the pair
+
+    // Round-trip the state OBJECT: the serialized v0 layout stores the
+    // 16-bit pattern registers as single bytes (pre-existing
+    // truncation), which blanks the in-flight tile on restore and
+    // hides attribute reconstruction errors; the object path keeps
+    // the full register width.
+    final state = nes.state!;
+
+    // Apply to the second NES before stepping the first: the state
+    // object shares live buffers with the running NES until applied.
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = state;
+
+    // Both must render the rest of the in-flight frame identically —
+    // compare before the next frame repaints the divergent scanline.
+    _finishFrame(robot);
+    _finishFrame(robot2);
+
+    expect(robot2.framebufferHash(), robot.framebufferHash());
   });
 }
