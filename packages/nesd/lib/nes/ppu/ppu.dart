@@ -289,6 +289,7 @@ class PPU {
     scanline = state.scanline;
     frames = state.frames;
     _pixelBase = scanline * frameBuffer.width;
+    _scanlinePhase = _phaseForScanline();
     nametableLatch = state.nametableLatch;
     patternTableHighLatch = state.patternTableHighLatch;
     patternTableLowLatch = state.patternTableLowLatch;
@@ -334,6 +335,10 @@ class PPU {
         _consoleCyclesPerCycle = palConsoleCyclesPerCycle;
         _preRenderScanline = palPreRenderScanline;
     }
+
+    // The phase depends on _preRenderScanline; a live mid-game region
+    // switch must not run a stale phase for the rest of the scanline.
+    _scanlinePhase = _phaseForScanline();
   }
 
   void reset() {
@@ -342,6 +347,7 @@ class PPU {
     cycle = 0;
     scanline = 0;
     frames = 0;
+    _scanlinePhase = _phaseForScanline();
 
     PPUCTRL = 0x00;
     PPUMASK = 0x00;
@@ -476,15 +482,30 @@ class PPU {
     }
   }
 
-  void step() {
+  /// Selected once per scanline change; step() calls it directly
+  /// instead of re-classifying the scanline every dot.
+  late void Function() _scanlinePhase = _phaseForScanline();
+
+  void Function() _phaseForScanline() {
     if (scanline < 240) {
-      _stepVisibleScanline();
-    } else if (scanline == _preRenderScanline) {
-      _stepPreRenderScanline();
-    } else if (scanline == 241) {
-      _stepVblankLine();
+      return _stepVisibleScanline;
     }
-    // Idle scanlines 242-260: just update counters
+
+    if (scanline == _preRenderScanline) {
+      return _stepPreRenderScanline;
+    }
+
+    if (scanline == 241) {
+      return _stepVblankLine;
+    }
+
+    return _stepIdleScanline;
+  }
+
+  void _stepIdleScanline() {}
+
+  void step() {
+    _scanlinePhase();
 
     _updateCounters();
   }
@@ -746,6 +767,7 @@ class PPU {
       frames++;
 
       _pixelBase = 0;
+      _scanlinePhase = _phaseForScanline();
 
       return;
     }
@@ -755,12 +777,14 @@ class PPU {
       scanline++;
 
       _pixelBase = scanline * frameBuffer.width;
+      _scanlinePhase = _phaseForScanline();
 
       if (scanline > _preRenderScanline) {
         scanline = 0;
         frames++;
 
         _pixelBase = 0;
+        _scanlinePhase = _phaseForScanline();
       }
     }
   }
