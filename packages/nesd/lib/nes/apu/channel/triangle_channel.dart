@@ -111,7 +111,7 @@ class TriangleChannel {
       timer--;
     } else {
       timer = timerPeriod;
-      dutyIndex = (dutyIndex + 1) % 32;
+      dutyIndex = (dutyIndex + 1) & 31;
     }
   }
 

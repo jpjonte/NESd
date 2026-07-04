@@ -117,8 +117,14 @@ class DMCChannel {
 
       if (!silence) {
         final diff = shiftRegister.bit(0) == 1 ? 2 : -2;
+        final next = level + diff;
 
-        level = (level + diff).clamp(0, 0x7f);
+        if (next >= 0 && next <= 0x7f) {
+          level = next;
+        } else {
+          level = next < 0 ? 0 : 0x7f;
+        }
+
         shiftRegister >>= 1;
       }
 
