@@ -45,6 +45,10 @@ class APU {
   int _dmcSamples = 0;
   int _sampleStart = 0;
 
+  /// Mirrors the last DMC IRQ level reported to the bus so step() only
+  /// calls trigger/clear on transitions instead of every CPU cycle.
+  bool _dmcIrqAsserted = false;
+
   // Integer accumulator for sample scheduling
   int _cpuFrequency = ntscCpuFrequency;
   int _sampleAccumulator = 0;
@@ -86,6 +90,14 @@ class APU {
     triangle.state = state.triangleState;
     noise.state = state.noiseState;
     dmc.state = state.dmcState;
+
+    _dmcIrqAsserted = dmc.interrupt;
+
+    if (dmc.interrupt) {
+      bus.triggerIrq(IrqSource.apuDmc);
+    } else {
+      bus.clearIrq(IrqSource.apuDmc);
+    }
   }
 
   // we don't need a getter from this
@@ -174,6 +186,8 @@ class APU {
     _sampleStart = 0;
     _sampleAccumulator = 0;
 
+    _dmcIrqAsserted = false;
+
     _frameCounter.reset();
 
     pulse1.reset();
@@ -203,10 +217,16 @@ class APU {
       bus.triggerDmcDma();
     }
 
-    if (dmc.interrupt) {
-      bus.triggerIrq(IrqSource.apuDmc);
-    } else {
-      bus.clearIrq(IrqSource.apuDmc);
+    final dmcInterrupt = dmc.interrupt;
+
+    if (dmcInterrupt != _dmcIrqAsserted) {
+      _dmcIrqAsserted = dmcInterrupt;
+
+      if (dmcInterrupt) {
+        bus.triggerIrq(IrqSource.apuDmc);
+      } else {
+        bus.clearIrq(IrqSource.apuDmc);
+      }
     }
 
     _handleSampling();
@@ -221,6 +241,7 @@ class APU {
     noise.status = value;
     dmc.writeStatus(bus, value);
     bus.clearIrq(IrqSource.apuDmc);
+    _dmcIrqAsserted = false;
   }
 
   @pragma('vm:prefer-inline')
