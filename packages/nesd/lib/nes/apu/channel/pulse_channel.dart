@@ -28,6 +28,8 @@ class PulseChannel {
   int timer = 0;
   int timerPeriod = 0;
 
+  int output = 0;
+
   PulseChannelState get state => PulseChannelState(
     enabled: enabled,
     duty: duty,
@@ -53,6 +55,8 @@ class PulseChannel {
     envelope.state = state.envelopeState;
     lengthCounter.state = state.lengthCounterState;
     sweep.state = state.sweepState;
+
+    _updateOutput();
   }
 
   void reset() {
@@ -65,6 +69,8 @@ class PulseChannel {
     lengthCounter.reset();
     envelope.reset();
     sweep.reset();
+
+    _updateOutput();
   }
 
   int get status => lengthCounter.value > 0 ? 1 : 0;
@@ -75,6 +81,8 @@ class PulseChannel {
     if (!enabled) {
       lengthCounter.value = 0;
     }
+
+    _updateOutput();
   }
 
   void writeControl(int value) {
@@ -87,6 +95,8 @@ class PulseChannel {
       ..loop = value.bit(5) == 1
       ..period = value & 0x0f
       ..start = true;
+
+    _updateOutput();
   }
 
   void writeSweep(int value) {
@@ -96,10 +106,14 @@ class PulseChannel {
       ..shift = value & 0x07
       ..reload = true
       ..enabled = value.bit(7) == 1 && sweep.shift != 0;
+
+    _updateOutput();
   }
 
   void writeTimerLow(int value) {
     timerPeriod = (timerPeriod & 0x700) | value;
+
+    _updateOutput();
   }
 
   void writeTimerHigh(int value) {
@@ -111,6 +125,8 @@ class PulseChannel {
     if (enabled) {
       lengthCounter.value = lengthCounterTable[value >> 3];
     }
+
+    _updateOutput();
   }
 
   @pragma('vm:prefer-inline')
@@ -120,27 +136,55 @@ class PulseChannel {
     } else {
       timer = timerPeriod;
       dutyIndex = (dutyIndex - 1) & 7;
+
+      _updateOutput();
     }
   }
 
+  void clockEnvelope() {
+    envelope.step();
+
+    _updateOutput();
+  }
+
+  void clockLengthCounter() {
+    lengthCounter.step();
+
+    _updateOutput();
+  }
+
+  void clockSweep() {
+    sweep.step();
+
+    _updateOutput();
+  }
+
   @pragma('vm:prefer-inline')
-  int get output {
+  void _updateOutput() {
     if (!enabled) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (lengthCounter.value == 0) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if ((_dutyMask >> (7 - dutyIndex)) & 1 == 0) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (sweep.muting) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
-    return constantVolume ? volume : envelope.volume;
+    output = constantVolume ? volume : envelope.volume;
   }
 }

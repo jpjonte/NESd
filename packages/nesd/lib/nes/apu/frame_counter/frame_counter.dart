@@ -226,20 +226,20 @@ class FrameCounter {
   }
 
   void _stepEnvelopes() {
-    apu.pulse1.envelope.step();
-    apu.pulse2.envelope.step();
-    apu.noise.envelope.step();
+    apu.pulse1.clockEnvelope();
+    apu.pulse2.clockEnvelope();
+    apu.noise.clockEnvelope();
   }
 
   void _stepLengthCounters() {
-    apu.pulse1.lengthCounter.step();
-    apu.pulse2.lengthCounter.step();
-    apu.triangle.lengthCounter.step();
-    apu.noise.lengthCounter.step();
+    apu.pulse1.clockLengthCounter();
+    apu.pulse2.clockLengthCounter();
+    apu.triangle.clockLengthCounter();
+    apu.noise.clockLengthCounter();
   }
 
   void _stepSweeps() {
-    apu.pulse1.sweep.step();
-    apu.pulse2.sweep.step();
+    apu.pulse1.clockSweep();
+    apu.pulse2.clockSweep();
   }
 }

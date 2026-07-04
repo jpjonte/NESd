@@ -20,6 +20,8 @@ class TriangleChannel {
 
   bool reload = false;
 
+  int output = 0;
+
   TriangleChannelState get state => TriangleChannelState(
     enabled: enabled,
     control: control,
@@ -42,6 +44,8 @@ class TriangleChannel {
     timerPeriod = state.timerPeriod;
     reload = state.reload;
     lengthCounter.state = state.lengthCounterState;
+
+    _updateOutput();
   }
 
   void reset() {
@@ -50,6 +54,8 @@ class TriangleChannel {
     timer = 0;
 
     lengthCounter.reset();
+
+    _updateOutput();
   }
 
   int get status => lengthCounter.value > 0 ? 1 : 0;
@@ -60,16 +66,22 @@ class TriangleChannel {
     if (!enabled) {
       lengthCounter.value = 0;
     }
+
+    _updateOutput();
   }
 
   void writeControl(int value) {
     lengthCounter.halt = value.bit(7) == 1;
     control = value.bit(7) == 1;
     linearCounterPeriod = value & 0x7f;
+
+    _updateOutput();
   }
 
   void writeTimerLow(int value) {
     timerPeriod = (timerPeriod & 0x700) | value;
+
+    _updateOutput();
   }
 
   void writeTimerHigh(int value) {
@@ -79,6 +91,8 @@ class TriangleChannel {
     if (enabled) {
       lengthCounter.value = lengthCounterTable[value >> 3];
     }
+
+    _updateOutput();
   }
 
   void stepLinearCounter() {
@@ -91,6 +105,14 @@ class TriangleChannel {
     if (!control) {
       reload = false;
     }
+
+    _updateOutput();
+  }
+
+  void clockLengthCounter() {
+    lengthCounter.step();
+
+    _updateOutput();
   }
 
   @pragma('vm:prefer-inline')
@@ -112,27 +134,37 @@ class TriangleChannel {
     } else {
       timer = timerPeriod;
       dutyIndex = (dutyIndex + 1) & 31;
+
+      _updateOutput();
     }
   }
 
   @pragma('vm:prefer-inline')
-  int get output {
+  void _updateOutput() {
     if (!enabled) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (timerPeriod < 2) {
-      return 7; // 7.5
+      output = 7; // 7.5
+
+      return;
     }
 
     if (lengthCounter.value == 0) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (linearCounter == 0) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
-    return triangleTable[dutyIndex];
+    output = triangleTable[dutyIndex];
   }
 }
