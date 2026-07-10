@@ -263,18 +263,22 @@ class NesController {
     );
   }
 
-  Future<bool> loadRom(FilesystemFile file, {Uint8List? stateBytes}) async {
+  Future<bool> loadRom(
+    FilesystemFile file, {
+    Uint8List? stateBytes,
+    Uint8List? data,
+  }) async {
     nes?.suspend();
 
     RemoteNes? remote;
 
     try {
-      final data = await _readFile(file.path);
+      final bytes = data ?? await _readFile(file.path);
       final extension = p.extension(file.name);
 
       final rom = switch (extension) {
-        '.nes' => data,
-        '.zip' => _loadZip(file.path, data),
+        '.nes' => bytes,
+        '.zip' => _loadZip(file.path, bytes),
         _ => throw UnsupportedFileType(extension),
       };
 
