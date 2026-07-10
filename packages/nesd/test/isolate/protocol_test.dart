@@ -114,4 +114,42 @@ void main() {
 
     expect(result, isA<DebuggerEvent>());
   });
+
+  test('AudioStatsEvent round-trips through an isolate', () async {
+    const event = AudioStatsEvent(
+      timestampMilliseconds: 1234,
+      exhaustDelta: 2,
+      fullDelta: 1,
+      fillMin: 240,
+      fillMax: 2000,
+    );
+
+    final result = await _roundTrip(event);
+
+    expect(result, isA<AudioStatsEvent>());
+
+    final typed = result! as AudioStatsEvent;
+
+    expect(typed.exhaustDelta, 2);
+    expect(
+      typed.logLine,
+      'NESD_AUDIO ts=1234 exhaust=2 full=1 fill_min=240 fill_max=2000',
+    );
+  });
+
+  test('StartPcmDumpCommand round-trips through an isolate', () async {
+    final result = await _roundTrip(
+      const StartPcmDumpCommand(path: '/tmp/a.pcm'),
+    );
+
+    expect(result, isA<StartPcmDumpCommand>());
+    expect((result! as StartPcmDumpCommand).path, '/tmp/a.pcm');
+  });
+
+  test('StopPcmDumpCommand round-trips through an isolate', () async {
+    expect(
+      await _roundTrip(const StopPcmDumpCommand()),
+      isA<StopPcmDumpCommand>(),
+    );
+  });
 }

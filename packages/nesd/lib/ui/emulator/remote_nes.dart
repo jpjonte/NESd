@@ -150,6 +150,10 @@ class RemoteNes {
   // ignore: avoid_setters_without_getters
   set volume(double volume) => _send(SetVolumeCommand(volume: volume));
 
+  void startPcmDump(String path) => _send(StartPcmDumpCommand(path: path));
+
+  void stopPcmDump() => _send(const StopPcmDumpCommand());
+
   // ignore: avoid_setters_without_getters
   set breakpoints(List<Breakpoint> breakpoints) =>
       _send(SetBreakpointsCommand(breakpoints: breakpoints));

@@ -118,6 +118,9 @@ class NesWorker {
         _nes?.cheats = command.cheats;
       case SetVolumeCommand():
         _audioOutput?.volume = command.volume;
+      case StartPcmDumpCommand():
+      case StopPcmDumpCommand():
+        break;
       case AddBreakpointCommand():
         _debugger?.addBreakpoint(command.breakpoint);
       case RemoveBreakpointCommand():

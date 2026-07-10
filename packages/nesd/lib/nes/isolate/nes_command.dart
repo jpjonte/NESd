@@ -133,6 +133,16 @@ class SetVolumeCommand extends NesCommand {
   final double volume;
 }
 
+class StartPcmDumpCommand extends NesCommand {
+  const StartPcmDumpCommand({required this.path});
+
+  final String path;
+}
+
+class StopPcmDumpCommand extends NesCommand {
+  const StopPcmDumpCommand();
+}
+
 class AddBreakpointCommand extends NesCommand {
   const AddBreakpointCommand({required this.breakpoint});
 
