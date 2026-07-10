@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/audio/pcm_recorder.dart';
 
 class _FakeAudioStream implements AudioStream {
   int filledSize = 0;
@@ -181,5 +183,23 @@ void main() {
 
     expect(stats.fillMin, 900);
     expect(stats.fillMax, 900);
+  });
+
+  test('tees post-volume samples to the PCM recorder', () {
+    final dir = Directory.systemTemp.createTempSync('nesd_audio');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final path = '${dir.path}/a.pcm';
+
+    output
+      ..volume = 0.5
+      ..pcmRecorder = PcmRecorder(path: path)
+      ..processSamples(Float32List.fromList([1.0, -1.0]));
+
+    output.pcmRecorder!.close();
+
+    final floats = File(path).readAsBytesSync().buffer.asFloat32List();
+
+    expect(floats, [0.5, -0.5]);
   });
 }

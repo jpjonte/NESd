@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
+import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
@@ -23,10 +24,11 @@ class AudioOutput {
     buffer: Float32List(2400), // 50 ms
   );
 
-  // reused for every flush to avoid a per-frame allocation
   final _flushBuffer = Float32List(2400);
 
   double _volume = 1.0;
+
+  PcmRecorder? pcmRecorder;
 
   int? _fillMin;
   int? _fillMax;
@@ -43,12 +45,12 @@ class AudioOutput {
   );
 
   void reset() {
-    // Keep the device running: re-initializing miniaudio can take tens of
-    // milliseconds on Android. Stale samples (max 50 ms) drain naturally.
     _audioBuffer.clear();
   }
 
   void dispose() {
+    pcmRecorder?.close();
+    pcmRecorder = null;
     audioStream.uninit();
   }
 
@@ -60,6 +62,8 @@ class AudioOutput {
         samples[i] *= _volume;
       }
     }
+
+    pcmRecorder?.add(samples);
 
     _audioBuffer.write(samples);
 
@@ -86,9 +90,6 @@ class AudioOutput {
 
     final count = _audioBuffer.readInto(_flushBuffer, flushSize);
 
-    // push cannot reject: flushSize is capped by the native buffer's free
-    // space read on this same thread, and only the consumer (audio
-    // callback) mutates fill concurrently - it can only make more room.
     audioStream.push(Float32List.sublistView(_flushBuffer, 0, count));
   }
 
