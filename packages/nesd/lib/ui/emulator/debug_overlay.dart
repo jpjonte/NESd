@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
@@ -23,6 +24,8 @@ sealed class DebugOverlayState with _$DebugOverlayState {
     @Default(0) int frame,
     @Default(0) double rewindSize,
     @Default(FrameDelivery.none) FrameDelivery frameDelivery,
+    @Default(0) int underruns,
+    @Default(0) int fillMin,
   }) = _DebugOverlayState;
 }
 
@@ -71,12 +74,22 @@ class DebugOverlayController {
 
   StreamSubscription<NesIsolateEvent>? _subscription;
 
+  bool _subscribedBefore = false;
+
   void updateEvents(Stream<NesIsolateEvent>? events) {
     unawaited(_subscription?.cancel());
 
+    if (_subscribedBefore) {
+      notifier.overlayState = notifier.overlayState.copyWith(
+        underruns: 0,
+        fillMin: 0,
+      );
+    }
+
+    _subscribedBefore = true;
+
     _subscription = events
-        ?.where((event) => event is FrameEvent)
-        .cast<FrameEvent>()
+        ?.where((event) => event is FrameEvent || event is AudioStatsEvent)
         .listen(_handleEvent);
   }
 
@@ -85,18 +98,28 @@ class DebugOverlayController {
     frameController.removeListener(_handleFrameDelivery);
   }
 
-  void _handleEvent(FrameEvent event) {
-    final frameTime = event.frameTimeMicroseconds / 1000.0;
-    final fps = 1000 / frameTime;
-    final sleepTime = event.sleepTimeMicroseconds / 1000.0;
+  void _handleEvent(NesIsolateEvent event) {
+    switch (event) {
+      case FrameEvent():
+        final frameTime = event.frameTimeMicroseconds / 1000.0;
+        final fps = 1000 / frameTime;
+        final sleepTime = event.sleepTimeMicroseconds / 1000.0;
 
-    notifier.overlayState = notifier.overlayState.copyWith(
-      frameTime: frameTime,
-      frame: event.frame,
-      fps: fps,
-      sleepTime: sleepTime,
-      rewindSize: event.rewindSize / 1024 / 1024,
-    );
+        notifier.overlayState = notifier.overlayState.copyWith(
+          frameTime: frameTime,
+          frame: event.frame,
+          fps: fps,
+          sleepTime: sleepTime,
+          rewindSize: event.rewindSize / 1024 / 1024,
+        );
+      case AudioStatsEvent():
+        notifier.overlayState = notifier.overlayState.copyWith(
+          underruns: notifier.overlayState.underruns + event.exhaustDelta,
+          fillMin: event.fillMin,
+        );
+      default:
+        break;
+    }
   }
 
   void _handleFrameDelivery() {
@@ -117,6 +140,7 @@ class DebugOverlay extends ConsumerWidget {
     ref.watch(debugOverlayControllerProvider);
 
     final color = _getColor(nes, state);
+    final fillMinMs = state.fillMin * 1000 / apuSampleRate;
 
     return Align(
       alignment: Alignment.topRight,
@@ -148,6 +172,12 @@ class DebugOverlay extends ConsumerWidget {
                   'Rewind Size',
                   '${state.rewindSize.toStringAsFixed(1)} MB',
                 ),
+                KeyValue(
+                  'Underruns',
+                  state.underruns.toString(),
+                  color: state.underruns > 0 ? nesdRed : null,
+                ),
+                KeyValue('Fill Min', '${fillMinMs.toStringAsFixed(1)} ms'),
                 KeyValue('Renderer', switch (state.frameDelivery) {
                   FrameDelivery.gpu => 'GPU',
                   FrameDelivery.cpu => 'CPU',

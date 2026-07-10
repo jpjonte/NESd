@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Console reset no longer restarts the audio device
 - Further improved emulation performance on low-end devices by batching
   PPU background rendering and reducing per-cycle overhead
+- Debug overlay now shows the audio underrun count and minimum buffer
+  fill
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode
