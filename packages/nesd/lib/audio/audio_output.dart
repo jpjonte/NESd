@@ -5,6 +5,13 @@ import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
+typedef AudioStats = ({
+  int exhaustDelta,
+  int fullDelta,
+  int fillMin,
+  int fillMax,
+});
+
 class AudioOutput {
   AudioOutput({required this.audioStream}) {
     _init();
@@ -20,6 +27,9 @@ class AudioOutput {
   final _flushBuffer = Float32List(2400);
 
   double _volume = 1.0;
+
+  int? _fillMin;
+  int? _fillMax;
 
   double get volume => _volume;
 
@@ -42,9 +52,9 @@ class AudioOutput {
     audioStream.uninit();
   }
 
-  /// Applies volume in place: [samples] is uniquely owned by the audio
-  /// path once it reaches this method and may be mutated.
   void processSamples(Float32List samples) {
+    _trackFill();
+
     if (_volume != 1.0) {
       for (var i = 0; i < samples.length; i++) {
         samples[i] *= _volume;
@@ -80,5 +90,31 @@ class AudioOutput {
     // space read on this same thread, and only the consumer (audio
     // callback) mutates fill concurrently - it can only make more room.
     audioStream.push(Float32List.sublistView(_flushBuffer, 0, count));
+  }
+
+  AudioStats takeStats() {
+    final stat = audioStream.stat();
+
+    audioStream.resetStat();
+
+    final fill = bufferStatus.fill;
+    final stats = (
+      exhaustDelta: stat.exhaust,
+      fullDelta: stat.full,
+      fillMin: _fillMin ?? fill,
+      fillMax: _fillMax ?? fill,
+    );
+
+    _fillMin = null;
+    _fillMax = null;
+
+    return stats;
+  }
+
+  void _trackFill() {
+    final fill = bufferStatus.fill;
+
+    _fillMin = _fillMin == null ? fill : min(_fillMin!, fill);
+    _fillMax = _fillMax == null ? fill : max(_fillMax!, fill);
   }
 }
