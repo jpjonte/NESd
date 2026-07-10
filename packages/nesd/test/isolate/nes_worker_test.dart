@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -238,6 +240,128 @@ void main() {
 
     await worker.handleCommand(
       ReleaseFrameCommand(pointerAddress: frame.pointerAddress),
+    );
+  });
+
+  test('emits AudioStatsEvent once per interval while frames flow', () async {
+    // Replace the setUp worker: this test needs a zero interval so the
+    // second frame already emits. The setUp instance had no ROM loaded,
+    // so overwriting it before shutdown leaks nothing.
+    worker = NesWorker(
+      send: events.add,
+      audioStreamFactory: MockAudioStream.new,
+      audioStatsInterval: Duration.zero,
+    );
+
+    await worker.handleCommand(_loadRomCommand());
+
+    final stats = await waitForCount<AudioStatsEvent>(2);
+
+    expect(stats.first.exhaustDelta, 0); // MockAudioStream: empty stats
+    expect(stats.first.fillMin, greaterThanOrEqualTo(0));
+    expect(stats.first.timestampMilliseconds, greaterThan(0));
+  });
+
+  test(
+    'discards counters accrued before and during the first window',
+    () async {
+      final stream = MockAudioStream()
+        ..nextStat = AudioStreamStat(full: 0, exhaust: 7);
+
+      worker = NesWorker(
+        send: events.add,
+        audioStreamFactory: () => stream,
+        audioStatsInterval: Duration.zero,
+      );
+
+      await worker.handleCommand(_loadRomCommand());
+
+      final stats = await waitForCount<AudioStatsEvent>(1);
+
+      // The 7 device-init starvation counts were taken-and-discarded at
+      // epoch start; the warmup window was skipped; the first emitted
+      // window must be clean.
+      expect(stats.first.exhaustDelta, 0);
+    },
+  );
+
+  test('StartPcmDump without a loaded ROM reports an error', () async {
+    await worker.handleCommand(const StartPcmDumpCommand(path: '/x.pcm'));
+
+    expect(events.whereType<ErrorEvent>(), isNotEmpty);
+  });
+
+  test('start/stop PCM dump writes pushed samples to the file', () async {
+    final dir = Directory.systemTemp.createTempSync('nesd_worker_pcm');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final path = '${dir.path}/audio.pcm';
+
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(1);
+
+    await worker.handleCommand(StartPcmDumpCommand(path: path));
+    await waitForCount<FrameEvent>(30);
+
+    await worker.handleCommand(const StopPcmDumpCommand());
+
+    final bytes = File(path).readAsBytesSync();
+
+    expect(bytes.length, greaterThan(0));
+    expect(bytes.length % 4, 0); // whole float32 samples
+  });
+
+  test('failed PCM dump start clears the previous recorder', () async {
+    final dir = Directory.systemTemp.createTempSync('nesd_pcm_fail');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final path = '${dir.path}/audio.pcm';
+
+    // A closed-but-still-attached recorder keeps buffering incoming
+    // samples in memory; the write failure (and NESD_PCM_ERROR print)
+    // only surfaces once it is flushed again. A failed write appends no
+    // bytes either way, so file length alone can't observe the defect:
+    // this test forces a flush (via an explicit stop) and captures
+    // stdout to catch the resulting print directly.
+    final prints = <String>[];
+
+    await runZoned(
+      () async {
+        await worker.handleCommand(_loadRomCommand());
+        await waitForCount<FrameEvent>(1);
+
+        await worker.handleCommand(StartPcmDumpCommand(path: path));
+
+        // A directory that does not exist makes openSync throw.
+        await worker.handleCommand(
+          StartPcmDumpCommand(path: '${dir.path}/missing/audio.pcm'),
+        );
+
+        expect(events.whereType<ErrorEvent>(), isNotEmpty);
+
+        // The first recorder was closed and detached: further frames
+        // must not grow the first file.
+        final sizeAfterFailure = File(path).lengthSync();
+
+        await waitForCount<FrameEvent>(30);
+
+        expect(File(path).lengthSync(), sizeAfterFailure);
+
+        // Force a flush of whatever the recorder buffered since the
+        // failed start. A closed-but-attached recorder throws here and
+        // logs NESD_PCM_ERROR; a properly nulled-out recorder is a
+        // silent no-op.
+        await worker.handleCommand(const StopPcmDumpCommand());
+      },
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => prints.add(line),
+      ),
+    );
+
+    expect(
+      prints.where((line) => line.contains('NESD_PCM_ERROR')),
+      isEmpty,
+      reason: 'a closed-but-attached PCM recorder flushed to a closed file',
     );
   });
 }

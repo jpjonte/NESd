@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
@@ -40,15 +42,22 @@ class _FixedDatabase implements NesDatabase {
 /// Plain, non-isolate command handler for the NES emulator core.
 ///
 /// Owns the [NES] instance, the [AudioOutput], the debugger/execution-log
-/// backends, and the pool of in-flight frame buffers. Fully unit-testable
-/// on the test isolate; a later task wraps this in a real spawned isolate
-/// and drives it from a [ReceivePort].
+/// backends, and the pool of in-flight frame buffers.
 class NesWorker {
-  NesWorker({required this.send, AudioStream Function()? audioStreamFactory})
-    : _audioStreamFactory = audioStreamFactory ?? getAudioStream;
+  NesWorker({
+    required this.send,
+    AudioStream Function()? audioStreamFactory,
+    this.audioStatsInterval = const Duration(seconds: 1),
+  }) : _audioStreamFactory = audioStreamFactory ?? getAudioStream;
 
   final void Function(NesIsolateEvent event) send;
   final AudioStream Function() _audioStreamFactory;
+
+  final Duration audioStatsInterval;
+
+  final Stopwatch _audioStatsTimer = Stopwatch();
+
+  bool _audioStatsWarmup = true;
 
   final EventBus eventBus = EventBus();
 
@@ -119,8 +128,9 @@ class NesWorker {
       case SetVolumeCommand():
         _audioOutput?.volume = command.volume;
       case StartPcmDumpCommand():
+        _startPcmDump(command.path);
       case StopPcmDumpCommand():
-        break;
+        _stopPcmDump();
       case AddBreakpointCommand():
         _debugger?.addBreakpoint(command.breakpoint);
       case RemoveBreakpointCommand():
@@ -273,6 +283,7 @@ class NesWorker {
     switch (event) {
       case FrameNesEvent():
         _audioOutput?.processSamples(event.samples);
+        _maybeEmitAudioStats();
         _sendReadyFrame(event);
         _sendStatusIfChanged();
       case SuspendNesEvent():
@@ -372,6 +383,81 @@ class NesWorker {
     if (_status != _lastStatus) {
       _sendStatus();
     }
+  }
+
+  void _maybeEmitAudioStats() {
+    final audio = _audioOutput;
+
+    if (audio == null) {
+      return;
+    }
+
+    if (!_audioStatsTimer.isRunning) {
+      audio.takeStats();
+
+      _audioStatsWarmup = true;
+
+      _audioStatsTimer.start();
+
+      return;
+    }
+
+    if (_audioStatsTimer.elapsedMicroseconds <
+        audioStatsInterval.inMicroseconds) {
+      return;
+    }
+
+    final oversized =
+        audioStatsInterval > Duration.zero &&
+        _audioStatsTimer.elapsedMicroseconds >
+            2 * audioStatsInterval.inMicroseconds;
+
+    _audioStatsTimer.reset();
+
+    final stats = audio.takeStats();
+
+    if (_audioStatsWarmup || oversized) {
+      _audioStatsWarmup = oversized;
+
+      return;
+    }
+
+    final event = AudioStatsEvent(
+      timestampMilliseconds: DateTime.now().millisecondsSinceEpoch,
+      exhaustDelta: stats.exhaustDelta,
+      fullDelta: stats.fullDelta,
+      fillMin: stats.fillMin,
+      fillMax: stats.fillMax,
+    );
+
+    send(event);
+
+    // ignore: avoid_print - logcat is the transport for audio stats
+    print(event.logLine);
+  }
+
+  void _startPcmDump(String path) {
+    final audio = _audioOutput;
+
+    if (audio == null) {
+      send(const ErrorEvent(message: 'PCM dump requires a loaded ROM'));
+
+      return;
+    }
+
+    audio.pcmRecorder?.close();
+    audio.pcmRecorder = null;
+
+    try {
+      audio.pcmRecorder = PcmRecorder(path: path);
+    } on FileSystemException catch (e) {
+      send(ErrorEvent(message: 'PCM dump failed to open: $e'));
+    }
+  }
+
+  void _stopPcmDump() {
+    _audioOutput?.pcmRecorder?.close();
+    _audioOutput?.pcmRecorder = null;
   }
 
   void _handleSaveState(int requestId) {
