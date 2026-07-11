@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
@@ -62,6 +62,10 @@ class NesWorker {
   final EventBus eventBus = EventBus();
 
   NES? _nes;
+
+  @visibleForTesting
+  NES? get nesForTesting => _nes;
+
   AudioOutput? _audioOutput;
   DebuggerBackend? _debugger;
   ExecutionLogBackend? _executionLog;
@@ -217,6 +221,7 @@ class NesWorker {
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
         ..rewindEnabled = command.rewindEnabled
+        ..rewindCaptureInterval = command.rewindCaptureInterval
         ..cheats = command.cheats
         ..breakpoints = command.breakpoints;
 

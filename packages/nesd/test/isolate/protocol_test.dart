@@ -152,4 +152,27 @@ void main() {
       isA<StopPcmDumpCommand>(),
     );
   });
+
+  test('LoadRomCommand carries the rewind capture interval', () async {
+    final command = LoadRomCommand(
+      rom: TransferableTypedData.fromList([
+        Uint8List.fromList([1, 2, 3]),
+      ]),
+      file: const FilesystemFile(
+        path: '/tmp/a.nes',
+        name: 'a.nes',
+        type: FilesystemFileType.file,
+      ),
+      databaseEntry: null,
+      region: Region.ntsc,
+      rewindEnabled: true,
+      rewindCaptureInterval: 4,
+      cheats: const [],
+      breakpoints: const [],
+    );
+
+    final result = await _roundTrip(command);
+
+    expect((result! as LoadRomCommand).rewindCaptureInterval, 4);
+  });
 }

@@ -17,7 +17,10 @@ import '../ui/mocks.dart';
 
 const _romPath = '../../roms/test/nestest/nestest.nes';
 
-LoadRomCommand _loadRomCommand({bool rewindEnabled = false}) {
+LoadRomCommand _loadRomCommand({
+  bool rewindEnabled = false,
+  int rewindCaptureInterval = 1,
+}) {
   final bytes = File(_romPath).readAsBytesSync();
 
   return LoadRomCommand(
@@ -30,6 +33,7 @@ LoadRomCommand _loadRomCommand({bool rewindEnabled = false}) {
     databaseEntry: null,
     region: Region.ntsc,
     rewindEnabled: rewindEnabled,
+    rewindCaptureInterval: rewindCaptureInterval,
     cheats: const [],
     breakpoints: const [],
   );
@@ -363,5 +367,12 @@ void main() {
       isEmpty,
       reason: 'a closed-but-attached PCM recorder flushed to a closed file',
     );
+  });
+
+  test('load applies the rewind capture interval to the NES', () async {
+    await worker.handleCommand(_loadRomCommand(rewindCaptureInterval: 3));
+    await waitForCount<FrameEvent>(1);
+
+    expect(worker.nesForTesting!.rewindCaptureInterval, 3);
   });
 }

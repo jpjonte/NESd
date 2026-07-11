@@ -20,6 +20,7 @@ class LoadRomCommand extends NesCommand {
     required this.rewindEnabled,
     required this.cheats,
     required this.breakpoints,
+    this.rewindCaptureInterval = 1,
     this.initialState,
     this.sram,
   });
@@ -29,6 +30,7 @@ class LoadRomCommand extends NesCommand {
   final NesDatabaseEntry? databaseEntry;
   final Region? region;
   final bool rewindEnabled;
+  final int rewindCaptureInterval;
   final List<Cheat> cheats;
   final List<Breakpoint> breakpoints;
   final TransferableTypedData? initialState;

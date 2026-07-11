@@ -30,6 +30,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'nes_controller.g.dart';
 
+const mobileRewindCaptureInterval = 4;
+
 /// Builds a [NesIsolateHandle]. Production spawns a real [NesIsolate];
 /// tests override [nesIsolateSpawnerProvider] with an in-process fake so
 /// widget tests never spawn a real isolate (or touch real audio).
@@ -324,6 +326,9 @@ class NesController {
           databaseEntry: databaseEntry,
           region: settingsController.region,
           rewindEnabled: settingsController.rewind,
+          rewindCaptureInterval: Platform.isAndroid
+              ? mobileRewindCaptureInterval
+              : 1,
           cheats: cheats,
           breakpoints: breakpoints,
           initialState: initialState == null
