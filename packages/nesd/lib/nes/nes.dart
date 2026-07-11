@@ -56,9 +56,40 @@ class NES {
   bool get inLoop => _inLoop;
 
   bool fastForward = false;
-  bool rewind = false;
+
+  bool get rewind => _rewind;
+
+  set rewind(bool value) {
+    if (value != _rewind) {
+      // A new rewind session must start with a pop, and leaving rewind
+      // must not leak hold frames into the next session.
+      _rewindHold = 0;
+    }
+
+    _rewind = value;
+  }
 
   bool rewindEnabled = false;
+
+  int get rewindCaptureInterval => _rewindCaptureInterval;
+
+  set rewindCaptureInterval(int value) {
+    if (value < 1) {
+      throw ArgumentError.value(value, 'rewindCaptureInterval', '>= 1');
+    }
+
+    _rewindCaptureInterval = value;
+  }
+
+  int _rewindCaptureInterval = 1;
+
+  /// Remaining silent filler frames before the next rewind pop; keeps
+  /// playback at ~1x when snapshots span multiple frames.
+  int _rewindHold = 0;
+
+  bool _rewind = false;
+
+  bool shouldCaptureRewind(int frame) => frame % _rewindCaptureInterval == 0;
 
   final RewindProfiler? _rewindProfiler = maybeRewindProfiler();
 
@@ -252,13 +283,24 @@ class NES {
   }
 
   Future<void> _handleRewind() async {
+    if (_rewindHold > 0) {
+      _rewindHold--;
+
+      await _presentRewindHold();
+
+      return;
+    }
+
     final rewindState = _rewindBuffer.pop();
 
     if (rewindState == null) {
+      // The setter zeroes _rewindHold on this false transition.
       rewind = false;
 
       return;
     }
+
+    _rewindHold = _rewindCaptureInterval - 1;
 
     _applyState(rewindState);
 
@@ -286,6 +328,37 @@ class NES {
     final sleepTime = governor.sleepFor(
       samplesProduced: apu.sampleIndex,
       elapsed: workTime,
+    );
+
+    await wait(sleepTime);
+
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+  }
+
+  Future<void> _presentRewindHold() async {
+    final nowMicros = _clock.elapsedMicroseconds;
+
+    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
+
+    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
+    _lastEventMarkMicros = nowMicros;
+
+    final samples = Float32List(apu.sampleIndex);
+
+    eventBus.add(
+      FrameNesEvent(
+        samples: samples,
+        frameTime: _frameTime,
+        frame: ppu.frames,
+        sleepTime: Duration.zero,
+        rewindSize: _rewindBuffer.size,
+      ),
+    );
+
+    final sleepTime = governor.sleepFor(
+      samplesProduced: samples.length,
+      elapsed: workTime,
+      audio: audioFillProbe?.call(),
     );
 
     await wait(sleepTime);
@@ -325,7 +398,7 @@ class NES {
       ),
     );
 
-    if (rewindEnabled) {
+    if (rewindEnabled && shouldCaptureRewind(ppu.frames)) {
       final watch = _rewindProfiler == null ? null : (Stopwatch()..start());
 
       final captured = _captureState();
