@@ -16,6 +16,7 @@ import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
+import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/wait.dart';
 
@@ -59,8 +60,12 @@ class NES {
 
   bool rewindEnabled = false;
 
-  // 1 minute of rewind
-  final RewindBuffer _rewindBuffer = RewindBuffer(size: 3600);
+  final RewindProfiler? _rewindProfiler = maybeRewindProfiler();
+
+  late final RewindBuffer _rewindBuffer = RewindBuffer(
+    size: 3600,
+    profiler: _rewindProfiler,
+  );
 
   int frameRate = 60;
 
@@ -321,7 +326,15 @@ class NES {
     );
 
     if (rewindEnabled) {
-      _rewindBuffer.add(_captureState());
+      final watch = _rewindProfiler == null ? null : (Stopwatch()..start());
+
+      final captured = _captureState();
+
+      if (watch != null) {
+        _rewindProfiler!.addCapture(watch.elapsedMicroseconds);
+      }
+
+      _rewindBuffer.add(captured);
     }
 
     if (stopAfterNextFrame) {

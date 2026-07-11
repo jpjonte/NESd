@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
+import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
@@ -25,11 +26,12 @@ class DiffRewindItem extends RewindItem {
 }
 
 class RewindBuffer {
-  RewindBuffer({required int size})
+  RewindBuffer({required int size, this._profiler})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
         buffer: List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
       );
 
+  final RewindProfiler? _profiler;
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;
 
   /// Serialization of the newest state that has not been popped yet.
@@ -94,12 +96,35 @@ class RewindBuffer {
       }
     }
 
+    final watch = _profiler == null ? null : (Stopwatch()..start());
+
     final serialized = state.serialize();
+
+    if (watch != null) {
+      _profiler!.addSerialize(watch.elapsedMicroseconds);
+      watch.reset();
+    }
+
     final previous = _current;
 
-    final item = previous == null
-        ? ChainStartRewindItem()
-        : DiffRewindItem(previous.diffWith(serialized).compress());
+    final RewindItem item;
+
+    if (previous == null) {
+      item = ChainStartRewindItem();
+    } else {
+      final diff = previous.diffWith(serialized);
+
+      if (watch != null) {
+        _profiler!.addDiff(watch.elapsedMicroseconds);
+        watch.reset();
+      }
+
+      item = DiffRewindItem(diff.compress());
+
+      if (watch != null) {
+        _profiler!.addCompress(watch.elapsedMicroseconds);
+      }
+    }
 
     _buffer.append(item);
 
