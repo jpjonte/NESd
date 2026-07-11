@@ -212,3 +212,5 @@
 {"label": "smb3-soak-01", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "smb3.nes", "seconds": 600, "exhaust_total": 14748, "exhaust_episodes": 1, "fill_min": 0}
 {"label": "spritecans-nopcm-01", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "spritecans.nes", "seconds": 300, "exhaust_total": 9106, "exhaust_episodes": 1, "fill_min": 0}
 {"label": "diag-postsoak-smb3", "device": "SM-T720", "freq": "1996800", "rom": "smb3.nes", "frames": 3000, "median_us": 12836, "p90_us": 12990, "flatout_fps": 77.8}
+{"label": "rewind-fix-01", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 5896, "exhaust_episodes": 3, "fill_min": 0}
+{"label": "rewind-fix-02", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 5412, "exhaust_episodes": 2, "fill_min": 0}
