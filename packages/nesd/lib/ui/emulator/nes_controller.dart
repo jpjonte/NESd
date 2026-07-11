@@ -165,6 +165,8 @@ class NesController {
 
   NesIsolateHandle? _isolate;
 
+  Future<NesIsolateHandle>? _isolateFuture;
+
   StreamSubscription<NesIsolateEvent>? _eventSubscription;
 
   bool get isOn => nesState.nes != null;
@@ -378,11 +380,15 @@ class NesController {
     return true;
   }
 
-  Future<NesIsolateHandle> _ensureIsolate() async {
+  Future<NesIsolateHandle> _ensureIsolate() {
     if (_isolate case final isolate?) {
-      return isolate;
+      return Future.value(isolate);
     }
 
+    return _isolateFuture ??= _spawnIsolate();
+  }
+
+  Future<NesIsolateHandle> _spawnIsolate() async {
     final isolate = await spawner();
 
     _isolate = isolate;
