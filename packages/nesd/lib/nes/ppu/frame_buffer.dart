@@ -44,7 +44,7 @@ class FrameBuffer {
       Expando<Pointer<Uint8>>();
   static final Expando<Uint32List> _bufferUint32 = Expando<Uint32List>();
   static final Finalizer<Pointer<Uint8>> _bufferFinalizer =
-      Finalizer<Pointer<Uint8>>((pointer) => malloc.free(pointer));
+      Finalizer<Pointer<Uint8>>((pointer) => calloc.free(pointer));
 
   int getPixelBrightness(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
@@ -133,7 +133,13 @@ class FrameBuffer {
   int? pointerForBuffer(Uint8List buffer) => _bufferPointers[buffer]?.address;
 
   Uint8List _allocateBuffer() {
-    final pointer = malloc<Uint8>(size);
+    // calloc, not malloc: the PPU legitimately skips pixels while
+    // rendering is disabled (forced blank), so unwritten framebuffer
+    // bytes keep their initial value and are observable — on screen
+    // and by the framebuffer golden hashes. A recycled malloc block
+    // full of garbage caused rare golden flakes when parallel test
+    // isolates shared one process's native heap.
+    final pointer = calloc<Uint8>(size);
     final buffer = pointer.asTypedList(size);
     final buffer32 = pointer.cast<Uint32>().asTypedList(width * height);
 
