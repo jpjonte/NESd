@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Reduced audio crackling and improved frame rate on low-power Android
   devices when rewind is enabled (rewind snapshots are now captured at a
   device-appropriate rate)
+- Rewind playback now paces against the audio buffer like normal play
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode

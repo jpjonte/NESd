@@ -336,6 +336,7 @@ class NES {
     final sleepTime = governor.sleepFor(
       samplesProduced: apu.sampleIndex,
       elapsed: workTime,
+      audio: audioFillProbe?.call(),
     );
 
     await wait(sleepTime);
