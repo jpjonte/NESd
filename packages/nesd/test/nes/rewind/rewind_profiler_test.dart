@@ -24,6 +24,10 @@ void main() {
     );
 
     expect(lines, hasLength(1));
+    // 60 captures but 59 stage cycles: _print() fires inside the 60th
+    // addCapture, BEFORE that iteration's addSerialize/addDiff/
+    // addCompress run — mirroring production, where stages trail their
+    // capture via the deferred microtask. 59*20/59*30/59*40.
     expect(
       lines.single,
       'NESD_REWIND_PROF frames=60 cap_us=600 ser_us=1180 '
