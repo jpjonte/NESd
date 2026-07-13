@@ -20,6 +20,7 @@ class NoiseChannelState {
     final version = reader.get(uint8);
 
     return switch (version) {
+      2 => NoiseChannelState._version2(reader),
       1 => NoiseChannelState._version1(reader),
       0 => NoiseChannelState._version0(reader),
       _ => throw InvalidSerializationVersion('NoiseChannelState', version),
@@ -34,6 +35,20 @@ class NoiseChannelState {
       timerPeriod: reader.get(uint8),
       timer: reader.get(uint8),
       shiftRegister: reader.get(uint8),
+      mode: reader.get(boolean),
+      envelopeState: EnvelopeUnitState.deserialize(reader),
+      lengthCounterState: LengthCounterUnitState.deserialize(reader),
+    );
+  }
+
+  factory NoiseChannelState._version2(PayloadReader reader) {
+    return NoiseChannelState(
+      enabled: reader.get(boolean),
+      constantVolume: reader.get(boolean),
+      volume: reader.get(uint8),
+      timerPeriod: reader.get(uint16),
+      timer: reader.get(uint16),
+      shiftRegister: reader.get(uint16),
       mode: reader.get(boolean),
       envelopeState: EnvelopeUnitState.deserialize(reader),
       lengthCounterState: LengthCounterUnitState.deserialize(reader),
@@ -77,13 +92,13 @@ class NoiseChannelState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 1) // version
+      ..set(uint8, 2) // version
       ..set(boolean, enabled)
       ..set(boolean, constantVolume)
       ..set(uint8, volume)
-      ..set(uint8, timerPeriod)
-      ..set(uint8, timer)
-      ..set(uint8, shiftRegister)
+      ..set(uint16, timerPeriod)
+      ..set(uint16, timer)
+      ..set(uint16, shiftRegister)
       ..set(boolean, mode);
 
     envelopeState.serialize(writer);
