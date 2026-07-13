@@ -154,6 +154,33 @@ void main() {
     expect(buffer.pop(), isNull);
   });
 
+  test('pooled current buffer grows but is reused across adds', () async {
+    // Behavioral proxy: after many adds of equal-size states, pop still
+    // round-trips every state correctly (pool reuse did not corrupt the
+    // chain). Corruption from aliasing the pool would break byte
+    // equality on the SECOND pop, not the first.
+    final buffer = RewindBuffer(size: 16);
+    final expected = <Uint8List>[];
+
+    for (var i = 0; i < 6; i++) {
+      final state = factory.capture(i + 1);
+
+      expected.add(state.serialize());
+      buffer.add(state);
+
+      await flushMicrotasks();
+    }
+
+    for (var i = 5; i >= 0; i--) {
+      final popped = buffer.pop();
+
+      expect(popped, isNotNull, reason: 'pop $i');
+      expect(popped!.serialize(), expected[i], reason: 'pop $i');
+    }
+
+    expect(buffer.pop(), isNull);
+  });
+
   test('add after popping everything starts a fresh chain', () async {
     // cascaded to satisfy the enforced cascade_invocations lint
     final buffer = RewindBuffer(size: 16)..add(factory.capture(1));
