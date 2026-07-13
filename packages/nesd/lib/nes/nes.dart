@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
@@ -79,6 +80,7 @@ class NES {
     }
 
     _rewindCaptureInterval = value;
+    _rewindBuffer = _createRewindBuffer();
   }
 
   int _rewindCaptureInterval = 1;
@@ -93,10 +95,16 @@ class NES {
 
   final RewindProfiler? _rewindProfiler = maybeRewindProfiler();
 
-  late final RewindBuffer _rewindBuffer = RewindBuffer(
-    size: 3600,
+  late RewindBuffer _rewindBuffer = _createRewindBuffer();
+
+  RewindBuffer _createRewindBuffer() => RewindBuffer(
+    // Must be at least 2, because a RingBuffer of size 1 has a usable size of 0
+    size: max(2, 3600 ~/ _rewindCaptureInterval),
     profiler: _rewindProfiler,
   );
+
+  @visibleForTesting
+  int get rewindItemCapacity => _rewindBuffer.itemCapacity;
 
   int frameRate = 60;
 

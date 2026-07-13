@@ -89,6 +89,47 @@ void main() {
     expect(() => nes.rewindCaptureInterval = 0, throwsArgumentError);
   });
 
+  test('setting the capture interval scales rewind history capacity', () {
+    final nes = _buildNes();
+
+    expect(nes.rewindItemCapacity, 3600);
+
+    nes.rewindCaptureInterval = 4;
+
+    expect(nes.rewindItemCapacity, 900);
+  });
+
+  test('extreme capture intervals degrade to minimal history', () async {
+    // Use extreme interval (3601) which hits the minimal buffer case:
+    // max(2, 3600 ~/ 3601) = max(2, 0) = 2 (capacity 1 usable item).
+    // This exercises the RingBuffer eviction path to ensure no uncaught
+    // 'Buffer is full' exception despite minimal capacity.
+    final nes = _buildNes()
+      ..rewindCaptureInterval = 3601
+      ..rewindEnabled = true;
+
+    expect(nes.rewindItemCapacity, 2);
+
+    final frames = <int>[];
+    final subscription = nes.eventBus.stream
+        .where((event) => event is FrameNesEvent)
+        .cast<FrameNesEvent>()
+        .listen((event) => frames.add(event.frame));
+
+    unawaited(nes.run());
+
+    // Run emulation long enough to trigger captures (interval 3601).
+    // The test passes if no 'Buffer is full' exception is thrown.
+    await _waitUntil(() => frames.length > 100);
+
+    nes
+      ..rewind = false
+      ..stop();
+
+    await _waitUntil(() => !nes.inLoop);
+    await subscription.cancel();
+  });
+
   test('hold path presents each snapshot for interval iterations', () async {
     final nes = _buildNes()
       ..rewindCaptureInterval = 4

@@ -46,6 +46,8 @@ class RewindBuffer {
 
   int get size => _bytes;
 
+  int get itemCapacity => _buffer.size;
+
   void clear() {
     _buffer.clear();
 
