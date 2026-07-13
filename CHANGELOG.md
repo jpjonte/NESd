@@ -51,6 +51,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed CHR RAM not being writable for iNES 1.0 ROMs without CHR banks
 - Fixed a race condition in the native audio buffer that could cause
   crackling audio
+- Save states no longer corrupt PPU timing counters, the in-flight
+  background tile, APU triangle/noise/DMC timers, the noise channel's
+  random-number state, the APU frame sequencer phase, or MMC5 CHR banking
+  on large-CHR games. Affected fields are now stored at full width.
+  Existing save states keep loading; saves written by this version need
+  this version or newer.
 
 ## [0.14.0] - 2026-03-16
 
