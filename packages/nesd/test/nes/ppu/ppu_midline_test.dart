@@ -306,18 +306,15 @@ void main() {
     nes.bus.cpuWrite(0x2005, 0x05); // fine-x = 5
     nes.bus.cpuWrite(0x2005, 0x00); // second write completes the pair
 
-    // Round-trip the state OBJECT: the serialized v0 layout stores the
-    // 16-bit pattern registers as single bytes (pre-existing
-    // truncation), which blanks the in-flight tile on restore and
-    // hides attribute reconstruction errors; the object path keeps
-    // the full register width.
-    final state = nes.state!;
+    // Round-trip through serialized BYTES: since PPUState v2 the pattern
+    // shift registers survive at full 16-bit width, so the byte path
+    // preserves the in-flight tile (v0/v1 truncated them — the historical
+    // reason this test once round-tripped the state object instead).
+    final state = nes.state!.serialize();
 
-    // Apply to the second NES before stepping the first: the state
-    // object shares live buffers with the running NES until applied.
     final robot2 = RomRobot(_romPath);
 
-    robot2.nes.state = state;
+    robot2.nes.state = NESState.fromBytes(state);
 
     // Both must render the rest of the in-flight frame identically —
     // compare before the next frame repaints the divergent scanline.
@@ -325,5 +322,88 @@ void main() {
     _finishFrame(robot2);
 
     expect(robot2.framebufferHash(), robot.framebufferHash());
+  });
+
+  test('savestate round trip at scanline > 255 continues byte-identically', () {
+    final robot = RomRobot(_romPath)..runFrames(60);
+
+    final nes = robot.nes;
+
+    stepTo(nes, 260, 0); // post-render, in the uint8-impossible range
+
+    expect(nes.ppu.scanline, inInclusiveRange(256, 261));
+
+    final savedScanline = nes.ppu.scanline;
+
+    final state = nes.state!.serialize();
+
+    robot.runFrames(2);
+
+    final expected = robot.framebufferHash();
+
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = NESState.fromBytes(state);
+
+    expect(robot2.nes.ppu.scanline, savedScanline);
+
+    robot2.runFrames(2);
+
+    expect(robot2.framebufferHash(), expected);
+  });
+
+  test('savestate round trip at cycle > 255 continues byte-identically', () {
+    final robot = RomRobot(_romPath)..runFrames(60);
+
+    final nes = robot.nes;
+
+    stepTo(nes, 120, 300); // mid-scanline, cycle in 256-340
+
+    expect(nes.ppu.scanline, 120);
+    expect(nes.ppu.cycle, inInclusiveRange(256, 340));
+
+    final savedCycle = nes.ppu.cycle;
+
+    final state = nes.state!.serialize();
+
+    robot.runFrames(2);
+
+    final expected = robot.framebufferHash();
+
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = NESState.fromBytes(state);
+
+    expect(robot2.nes.ppu.cycle, savedCycle);
+
+    robot2.runFrames(2);
+
+    expect(robot2.framebufferHash(), expected);
+  });
+
+  test('frame counts beyond 255 survive a savestate round trip', () {
+    final robot = RomRobot(_romPath)..runFrames(300);
+
+    final nes = robot.nes;
+
+    expect(nes.ppu.frames, greaterThan(255));
+
+    final savedFrames = nes.ppu.frames;
+
+    final state = nes.state!.serialize();
+
+    robot.runFrames(2);
+
+    final expected = robot.framebufferHash();
+
+    final robot2 = RomRobot(_romPath);
+
+    robot2.nes.state = NESState.fromBytes(state);
+
+    expect(robot2.nes.ppu.frames, savedFrames);
+
+    robot2.runFrames(2);
+
+    expect(robot2.framebufferHash(), expected);
   });
 }
