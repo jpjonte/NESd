@@ -20,6 +20,7 @@ class TriangleChannelState {
 
     return switch (version) {
       0 => TriangleChannelState._version0(reader),
+      1 => TriangleChannelState._version1(reader),
       _ => throw InvalidSerializationVersion('TriangleChannelState', version),
     };
   }
@@ -33,6 +34,20 @@ class TriangleChannelState {
       linearCounter: reader.get(uint8),
       timer: reader.get(uint8),
       timerPeriod: reader.get(uint8),
+      reload: reader.get(boolean),
+      lengthCounterState: LengthCounterUnitState.deserialize(reader),
+    );
+  }
+
+  factory TriangleChannelState._version1(PayloadReader reader) {
+    return TriangleChannelState(
+      enabled: reader.get(boolean),
+      control: reader.get(boolean),
+      dutyIndex: reader.get(uint8),
+      linearCounterPeriod: reader.get(uint8),
+      linearCounter: reader.get(uint8),
+      timer: reader.get(uint16),
+      timerPeriod: reader.get(uint16),
       reload: reader.get(boolean),
       lengthCounterState: LengthCounterUnitState.deserialize(reader),
     );
@@ -56,14 +71,14 @@ class TriangleChannelState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(boolean, enabled)
       ..set(boolean, control)
       ..set(uint8, dutyIndex)
       ..set(uint8, linearCounterPeriod)
       ..set(uint8, linearCounter)
-      ..set(uint8, timer)
-      ..set(uint8, timerPeriod)
+      ..set(uint16, timer)
+      ..set(uint16, timerPeriod)
       ..set(boolean, reload);
 
     lengthCounterState.serialize(writer);
