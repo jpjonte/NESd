@@ -110,12 +110,13 @@ class RewindBuffer {
       }
     }
 
-    final watch = _profiler == null ? null : (Stopwatch()..start());
+    final profiler = _profiler;
+    final watch = profiler == null ? null : (Stopwatch()..start());
 
     final serialized = state.serialize();
 
-    if (watch != null) {
-      _profiler!.addSerialize(watch.elapsedMicroseconds);
+    if (profiler != null) {
+      profiler.addSerialize(watch!.elapsedMicroseconds);
       watch.reset();
     }
 
@@ -128,15 +129,15 @@ class RewindBuffer {
     } else {
       final diff = previous.diffWith(serialized);
 
-      if (watch != null) {
-        _profiler!.addDiff(watch.elapsedMicroseconds);
+      if (profiler != null) {
+        profiler.addDiff(watch!.elapsedMicroseconds);
         watch.reset();
       }
 
       item = DiffRewindItem(diff.compress());
 
-      if (watch != null) {
-        _profiler!.addCompress(watch.elapsedMicroseconds);
+      if (profiler != null) {
+        profiler.addCompress(watch!.elapsedMicroseconds);
       }
     }
 

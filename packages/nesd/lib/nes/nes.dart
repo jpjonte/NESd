@@ -408,12 +408,13 @@ class NES {
     );
 
     if (rewindEnabled && shouldCaptureRewind(ppu.frames)) {
-      final watch = _rewindProfiler == null ? null : (Stopwatch()..start());
+      final profiler = _rewindProfiler;
+      final watch = profiler == null ? null : (Stopwatch()..start());
 
       final captured = _captureState();
 
-      if (watch != null) {
-        _rewindProfiler!.addCapture(watch.elapsedMicroseconds);
+      if (profiler != null) {
+        profiler.addCapture(watch!.elapsedMicroseconds);
       }
 
       _rewindBuffer.add(captured);
