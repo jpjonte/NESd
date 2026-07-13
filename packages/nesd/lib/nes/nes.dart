@@ -94,7 +94,13 @@ class NES {
 
   NESState? _lastState;
 
-  NESState? get state => _lastState;
+  /// The current console state.
+  ///
+  /// While the console is on, this captures a fresh snapshot of the live
+  /// emulator state on every read. While it is off, it returns the state
+  /// from the last `state =` assignment (load time) — not the last played
+  /// frame.
+  NESState? get state => on ? _captureState() : _lastState;
 
   set state(NESState? state) {
     _lastState = state;
@@ -110,6 +116,13 @@ class NES {
     _frameStart = DateTime.now();
     _sleepBudget = Duration.zero;
   }
+
+  NESState _captureState() => NESState(
+    cpuState: cpu.state,
+    ppuState: ppu.state,
+    apuState: apu.state,
+    cartridgeState: bus.cartridge.state,
+  );
 
   void _applyState(NESState state) {
     cpu.state = state.cpuState;
@@ -253,17 +266,8 @@ class NES {
       ),
     );
 
-    final state = NESState(
-      cpuState: cpu.state,
-      ppuState: ppu.state,
-      apuState: apu.state,
-      cartridgeState: bus.cartridge.state,
-    );
-
-    _lastState = state;
-
     if (rewindEnabled) {
-      _rewindBuffer.add(state);
+      _rewindBuffer.add(_captureState());
     }
 
     if (stopAfterNextFrame) {

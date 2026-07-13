@@ -1,142 +1,111 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
-import 'package:nesd/nes/serialization/raw_uint8_list.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
 sealed class RewindItem {
   RewindItem(this.compressed);
 
-  List<int> compressed;
-
-  RawUint8List? _uncompressed;
-
-  List<int> get data =>
-      _uncompressed ??= RawUint8List.fromList(compressed.decompress());
-
-  int get size => compressed.length + (_uncompressed?.length ?? 0);
-
-  void compress() => _uncompressed = null;
+  final Uint8List compressed;
 }
 
-class DummyRewindItem extends RewindItem {
-  DummyRewindItem() : super(Uint8List(0));
+/// Marks the first state of a diff chain; carries no payload because
+/// popping it only signals that the chain is exhausted.
+class ChainStartRewindItem extends RewindItem {
+  ChainStartRewindItem() : super(Uint8List(0));
 }
 
-class FullRewindItem extends RewindItem {
-  FullRewindItem(List<int> data) : super(data.compress()) {
-    _uncompressed = RawUint8List.fromList(data);
-  }
-
-  NESState get state => NESState.fromBytes(data);
-}
-
+/// LZ4-compressed XOR diff that recovers the previous state from the
+/// state that follows it in the chain.
 class DiffRewindItem extends RewindItem {
-  DiffRewindItem(List<int> previousData, List<int> data)
-    : super(data.diff(previousData).compress());
-
-  NESState getState(FullRewindItem fullState) {
-    data.diff(fullState.data);
-
-    return NESState.fromBytes(data);
-  }
+  DiffRewindItem(super.compressed);
 }
 
 class RewindBuffer {
-  RewindBuffer({required int size, this.fullStateThreshold = 60})
+  RewindBuffer({required int size})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
         size: size,
         bufferConstructor: (size) =>
-            List<RewindItem>.generate(size, (index) => DummyRewindItem()),
+            List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
       );
-
-  /// The size of the buffer in bytes.
-  int get size {
-    var size = 0;
-
-    for (var i = 0; i < _buffer.current; i++) {
-      size += _buffer.peek(i)?.size ?? 0;
-    }
-
-    return size;
-  }
-
-  final int fullStateThreshold;
 
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;
 
-  void clear() => _buffer.clear();
+  /// Serialization of the newest state that has not been popped yet.
+  Uint8List? _current;
+
+  int _bytes = 0;
+
+  /// The size of the buffer in bytes.
+  int get size => _bytes;
+
+  void clear() {
+    _buffer.clear();
+
+    _current = null;
+    _bytes = 0;
+  }
 
   void add(NESState state) {
     scheduleMicrotask(() => _addState(state));
   }
 
   NESState? pop() {
-    final item = _buffer.popEnd();
+    final current = _current;
 
-    if (item == null) {
+    if (current == null) {
       return null;
     }
 
-    return switch (item) {
-      FullRewindItem() => item.state,
-      DiffRewindItem() => _getDiffState(item),
-      DummyRewindItem() => null,
-    };
+    final item = _buffer.popEnd();
+
+    if (item != null) {
+      _bytes -= item.compressed.length;
+    }
+
+    try {
+      _current = switch (item) {
+        DiffRewindItem() => item.compressed.decompress().diffWith(current),
+        ChainStartRewindItem() || null => null,
+      };
+
+      return NESState.fromBytes(current);
+    } on NesdException {
+      // a corrupted chain must not crash the emulator
+      clear();
+
+      return null;
+      // binarize throws RangeError on truncated payloads
+      // ignore: avoid_catching_errors
+    } on RangeError {
+      clear();
+
+      return null;
+    }
   }
 
   void _addState(NESState state) {
     if (_buffer.isFull) {
-      // pop the oldest full state
-      _buffer.popFront();
+      final evicted = _buffer.popFront();
 
-      // pop all diff states until we find a full state
-      while (_buffer.peekFront() is DiffRewindItem) {
-        _buffer.popFront();
+      if (evicted != null) {
+        _bytes -= evicted.compressed.length;
       }
     }
-
-    final fullState = _buffer.current % fullStateThreshold == 0;
 
     final serialized = state.serialize();
-    final previous = _getLastFullState();
+    final previous = _current;
 
-    if (fullState) {
-      if (previous != null) {
-        previous.compress();
-      }
+    final item = previous == null
+        ? ChainStartRewindItem()
+        : DiffRewindItem(previous.diffWith(serialized).compress());
 
-      final item = FullRewindItem(serialized);
+    _buffer.append(item);
 
-      _buffer.append(item);
-    } else {
-      final item = DiffRewindItem(previous!.data, serialized);
-
-      _buffer.append(item);
-    }
-  }
-
-  FullRewindItem? _getLastFullState() {
-    var position = _buffer.current;
-
-    while (position >= 0) {
-      final item = _buffer.peek(position);
-
-      if (item is FullRewindItem) {
-        return item;
-      }
-
-      position--;
-    }
-
-    return null;
-  }
-
-  NESState _getDiffState(DiffRewindItem item) {
-    final lastFullState = _getLastFullState();
-
-    return item.getState(lastFullState!);
+    _bytes += item.compressed.length;
+    _current = serialized;
   }
 }

@@ -31,6 +31,7 @@ class APUState {
 
     return switch (version) {
       0 => APUState._version0(reader),
+      1 => APUState._version1(reader),
       _ => throw InvalidSerializationVersion('APUState', version),
     };
   }
@@ -40,6 +41,25 @@ class APUState {
       cycles: reader.get(uint64),
       sampleIndex: reader.get(uint64),
       sampleBuffer: Float32List.fromList(reader.get(list(float32))),
+      pulse1Samples: reader.get(uint64),
+      pulse2Samples: reader.get(uint64),
+      triangleSamples: reader.get(uint64),
+      dmcSamples: reader.get(uint64),
+      sampleStart: reader.get(uint64),
+      frameCounterState: FrameCounterState.deserialize(reader),
+      pulse1State: PulseChannelState.deserialize(reader),
+      pulse2State: PulseChannelState.deserialize(reader),
+      triangleState: TriangleChannelState.deserialize(reader),
+      noiseState: NoiseChannelState.deserialize(reader),
+      dmcState: DMCChannelState.deserialize(reader),
+    );
+  }
+
+  factory APUState._version1(PayloadReader reader) {
+    return APUState(
+      cycles: reader.get(uint64),
+      sampleIndex: reader.get(uint64),
+      sampleBuffer: reader.get(float32List(lengthType: uint32)),
       pulse1Samples: reader.get(uint64),
       pulse2Samples: reader.get(uint64),
       triangleSamples: reader.get(uint64),
@@ -78,10 +98,10 @@ class APUState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(uint64, cycles)
       ..set(uint64, sampleIndex)
-      ..set(list(float32), sampleBuffer)
+      ..set(float32List(lengthType: uint32), sampleBuffer)
       ..set(uint64, pulse1Samples)
       ..set(uint64, pulse2Samples)
       ..set(uint64, triangleSamples)

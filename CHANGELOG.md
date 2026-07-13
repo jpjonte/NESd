@@ -9,11 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The emulator display can now fill the entire screen
 - Improved compatibility with Android and macOS
+- Greatly reduced the performance cost of the rewind feature, especially
+  on lower-end devices
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode
 - Fixed touch controls not getting enabled when enabling them for the first time
 - Fixed battery-backed save RAM not being restored when loading a game
+- Fixed a memory leak that slowly increased memory usage during play while
+  rewind was enabled
 
 ## [0.14.0] - 2026-03-16
 
