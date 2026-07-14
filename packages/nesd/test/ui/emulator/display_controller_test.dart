@@ -3,29 +3,42 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class _MockSettingsController extends Mock implements SettingsController {}
 
-/// Hands out a single frame and records how many times a frame is released
-/// back to it. Completes [released] on the first release so tests can await
-/// the (asynchronous) CPU decode without polling.
+/// Hands out parked frames and records takes/releases. [produceFrame] parks
+/// a frame and notifies listeners, like [RemoteFrameSource.addFrame].
+/// Completes [released] on the first release so tests can await the
+/// (asynchronous) CPU decode without polling.
 class _FakeFrameSource extends FrameSource {
-  _FakeFrameSource(this._handle);
+  _FakeFrameSource([this._handle]);
 
   FrameHandle? _handle;
+  int takenFrames = 0;
   int releaseCount = 0;
   final Completer<void> _released = Completer<void>();
 
   Future<void> get released => _released.future;
+
+  void produceFrame(FrameHandle handle) {
+    _handle = handle;
+
+    notifyListeners();
+  }
 
   @override
   FrameHandle? takeFrame() {
     final handle = _handle;
 
     _handle = null;
+
+    if (handle != null) {
+      takenFrames++;
+    }
 
     return handle;
   }
@@ -45,6 +58,13 @@ FrameHandle _handle({int width = 2, int height = 2}) => FrameHandle(
   width: width,
   height: height,
   pointerAddress: 0,
+);
+
+StatusEvent _status({required bool running}) => StatusEvent(
+  running: running,
+  paused: !running,
+  fastForward: false,
+  rewind: false,
 );
 
 void main() {
@@ -86,5 +106,100 @@ void main() {
     await source.released.timeout(const Duration(seconds: 5));
 
     expect(source.releaseCount, 1);
+  });
+
+  testWidgets('presents frames on ticks, not on arrival, while running', (
+    tester,
+  ) async {
+    final events = StreamController<NesIsolateEvent>.broadcast();
+    final source = _FakeFrameSource();
+
+    addTearDown(events.close);
+
+    final controller = buildController()
+      ..updateEvents(events.stream)
+      ..updateFrameSource(source);
+
+    events.add(_status(running: true));
+
+    await tester.pump();
+
+    source.produceFrame(_handle());
+
+    // The ticker owns presentation while running; arrival must not present.
+    expect(source.takenFrames, 0);
+
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(source.takenFrames, 1);
+
+    // Stop the ticker before the test body returns, otherwise flutter_test
+    // complains that a Ticker is still active.
+    controller.dispose();
+  });
+
+  testWidgets('starts ticking when wired while the emulator is already '
+      'running', (tester) async {
+    final events = StreamController<NesIsolateEvent>.broadcast();
+    final source = _FakeFrameSource();
+
+    addTearDown(events.close);
+
+    // No StatusEvent is ever delivered on the stream: the initial running
+    // status was consumed before this controller existed. The seed alone
+    // must engage the ticker.
+    final controller = buildController()
+      ..updateEvents(events.stream)
+      ..updateFrameSource(source)
+      ..setRunning(true);
+
+    source.produceFrame(_handle());
+
+    expect(source.takenFrames, 0);
+
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(source.takenFrames, 1);
+
+    controller.dispose();
+  });
+
+  testWidgets('presents frames on arrival while not running', (tester) async {
+    final source = _FakeFrameSource();
+
+    buildController().updateFrameSource(source);
+
+    source.produceFrame(_handle());
+
+    // No running status ever arrived: on-arrival presentation, no ticker.
+    expect(source.takenFrames, 1);
+  });
+
+  testWidgets('presents the final frame pushed after the emulator stops', (
+    tester,
+  ) async {
+    final events = StreamController<NesIsolateEvent>.broadcast();
+    final source = _FakeFrameSource();
+
+    addTearDown(events.close);
+
+    buildController()
+      ..updateEvents(events.stream)
+      ..updateFrameSource(source);
+
+    events.add(_status(running: true));
+
+    await tester.pump();
+
+    // The worker sends the paused StatusEvent before it pushes the final frame,
+    // so the presenter must fall back to on-arrival presentation the moment
+    // `running` turns false.
+    events.add(_status(running: false));
+
+    await tester.pump();
+
+    source.produceFrame(_handle());
+
+    expect(source.takenFrames, 1);
   });
 }

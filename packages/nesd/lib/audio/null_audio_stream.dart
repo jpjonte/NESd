@@ -9,9 +9,8 @@ import 'package:mp_audio_stream/mp_audio_stream.dart';
 /// points at the stock `flutter_tester` binary with no miniaudio symbols
 /// compiled in. Spawning a `NesIsolate` with `disableAudio: true` swaps in
 /// this stream so `AudioOutput` initializes without touching real audio
-/// hardware. Values are inert no-ops chosen so `AudioOutput`'s flush math
-/// degrades to its buffering path: `getBufferFilledSize()` always reports
-/// 0, so `getBufferSize()`'s exact value never affects behavior.
+/// hardware. Values are inert no-ops; see [getBufferFilledSize] for how the
+/// reported fill keeps the pacing governor in open-loop.
 class NullAudioStream implements AudioStream {
   @override
   int init({
@@ -39,6 +38,9 @@ class NullAudioStream implements AudioStream {
   @override
   int getBufferSize() => 2400;
 
+  // Half of getBufferSize() — exactly the pacing governor's fill setpoint,
+  // so the feedback term reads as zero and pacing degrades to open-loop
+  // instead of speeding up to fill a buffer that never fills.
   @override
-  int getBufferFilledSize() => 0;
+  int getBufferFilledSize() => 1200;
 }

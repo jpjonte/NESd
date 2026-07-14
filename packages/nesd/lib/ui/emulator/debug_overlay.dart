@@ -19,7 +19,7 @@ sealed class DebugOverlayState with _$DebugOverlayState {
   const factory DebugOverlayState({
     @Default(0) double frameTime,
     @Default(0) double fps,
-    @Default(0) double sleepBudget,
+    @Default(0) double sleepTime,
     @Default(0) int frame,
     @Default(0) double rewindSize,
     @Default(FrameDelivery.none) FrameDelivery frameDelivery,
@@ -88,13 +88,13 @@ class DebugOverlayController {
   void _handleEvent(FrameEvent event) {
     final frameTime = event.frameTimeMicroseconds / 1000.0;
     final fps = 1000 / frameTime;
-    final sleepBudget = event.sleepBudgetMicroseconds / 1000.0;
+    final sleepTime = event.sleepTimeMicroseconds / 1000.0;
 
     notifier.overlayState = notifier.overlayState.copyWith(
       frameTime: frameTime,
       frame: event.frame,
       fps: fps,
-      sleepBudget: sleepBudget,
+      sleepTime: sleepTime,
       rewindSize: event.rewindSize / 1024 / 1024,
     );
   }
@@ -140,13 +140,9 @@ class DebugOverlay extends ConsumerWidget {
                 KeyValue('FPS', state.fps.toStringAsFixed(1), color: color),
                 KeyValue('Frame', state.frame.toString()),
                 KeyValue(
-                  'Sleep Budget',
-                  state.sleepBudget.toStringAsFixed(3),
-                  color: switch (state.sleepBudget) {
-                    < -16 => nesdRed,
-                    < 0 => Colors.orange,
-                    _ => null,
-                  },
+                  'Sleep Time',
+                  state.sleepTime.toStringAsFixed(3),
+                  color: state.sleepTime <= 0 ? Colors.orange : null,
                 ),
                 KeyValue(
                   'Rewind Size',

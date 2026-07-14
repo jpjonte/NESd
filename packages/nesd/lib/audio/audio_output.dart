@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
+import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
 class AudioOutput {
@@ -16,8 +17,6 @@ class AudioOutput {
     size: 2400, // 50 ms
   );
 
-  var _buffering = false;
-
   double _volume = 1.0;
 
   double get volume => _volume;
@@ -26,12 +25,15 @@ class AudioOutput {
     _volume = value.clamp(0.0, 1.0);
   }
 
+  AudioBufferStatus get bufferStatus => (
+    fill: audioStream.getBufferFilledSize() + _audioBuffer.current,
+    capacity: audioStream.getBufferSize(),
+  );
+
   void reset() {
     audioStream.uninit();
 
     _audioBuffer.clear();
-
-    _buffering = false;
 
     _init();
   }
@@ -57,38 +59,14 @@ class AudioOutput {
   }
 
   void _flushSamples() {
-    final bufferedSize = audioStream.getBufferFilledSize();
-    final bufferSize = audioStream.getBufferSize();
-    final remainingBufferSize = bufferSize - bufferedSize;
-    final preBufferedSize = _audioBuffer.current;
-    final preBufferSize = _audioBuffer.size;
+    final remaining =
+        audioStream.getBufferSize() - audioStream.getBufferFilledSize();
+    final flushSize = min(remaining, _audioBuffer.current);
 
-    if (_buffering) {
-      if (preBufferedSize < preBufferSize * 0.5) {
-        return;
-      }
-
-      _buffering = false;
-    } else if (bufferedSize == 0) {
-      _buffering = true;
-
+    if (flushSize <= 0) {
       return;
     }
 
-    if (remainingBufferSize == 0) {
-      _audioBuffer.clear(); // drop samples to catch up
-
-      return;
-    }
-
-    final flushSize = min(remainingBufferSize, preBufferedSize);
-
-    if (flushSize == 0) {
-      return;
-    }
-
-    final samples = _audioBuffer.read(flushSize);
-
-    audioStream.push(samples);
+    audioStream.push(_audioBuffer.read(flushSize));
   }
 }

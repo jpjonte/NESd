@@ -84,7 +84,7 @@ void main() {
       width: 256,
       height: 240,
       frameTimeMicroseconds: 16600,
-      sleepBudgetMicroseconds: 100,
+      sleepTimeMicroseconds: 100,
       frame: 42,
       rewindSize: 0,
     );

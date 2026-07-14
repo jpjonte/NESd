@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -21,11 +23,12 @@ DisplayFrameController displayFrameController(Ref ref) {
 
   ref
     ..onDispose(controller.dispose)
-    ..listen(
-      nesStateProvider,
-      (_, nes) => controller.updateFrameSource(nes?.frameSource),
-      fireImmediately: true,
-    )
+    ..listen(nesStateProvider, (_, nes) {
+      controller
+        ..updateEvents(nes?.events)
+        ..updateFrameSource(nes?.frameSource)
+        ..setRunning(nes?.running ?? false);
+    }, fireImmediately: true)
     ..listen(
       settingsControllerProvider.select((value) => value.renderer),
       (_, preference) => controller.updateRendererPreference(preference),
@@ -83,6 +86,10 @@ class DisplayFrameController extends ChangeNotifier
   FrameSource? _frameSource;
   RendererPreference _rendererPreference = RendererPreference.auto;
 
+  StreamSubscription<NesIsolateEvent>? _eventSubscription;
+
+  Ticker? _ticker;
+
   bool _disposed = false;
 
   DisplayFrameState _state = const EmptyDisplayFrameState();
@@ -130,6 +137,15 @@ class DisplayFrameController extends ChangeNotifier
 
     _disposed = true;
 
+    unawaited(_eventSubscription?.cancel());
+    _eventSubscription = null;
+
+    _frameSource?.removeListener(_onFrameAvailable);
+
+    _ticker?.stop();
+    _ticker?.dispose();
+    _ticker = null;
+
     if (_pending case final pending?) {
       pending.source.releaseFrame(pending.handle);
 
@@ -153,7 +169,7 @@ class DisplayFrameController extends ChangeNotifier
       return;
     }
 
-    _frameSource?.removeListener(scheduleFrame);
+    _frameSource?.removeListener(_onFrameAvailable);
 
     if (_pending case final pending?) {
       pending.source.releaseFrame(pending.handle);
@@ -164,14 +180,75 @@ class DisplayFrameController extends ChangeNotifier
     _frameSource = frameSource;
 
     if (frameSource == null) {
+      _stopPresenting();
+
       _setEmptyFrame();
 
       return;
     }
 
-    frameSource.addListener(scheduleFrame);
+    frameSource.addListener(_onFrameAvailable);
 
     scheduleFrame();
+  }
+
+  void updateEvents(Stream<NesIsolateEvent>? events) {
+    if (_disposed) {
+      return;
+    }
+
+    unawaited(_eventSubscription?.cancel());
+
+    _eventSubscription = events
+        ?.where((event) => event is StatusEvent)
+        .cast<StatusEvent>()
+        .listen(_handleStatus);
+
+    if (events == null) {
+      _stopPresenting();
+    }
+  }
+
+  void _handleStatus(StatusEvent event) {
+    setRunning(event.running);
+  }
+
+  // ignore: avoid_positional_boolean_parameters
+  void setRunning(bool running) {
+    if (running) {
+      _startPresenting();
+
+      return;
+    }
+
+    _stopPresenting();
+
+    scheduleFrame();
+  }
+
+  bool get _presenting => _ticker?.isActive ?? false;
+
+  void _startPresenting() {
+    if (_disposed || _presenting) {
+      return;
+    }
+
+    _ticker ??= Ticker(_onTick);
+    _ticker!.start();
+  }
+
+  void _stopPresenting() {
+    _ticker?.stop();
+  }
+
+  void _onTick(Duration elapsed) {
+    scheduleFrame();
+  }
+
+  void _onFrameAvailable() {
+    if (!_presenting) {
+      scheduleFrame();
+    }
   }
 
   Future<void> _decodeAndSet(FrameHandle handle, FrameSource source) async {
