@@ -59,4 +59,28 @@ class RomRobot {
       }
     }
   }
+
+  void runFrames(int count) {
+    final target = nes.ppu.frames + count;
+
+    while (nes.ppu.frames < target) {
+      nes.step();
+
+      nes.apu.sampleIndex = 0;
+    }
+  }
+
+  /// FNV-1a over the current framebuffer; relies on Dart VM 64-bit
+  /// wrapping int arithmetic (tests run on the VM only).
+  int framebufferHash() {
+    final pixels = nes.ppu.frameBuffer.pixels;
+
+    var hash = 0xcbf29ce484222325;
+
+    for (var i = 0; i < pixels.length; i++) {
+      hash = (hash ^ pixels[i]) * 0x100000001b3;
+    }
+
+    return hash;
+  }
 }

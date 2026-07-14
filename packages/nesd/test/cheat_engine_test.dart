@@ -254,5 +254,54 @@ void main() {
         expect(result, equals(0xCD));
       });
     });
+
+    group('hasCheats', () {
+      late Cheat cheat;
+
+      setUp(() {
+        cheat = Cheat(
+          id: '1',
+          name: 'Test',
+          type: CheatType.gameGenie,
+          address: 0x1234,
+          value: 0x56,
+          code: 'TEST',
+        );
+      });
+
+      test('is false for a fresh engine', () {
+        expect(CheatEngine().hasCheats, isFalse);
+      });
+
+      test('is true after adding an enabled cheat', () {
+        final cheatEngine = CheatEngine()..addCheat(cheat);
+
+        expect(cheatEngine.hasCheats, isTrue);
+      });
+
+      test('is false when the only cheat is disabled', () {
+        final cheatEngine = CheatEngine()
+          ..addCheat(cheat)
+          ..enableCheat(cheat.id, enabled: false);
+
+        expect(cheatEngine.hasCheats, isFalse);
+      });
+
+      test('is false after removeAllCheats', () {
+        final cheatEngine = CheatEngine()
+          ..addCheat(cheat)
+          ..removeAllCheats();
+
+        expect(cheatEngine.hasCheats, isFalse);
+      });
+
+      test('is false after removing the last cheat', () {
+        final cheatEngine = CheatEngine()
+          ..addCheat(cheat)
+          ..removeCheat(cheat.id);
+
+        expect(cheatEngine.hasCheats, isFalse);
+      });
+    });
   });
 }

@@ -1,7 +1,7 @@
 import 'package:nesd/nes/cpu/cpu.dart';
 
 sealed class AddressMode {
-  void execute(CPU cpu);
+  void execute(CPU cpu, {required bool isWrite});
 
   int get operandCount;
 
@@ -14,7 +14,7 @@ bool wasPageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
 
 class Implicit extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     cpu.read(cpu.PC); // dummy read
   }
 
@@ -30,7 +30,9 @@ class Implicit extends AddressMode {
 
 class Accumulator extends AddressMode {
   @override
-  void execute(CPU cpu) => cpu.read(cpu.PC); // dummy read
+  void execute(CPU cpu, {required bool isWrite}) {
+    cpu.read(cpu.PC); // dummy read
+  }
 
   @override
   int get operandCount => 0;
@@ -44,7 +46,7 @@ class Accumulator extends AddressMode {
 
 class Immediate extends AddressMode {
   @override
-  void execute(CPU cpu) {}
+  void execute(CPU cpu, {required bool isWrite}) {}
 
   @override
   int get operandCount => 1;
@@ -58,7 +60,8 @@ class Immediate extends AddressMode {
 
 class ZeroPage extends AddressMode {
   @override
-  void execute(CPU cpu) => cpu.address = cpu.read(cpu.PC++) & 0xff;
+  void execute(CPU cpu, {required bool isWrite}) =>
+      cpu.address = cpu.read(cpu.PC++) & 0xff;
 
   @override
   int get operandCount => 1;
@@ -66,7 +69,7 @@ class ZeroPage extends AddressMode {
 
 class ZeroPageX extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final zeroPageAddress = cpu.read(cpu.PC++);
 
     cpu
@@ -80,7 +83,7 @@ class ZeroPageX extends AddressMode {
 
 class ZeroPageY extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final zeroPageAddress = cpu.read(cpu.PC++);
 
     cpu
@@ -94,7 +97,7 @@ class ZeroPageY extends AddressMode {
 
 class Relative extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final offset = cpu.read(cpu.PC++);
     final offsetSigned = offset >= 0x80 ? offset - 0x100 : offset;
 
@@ -107,7 +110,7 @@ class Relative extends AddressMode {
 
 class Absolute extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     cpu
       ..address = cpu.read16(cpu.PC)
       ..PC += 2;
@@ -119,15 +122,14 @@ class Absolute extends AddressMode {
 
 class AbsoluteX extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final base = cpu.read16(cpu.PC);
 
     cpu
       ..address = base + cpu.X
       ..PC += 2;
 
-    if (cpu.operation.instruction.isWrite ||
-        wasPageCrossed(base, cpu.address)) {
+    if (isWrite || wasPageCrossed(base, cpu.address)) {
       cpu.read(cpu.address); // dummy read
     }
   }
@@ -138,15 +140,14 @@ class AbsoluteX extends AddressMode {
 
 class AbsoluteY extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final base = cpu.read16(cpu.PC);
 
     cpu
       ..PC += 2
       ..address = base + cpu.Y;
 
-    if (cpu.operation.instruction.isWrite ||
-        wasPageCrossed(base, cpu.address)) {
+    if (isWrite || wasPageCrossed(base, cpu.address)) {
       cpu.read(cpu.address); // dummy read
     }
   }
@@ -157,7 +158,7 @@ class AbsoluteY extends AddressMode {
 
 class Indirect extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final readAddress = cpu.read16(cpu.PC);
 
     cpu
@@ -171,7 +172,7 @@ class Indirect extends AddressMode {
 
 class IndexedIndirect extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final zeroPageAddress = cpu.read(cpu.PC++);
     final readAddress = (zeroPageAddress + cpu.X) & 0xff;
 
@@ -186,15 +187,14 @@ class IndexedIndirect extends AddressMode {
 
 class IndirectIndexed extends AddressMode {
   @override
-  void execute(CPU cpu) {
+  void execute(CPU cpu, {required bool isWrite}) {
     final zeroPageAddress = cpu.read(cpu.PC++);
 
     final base = cpu.read16(zeroPageAddress, wrap: true);
 
     cpu.address = (base + cpu.Y) & 0xffff;
 
-    if (cpu.operation.instruction.isWrite ||
-        wasPageCrossed(base, cpu.address)) {
+    if (isWrite || wasPageCrossed(base, cpu.address)) {
       cpu.read(cpu.address); // dummy read
     }
   }

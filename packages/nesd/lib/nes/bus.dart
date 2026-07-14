@@ -44,6 +44,20 @@ class Bus {
 
     address &= 0xffff;
 
+    // Cartridge space first: opcode/operand fetches dominate traffic.
+    if (address >= 0x4020) {
+      final value = cartridge.cpuRead(
+        address,
+        disableSideEffects: disableSideEffects,
+      );
+
+      if (disableSideEffects || !cheatEngine.hasCheats) {
+        return value;
+      }
+
+      return cheatEngine.apply(address, value);
+    }
+
     if (address < 0x2000) {
       return cpu.ram[address & 0x07ff];
     }
@@ -67,20 +81,7 @@ class Bus {
       return _inputs[1].read(address, disableSideEffects: disableSideEffects);
     }
 
-    if (address < 0x4020) {
-      return 0;
-    }
-
-    final value = cartridge.cpuRead(
-      address,
-      disableSideEffects: disableSideEffects,
-    );
-
-    if (disableSideEffects) {
-      return value;
-    }
-
-    return cheatEngine.apply(address, value);
+    return 0;
   }
 
   void cpuWrite(int address, int value) {

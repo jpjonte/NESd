@@ -102,6 +102,9 @@ class Namco163 extends Mapper {
   }
 
   @override
+  bool get needsStep => true;
+
+  @override
   int cpuRead(int address, {bool disableSideEffects = false}) {
     switch (address & 0xf800) {
       case 0x4800:

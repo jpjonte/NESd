@@ -33,3 +33,7 @@ bin/perf/results/*
 roms/
 !roms/test/nestest/nestest.nes
 !roms/test/cpu_timing_test6/cpu_timing_test.nes
+!roms/test/sprite_hit_tests_2005.10.05/*.nes
+!roms/test/scanline/scanline.nes
+!roms/test/spritecans-2011/spritecans.nes
+!roms/test/full_palette/full_palette.nes

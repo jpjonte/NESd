@@ -175,6 +175,11 @@ class PPU {
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
+
+  /// Set by NES at power-on; skips the empty mapper hook for mappers
+  /// that don't watch the PPU address bus.
+  bool mapperNeedsPpuAddress = false;
+
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -214,6 +219,11 @@ class PPU {
   bool sprite0OnCurrentLine = false;
 
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
+
+  /// Per-scanline sprite coverage, built once after sprite fetch
+  /// (cycle 321): bits 0-4 = priority/palette/pattern exactly as
+  /// _getSpritePixelColor returns, bit 5 = opaque pixel of sprite 0.
+  final Uint8List _spriteLine = Uint8List(256);
 
   PPUState get state => PPUState(
     PPUCTRL: PPUCTRL,
@@ -303,6 +313,8 @@ class PPU {
     _updateMaskFlags();
 
     _rebuildPaletteLut();
+
+    _rasterizeSpriteLine();
   }
 
   // we don't need a getter from this
@@ -357,6 +369,8 @@ class PPU {
     sprite0OnNextLine = false;
     sprite0OnCurrentLine = false;
 
+    _rasterizeSpriteLine();
+
     ram.fillRange(0, ram.length, 0);
     oam.fillRange(0, oam.length, 0);
     secondaryOam.fillRange(0, secondaryOam.length, 0);
@@ -409,8 +423,11 @@ class PPU {
     bus.ppuWrite(address, value);
   }
 
-  void _updateBusAddress(int address) =>
+  void _updateBusAddress(int address) {
+    if (mapperNeedsPpuAddress) {
       bus.cartridge.mapper.updatePpuAddress(address);
+    }
+  }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
     return switch (address) {
@@ -567,6 +584,8 @@ class PPU {
 
       spriteCount = 0;
       secondarySpriteCount = 0;
+
+      _spriteLine.fillRange(0, 256, 0);
 
       if (_nmiEnabled) {
         bus.triggerNmi();
@@ -864,44 +883,21 @@ class PPU {
       return 0;
     }
 
-    for (var sprite = 0; sprite < spriteCount; sprite++) {
-      final spriteOutput = _spriteOutputs[sprite];
-      final xOffset = currentX - spriteOutput.x;
+    final entry = _spriteLine[currentX];
 
-      if (xOffset < 0 || xOffset > 7) {
-        continue;
-      }
-
-      final attribute = spriteOutput.attribute;
-      final flipH = (attribute >> 6) & 1;
-
-      final fineX = flipH == 1 ? xOffset : 7 - xOffset;
-
-      final patternLow = spriteOutput.patternLow;
-      final patternHigh = spriteOutput.patternHigh;
-      final pattern =
-          (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
-
-      if (pattern == 0) {
-        continue;
-      }
-
-      // sprite 0 hit detection
-      if (sprite0OnCurrentLine &&
-          sprite == 0 &&
-          currentX < 255 &&
-          backgroundColor & 0x3 != 0 &&
-          pattern != 0) {
-        PPUSTATUS_S = 1;
-      }
-
-      final priority = (attribute >> 5) & 1;
-      final palette = attribute & 0x3;
-
-      return priority << 4 | palette << 2 | pattern;
+    if (entry == 0) {
+      return 0;
     }
 
-    return 0;
+    // sprite 0 hit detection
+    if (sprite0OnCurrentLine &&
+        entry & 0x20 != 0 &&
+        currentX < 255 &&
+        backgroundColor & 0x3 != 0) {
+      PPUSTATUS_S = 1;
+    }
+
+    return entry & 0x1f;
   }
 
   @pragma('vm:prefer-inline')
@@ -1023,7 +1019,8 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _evaluateSprites() {
-    // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch, 328 flag
+    // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch, 321
+    // rasterize, 328 flag
     if (cycle <= 64) {
       if (cycle >= 1) {
         _clearSecondaryOam();
@@ -1032,6 +1029,8 @@ class PPU {
       _evaluateSpriteRange();
     } else if (cycle <= 320) {
       _fetchSprites();
+    } else if (cycle == 321) {
+      _rasterizeSpriteLine();
     } else if (cycle == 328) {
       sprite0OnCurrentLine = sprite0OnNextLine;
       sprite0OnNextLine = false;
@@ -1122,6 +1121,38 @@ class PPU {
         _spriteOutputs[sprite].x = spriteWord >> 24;
       case 4:
         _loadSprite(sprite);
+    }
+  }
+
+  void _rasterizeSpriteLine() {
+    _spriteLine.fillRange(0, 256, 0);
+
+    for (var i = spriteCount - 1; i >= 0; i--) {
+      final spriteOutput = _spriteOutputs[i];
+      final attribute = spriteOutput.attribute;
+      final flipH = (attribute >> 6) & 1;
+      final base = ((attribute >> 5) & 1) << 4 | (attribute & 0x3) << 2;
+      final sprite0Bit = i == 0 ? 0x20 : 0;
+      final patternLow = spriteOutput.patternLow;
+      final patternHigh = spriteOutput.patternHigh;
+
+      for (var xOffset = 0; xOffset < 8; xOffset++) {
+        final x = spriteOutput.x + xOffset;
+
+        if (x > 255) {
+          break;
+        }
+
+        final fineX = flipH == 1 ? xOffset : 7 - xOffset;
+        final pattern =
+            (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+
+        if (pattern == 0) {
+          continue;
+        }
+
+        _spriteLine[x] = base | pattern | sprite0Bit;
+      }
     }
   }
 

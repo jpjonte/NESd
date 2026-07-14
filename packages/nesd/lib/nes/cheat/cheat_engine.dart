@@ -6,6 +6,10 @@ class CheatEngine {
   final List<Cheat> _cheats = [];
   final Map<int, Cheat> _cheatsMap = {};
 
+  /// Cached so the Bus hot path pays one bool load instead of a
+  /// hash-map lookup per cartridge read when no cheats are active.
+  bool hasCheats = false;
+
   List<Cheat> get cheats => List.unmodifiable(_cheats);
 
   void addCheat(Cheat cheat) {
@@ -21,6 +25,7 @@ class CheatEngine {
   void removeAllCheats() {
     _cheats.clear();
     _cheatsMap.clear();
+    hasCheats = false;
   }
 
   void updateCheat(Cheat updatedCheat) {
@@ -53,6 +58,8 @@ class CheatEngine {
         _cheatsMap[cheat.address] = cheat;
       }
     }
+
+    hasCheats = _cheatsMap.isNotEmpty;
   }
 
   /// Apply cheats to memory access

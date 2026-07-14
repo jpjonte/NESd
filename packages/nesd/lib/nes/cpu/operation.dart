@@ -3,15 +3,17 @@ import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/instruction.dart';
 
 class Operation {
-  Operation(this.instruction, this.addressMode, {this.unofficial = false});
+  Operation(this.instruction, this.addressMode, {this.unofficial = false})
+    : isWrite = instruction.isWrite;
 
   final Instruction instruction;
   final AddressMode addressMode;
   final bool unofficial;
+  final bool isWrite;
 
   void execute(CPU cpu) {
-    addressMode.execute(cpu);
-    instruction.execute(cpu);
+    addressMode.execute(cpu, isWrite: isWrite);
+    instruction.execute(cpu, addressMode);
   }
 }
 

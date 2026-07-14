@@ -32,7 +32,14 @@ class CPU {
 
   bool executionLogEnabled = false;
 
+  /// Maintained only while the debugger UI is open (drives step-out).
+  bool callStackEnabled = false;
+
   int consoleCycles = 0;
+
+  /// Set by NES at power-on; skips the empty mapper step call for
+  /// mappers without cycle-driven logic.
+  bool cartridgeNeedsStep = false;
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
 
@@ -48,7 +55,7 @@ class CPU {
   int address = 0;
   int result = 0;
 
-  late Operation operation;
+  final List<Operation> _ops = ops;
 
   Uint8List ram = Uint8List(0x0800);
 
@@ -269,9 +276,7 @@ class CPU {
   void step() {
     final opcode = read(PC);
 
-    final op = ops[opcode];
-
-    operation = op;
+    final op = _ops[opcode];
 
     if (executionLogEnabled) {
       eventBus.add(StepNesEvent(opcode, op));
@@ -279,7 +284,9 @@ class CPU {
 
     PC++;
 
-    _updateCallStack(opcode);
+    if (callStackEnabled) {
+      _updateCallStack(opcode);
+    }
 
     op.execute(this);
 
@@ -366,7 +373,9 @@ class CPU {
   }
 
   void _handleIrq(int address) {
-    callStack.add(PC);
+    if (callStackEnabled) {
+      callStack.add(PC);
+    }
 
     read(PC); // dummy read
     read(PC); // dummy read
@@ -439,7 +448,10 @@ class CPU {
 
     bus.ppu.stepUntil(consoleCycles);
 
-    bus.cartridge.step();
+    if (cartridgeNeedsStep) {
+      bus.cartridge.step();
+    }
+
     bus.apu.step();
   }
 
