@@ -54,4 +54,4 @@ final class DisassemblerProvider
   }
 }
 
-String _$disassemblerHash() => r'aecf898fa0e7b33d8fd0c435ec5f85ba28df0d15';
+String _$disassemblerHash() => r'e8f02a7fda4446e8f0d1e446236010a926d7fd6c';

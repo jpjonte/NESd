@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,8 +61,6 @@ class MenuScreen extends ConsumerWidget {
                             romInfo: ref
                                 .read(nesControllerProvider)
                                 .nes!
-                                .bus
-                                .cartridge
                                 .romInfo,
                           ),
                         ),
@@ -78,8 +78,6 @@ class MenuScreen extends ConsumerWidget {
                             romInfo: ref
                                 .read(nesControllerProvider)
                                 .nes!
-                                .bus
-                                .cartridge
                                 .romInfo,
                           ),
                         ),
@@ -102,7 +100,7 @@ class MenuScreen extends ConsumerWidget {
                   child: NesdButton(
                     key: quitGameKey,
                     onPressed: () {
-                      ref.read(nesControllerProvider).stop();
+                      unawaited(ref.read(nesControllerProvider).stop());
                       ref.read(routerProvider).navigate(const MainRoute());
                     },
                     child: const Text('Quit Game'),
@@ -122,7 +120,7 @@ class MenuScreen extends ConsumerWidget {
                 Center(
                   child: NesdButton(
                     onPressed: () {
-                      ref.read(nesControllerProvider).stop();
+                      unawaited(ref.read(nesControllerProvider).stop());
                       quit();
                     },
                     child: const Text('Quit NESd'),

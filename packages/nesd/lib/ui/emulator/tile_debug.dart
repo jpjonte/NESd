@@ -1,17 +1,17 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/nes/ppu/ppu.dart' show systemPalette;
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/frame_buffer_image.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/remote_nes.dart';
+import 'package:nesd/ui/emulator/tile_debug_data.dart';
 
 const nametableWidth = 32 * 8;
 const nametableHeight = 30 * 8;
@@ -20,6 +20,8 @@ const width = 2 * nametableWidth;
 const height = 2 * nametableHeight;
 
 final buffer = FrameBuffer(width: width, height: height);
+
+const _pollInterval = Duration(milliseconds: 100);
 
 int getNametableAddress(int n, int ty, int tx) =>
     0x2000 | n << 10 | ty << 5 | tx;
@@ -38,42 +40,85 @@ int getChrAddress(int patternTableIndex, int nametableByte) {
   return patternTableIndex << 12 | nametableByte << 4;
 }
 
+/// Polls the emulator isolate for PPU state while the tile-debug screen is
+/// open, mapping each `TileDebugResponse` into a [TileDebugData] snapshot.
+///
+/// Guards against overlapping requests (a tick is skipped if the previous
+/// request is still in flight) and against updating [data] after [dispose].
+class TileDebugController extends ChangeNotifier {
+  TileDebugController(this._nes) {
+    if (_nes != null) {
+      _timer = Timer.periodic(_pollInterval, (_) => unawaited(_poll()));
+    }
+  }
+
+  final RemoteNes? _nes;
+
+  Timer? _timer;
+  bool _requestInFlight = false;
+  bool _disposed = false;
+
+  TileDebugData? data;
+
+  Future<void> _poll() async {
+    final nes = _nes;
+
+    if (nes == null || _requestInFlight) {
+      return;
+    }
+
+    _requestInFlight = true;
+
+    try {
+      final response = await nes.requestTileDebug();
+
+      if (_disposed || response == null) {
+        return;
+      }
+
+      data = TileDebugData(
+        ppuMemory: response.ppuMemory.materialize().asUint8List(),
+        ppuCtrl: response.ppuCtrl,
+        v: response.v,
+        t: response.t,
+        x: response.x,
+      );
+
+      notifyListeners();
+    } finally {
+      _requestInFlight = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _timer?.cancel();
+
+    super.dispose();
+  }
+}
+
 class TileDebugWidget extends HookConsumerWidget {
   const TileDebugWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final nes = ref.read(nesStateProvider);
-    final eventBus = ref.watch(eventBusProvider);
+    final nes = ref.watch(nesStateProvider);
 
-    final stream = useStream(
-      eventBus.stream.where(
-        (event) =>
-            event is FrameNesEvent ||
-            event is DebuggerNesEvent ||
-            event is SuspendNesEvent,
-      ),
-    );
+    final controller = useMemoized(() => TileDebugController(nes), [nes]);
 
-    if (nes == null) {
+    useEffect(() => controller.dispose, [controller]);
+    useListenable(controller);
+
+    final data = controller.data;
+
+    if (nes == null || data == null) {
       return const SizedBox();
     }
 
-    if (stream.hasError) {
-      return Center(
-        child: Text(
-          'Error: ${stream.error}',
-          style: const TextStyle(color: Colors.red),
-        ),
-      );
-    }
-
-    if (!stream.hasData) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return FutureBuilder<ui.Image>(
-      future: _buildTileImage(nes),
+      future: _buildTileImage(data),
       builder: (context, snapshot) {
         final image = snapshot.data;
 
@@ -90,13 +135,13 @@ class TileDebugWidget extends HookConsumerWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return TileDebugContent(image: image, nes: nes);
+        return TileDebugContent(image: image, data: data);
       },
     );
   }
 
-  Future<ui.Image> _buildTileImage(NES nes) async {
-    final patternTableIndex = nes.ppu.PPUCTRL_B;
+  Future<ui.Image> _buildTileImage(TileDebugData data) async {
+    final patternTableIndex = data.PPUCTRL_B;
 
     for (var n = 0; n < 4; n++) {
       final nx = n % 2;
@@ -104,27 +149,15 @@ class TileDebugWidget extends HookConsumerWidget {
 
       for (var ty = 0; ty < 30; ty++) {
         for (var tx = 0; tx < 32; tx++) {
-          final nametableByte = nes.bus.ppuRead(
-            getNametableAddress(n, ty, tx),
-            disableSideEffects: true,
-          );
-          final attributeByte = nes.bus.ppuRead(
-            getAttributeAddress(n, ty, tx),
-            disableSideEffects: true,
-          );
+          final nametableByte = data.ppuRead(getNametableAddress(n, ty, tx));
+          final attributeByte = data.ppuRead(getAttributeAddress(n, ty, tx));
           final palette = getPalette(attributeByte, n, ty, tx);
 
           final chrAddress = getChrAddress(patternTableIndex, nametableByte);
 
           for (var py = 0; py < 8; py++) {
-            final patternTableLowByte = nes.bus.ppuRead(
-              chrAddress + py,
-              disableSideEffects: true,
-            );
-            final patternTableHighByte = nes.bus.ppuRead(
-              chrAddress + py + 8,
-              disableSideEffects: true,
-            );
+            final patternTableLowByte = data.ppuRead(chrAddress + py);
+            final patternTableHighByte = data.ppuRead(chrAddress + py + 8);
 
             for (var px = 0; px < 8; px++) {
               final patternHigh = (patternTableHighByte >> (7 - px)) & 0x1;
@@ -138,10 +171,7 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final paletteAddress = 0x3f00 | index;
 
-              final systemPaletteIndex = nes.bus.ppuRead(
-                paletteAddress,
-                disableSideEffects: true,
-              );
+              final systemPaletteIndex = data.ppuRead(paletteAddress);
 
               final color = systemPalette[systemPaletteIndex & 0x3f];
 
@@ -161,10 +191,10 @@ class TileDebugWidget extends HookConsumerWidget {
 }
 
 class TileDebugContent extends HookWidget {
-  const TileDebugContent({required this.image, required this.nes, super.key});
+  const TileDebugContent({required this.image, required this.data, super.key});
 
   final ui.Image image;
-  final NES nes;
+  final TileDebugData data;
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +261,7 @@ class TileDebugContent extends HookWidget {
                 child: CustomPaint(
                   painter: TileDebugPainter(
                     image: image,
-                    nes: nes,
+                    data: data,
                     highlight: show ? position.value : null,
                   ),
                 ),
@@ -246,7 +276,7 @@ class TileDebugContent extends HookWidget {
             right: right,
             bottom: bottom,
             child: TileTooltip(
-              nes: nes,
+              data: data,
               position: position.value,
               locked: locked.value,
             ),
@@ -258,13 +288,13 @@ class TileDebugContent extends HookWidget {
 
 class TileTooltip extends StatelessWidget {
   const TileTooltip({
-    required this.nes,
+    required this.data,
     required this.position,
     required this.locked,
     super.key,
   });
 
-  final NES nes;
+  final TileDebugData data;
   final Offset position;
   final bool locked;
 
@@ -282,18 +312,12 @@ class TileTooltip extends StatelessWidget {
 
     final address = 0x2000 + 0x400 * n + 32 * ty + tx;
 
-    final nametableByte = nes.bus.ppuRead(
-      getNametableAddress(n, ty, tx),
-      disableSideEffects: true,
-    );
+    final nametableByte = data.ppuRead(getNametableAddress(n, ty, tx));
     final attributeAddress = getAttributeAddress(n, ty, tx);
-    final attribute = nes.bus.ppuRead(
-      attributeAddress,
-      disableSideEffects: true,
-    );
+    final attribute = data.ppuRead(attributeAddress);
     final palette = getPalette(attribute, n, ty, tx);
 
-    final patternTableIndex = nes.ppu.PPUCTRL_B;
+    final patternTableIndex = data.PPUCTRL_B;
 
     final chrAddress = getChrAddress(patternTableIndex, nametableByte);
 
@@ -335,12 +359,12 @@ class TileTooltip extends StatelessWidget {
 class TileDebugPainter extends CustomPainter {
   TileDebugPainter({
     required this.image,
-    required this.nes,
+    required this.data,
     required this.highlight,
   });
 
   final ui.Image image;
-  final NES nes;
+  final TileDebugData data;
   final Offset? highlight;
 
   final Paint backgroundPaint = Paint()..color = Colors.black;
@@ -364,12 +388,10 @@ class TileDebugPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scrollX =
-        (nes.ppu.PPUCTRL_X << 8 | nes.ppu.t_coarseX << 3 | nes.ppu.x)
-            .toDouble();
-    final scrollY =
-        (nes.ppu.PPUCTRL_Y << 8 | nes.ppu.t_coarseY << 3 | nes.ppu.t_fineY)
-            .toDouble();
+    final scrollX = (data.PPUCTRL_X << 8 | data.t_coarseX << 3 | data.x)
+        .toDouble();
+    final scrollY = (data.PPUCTRL_Y << 8 | data.t_coarseY << 3 | data.t_fineY)
+        .toDouble();
 
     const visibleArea = Size(32 * 8, 30 * 8);
 

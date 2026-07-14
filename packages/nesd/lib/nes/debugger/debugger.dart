@@ -1,12 +1,11 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
-import 'package:nesd/nes/debugger/disassembler.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,26 +14,18 @@ part 'debugger.g.dart';
 @riverpod
 DebuggerInterface debugger(Ref ref) {
   final nes = ref.watch(nesStateProvider);
-  final notifier = ref.watch(debuggerStateProvider.notifier);
-  final disassembler = ref.watch(disassemblerProvider);
 
   if (nes == null) {
     return DummyDebugger();
   }
 
-  final subscription = ref.listen(debuggerStateProvider, (_, _) {});
-
   final debugger = Debugger(
-    eventBus: ref.watch(eventBusProvider),
     nes: nes,
-    notifier: notifier,
-    disassembler: disassembler,
-    settingsController: ref.watch(settingsControllerProvider.notifier),
+    notifier: ref.watch(debuggerStateProvider.notifier),
+    settingsController: ref.read(settingsControllerProvider.notifier),
   );
 
-  ref
-    ..onDispose(debugger.dispose)
-    ..onDispose(subscription.close);
+  ref.onDispose(debugger.dispose);
 
   return debugger;
 }
@@ -63,60 +54,52 @@ abstract class DebuggerInterface {
   void selectAddress(int address);
 }
 
+/// Message client for the debugger: drives [nes] over the isolate protocol
+/// and mirrors the isolate-side `DebuggerBackend` state into [notifier].
+///
+/// Holds no live CPU/PPU reference of its own — [DebuggerEvent] carries the
+/// full [DebuggerState] plus a CPU memory dump, materialized once per event
+/// and served back out through [read].
 class Debugger implements DebuggerInterface {
   Debugger({
-    required this.eventBus,
     required this.nes,
-    required this.disassembler,
     required this.notifier,
     required this.settingsController,
   }) {
-    _subscription = eventBus.stream.listen(_handleEvent);
+    _subscription = nes.events.listen(_handleEvent);
 
-    final breakpoints =
-        settingsController.breakpoints[nes.bus.cartridge.fileHash] ?? [];
-
-    nes.breakpoints = breakpoints;
-
-    scheduleMicrotask(() {
-      notifier.debuggerState = DebuggerState(breakpoints: breakpoints);
-    });
+    nes
+      ..setDebuggerActive(true)
+      ..breakpoints = settingsController.breakpoints[nes.fileHash] ?? [];
   }
 
-  final EventBus eventBus;
-  final NES nes;
-  final DisassemblerInterface disassembler;
+  final RemoteNes nes;
   final DebuggerStateNotifier notifier;
   final SettingsController settingsController;
 
-  late final StreamSubscription<NesEvent> _subscription;
+  Uint8List? _cpuMemory;
+
+  late final StreamSubscription<NesIsolateEvent> _subscription;
 
   void dispose() {
-    _subscription.cancel();
+    nes.setDebuggerActive(false);
+
+    unawaited(_subscription.cancel());
   }
 
   @override
-  void addBreakpoint(Breakpoint breakpoint) {
-    nes.addBreakpoint(breakpoint);
-
-    _updateBreakpoints();
-  }
+  void addBreakpoint(Breakpoint breakpoint) => nes.addBreakpoint(breakpoint);
 
   @override
-  void updateBreakpoint(Breakpoint breakpoint) {
-    _updateBreakpoints();
-  }
+  void updateBreakpoint(Breakpoint breakpoint) => _pushBreakpoints();
 
   @override
-  void removeBreakpoint(Breakpoint breakpoint) {
-    nes.removeBreakpoint(breakpoint.address);
-
-    _updateBreakpoints();
-  }
+  void removeBreakpoint(Breakpoint breakpoint) =>
+      nes.removeBreakpoint(breakpoint.address);
 
   @override
   bool hasBreakpoint(int address) {
-    return nes.breakpoints.any(
+    return notifier.debuggerState.breakpoints.any(
       (breakpoint) => breakpoint.address == address && !breakpoint.hidden,
     );
   }
@@ -128,8 +111,6 @@ class Debugger implements DebuggerInterface {
     } else {
       nes.addBreakpoint(Breakpoint(address));
     }
-
-    _updateBreakpoints();
   }
 
   @override
@@ -138,13 +119,13 @@ class Debugger implements DebuggerInterface {
       return;
     }
 
-    final breakpoint = nes.breakpoints.firstWhere(
+    final breakpoint = notifier.debuggerState.breakpoints.firstWhere(
       (b) => b.address == address && !b.hidden,
     );
 
     breakpoint.enabled = !breakpoint.enabled;
 
-    _updateBreakpoints();
+    _pushBreakpoints();
   }
 
   @override
@@ -166,8 +147,19 @@ class Debugger implements DebuggerInterface {
     );
   }
 
+  // `ResumeNesEvent` clears the dump to an empty `Uint8List` (see
+  // `DebuggerBackend`) rather than omitting it, so an out-of-range address
+  // here means "no dump available" and must fall back to 0, not throw.
   @override
-  int read(int address) => nes.bus.cpuRead(address, disableSideEffects: true);
+  int read(int address) {
+    final memory = _cpuMemory;
+
+    if (memory == null || address >= memory.length) {
+      return 0;
+    }
+
+    return memory[address];
+  }
 
   @override
   void selectAddress(int address) {
@@ -182,68 +174,32 @@ class Debugger implements DebuggerInterface {
     }
   }
 
-  void _handleEvent(NesEvent event) {
+  void _handleEvent(NesIsolateEvent event) {
     switch (event) {
-      case DebuggerNesEvent():
-      case SuspendNesEvent():
-        final stack = <int>[];
+      case DebuggerEvent(:final state, :final cpuMemory):
+        _cpuMemory = cpuMemory.materialize().asUint8List();
 
-        // register names don't follow dart naming conventions
-        // ignore: non_constant_identifier_names
-        var SP = nes.cpu.SP.clamp(0x00, 0xff);
-
-        while (SP < 0xff) {
-          SP++;
-          stack.add(nes.cpu.read(0x100 + SP));
-        }
-
-        notifier.debuggerState = notifier.debuggerState.copyWith(
-          enabled: true,
-          disassembly: disassembler.update(),
-          PC: nes.cpu.PC,
-          A: nes.cpu.A,
-          X: nes.cpu.X,
-          Y: nes.cpu.Y,
-          SP: nes.cpu.SP,
-          P: nes.cpu.P,
-          C: nes.cpu.C == 1,
-          Z: nes.cpu.Z == 1,
-          I: nes.cpu.I == 1,
-          D: nes.cpu.D == 1,
-          B: nes.cpu.B == 1,
-          V: nes.cpu.V == 1,
-          N: nes.cpu.N == 1,
-          stack: stack,
-          irq: nes.cpu.irq,
-          nmi: nes.cpu.nmi,
-          breakpoints: nes.breakpoints,
-          canStepOut: nes.cpu.callStack.isNotEmpty,
-          scanline: nes.ppu.scanline,
-          cycle: nes.ppu.cycle,
-          v: nes.ppu.v,
-          t: nes.ppu.t,
-          x: nes.ppu.x,
-          spriteOverflow: nes.ppu.PPUSTATUS_O == 1,
-          sprite0Hit: nes.ppu.PPUSTATUS_S == 1,
-          vBlank: nes.ppu.PPUSTATUS_V == 1,
+        notifier.debuggerState = state.copyWith(
+          showStack: notifier.debuggerState.showStack,
+          executionLogOpen: notifier.debuggerState.executionLogOpen,
+          selectedAddress: notifier.debuggerState.selectedAddress,
         );
-      case ResumeNesEvent():
+
+      // Persistence for breakpoint mutations is centralized in
+      // `NesController._handleIsolateEvent` (one writer for settings), but
+      // the debugger's own breakpoint list still needs to reflect mutations
+      // made while paused (no DebuggerEvent fires for those), so it's
+      // mirrored here without touching settings.
+      case BreakpointsEvent(:final breakpoints):
         notifier.debuggerState = notifier.debuggerState.copyWith(
-          enabled: false,
+          breakpoints: breakpoints,
         );
       default:
     }
   }
 
-  void _updateBreakpoints() {
-    notifier.debuggerState = notifier.debuggerState.copyWith(
-      breakpoints: nes.breakpoints,
-    );
-
-    settingsController.setBreakpoints(
-      nes.bus.cartridge.fileHash,
-      nes.breakpoints,
-    );
+  void _pushBreakpoints() {
+    nes.breakpoints = notifier.debuggerState.breakpoints;
   }
 }
 

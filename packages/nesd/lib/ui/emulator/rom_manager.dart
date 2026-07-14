@@ -6,7 +6,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:nesd/exception/nesd_exception.dart';
-import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/frame_buffer_image.dart';
@@ -127,15 +126,17 @@ class RomManager {
     return files.first.readAsBytesSync();
   }
 
-  void saveThumbnail(RomInfo romInfo, FrameBuffer frameBuffer) {
-    final queued = frameBuffer.takeReadyBuffer();
-    final bytes = queued ?? Uint8List.fromList(frameBuffer.pixels);
-
+  void saveThumbnail(
+    RomInfo romInfo, {
+    required int width,
+    required int height,
+    required Uint8List pixels,
+  }) {
     final image = img.Image.fromBytes(
-      width: frameBuffer.width,
-      height: frameBuffer.height,
-      bytes: bytes.buffer,
-      bytesOffset: bytes.offsetInBytes,
+      width: width,
+      height: height,
+      bytes: pixels.buffer,
+      bytesOffset: pixels.offsetInBytes,
       numChannels: 4,
       order: img.ChannelOrder.rgba,
     );

@@ -30,7 +30,7 @@ class EmulatorScreen extends HookConsumerWidget {
       settingsControllerProvider.select((s) => s.showDebugger),
     );
 
-    final cartridge = nes?.bus.cartridge;
+    final cartridgeInfo = nes?.cartridgeInfo;
 
     return NesdScaffold(
       body: Row(
@@ -42,8 +42,8 @@ class EmulatorScreen extends HookConsumerWidget {
               child: Column(
                 children: [
                   if (showTiles) const TileDebugWidget(),
-                  if (cartridge != null && showCartridgeInfo)
-                    CartridgeInfoWidget(cartridge: cartridge),
+                  if (cartridgeInfo != null && showCartridgeInfo)
+                    CartridgeInfoWidget(info: cartridgeInfo),
                   if (showDebugger) const DebuggerWidget(),
                 ],
               ),

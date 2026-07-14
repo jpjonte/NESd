@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/event/nes_event.dart';
-import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/theme/base.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -44,45 +43,52 @@ class DebugOverlayStateNotifier extends _$DebugOverlayStateNotifier {
 @riverpod
 DebugOverlayController debugOverlayController(Ref ref) {
   final controller = DebugOverlayController(
-    eventBus: ref.watch(eventBusProvider),
     notifier: ref.watch(debugOverlayStateProvider.notifier),
     frameController: ref.watch(displayFrameControllerProvider),
   );
 
-  ref.onDispose(controller.dispose);
+  ref
+    ..onDispose(controller.dispose)
+    ..listen(
+      nesStateProvider,
+      (_, nes) => controller.updateEvents(nes?.events),
+      fireImmediately: true,
+    );
 
   return controller;
 }
 
 class DebugOverlayController {
   DebugOverlayController({
-    required this.eventBus,
     required this.notifier,
     required this.frameController,
   }) {
-    _subscription = eventBus.stream
-        .where((event) => event is FrameNesEvent)
-        .cast<FrameNesEvent>()
-        .listen(_handleEvent);
-
     frameController.addListener(_handleFrameDelivery);
   }
 
-  final EventBus eventBus;
   final DebugOverlayStateNotifier notifier;
   final DisplayFrameController frameController;
 
-  late final StreamSubscription<FrameNesEvent> _subscription;
+  StreamSubscription<NesIsolateEvent>? _subscription;
+
+  void updateEvents(Stream<NesIsolateEvent>? events) {
+    unawaited(_subscription?.cancel());
+
+    _subscription = events
+        ?.where((event) => event is FrameEvent)
+        .cast<FrameEvent>()
+        .listen(_handleEvent);
+  }
 
   void dispose() {
-    _subscription.cancel();
+    unawaited(_subscription?.cancel());
     frameController.removeListener(_handleFrameDelivery);
   }
 
-  void _handleEvent(FrameNesEvent event) {
-    final frameTime = event.frameTime.inMicroseconds / 1000.0;
+  void _handleEvent(FrameEvent event) {
+    final frameTime = event.frameTimeMicroseconds / 1000.0;
     final fps = 1000 / frameTime;
-    final sleepBudget = event.sleepBudget.inMicroseconds / 1000.0;
+    final sleepBudget = event.sleepBudgetMicroseconds / 1000.0;
 
     notifier.overlayState = notifier.overlayState.copyWith(
       frameTime: frameTime,
@@ -159,8 +165,10 @@ class DebugOverlay extends ConsumerWidget {
     );
   }
 
-  MaterialColor? _getColor(NES? nes, DebugOverlayState state) {
-    final targetFrameRate = nes?.frameRate ?? 60;
+  MaterialColor? _getColor(RemoteNes? nes, DebugOverlayState state) {
+    // RemoteNes does not mirror the worker-side frame rate; the NTSC
+    // default of 60 is a good enough threshold for the overlay coloring.
+    const targetFrameRate = 60;
 
     if (state.fps < targetFrameRate ~/ 2) {
       return nesdRed;

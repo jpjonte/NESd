@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improved compatibility with Android and macOS
 - Greatly reduced the performance cost of the rewind feature, especially
   on lower-end devices
+- The emulator core now runs on a dedicated background thread. This removes
+  UI-induced stutter and makes gameplay dramatically smoother, especially on
+  lower-end Android devices.
+- Volume hotkeys now adjust the persisted volume setting instead of a
+  session-only value.
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode

@@ -48,15 +48,17 @@ class MainMenu extends HookConsumerWidget {
     ref.listen(initialRomProvider, (_, initialRom) {
       if (initialRom != null) {
         scheduleMicrotask(() {
-          ref
-              .read(nesControllerProvider)
-              .loadRom(
-                FilesystemFile(
-                  path: initialRom,
-                  name: p.basename(initialRom),
-                  type: FilesystemFileType.file,
+          unawaited(
+            ref
+                .read(nesControllerProvider)
+                .loadRom(
+                  FilesystemFile(
+                    path: initialRom,
+                    name: p.basename(initialRom),
+                    type: FilesystemFileType.file,
+                  ),
                 ),
-              );
+          );
           ref.read(routerProvider).navigate(const EmulatorRoute());
           ref.read(initialRomProvider.notifier).clear();
         });
@@ -122,7 +124,7 @@ class OpenRomButton extends ConsumerWidget {
           );
 
           if (file != null) {
-            controller.loadRom(file);
+            unawaited(controller.loadRom(file));
             ref.read(routerProvider).navigate(const EmulatorRoute());
           }
         },

@@ -109,4 +109,4 @@ final class DebugOverlayControllerProvider
 }
 
 String _$debugOverlayControllerHash() =>
-    r'0a3ecd6a9798e5ba5af11d493eafe0934b23da08';
+    r'b86067143c55b32d5e0c15b6a6c2dfa359122100';

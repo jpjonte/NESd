@@ -42,6 +42,8 @@ class NES {
   bool stopAfterNextFrame = false;
   bool _inLoop = false;
 
+  bool get inLoop => _inLoop;
+
   bool fastForward = false;
   bool rewind = false;
 

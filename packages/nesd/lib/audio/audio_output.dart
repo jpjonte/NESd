@@ -2,29 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:mp_audio_stream/mp_audio_stream.dart';
-import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/util/ring_buffer.dart';
-import 'package:riverpod/riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'audio_output.g.dart';
-
-@riverpod
-AudioOutput audioOutput(Ref ref) {
-  final audioOutput = AudioOutput(audioStream: getAudioStream());
-
-  ref.onDispose(audioOutput.dispose);
-
-  final settingsSubscription = ref.listen(
-    settingsControllerProvider.select((settings) => settings.volume),
-    (_, volume) => audioOutput.volume = volume,
-    fireImmediately: true,
-  );
-
-  ref.onDispose(settingsSubscription.close);
-
-  return audioOutput;
-}
 
 class AudioOutput {
   AudioOutput({required this.audioStream}) {
