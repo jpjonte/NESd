@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   removing a per-frame bitmap copy and render pass
 - Auto-save and save states no longer cause a periodic hitch (async file IO)
 - Console reset no longer restarts the audio device
+- Further improved emulation performance on low-end devices by batching
+  PPU background rendering and reducing per-cycle overhead
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode

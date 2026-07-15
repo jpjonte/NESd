@@ -20,6 +20,8 @@ class NoiseChannel {
 
   bool mode = false;
 
+  int output = 0;
+
   NoiseChannelState get state => NoiseChannelState(
     enabled: enabled,
     constantVolume: constantVolume,
@@ -42,6 +44,8 @@ class NoiseChannel {
     mode = state.mode;
     envelope.state = state.envelopeState;
     lengthCounter.state = state.lengthCounterState;
+
+    _updateOutput();
   }
 
   void reset() {
@@ -54,6 +58,8 @@ class NoiseChannel {
 
     envelope.reset();
     lengthCounter.reset();
+
+    _updateOutput();
   }
 
   int get status => lengthCounter.value > 0 ? 1 : 0;
@@ -64,6 +70,8 @@ class NoiseChannel {
     if (!enabled) {
       lengthCounter.value = 0;
     }
+
+    _updateOutput();
   }
 
   void writeControl(int value) {
@@ -74,11 +82,15 @@ class NoiseChannel {
       ..loop = value.bit(5) == 1
       ..period = value & 0x0f
       ..start = true;
+
+    _updateOutput();
   }
 
   void writePeriod(int value) {
     mode = value.bit(7) == 1;
     timerPeriod = noiseTable[value & 0x0f] - 1;
+
+    _updateOutput();
   }
 
   void writeLength(int value) {
@@ -87,6 +99,20 @@ class NoiseChannel {
     }
 
     envelope.start = true;
+
+    _updateOutput();
+  }
+
+  void clockEnvelope() {
+    envelope.step();
+
+    _updateOutput();
+  }
+
+  void clockLengthCounter() {
+    lengthCounter.step();
+
+    _updateOutput();
   }
 
   @pragma('vm:prefer-inline')
@@ -100,23 +126,31 @@ class NoiseChannel {
 
       shiftRegister >>= 1;
       shiftRegister = shiftRegister.setBit(14, feedback);
+
+      _updateOutput();
     }
   }
 
   @pragma('vm:prefer-inline')
-  int get output {
+  void _updateOutput() {
     if (!enabled) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (lengthCounter.value == 0) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
     if (shiftRegister.bit(0) == 1) {
-      return 0;
+      output = 0;
+
+      return;
     }
 
-    return constantVolume ? volume : envelope.volume;
+    output = constantVolume ? volume : envelope.volume;
   }
 }

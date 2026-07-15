@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/bench/bench_runner.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
@@ -19,6 +20,17 @@ import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
 
 void main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Headless benchmark mode: activates only when an adb-pushed marker
+  // file exists in the app's own files dir (see bench_runner.dart).
+  final benchResult = await maybeRunBench();
+
+  if (benchResult != null) {
+    // ignore: avoid_print, logcat is the transport for bench results
+    print(benchResult.logLine);
+
+    exit(0);
+  }
 
   _addLicenses();
 
