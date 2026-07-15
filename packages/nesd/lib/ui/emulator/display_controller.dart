@@ -96,7 +96,9 @@ class DisplayFrameController extends ChangeNotifier
 
   bool _inFlight = false;
 
-  bool _textureInFlight = false;
+  static const _maxTextureUpdatesInFlight = 2;
+
+  int _textureUpdatesInFlight = 0;
   bool _textureFailed = false;
 
   bool _revertingRenderer = false;
@@ -211,6 +213,13 @@ class DisplayFrameController extends ChangeNotifier
 
   void _handleStatus(StatusEvent event) {
     setRunning(event.running);
+
+    // Texture frames no longer notify (identity-stable), so status
+    // transitions (pause, fast-forward, rewind, debugger) must trigger
+    // the rebuild that repaints the overlay. RemoteNes subscribes to the
+    // event stream before this controller, so its status mirrors are
+    // already updated when listeners read nes.paused etc.
+    notifyListeners();
   }
 
   // ignore: avoid_positional_boolean_parameters
@@ -321,6 +330,15 @@ class DisplayFrameController extends ChangeNotifier
   }
 
   void _setTextureFrame(NesdTexture texture, int width, int height) {
+    if (_state case final TextureDisplayFrameState current
+        when current.textureId == texture.textureId &&
+            current.width == width &&
+            current.height == height) {
+      // the Texture widget presents new frames by itself;
+      // rebuilds are only needed when the texture identity changes
+      return;
+    }
+
     _currentImage?.dispose();
     _currentImage = null;
 
@@ -410,7 +428,8 @@ class DisplayFrameController extends ChangeNotifier
         }
       }
 
-      if (_texture != null && !_textureInFlight) {
+      if (_texture != null &&
+          _textureUpdatesInFlight < _maxTextureUpdatesInFlight) {
         _startTextureUpdate(handle, source);
 
         return;
@@ -443,7 +462,7 @@ class DisplayFrameController extends ChangeNotifier
       return;
     }
 
-    _textureInFlight = true;
+    _textureUpdatesInFlight++;
 
     final buffer = handle.bytes;
     final width = handle.width;
@@ -477,7 +496,7 @@ class DisplayFrameController extends ChangeNotifier
             return;
           }
 
-          _textureInFlight = false;
+          _textureUpdatesInFlight--;
 
           _processPending();
         });

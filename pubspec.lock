@@ -741,15 +741,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  mp_audio_stream:
-    dependency: transitive
-    description:
-      path: "."
-      ref: "feature/buffer-size"
-      resolved-ref: "4ca60c5902051c374efaa94a7e15ea8baa790c8a"
-      url: "https://github.com/jpjonte/mp-audio-stream.git"
-    source: git
-    version: "0.2.2"
   node_preamble:
     dependency: transitive
     description:

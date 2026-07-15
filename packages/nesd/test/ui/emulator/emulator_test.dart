@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 
 import '../robot.dart';
 
@@ -70,6 +71,11 @@ void main() {
     await r.menuScreen.tapQuitGame();
     r.mainMenu.expectMainMenuFound();
 
-    await r.fixAsync();
+    // Quit Game fires `NesController.stop()` unawaited, which now does
+    // real async SRAM/thumbnail file IO before it stops the NES run loop
+    // and clears `nesState`. A single `fixAsync` round trip isn't always
+    // enough real time for that chain to drain, so poll until it settles
+    // instead of guessing a fixed pump count.
+    await r.waitUntil(() => r.container.read(nesStateProvider) == null);
   });
 }

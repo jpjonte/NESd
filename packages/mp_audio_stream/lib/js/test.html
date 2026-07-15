@@ -1,0 +1,34 @@
+<html>
+
+<head>
+    <script src="audio_stream.js"></script>
+</head>
+<main>
+    <script>
+        const stream = window.AudioStream
+        const sampleRate = 48000
+
+        stream.init(3000, 100, 2, sampleRate)
+
+        function sineWave(wave, frequency, channels, channel) {
+            for (i = 0; i < sampleRate; i++) {
+                wave[i * channels + channel] = Math.sin(2 * 3.1415 * ((i * frequency) % sampleRate) / sampleRate)
+            }
+
+        }
+        function play() {
+            stream.resetStat()
+            stream.resume()
+
+            const wave = Float32Array.from({ length: sampleRate * 2 }, () => 0)
+            sineWave(wave, 440, 2, 0)
+            sineWave(wave, 660, 2, 1)
+
+            stream.push(wave)
+            console.log(stream.stat)
+        }
+    </script>
+    <input type="button" onclick="play();" value="play"></input>
+</main>
+
+</html>

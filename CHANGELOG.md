@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improved emulation core performance (CPU dispatch, PPU sprite
   rendering, bus/mapper hot paths): Reduces CPU usage and stuttering,
   especially on lower-end devices
+- Frames are now uploaded directly to the display surface on Android,
+  removing a per-frame bitmap copy and render pass
+- Auto-save and save states no longer cause a periodic hitch (async file IO)
+- Console reset no longer restarts the audio device
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode
@@ -34,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed a memory leak that slowly increased memory usage during play while
   rewind was enabled
 - Fixed CHR RAM not being writable for iNES 1.0 ROMs without CHR banks
+- Fixed a race condition in the native audio buffer that could cause
+  crackling audio
 
 ## [0.14.0] - 2026-03-16
 

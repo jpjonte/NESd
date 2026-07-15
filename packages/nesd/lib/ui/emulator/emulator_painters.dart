@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CpuFramePainter extends CustomPainter {
@@ -37,14 +38,18 @@ class EmulatorOverlayPainter extends CustomPainter {
     required this.fastForward,
     required this.rewind,
     this.crossHairPosition,
-  });
+  }) : super(repaint: crossHairPosition);
 
   final double scale;
   final bool showBorder;
   final bool paused;
   final bool fastForward;
   final bool rewind;
-  final Offset? crossHairPosition;
+
+  /// Listenable so pointer moves repaint the crosshair directly (via
+  /// `CustomPainter`'s `repaint` constructor parameter) — the widget tree
+  /// no longer rebuilds per frame.
+  final ValueListenable<Offset?>? crossHairPosition;
 
   final Paint _pauseOverlayPaint = Paint()
     ..color = Colors.black.withValues(alpha: 0.5);
@@ -76,7 +81,7 @@ class EmulatorOverlayPainter extends CustomPainter {
 
     if (paused) {
       _drawPause(canvas, size);
-    } else if (crossHairPosition case final Offset position?) {
+    } else if (crossHairPosition?.value case final Offset position?) {
       _drawCrossHair(canvas, position * scale);
     }
 

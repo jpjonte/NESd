@@ -1,0 +1,38 @@
+name: mp_audio_stream
+description: A simple multi-platform audio stream player for raw audio data streams.
+version: 0.2.2
+repository: https://github.com/jpjonte/mp-audio-stream
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.1.2
+  web: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      macos:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true
+      linux:
+        ffiPlugin: true
+      windows:
+        ffiPlugin: true
+      web:
+
+  assets:
+    - packages/mp_audio_stream/js/audio_stream.js

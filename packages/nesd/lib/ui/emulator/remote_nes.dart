@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
@@ -89,8 +89,12 @@ class RemoteNes {
     _send(SetRewindCommand(enabled: enabled));
   }
 
-  /// Last position sent via [setZapperPosition], for the crosshair painter.
-  Offset? zapperPosition;
+  /// Last position sent via [setZapperPosition], as a listenable so the
+  /// crosshair painter repaints without a widget rebuild (rebuilds no
+  /// longer happen per frame). Deliberately never disposed: a swapped-out
+  /// painter may still be subscribed during teardown, and a plain
+  /// ValueNotifier holds no resources.
+  final ValueNotifier<Offset?> zapperPosition = ValueNotifier<Offset?>(null);
 
   static int _nextRequestId = 0;
   final Map<int, Completer<NesIsolateEvent>> _pending = {};
@@ -167,7 +171,7 @@ class RemoteNes {
       _send(SetExecutionLogEnabledCommand(enabled: enabled));
 
   void setZapperPosition(Offset? position) {
-    zapperPosition = position;
+    zapperPosition.value = position;
 
     _send(SetZapperPositionCommand(x: position?.dx, y: position?.dy));
   }

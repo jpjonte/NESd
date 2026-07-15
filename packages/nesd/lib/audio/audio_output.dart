@@ -13,9 +13,11 @@ class AudioOutput {
   final AudioStream audioStream;
 
   final _audioBuffer = RingBuffer(
-    bufferConstructor: (size) => Float32List(size),
-    size: 2400, // 50 ms
+    buffer: Float32List(2400), // 50 ms
   );
+
+  // reused for every flush to avoid a per-frame allocation
+  final _flushBuffer = Float32List(2400);
 
   double _volume = 1.0;
 
@@ -31,23 +33,25 @@ class AudioOutput {
   );
 
   void reset() {
-    audioStream.uninit();
-
+    // Keep the device running: re-initializing miniaudio can take tens of
+    // milliseconds on Android. Stale samples (max 50 ms) drain naturally.
     _audioBuffer.clear();
-
-    _init();
   }
 
   void dispose() {
     audioStream.uninit();
   }
 
+  /// Applies volume in place: [samples] is uniquely owned by the audio
+  /// path once it reaches this method and may be mutated.
   void processSamples(Float32List samples) {
-    final volumeApplied = Float32List.fromList(
-      samples.map((s) => s * _volume).toList(),
-    );
+    if (_volume != 1.0) {
+      for (var i = 0; i < samples.length; i++) {
+        samples[i] *= _volume;
+      }
+    }
 
-    _audioBuffer.write(volumeApplied);
+    _audioBuffer.write(samples);
 
     _flushSamples();
   }
@@ -61,12 +65,20 @@ class AudioOutput {
   void _flushSamples() {
     final remaining =
         audioStream.getBufferSize() - audioStream.getBufferFilledSize();
-    final flushSize = min(remaining, _audioBuffer.current);
+    final flushSize = min(
+      min(remaining, _audioBuffer.current),
+      _flushBuffer.length,
+    );
 
     if (flushSize <= 0) {
       return;
     }
 
-    audioStream.push(_audioBuffer.read(flushSize));
+    final count = _audioBuffer.readInto(_flushBuffer, flushSize);
+
+    // push cannot reject: flushSize is capped by the native buffer's free
+    // space read on this same thread, and only the consumer (audio
+    // callback) mutates fill concurrently - it can only make more room.
+    audioStream.push(Float32List.sublistView(_flushBuffer, 0, count));
   }
 }

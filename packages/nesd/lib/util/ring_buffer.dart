@@ -1,15 +1,11 @@
 import 'dart:math';
 
 class RingBuffer<T, S extends List<T>> {
-  RingBuffer({required this.bufferConstructor, required this.size}) {
-    _buffer = bufferConstructor(size);
-  }
+  RingBuffer({required this.buffer}) : size = buffer.length;
 
-  final S Function(int) bufferConstructor;
+  final S buffer;
 
-  late final S _buffer;
-
-  final int size;
+  late final int size;
 
   int _start = 0;
   int _end = 0;
@@ -27,40 +23,37 @@ class RingBuffer<T, S extends List<T>> {
     _end = 0;
   }
 
-  S read(int size) {
-    final readSize = min(size, current);
-    final data = bufferConstructor(readSize);
+  int readInto(S target, int size) {
+    final readSize = min(min(size, current), target.length);
 
     if (_start + readSize <= this.size) {
-      data.setAll(0, _buffer.sublist(_start, _start + readSize));
+      target.setRange(0, readSize, buffer, _start);
     } else {
       // read wraps around
       final firstSegmentSize = this.size - _start;
-      final secondSegmentSize = readSize - firstSegmentSize;
 
-      data
-        ..setAll(0, _buffer.sublist(_start, this.size))
-        ..setAll(firstSegmentSize, _buffer.sublist(0, secondSegmentSize));
+      target
+        ..setRange(0, firstSegmentSize, buffer, _start)
+        ..setRange(firstSegmentSize, readSize, buffer);
     }
 
     _start = (_start + readSize) % this.size;
 
-    return data;
+    return readSize;
   }
 
   int write(S data) {
     final writeSize = min(data.length, remaining);
 
     if (_end + writeSize <= size) {
-      _buffer.setAll(_end, data.sublist(0, writeSize));
+      buffer.setRange(_end, _end + writeSize, data);
     } else {
       // write wraps around
-
       final firstSegmentSize = size - _end;
 
-      _buffer
-        ..setAll(_end, data.sublist(0, firstSegmentSize))
-        ..setAll(0, data.sublist(firstSegmentSize, writeSize));
+      buffer
+        ..setRange(_end, size, data)
+        ..setRange(0, writeSize - firstSegmentSize, data, firstSegmentSize);
     }
 
     _end = (_end + writeSize) % size;
@@ -73,7 +66,7 @@ class RingBuffer<T, S extends List<T>> {
       throw Exception('Buffer is full');
     }
 
-    _buffer[_end] = item;
+    buffer[_end] = item;
     _end = (_end + 1) % size;
   }
 
@@ -82,7 +75,7 @@ class RingBuffer<T, S extends List<T>> {
       return null;
     }
 
-    final item = _buffer[_start];
+    final item = buffer[_start];
 
     _start = (_start + 1) % size;
 
@@ -96,7 +89,7 @@ class RingBuffer<T, S extends List<T>> {
 
     _end = (_end - 1) % size;
 
-    return _buffer[_end];
+    return buffer[_end];
   }
 
   T? peekFront() {
@@ -104,7 +97,7 @@ class RingBuffer<T, S extends List<T>> {
       return null;
     }
 
-    return _buffer[_start];
+    return buffer[_start];
   }
 
   T? peek(int position) {
@@ -114,7 +107,7 @@ class RingBuffer<T, S extends List<T>> {
 
     final index = (_start + position) % size;
 
-    return _buffer[index];
+    return buffer[index];
   }
 
   T? peekEnd() {
@@ -122,6 +115,6 @@ class RingBuffer<T, S extends List<T>> {
       return null;
     }
 
-    return _buffer[(_end - 1) % size];
+    return buffer[(_end - 1) % size];
   }
 }

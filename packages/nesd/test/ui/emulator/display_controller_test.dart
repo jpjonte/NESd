@@ -7,8 +7,33 @@ import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd_texture/nesd_texture_platform_interface.dart';
 
 class _MockSettingsController extends Mock implements SettingsController {}
+
+class _FakeNesdTexturePlatform extends NesdTexturePlatform {
+  int updates = 0;
+
+  @override
+  Future<int> createTexture({required int width, required int height}) async {
+    return 1;
+  }
+
+  @override
+  Future<void> updateTexture({
+    required int textureId,
+    required int width,
+    required int height,
+    required int length,
+    Uint8List? pixels,
+    int? pixelPointer,
+  }) async {
+    updates++;
+  }
+
+  @override
+  Future<void> disposeTexture({required int textureId}) async {}
+}
 
 /// Hands out parked frames and records takes/releases. [produceFrame] parks
 /// a frame and notifies listeners, like [RemoteFrameSource.addFrame].
@@ -201,5 +226,57 @@ void main() {
     source.produceFrame(_handle());
 
     expect(source.takenFrames, 1);
+  });
+
+  test('texture frames notify once while the texture identity is '
+      'unchanged', () async {
+    final platform = _FakeNesdTexturePlatform();
+
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    // default renderer preference (auto) -> GPU texture path
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+    );
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource();
+
+    controller.updateFrameSource(source);
+
+    var notifications = 0;
+
+    controller.addListener(() => notifications++);
+
+    for (var i = 0; i < 3; i++) {
+      source.produceFrame(_handle());
+      await pumpEventQueue();
+    }
+
+    expect(platform.updates, greaterThanOrEqualTo(2));
+    expect(notifications, 1);
+  });
+
+  test('status events notify listeners so the overlay repaints', () async {
+    final events = StreamController<NesIsolateEvent>.broadcast();
+
+    addTearDown(events.close);
+
+    final controller = buildController()..updateEvents(events.stream);
+
+    var notifications = 0;
+
+    controller.addListener(() => notifications++);
+
+    events.add(_status(running: false));
+
+    await pumpEventQueue();
+
+    expect(notifications, 1);
   });
 }
