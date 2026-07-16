@@ -57,6 +57,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   on large-CHR games. Affected fields are now stored at full width.
   Existing save states keep loading; saves written by this version need
   this version or newer.
+- The debugger now records hardware-correct return addresses for calls
+  made at the top of the address space, and step-out no longer drifts
+  to the wrong frame after a BRK instruction.
 
 ## [0.14.0] - 2026-03-16
 

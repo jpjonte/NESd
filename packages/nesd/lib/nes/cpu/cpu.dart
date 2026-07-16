@@ -418,9 +418,9 @@ class CPU {
   void _updateCallStack(int opcode) {
     switch (opcode) {
       case 0x00: // BRK
-        callStack.add(PC + 1);
+        callStack.add((PC + 1) & 0xffff);
       case 0x20: // JSR
-        callStack.add(PC + 2);
+        callStack.add((PC + 2) & 0xffff);
       case 0x40: // RTI
       case 0x60: // RTS
         if (callStack.isNotEmpty) {
