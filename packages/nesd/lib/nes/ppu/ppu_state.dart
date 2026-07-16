@@ -53,6 +53,7 @@ class PPUState {
     return switch (version) {
       0 => PPUState.version0(reader),
       1 => PPUState.version1(reader),
+      2 => PPUState.version2(reader),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -141,6 +142,48 @@ class PPUState {
     );
   }
 
+  factory PPUState.version2(PayloadReader reader) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
+      frameBuffer: FrameBuffer.deserialize(reader),
+      consoleCycles: reader.get(uint64),
+      cycles: reader.get(uint64),
+      cycle: reader.get(uint16),
+      scanline: reader.get(uint16),
+      frames: reader.get(uint32),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHighShift: reader.get(uint16),
+      patternTableLowShift: reader.get(uint16),
+      attributeTableLatch: reader.get(uint8),
+      attributeTableHighShift: reader.get(uint8),
+      attributeTableLowShift: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamAddress: reader.get(uint16),
+      oamBuffer: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+    );
+  }
+
   final int PPUCTRL;
   final int PPUMASK;
   final int PPUSTATUS;
@@ -195,7 +238,7 @@ class PPUState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 1) // version
+      ..set(uint8, 2) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -217,19 +260,19 @@ class PPUState {
     writer
       ..set(uint64, consoleCycles)
       ..set(uint64, cycles)
-      ..set(uint8, cycle)
-      ..set(uint8, scanline)
-      ..set(uint8, frames)
+      ..set(uint16, cycle)
+      ..set(uint16, scanline)
+      ..set(uint32, frames)
       ..set(uint8, nametableLatch)
       ..set(uint8, patternTableHighLatch)
       ..set(uint8, patternTableLowLatch)
-      ..set(uint8, patternTableHighShift)
-      ..set(uint8, patternTableLowShift)
+      ..set(uint16, patternTableHighShift)
+      ..set(uint16, patternTableLowShift)
       ..set(uint8, attributeTableLatch)
       ..set(uint8, attributeTableHighShift)
       ..set(uint8, attributeTableLowShift)
       ..set(uint8, attribute)
-      ..set(uint8, oamAddress)
+      ..set(uint16, oamAddress)
       ..set(uint8, oamBuffer)
       ..set(uint8, spriteCount)
       ..set(uint8, secondarySpriteCount)

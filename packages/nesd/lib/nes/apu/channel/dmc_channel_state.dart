@@ -27,6 +27,7 @@ class DMCChannelState {
 
     return switch (version) {
       0 => DMCChannelState._version0(reader),
+      1 => DMCChannelState._version1(reader),
       _ => throw InvalidSerializationVersion('DMCChannelState', version),
     };
   }
@@ -43,6 +44,28 @@ class DMCChannelState {
       bitsRemaining: reader.get(uint8),
       shiftRegister: reader.get(uint8),
       timer: reader.get(uint8),
+      level: reader.get(uint8),
+      sampleAddress: reader.get(uint16),
+      sampleLength: reader.get(uint16),
+      address: reader.get(uint16),
+      currentLength: reader.get(uint16),
+      sampleLoaded: reader.get(boolean),
+      startDma: reader.get(boolean),
+    );
+  }
+
+  factory DMCChannelState._version1(PayloadReader reader) {
+    return DMCChannelState(
+      enabled: reader.get(boolean),
+      irqEnabled: reader.get(boolean),
+      interrupt: reader.get(boolean),
+      loop: reader.get(boolean),
+      silence: reader.get(boolean),
+      buffer: reader.get(uint8),
+      rate: reader.get(uint16),
+      bitsRemaining: reader.get(uint8),
+      shiftRegister: reader.get(uint8),
+      timer: reader.get(uint16),
       level: reader.get(uint8),
       sampleAddress: reader.get(uint16),
       sampleLength: reader.get(uint16),
@@ -82,17 +105,17 @@ class DMCChannelState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(boolean, enabled)
       ..set(boolean, irqEnabled)
       ..set(boolean, interrupt)
       ..set(boolean, loop)
       ..set(boolean, silence)
       ..set(uint8, buffer)
-      ..set(uint8, rate)
+      ..set(uint16, rate)
       ..set(uint8, bitsRemaining)
       ..set(uint8, shiftRegister)
-      ..set(uint8, timer)
+      ..set(uint16, timer)
       ..set(uint8, level)
       ..set(uint16, sampleAddress)
       ..set(uint16, sampleLength)

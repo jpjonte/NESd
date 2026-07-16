@@ -126,6 +126,7 @@ class MMC5 extends Mapper {
     _chrRegisters.setAll(0, state.chrRegisters);
     _chrBankMode = state.chrBankMode;
     _lastChrAddress = state.lastChrAddress;
+    _chrPageHigh = state.chrPageHigh;
 
     _filledNametable.setAll(0, state.filledNametable);
 
