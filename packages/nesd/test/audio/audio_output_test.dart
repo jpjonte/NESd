@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/audio/pcm_recorder.dart';
 
 class _FakeAudioStream implements AudioStream {
   int filledSize = 0;
@@ -11,6 +13,10 @@ class _FakeAudioStream implements AudioStream {
 
   int initCount = 0;
   int uninitCount = 0;
+
+  AudioStreamStat nextStat = AudioStreamStat.empty();
+
+  int resetStatCount = 0;
 
   @override
   int init({
@@ -41,10 +47,12 @@ class _FakeAudioStream implements AudioStream {
   }
 
   @override
-  AudioStreamStat stat() => AudioStreamStat.empty();
+  AudioStreamStat stat() => nextStat;
 
   @override
-  void resetStat() {}
+  void resetStat() {
+    resetStatCount++;
+  }
 
   @override
   int getBufferSize() => 2400;
@@ -128,5 +136,70 @@ void main() {
 
     expect(stream.uninitCount, 0);
     expect(stream.initCount, 1); // constructor only
+  });
+
+  test('takeStats returns native counters and resets them', () {
+    stream.nextStat = AudioStreamStat(full: 1, exhaust: 3);
+
+    final stats = output.takeStats();
+
+    expect(stats.exhaustDelta, 3);
+    expect(stats.fullDelta, 1);
+    expect(stream.resetStatCount, 1);
+  });
+
+  test('takeStats tracks min and max fill across frames', () {
+    stream.filledSize = 500;
+    output.processSamples(Float32List(0));
+
+    stream.filledSize = 1500;
+    output.processSamples(Float32List(0));
+
+    final stats = output.takeStats();
+
+    expect(stats.fillMin, 500);
+    expect(stats.fillMax, 1500);
+  });
+
+  test('takeStats without samples reports current fill for both', () {
+    stream.filledSize = 700;
+
+    final stats = output.takeStats();
+
+    expect(stats.fillMin, 700);
+    expect(stats.fillMax, 700);
+  });
+
+  test('fill window resets between takeStats calls', () {
+    stream.filledSize = 100;
+    output
+      ..processSamples(Float32List(0))
+      ..takeStats();
+
+    stream.filledSize = 900;
+    output.processSamples(Float32List(0));
+
+    final stats = output.takeStats();
+
+    expect(stats.fillMin, 900);
+    expect(stats.fillMax, 900);
+  });
+
+  test('tees post-volume samples to the PCM recorder', () {
+    final dir = Directory.systemTemp.createTempSync('nesd_audio');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    final path = '${dir.path}/a.pcm';
+
+    output
+      ..volume = 0.5
+      ..pcmRecorder = PcmRecorder(path: path)
+      ..processSamples(Float32List.fromList([1.0, -1.0]));
+
+    output.pcmRecorder!.close();
+
+    final floats = File(path).readAsBytesSync().buffer.asFloat32List();
+
+    expect(floats, [0.5, -0.5]);
   });
 }

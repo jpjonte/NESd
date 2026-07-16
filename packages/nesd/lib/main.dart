@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/bench/bench_runner.dart';
+import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
@@ -13,6 +14,7 @@ import 'package:nesd/ui/file_picker/file_system/native_filesystem.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
+import 'package:nesd/ui/soak/soak_runner.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +33,10 @@ void main(List<String> arguments) async {
 
     exit(0);
   }
+
+  // Unattended audio soak mode: activates only when an adb-pushed
+  // marker exists in the app's own files dir (see soak_config.dart).
+  final soakConfig = await maybeReadSoakConfig();
 
   _addLicenses();
 
@@ -64,6 +70,8 @@ void main(List<String> arguments) async {
             initialValue: arguments.isNotEmpty ? arguments.first : null,
           ),
         ),
+        if (soakConfig != null)
+          soakConfigProvider.overrideWith((ref) => soakConfig),
       ],
       child: const NesdApp(),
     ),

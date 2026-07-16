@@ -34,6 +34,16 @@ class MockAudioStream extends Mock implements AudioStream {
   }) {
     return 0;
   }
+
+  AudioStreamStat nextStat = AudioStreamStat.empty();
+
+  @override
+  AudioStreamStat stat() => nextStat;
+
+  @override
+  void resetStat() {
+    nextStat = AudioStreamStat.empty();
+  }
 }
 
 class MockSharedPreferences extends Mock implements SharedPreferences {}

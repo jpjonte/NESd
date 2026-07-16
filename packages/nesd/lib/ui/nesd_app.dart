@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/ui/soak/soak_runner.dart';
 import 'package:nesd/ui/theme/dark.dart';
 import 'package:nesd/ui/theme/light.dart';
 
@@ -11,6 +12,9 @@ class NesdApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // No-op unless main.dart overrode soakConfigProvider (soak mode).
+    ref.watch(soakRunnerProvider);
+
     final observer = ref.watch(routerObserverProvider.notifier);
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(

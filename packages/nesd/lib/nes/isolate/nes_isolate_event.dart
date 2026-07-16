@@ -60,6 +60,29 @@ class StatusEvent extends NesIsolateEvent {
   final bool rewind;
 }
 
+/// Once-per-second audio-path health sample from the worker. `logLine`
+/// is the on-device wire format scraped by bin/perf tooling — treat it
+/// as a stable format.
+class AudioStatsEvent extends NesIsolateEvent {
+  const AudioStatsEvent({
+    required this.timestampMilliseconds,
+    required this.exhaustDelta,
+    required this.fullDelta,
+    required this.fillMin,
+    required this.fillMax,
+  });
+
+  final int timestampMilliseconds;
+  final int exhaustDelta;
+  final int fullDelta;
+  final int fillMin;
+  final int fillMax;
+
+  String get logLine =>
+      'NESD_AUDIO ts=$timestampMilliseconds exhaust=$exhaustDelta '
+      'full=$fullDelta fill_min=$fillMin fill_max=$fillMax';
+}
+
 class ErrorEvent extends NesIsolateEvent {
   const ErrorEvent({required this.message});
 

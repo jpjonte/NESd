@@ -165,6 +165,8 @@ class NesController {
 
   NesIsolateHandle? _isolate;
 
+  Future<NesIsolateHandle>? _isolateFuture;
+
   StreamSubscription<NesIsolateEvent>? _eventSubscription;
 
   bool get isOn => nesState.nes != null;
@@ -263,18 +265,22 @@ class NesController {
     );
   }
 
-  Future<bool> loadRom(FilesystemFile file, {Uint8List? stateBytes}) async {
+  Future<bool> loadRom(
+    FilesystemFile file, {
+    Uint8List? stateBytes,
+    Uint8List? data,
+  }) async {
     nes?.suspend();
 
     RemoteNes? remote;
 
     try {
-      final data = await _readFile(file.path);
+      final bytes = data ?? await _readFile(file.path);
       final extension = p.extension(file.name);
 
       final rom = switch (extension) {
-        '.nes' => data,
-        '.zip' => _loadZip(file.path, data),
+        '.nes' => bytes,
+        '.zip' => _loadZip(file.path, bytes),
         _ => throw UnsupportedFileType(extension),
       };
 
@@ -374,11 +380,15 @@ class NesController {
     return true;
   }
 
-  Future<NesIsolateHandle> _ensureIsolate() async {
+  Future<NesIsolateHandle> _ensureIsolate() {
     if (_isolate case final isolate?) {
-      return isolate;
+      return Future.value(isolate);
     }
 
+    return _isolateFuture ??= _spawnIsolate();
+  }
+
+  Future<NesIsolateHandle> _spawnIsolate() async {
     final isolate = await spawner();
 
     _isolate = isolate;
