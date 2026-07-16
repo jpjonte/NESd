@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
+import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
@@ -25,25 +26,32 @@ class DiffRewindItem extends RewindItem {
 }
 
 class RewindBuffer {
-  RewindBuffer({required int size})
+  RewindBuffer({required int size, this._profiler})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
         buffer: List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
       );
 
+  final RewindProfiler? _profiler;
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;
 
-  /// Serialization of the newest state that has not been popped yet.
-  Uint8List? _current;
+  Uint8List _currentPool = Uint8List(0);
+  int _currentLength = 0;
+  bool _hasCurrent = false;
+
+  Uint8List? get _currentView => _hasCurrent
+      ? Uint8List.view(_currentPool.buffer, 0, _currentLength)
+      : null;
 
   int _bytes = 0;
 
-  /// The size of the buffer in bytes.
   int get size => _bytes;
+
+  int get itemCapacity => _buffer.size;
 
   void clear() {
     _buffer.clear();
 
-    _current = null;
+    _hasCurrent = false;
     _bytes = 0;
   }
 
@@ -52,7 +60,7 @@ class RewindBuffer {
   }
 
   NESState? pop() {
-    final current = _current;
+    final current = _currentView;
 
     if (current == null) {
       return null;
@@ -65,12 +73,20 @@ class RewindBuffer {
     }
 
     try {
-      _current = switch (item) {
+      final reconstruction = switch (item) {
         DiffRewindItem() => item.compressed.decompress().diffWith(current),
         ChainStartRewindItem() || null => null,
       };
 
-      return NESState.fromBytes(current);
+      final result = NESState.fromBytes(current);
+
+      if (reconstruction == null) {
+        _hasCurrent = false;
+      } else {
+        _setCurrent(reconstruction);
+      }
+
+      return result;
     } on NesdException {
       // a corrupted chain must not crash the emulator
       clear();
@@ -94,16 +110,50 @@ class RewindBuffer {
       }
     }
 
-    final serialized = state.serialize();
-    final previous = _current;
+    final watch = _profiler == null ? null : (Stopwatch()..start());
 
-    final item = previous == null
-        ? ChainStartRewindItem()
-        : DiffRewindItem(previous.diffWith(serialized).compress());
+    final serialized = state.serialize();
+
+    if (watch != null) {
+      _profiler!.addSerialize(watch.elapsedMicroseconds);
+      watch.reset();
+    }
+
+    final previous = _currentView;
+
+    final RewindItem item;
+
+    if (previous == null) {
+      item = ChainStartRewindItem();
+    } else {
+      final diff = previous.diffWith(serialized);
+
+      if (watch != null) {
+        _profiler!.addDiff(watch.elapsedMicroseconds);
+        watch.reset();
+      }
+
+      item = DiffRewindItem(diff.compress());
+
+      if (watch != null) {
+        _profiler!.addCompress(watch.elapsedMicroseconds);
+      }
+    }
 
     _buffer.append(item);
 
     _bytes += item.compressed.length;
-    _current = serialized;
+
+    _setCurrent(serialized);
+  }
+
+  void _setCurrent(Uint8List serialized) {
+    if (_currentPool.length < serialized.length) {
+      _currentPool = Uint8List(serialized.length);
+    }
+
+    _currentPool.setRange(0, serialized.length, serialized);
+    _currentLength = serialized.length;
+    _hasCurrent = true;
   }
 }

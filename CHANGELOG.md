@@ -34,6 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   PPU background rendering and reducing per-cycle overhead
 - Debug overlay now shows the audio underrun count and minimum buffer
   fill
+- Reduced audio crackling and improved frame rate on low-power Android
+  devices when rewind is enabled (rewind snapshots are now captured at a
+  device-appropriate rate)
 
 ### Fixed
 - Fixed some settings getting cut off on Android in portrait mode

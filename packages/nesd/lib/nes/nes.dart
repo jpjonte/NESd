@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
@@ -16,6 +17,7 @@ import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
+import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/wait.dart';
 
@@ -55,12 +57,54 @@ class NES {
   bool get inLoop => _inLoop;
 
   bool fastForward = false;
-  bool rewind = false;
+
+  bool get rewind => _rewind;
+
+  set rewind(bool value) {
+    if (value != _rewind) {
+      // A new rewind session must start with a pop, and leaving rewind
+      // must not leak hold frames into the next session.
+      _rewindHold = 0;
+    }
+
+    _rewind = value;
+  }
 
   bool rewindEnabled = false;
 
-  // 1 minute of rewind
-  final RewindBuffer _rewindBuffer = RewindBuffer(size: 3600);
+  int get rewindCaptureInterval => _rewindCaptureInterval;
+
+  set rewindCaptureInterval(int value) {
+    if (value < 1) {
+      throw ArgumentError.value(value, 'rewindCaptureInterval', '>= 1');
+    }
+
+    _rewindCaptureInterval = value;
+    _rewindBuffer = _createRewindBuffer();
+  }
+
+  int _rewindCaptureInterval = 1;
+
+  /// Remaining silent filler frames before the next rewind pop; keeps
+  /// playback at ~1x when snapshots span multiple frames.
+  int _rewindHold = 0;
+
+  bool _rewind = false;
+
+  bool shouldCaptureRewind(int frame) => frame % _rewindCaptureInterval == 0;
+
+  final RewindProfiler? _rewindProfiler = maybeRewindProfiler();
+
+  late RewindBuffer _rewindBuffer = _createRewindBuffer();
+
+  RewindBuffer _createRewindBuffer() => RewindBuffer(
+    // Must be at least 2, because a RingBuffer of size 1 has a usable size of 0
+    size: max(2, 3600 ~/ _rewindCaptureInterval),
+    profiler: _rewindProfiler,
+  );
+
+  @visibleForTesting
+  int get rewindItemCapacity => _rewindBuffer.itemCapacity;
 
   int frameRate = 60;
 
@@ -247,13 +291,24 @@ class NES {
   }
 
   Future<void> _handleRewind() async {
+    if (_rewindHold > 0) {
+      _rewindHold--;
+
+      await _presentRewindHold();
+
+      return;
+    }
+
     final rewindState = _rewindBuffer.pop();
 
     if (rewindState == null) {
+      // The setter zeroes _rewindHold on this false transition.
       rewind = false;
 
       return;
     }
+
+    _rewindHold = _rewindCaptureInterval - 1;
 
     _applyState(rewindState);
 
@@ -281,6 +336,37 @@ class NES {
     final sleepTime = governor.sleepFor(
       samplesProduced: apu.sampleIndex,
       elapsed: workTime,
+    );
+
+    await wait(sleepTime);
+
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+  }
+
+  Future<void> _presentRewindHold() async {
+    final nowMicros = _clock.elapsedMicroseconds;
+
+    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
+
+    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
+    _lastEventMarkMicros = nowMicros;
+
+    final samples = Float32List(apu.sampleIndex);
+
+    eventBus.add(
+      FrameNesEvent(
+        samples: samples,
+        frameTime: _frameTime,
+        frame: ppu.frames,
+        sleepTime: Duration.zero,
+        rewindSize: _rewindBuffer.size,
+      ),
+    );
+
+    final sleepTime = governor.sleepFor(
+      samplesProduced: samples.length,
+      elapsed: workTime,
+      audio: audioFillProbe?.call(),
     );
 
     await wait(sleepTime);
@@ -320,8 +406,16 @@ class NES {
       ),
     );
 
-    if (rewindEnabled) {
-      _rewindBuffer.add(_captureState());
+    if (rewindEnabled && shouldCaptureRewind(ppu.frames)) {
+      final watch = _rewindProfiler == null ? null : (Stopwatch()..start());
+
+      final captured = _captureState();
+
+      if (watch != null) {
+        _rewindProfiler!.addCapture(watch.elapsedMicroseconds);
+      }
+
+      _rewindBuffer.add(captured);
     }
 
     if (stopAfterNextFrame) {
