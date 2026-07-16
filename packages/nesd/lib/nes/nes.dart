@@ -290,6 +290,26 @@ class NES {
     _inLoop = false;
   }
 
+  /// Opens a frame window: returns the work time since the last frame
+  /// mark and advances the event mark / _frameTime.
+  Duration _openFrameWindow() {
+    final nowMicros = _clock.elapsedMicroseconds;
+
+    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
+
+    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
+    _lastEventMarkMicros = nowMicros;
+
+    return workTime;
+  }
+
+  /// Closes a frame window: sleeps, then marks the frame boundary.
+  Future<void> _closeFrameWindow(Duration sleepTime) async {
+    await wait(sleepTime);
+
+    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+  }
+
   Future<void> _handleRewind() async {
     if (_rewindHold > 0) {
       _rewindHold--;
@@ -314,12 +334,7 @@ class NES {
 
     ppu.frameBuffer.swap();
 
-    final nowMicros = _clock.elapsedMicroseconds;
-
-    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
-
-    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
-    _lastEventMarkMicros = nowMicros;
+    final workTime = _openFrameWindow();
 
     eventBus.add(
       FrameNesEvent(
@@ -336,20 +351,14 @@ class NES {
     final sleepTime = governor.sleepFor(
       samplesProduced: apu.sampleIndex,
       elapsed: workTime,
+      audio: audioFillProbe?.call(),
     );
 
-    await wait(sleepTime);
-
-    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+    await _closeFrameWindow(sleepTime);
   }
 
   Future<void> _presentRewindHold() async {
-    final nowMicros = _clock.elapsedMicroseconds;
-
-    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
-
-    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
-    _lastEventMarkMicros = nowMicros;
+    final workTime = _openFrameWindow();
 
     final samples = Float32List(apu.sampleIndex);
 
@@ -369,20 +378,13 @@ class NES {
       audio: audioFillProbe?.call(),
     );
 
-    await wait(sleepTime);
-
-    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+    await _closeFrameWindow(sleepTime);
   }
 
   Future<void> _sendFrame() async {
     ppu.frameBuffer.swap();
 
-    final nowMicros = _clock.elapsedMicroseconds;
-
-    final workTime = Duration(microseconds: nowMicros - _lastFrameMarkMicros);
-
-    _frameTime = Duration(microseconds: nowMicros - _lastEventMarkMicros);
-    _lastEventMarkMicros = nowMicros;
+    final workTime = _openFrameWindow();
 
     final samples = fastForward
         ? _emptySamples
@@ -407,12 +409,13 @@ class NES {
     );
 
     if (rewindEnabled && shouldCaptureRewind(ppu.frames)) {
-      final watch = _rewindProfiler == null ? null : (Stopwatch()..start());
+      final profiler = _rewindProfiler;
+      final watch = profiler == null ? null : (Stopwatch()..start());
 
       final captured = _captureState();
 
-      if (watch != null) {
-        _rewindProfiler!.addCapture(watch.elapsedMicroseconds);
+      if (profiler != null) {
+        profiler.addCapture(watch!.elapsedMicroseconds);
       }
 
       _rewindBuffer.add(captured);
@@ -426,9 +429,7 @@ class NES {
 
     apu.sampleIndex = 0;
 
-    await wait(sleepTime);
-
-    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+    await _closeFrameWindow(sleepTime);
   }
 
   void pause() {

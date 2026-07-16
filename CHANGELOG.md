@@ -37,8 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Reduced audio crackling and improved frame rate on low-power Android
   devices when rewind is enabled (rewind snapshots are now captured at a
   device-appropriate rate)
+- Rewind playback now paces against the audio buffer like normal play
 
 ### Fixed
+- Fixed uninitialized framebuffer memory being visible in areas the PPU
+  never draws (e.g. games that disable rendering); these areas are now
+  reliably black
 - Fixed some settings getting cut off on Android in portrait mode
 - Fixed touch controls not getting enabled when enabling them for the first time
 - Fixed battery-backed save RAM not being restored when loading a game

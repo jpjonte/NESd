@@ -1,11 +1,18 @@
 /// Per-stage timing accumulator for the rewind pipeline.
 ///
 /// One line per [windowSize] captures:
-/// `NESD_REWIND_PROF frames=<n> cap_us=<n> ser_us=<n> diff_us=<n>`
-/// `comp_us=<n>` — a stable wire format scraped from logcat during
-/// measurement runs. Instances exist only in profiling builds (see
-/// [maybeRewindProfiler]); production passes null and pays only a
-/// null check per stage per capture.
+/// `NESD_REWIND_PROF frames=<n> cap_us=<n> ser_us=<n> diff_us=<n> comp_us=<n>`
+/// — a stable wire format scraped from logcat during measurement runs.
+/// Instances exist only in profiling builds (see [maybeRewindProfiler]);
+/// production passes null and pays only a null check per stage per
+/// capture.
+///
+/// Window semantics: the window is CAPTURE-driven — one line per
+/// [windowSize] captures. With a capture interval N > 1 one line
+/// spans N * windowSize rendered frames; per-frame math must divide
+/// by the interval. Stage micros (serialize/diff/compress) arrive via
+/// a deferred microtask and are attributed to the window open when
+/// they run — a one-capture skew that is irrelevant over a window.
 class RewindProfiler {
   RewindProfiler({this.windowSize = 60});
 
