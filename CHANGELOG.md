@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Rewind playback now paces against the audio buffer like normal play
 
 ### Fixed
+- Fixed zapper hits not being detected reliably
 - Fixed uninitialized framebuffer memory being visible in areas the PPU
   never draws (e.g. games that disable rendering); these areas are now
   reliably black
