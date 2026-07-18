@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
+import 'package:nesd/ui/emulator/display_position.dart';
 import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -138,6 +139,14 @@ class DisplayBuilder extends ConsumerWidget {
         final topLeft =
             center - Offset(scaledSize.width / 2, scaledSize.height / 2);
 
+        Offset? nesPosition(Offset localPosition) => nesPositionFromDisplay(
+          displayPosition: localPosition - topLeft,
+          scale: scale,
+          pixelAspectRatio: pixelAspectRatio,
+          imageWidth: imageWidth,
+          imageHeight: imageHeight,
+        );
+
         final baseLayer = textureId != null
             ? SizedBox.expand(
                 child: Texture(
@@ -153,6 +162,7 @@ class DisplayBuilder extends ConsumerWidget {
         final overlayLayer = CustomPaint(
           painter: EmulatorOverlayPainter(
             scale: scale,
+            pixelAspectRatio: pixelAspectRatio,
             showBorder: settings.showBorder,
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
@@ -195,33 +205,24 @@ class DisplayBuilder extends ConsumerWidget {
           child: ClipRect(
             child: MouseRegion(
               onHover: (event) {
-                final displayPosition = event.localPosition - topLeft;
-                final nesPosition = displayPosition / scale;
-
-                if (!screenSize.contains(nesPosition)) {
-                  nes?.setZapperPosition(null);
-                } else {
-                  nes?.setZapperPosition(nesPosition);
-                }
+                nes?.setZapperPosition(nesPosition(event.localPosition));
               },
               child: GestureDetector(
                 onTapDown: (details) {
-                  final displayPosition = details.localPosition - topLeft;
-                  final nesPosition = displayPosition / scale;
+                  final position = nesPosition(details.localPosition);
 
-                  if (!screenSize.contains(nesPosition)) {
+                  if (position == null) {
                     return;
                   }
 
-                  nes?.setZapperPosition(nesPosition);
+                  nes?.setZapperPosition(position);
                   nes?.zapperPull();
                 },
                 onTapUp: (details) {
-                  final displayPosition = details.localPosition - topLeft;
-                  final nesPosition = displayPosition / scale;
+                  final position = nesPosition(details.localPosition);
 
-                  if (screenSize.contains(nesPosition)) {
-                    nes?.setZapperPosition(nesPosition);
+                  if (position != null) {
+                    nes?.setZapperPosition(position);
                   }
 
                   nes?.zapperRelease();

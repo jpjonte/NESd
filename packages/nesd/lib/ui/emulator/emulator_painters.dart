@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nesd/ui/emulator/display_position.dart';
 
 class CpuFramePainter extends CustomPainter {
   CpuFramePainter({required this.image});
@@ -33,6 +34,7 @@ class CpuFramePainter extends CustomPainter {
 class EmulatorOverlayPainter extends CustomPainter {
   EmulatorOverlayPainter({
     required this.scale,
+    required this.pixelAspectRatio,
     required this.showBorder,
     required this.paused,
     required this.fastForward,
@@ -41,6 +43,7 @@ class EmulatorOverlayPainter extends CustomPainter {
   }) : super(repaint: crossHairPosition);
 
   final double scale;
+  final double pixelAspectRatio;
   final bool showBorder;
   final bool paused;
   final bool fastForward;
@@ -82,7 +85,14 @@ class EmulatorOverlayPainter extends CustomPainter {
     if (paused) {
       _drawPause(canvas, size);
     } else if (crossHairPosition?.value case final Offset position?) {
-      _drawCrossHair(canvas, position * scale);
+      _drawCrossHair(
+        canvas,
+        displayPositionFromNes(
+          position: position,
+          scale: scale,
+          pixelAspectRatio: pixelAspectRatio,
+        ),
+      );
     }
 
     if (fastForward) {

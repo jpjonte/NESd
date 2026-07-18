@@ -83,6 +83,8 @@ const palConsoleCyclesPerCycle = 5;
 const ntscPreRenderScanline = 261;
 const palPreRenderScanline = 311;
 
+const vblankScanline = 241;
+
 const _ppuBlockAddressWidth = 10;
 const _ppuBlockSize = 1 << _ppuBlockAddressWidth;
 const _ppuBlockMask = _ppuBlockSize - 1;
@@ -186,6 +188,8 @@ class PPU {
   int frames = 0;
 
   int _preRenderScanline = ntscPreRenderScanline;
+
+  int get preRenderScanline => _preRenderScanline;
 
   int _pixelBase = 0;
 
@@ -399,12 +403,12 @@ class PPU {
     _rebuildPaletteLut();
   }
 
-  int getPixelBrightness(int x, int y) {
+  int getPixelBrightness(int x, int y, {bool previousFrame = false}) {
     if (!_showBackground && !_showSprites) {
       return 0;
     }
 
-    return frameBuffer.getPixelBrightness(x, y);
+    return frameBuffer.getPixelBrightness(x, y, previousFrame: previousFrame);
   }
 
   @pragma('vm:prefer-inline')
@@ -508,7 +512,7 @@ class PPU {
       return _stepPreRenderScanline;
     }
 
-    if (scanline == 241) {
+    if (scanline == vblankScanline) {
       return _stepVblankLine;
     }
 
