@@ -61,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The debugger now records hardware-correct return addresses for calls
   made at the top of the address space, and step-out no longer drifts
   to the wrong frame after a BRK instruction.
+- Fixed a crash when reading save RAM that's smaller than 1 KB
 - Unexpected errors no longer kill the emulator thread, and a load that times out now restarts the emulator instead of failing forever
 
 ## [0.14.0] - 2026-03-16

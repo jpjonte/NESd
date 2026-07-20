@@ -152,13 +152,17 @@ abstract class Mapper {
 
   final MappingCache _ppuMappingCache = {};
 
-  MemoryMapping _cachedMapping(
+  MemoryMapping? _cachedMapping(
     MappingCache cache,
     Uint8List source,
     int offset,
     int size,
     MemoryAccess access,
   ) {
+    if (source.length - offset < size) {
+      return null;
+    }
+
     final bySource = cache[source] ??= {};
     final key = (offset << 2) | access.value;
 
@@ -312,15 +316,13 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _cpuMapping[block] = resolvedSource.isNotEmpty
-          ? _cachedMapping(
-              _cpuMappingCache,
-              resolvedSource,
-              offset,
-              _cpuBlockSize,
-              resolvedAccess,
-            )
-          : null;
+      _cpuMapping[block] = _cachedMapping(
+        _cpuMappingCache,
+        resolvedSource,
+        offset,
+        _cpuBlockSize,
+        resolvedAccess,
+      );
     }
   }
 
@@ -370,19 +372,26 @@ abstract class Mapper {
       address += _ppuBlockSize
     ) {
       final block = address >> _ppuBlockAddressWidth;
+
+      if (resolvedSource.isEmpty) {
+        _ppuMapping[block] = null;
+
+        bus.ppu.updatePpuMapping(block, null);
+
+        continue;
+      }
+
       final addressDiff = address - fromAddress;
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _ppuMapping[block] = resolvedSource.isNotEmpty
-          ? _cachedMapping(
-              _ppuMappingCache,
-              resolvedSource,
-              offset,
-              _ppuBlockSize,
-              resolvedAccess,
-            )
-          : null;
+      _ppuMapping[block] = _cachedMapping(
+        _ppuMappingCache,
+        resolvedSource,
+        offset,
+        _ppuBlockSize,
+        resolvedAccess,
+      );
 
       bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
     }
