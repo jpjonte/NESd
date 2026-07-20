@@ -18,7 +18,7 @@ class SinglePrgBankState extends MapperState {
   factory SinglePrgBankState._version0(PayloadReader reader, int id) {
     return switch (id) {
       2 || 71 => SinglePrgBankState(id: id, prgBank: reader.get(uint8)),
-      _ => throw UnsupportedMapper(id),
+      _ => throw UnsupportedMapper(id, 0),
     };
   }
 

@@ -56,6 +56,7 @@ class NesDatabase {
       final chrHash = _getHash(game, 'chrrom');
       final prgHash = _getHash(game, 'prgrom')!;
       final mapper = _getAttribute(game, 'pcb', 'mapper').toIntOrZero();
+      final submapper = _getAttribute(game, 'pcb', 'submapper').toIntOrZero();
       final region = _getAttribute(game, 'console', 'region').toIntOrZero();
       final chrRamSize = _getAttribute(game, 'chrram', 'size').toIntOrZero();
       final prgRamSize = _getAttribute(game, 'prgram', 'size').toIntOrZero();
@@ -76,6 +77,7 @@ class NesDatabase {
         prgSaveRamSize: prgSaveRamSize,
         hasBattery: hasBattery,
         mapper: mapper,
+        submapper: submapper,
         region: switch (region) {
           0 => Region.ntsc,
           1 => Region.pal,
@@ -110,6 +112,7 @@ class NesDatabaseEntry {
     required this.prgSaveRamSize,
     required this.hasBattery,
     required this.mapper,
+    required this.submapper,
     required this.expansion,
     this.region,
   });
@@ -123,6 +126,7 @@ class NesDatabaseEntry {
   final int prgSaveRamSize;
   final bool hasBattery;
   final int mapper;
+  final int submapper;
   final int expansion;
   final Region? region;
 

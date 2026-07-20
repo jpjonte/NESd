@@ -58,10 +58,10 @@ class MemoryMapping {
 typedef MappingCache = Map<Uint8List, Map<int, MemoryMapping>>;
 
 abstract class Mapper {
-  Mapper(this.id);
+  Mapper(this.id, [this.subMapperId = 0]);
 
-  factory Mapper.fromId(int mapper) {
-    return switch (mapper) {
+  factory Mapper.fromId(int mapperId, int subMapperId) {
+    return switch (mapperId) {
       0 => NROM(),
       1 => MMC1(),
       2 => UNROM(),
@@ -75,11 +75,12 @@ abstract class Mapper {
       71 => BR909x(),
       118 => TxSROM(),
       206 => Namco108(),
-      _ => throw UnsupportedMapper(mapper),
+      _ => throw UnsupportedMapper(mapperId, subMapperId),
     };
   }
 
   final int id;
+  final int subMapperId;
 
   late final Bus bus;
 

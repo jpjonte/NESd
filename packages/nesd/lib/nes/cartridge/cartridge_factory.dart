@@ -51,7 +51,7 @@ class CartridgeFactory {
       alternativeNametableLayout: _parseAlternativeNametableLayout(rom),
       hasBattery: hasBattery,
       hasTrainer: _parseHasTrainer(rom),
-      mapper: _parseMapper(rom),
+      mapper: _parseMapper(rom, databaseEntry),
       consoleType: _parseConsoleType(rom),
       romFormat: _parseRomFormat(rom),
       tvSystem: _parseTvSystem(rom),
@@ -102,21 +102,29 @@ class CartridgeFactory {
     return (rom[6] & 0x04) != 0;
   }
 
-  Mapper _parseMapper(Uint8List rom) {
+  Mapper _parseMapper(Uint8List rom, NesDatabaseEntry? databaseEntry) {
     final flags6 = rom[6];
     final flags7 = rom[7];
     final flags8 = rom[8];
 
-    late int mapperId;
+    var mapperId = (flags7 & 0xf0) | ((flags6 & 0xf0) >> 4);
 
     if (_parseRomFormat(rom) == RomFormat.nes20) {
-      mapperId =
-          ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
-    } else {
-      mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
+      mapperId = ((flags8 & 0x0f) << 8) | mapperId;
     }
 
-    return Mapper.fromId(mapperId);
+    var subMapperId = 0;
+
+    if (_parseRomFormat(rom) == RomFormat.nes20) {
+      subMapperId = (flags8 & 0xf0) >> 4;
+    }
+
+    if (databaseEntry != null) {
+      mapperId = databaseEntry.mapper;
+      subMapperId = databaseEntry.submapper;
+    }
+
+    return Mapper.fromId(mapperId, subMapperId);
   }
 
   ConsoleType _parseConsoleType(Uint8List rom) {

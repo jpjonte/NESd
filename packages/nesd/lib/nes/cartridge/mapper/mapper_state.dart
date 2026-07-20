@@ -41,7 +41,7 @@ abstract class MapperState {
       66 => GxROMState.deserialize(reader),
       71 => SinglePrgBankState.deserialize(reader, 71),
       206 => Namco108State.deserialize(reader),
-      _ => throw UnsupportedMapper(id),
+      _ => throw UnsupportedMapper(id, 0),
     };
   }
 
