@@ -108,11 +108,13 @@ class AudioStreamImpl extends mpaudio.AudioStream {
 
   @override
   int getBufferSize() {
+    // ignore: undefined_method
     return _stream?.callMethod('getBufferSize', []);
   }
 
   @override
   int getBufferFilledSize() {
+    // ignore: undefined_method
     return _stream?.callMethod('getBufferFilledSize', []);
   }
 }
