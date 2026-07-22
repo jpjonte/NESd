@@ -32,12 +32,21 @@ class CartridgeFactory {
       RomInfo(file: file, romHash: romHash, prgHash: prgHash),
     );
 
-    final prgRamSize = databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom);
+    final romFormat = _parseRomFormat(rom);
+
+    final prgRamSize =
+        databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom, romFormat);
     final prgSaveRamSize =
-        databaseEntry?.prgSaveRamSize ?? _parsePrgSaveRamSize(rom);
-    final chrRamSize = databaseEntry?.chrRamSize ?? _parseChrRamSize(rom);
+        databaseEntry?.prgSaveRamSize ?? _parsePrgSaveRamSize(rom, romFormat);
+    final chrRamSize =
+        databaseEntry?.chrRamSize ?? _parseChrRamSize(rom, romFormat);
 
     final hasBattery = databaseEntry?.hasBattery ?? _parseHasBattery(rom);
+
+    final mapperId = _parseMapperId(rom, romFormat, databaseEntry);
+    final subMapperId = _parseSubMapperId(rom, romFormat, databaseEntry);
+
+    final mapper = Mapper.fromId(mapperId, subMapperId, prgSaveRamSize);
 
     return Cartridge(
       file: file,
@@ -51,9 +60,9 @@ class CartridgeFactory {
       alternativeNametableLayout: _parseAlternativeNametableLayout(rom),
       hasBattery: hasBattery,
       hasTrainer: _parseHasTrainer(rom),
-      mapper: _parseMapper(rom),
+      mapper: mapper,
       consoleType: _parseConsoleType(rom),
-      romFormat: _parseRomFormat(rom),
+      romFormat: romFormat,
       tvSystem: _parseTvSystem(rom),
       fileHash: sha1.convert(rom).toString(),
       romHash: romHash,
@@ -102,45 +111,62 @@ class CartridgeFactory {
     return (rom[6] & 0x04) != 0;
   }
 
-  Mapper _parseMapper(Uint8List rom) {
+  int _parseMapperId(
+    Uint8List rom,
+    RomFormat romFormat,
+    NesDatabaseEntry? databaseEntry,
+  ) {
     final flags6 = rom[6];
     final flags7 = rom[7];
     final flags8 = rom[8];
 
-    late int mapperId;
+    var mapperId = (flags7 & 0xf0) | ((flags6 & 0xf0) >> 4);
 
-    if (_parseRomFormat(rom) == RomFormat.nes20) {
-      mapperId =
-          ((flags8 & 0xF0) << 4) | (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
-    } else {
-      mapperId = (flags7 & 0xF0) | ((flags6 & 0xF0) >> 4);
+    if (romFormat == .nes20) {
+      mapperId = ((flags8 & 0x0f) << 8) | mapperId;
     }
 
-    return Mapper.fromId(mapperId);
+    return databaseEntry?.mapper ?? mapperId;
+  }
+
+  int _parseSubMapperId(
+    Uint8List rom,
+    RomFormat romFormat,
+    NesDatabaseEntry? databaseEntry,
+  ) {
+    final flags8 = rom[8];
+
+    var subMapperId = 0;
+
+    if (romFormat == .nes20) {
+      subMapperId = (flags8 & 0xf0) >> 4;
+    }
+
+    return databaseEntry?.submapper ?? subMapperId;
   }
 
   ConsoleType _parseConsoleType(Uint8List rom) {
     return ConsoleType.values[rom[7] & 0x03];
   }
 
-  int _parsePrgRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
+  int _parsePrgRamSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == .iNes) {
       return max(1, rom[8]) * 0x2000;
     } else {
       return 0;
     }
   }
 
-  int _parsePrgSaveRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
+  int _parsePrgSaveRamSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == .iNes) {
       return 0x2000;
     } else {
       return 0;
     }
   }
 
-  int _parseChrRamSize(Uint8List rom) {
-    if (_parseRomFormat(rom) == RomFormat.iNes) {
+  int _parseChrRamSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == .iNes) {
       final chrRomSize = rom[5] * 0x2000;
 
       // iNES 1.0 has no CHR-RAM size field; boards with 0 CHR-ROM banks

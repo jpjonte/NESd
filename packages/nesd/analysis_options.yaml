@@ -1,1 +1,88 @@
-include: ../../analysis_options.yaml
+include: package:lint/strict.yaml
+
+analyzer:
+  plugins:
+    - custom_lint
+  errors:
+    invalid_annotation_target: ignore
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/generated_plugin_registrant.dart"
+
+custom_lint:
+  rules:
+    # disable these rules for now until I find a good way to fix the issues
+    - avoid_manual_providers_as_generated_provider_dependency: false
+    - avoid_public_notifier_properties: false
+
+linter:
+  rules:
+    always_put_control_body_on_new_line: true
+    always_put_required_named_parameters_first: true
+    always_use_package_imports: true
+    avoid_bool_literals_in_conditional_expressions: true
+    avoid_catches_without_on_clauses: true
+    avoid_equals_and_hash_code_on_mutable_classes: true
+    avoid_positional_boolean_parameters: true
+    avoid_redundant_argument_values: true
+    avoid_returning_this: true
+    avoid_single_cascade_in_expression_statements: true
+    avoid_slow_async_io: true
+    avoid_types_on_closure_parameters: true
+    avoid_unnecessary_containers: true
+    avoid_unused_constructor_parameters: true
+    avoid_void_async: true
+    await_only_futures: true
+    camel_case_types: true
+    cancel_subscriptions: true
+    cascade_invocations: true
+    close_sinks: true
+    collection_methods_unrelated_type: true
+    comment_references: true
+    constant_identifier_names: true
+    control_flow_in_finally: true
+    directives_ordering: true
+    empty_statements: true
+    file_names: true
+    hash_and_equals: true
+    join_return_with_assignment: true
+    leading_newlines_in_multiline_strings: true
+    lines_longer_than_80_chars: true
+    literal_only_boolean_expressions: true
+    no_adjacent_strings_in_list: true
+    no_logic_in_create_state: true
+    non_constant_identifier_names: true
+    omit_local_variable_types: true
+    one_member_abstracts: true
+    only_throw_errors: true
+    overridden_fields: true
+    parameter_assignments: true
+    prefer_adjacent_string_concatenation: true
+    prefer_collection_literals: true
+    prefer_conditional_assignment: true
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_constructors_over_static_methods: true
+    prefer_final_in_for_each: true
+    prefer_final_locals: true
+    prefer_for_elements_to_map_fromIterable: true
+    prefer_function_declarations_over_variables: true
+    require_trailing_commas: false # clashes with new Dart 3.7 formatting style
+    sort_pub_dependencies: true
+    test_types_in_equals: true
+    throw_in_finally: true
+    unnecessary_overrides: true
+    unnecessary_parenthesis: true
+    unnecessary_statements: true
+    unnecessary_string_escapes: true
+    unnecessary_string_interpolations: true
+
+dart_code_metrics:
+  rules:
+    - no-boolean-literal-compare
+    - no-empty-block: false
+    - prefer-enums-by-name
+    - prefer-match-file-name: false

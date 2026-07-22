@@ -7,6 +7,7 @@ import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
+// DO NOT REORDER: The order is part of the serialization format
 enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
 enum RomFormat { iNes, nes20 }
@@ -119,7 +120,9 @@ class Cartridge {
       return null;
     }
 
-    return prgSaveRam;
+    final mapperSave = mapper.save();
+
+    return mapperSave ?? prgSaveRam;
   }
 
   void load(Uint8List save) {
@@ -128,5 +131,7 @@ class Cartridge {
     }
 
     prgSaveRam.setRange(0, min(prgSaveRam.length, save.length), save);
+
+    mapper.load(save);
   }
 }

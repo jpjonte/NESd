@@ -132,6 +132,7 @@ class NesController {
     required this.filesystem,
     required this.database,
     required this.cartridgeFactory,
+    this.romLoadTimeout = const Duration(seconds: 10),
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -156,6 +157,8 @@ class NesController {
   final CartridgeFactory cartridgeFactory;
 
   final NesIsolateSpawner spawner;
+
+  final Duration romLoadTimeout;
 
   RemoteNes? get nes => nesState.nes;
 
@@ -342,7 +345,7 @@ class NesController {
           .firstWhere(
             (event) => event is RomLoadedEvent || event is RomLoadFailedEvent,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(romLoadTimeout);
 
       if (loaded case RomLoadFailedEvent(:final message)) {
         toaster.send(Toast.error('Failed to load ROM: $message'));
@@ -373,6 +376,15 @@ class NesController {
       settingsController.addRecentRom(romInfo);
     } on PathNotFoundException {
       return false;
+    } on TimeoutException {
+      await _teardownIsolate();
+
+      toaster.send(Toast.error('Emulator did not respond and was restarted'));
+
+      remote?.dispose();
+      nesState.clear();
+
+      return false;
     } on Exception catch (e) {
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
@@ -391,6 +403,18 @@ class NesController {
     }
 
     return _isolateFuture ??= _spawnIsolate();
+  }
+
+  Future<void> _teardownIsolate() async {
+    await _eventSubscription?.cancel();
+    _eventSubscription = null;
+
+    final isolate = _isolate;
+
+    _isolate = null;
+    _isolateFuture = null;
+
+    await isolate?.dispose();
   }
 
   Future<NesIsolateHandle> _spawnIsolate() async {

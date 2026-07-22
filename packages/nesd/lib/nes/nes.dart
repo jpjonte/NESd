@@ -259,35 +259,37 @@ class NES {
 
     _frameTime = Duration.zero;
 
-    while (on) {
-      if (!running) {
-        await wait(const Duration(milliseconds: 10));
+    try {
+      while (on) {
+        if (!running) {
+          await wait(const Duration(milliseconds: 10));
 
-        continue;
+          continue;
+        }
+
+        if (rewind) {
+          await _handleRewind();
+
+          continue;
+        }
+
+        final vblankBefore = ppu.PPUSTATUS_V;
+
+        try {
+          step();
+        } on NesdException catch (e) {
+          eventBus.add(ErrorNesEvent(e));
+
+          pause();
+        }
+
+        if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
+          await _sendFrame();
+        }
       }
-
-      if (rewind) {
-        await _handleRewind();
-
-        continue;
-      }
-
-      final vblankBefore = ppu.PPUSTATUS_V;
-
-      try {
-        step();
-      } on NesdException catch (e) {
-        eventBus.add(ErrorNesEvent(e));
-
-        pause();
-      }
-
-      if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
-        await _sendFrame();
-      }
+    } finally {
+      _inLoop = false;
     }
-
-    _inLoop = false;
   }
 
   /// Opens a frame window: returns the work time since the last frame

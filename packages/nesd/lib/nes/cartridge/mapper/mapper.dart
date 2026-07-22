@@ -4,6 +4,7 @@ import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom.dart';
+import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
@@ -58,10 +59,10 @@ class MemoryMapping {
 typedef MappingCache = Map<Uint8List, Map<int, MemoryMapping>>;
 
 abstract class Mapper {
-  Mapper(this.id);
+  Mapper(this.id, [this.subMapperId = 0]);
 
-  factory Mapper.fromId(int mapper) {
-    return switch (mapper) {
+  factory Mapper.fromId(int mapperId, int subMapperId, int prgSaveRamSize) {
+    return switch (mapperId) {
       0 => NROM(),
       1 => MMC1(),
       2 => UNROM(),
@@ -70,16 +71,18 @@ abstract class Mapper {
       5 => MMC5(),
       7 => AxROM(),
       9 => MMC2(),
+      16 => BandaiFCG(subMapperId, prgSaveRamSize),
       19 => Namco163(),
       66 => GxROM(),
       71 => BR909x(),
       118 => TxSROM(),
       206 => Namco108(),
-      _ => throw UnsupportedMapper(mapper),
+      _ => throw UnsupportedMapper(mapperId, subMapperId),
     };
   }
 
   final int id;
+  final int subMapperId;
 
   late final Bus bus;
 
@@ -135,6 +138,10 @@ abstract class Mapper {
 
   int get prgRamPageSize => 0x2000;
 
+  Uint8List? save() => null;
+
+  void load(Uint8List save) {}
+
   late final List<MemoryMapping?> _cpuMapping = List.filled(
     _cpuBlockCount,
     null,
@@ -151,13 +158,17 @@ abstract class Mapper {
 
   final MappingCache _ppuMappingCache = {};
 
-  MemoryMapping _cachedMapping(
+  MemoryMapping? _cachedMapping(
     MappingCache cache,
     Uint8List source,
     int offset,
     int size,
     MemoryAccess access,
   ) {
+    if (source.length - offset < size) {
+      return null;
+    }
+
     final bySource = cache[source] ??= {};
     final key = (offset << 2) | access.value;
 
@@ -311,15 +322,13 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _cpuMapping[block] = resolvedSource.isNotEmpty
-          ? _cachedMapping(
-              _cpuMappingCache,
-              resolvedSource,
-              offset,
-              _cpuBlockSize,
-              resolvedAccess,
-            )
-          : null;
+      _cpuMapping[block] = _cachedMapping(
+        _cpuMappingCache,
+        resolvedSource,
+        offset,
+        _cpuBlockSize,
+        resolvedAccess,
+      );
     }
   }
 
@@ -369,19 +378,26 @@ abstract class Mapper {
       address += _ppuBlockSize
     ) {
       final block = address >> _ppuBlockAddressWidth;
+
+      if (resolvedSource.isEmpty) {
+        _ppuMapping[block] = null;
+
+        bus.ppu.updatePpuMapping(block, null);
+
+        continue;
+      }
+
       final addressDiff = address - fromAddress;
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _ppuMapping[block] = resolvedSource.isNotEmpty
-          ? _cachedMapping(
-              _ppuMappingCache,
-              resolvedSource,
-              offset,
-              _ppuBlockSize,
-              resolvedAccess,
-            )
-          : null;
+      _ppuMapping[block] = _cachedMapping(
+        _ppuMappingCache,
+        resolvedSource,
+        offset,
+        _ppuBlockSize,
+        resolvedAccess,
+      );
 
       bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
     }

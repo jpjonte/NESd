@@ -60,6 +60,7 @@ CartridgeInfo _testCartridgeInfo() => const CartridgeInfo(
   consoleType: ConsoleType.nes,
   mapperName: 'NROM',
   mapperId: 0,
+  subMapperId: 0,
   prgRamSize: 0,
   prgSaveRamSize: 0,
   tvSystem: TvSystem.ntsc,

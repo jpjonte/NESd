@@ -106,6 +106,7 @@ class NesIsolate implements NesIsolateHandle {
         lz4LibraryPath: lz4LibraryPath,
         disableAudio: disableAudio,
       ),
+      errorsAreFatal: false,
       onError: errorPort.sendPort,
       onExit: exitPort.sendPort,
       debugName: 'nesd-emulator',
