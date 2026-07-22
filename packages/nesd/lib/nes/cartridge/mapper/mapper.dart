@@ -4,6 +4,7 @@ import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom.dart';
+import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
@@ -60,7 +61,7 @@ typedef MappingCache = Map<Uint8List, Map<int, MemoryMapping>>;
 abstract class Mapper {
   Mapper(this.id, [this.subMapperId = 0]);
 
-  factory Mapper.fromId(int mapperId, int subMapperId) {
+  factory Mapper.fromId(int mapperId, int subMapperId, int prgSaveRamSize) {
     return switch (mapperId) {
       0 => NROM(),
       1 => MMC1(),
@@ -70,6 +71,7 @@ abstract class Mapper {
       5 => MMC5(),
       7 => AxROM(),
       9 => MMC2(),
+      16 => BandaiFCG(subMapperId, prgSaveRamSize),
       19 => Namco163(),
       66 => GxROM(),
       71 => BR909x(),
@@ -135,6 +137,10 @@ abstract class Mapper {
   int get prgRomPageSize => 0x4000;
 
   int get prgRamPageSize => 0x2000;
+
+  Uint8List? save() => null;
+
+  void load(Uint8List save) {}
 
   late final List<MemoryMapping?> _cpuMapping = List.filled(
     _cpuBlockCount,

@@ -2,6 +2,7 @@ import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/bandai_fcg_state.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1_state.dart';
@@ -37,6 +38,7 @@ abstract class MapperState {
       5 => MMC5State.deserialize(reader),
       7 => AXROMState.deserialize(reader),
       9 => MMC2State.deserialize(reader),
+      16 => BandaiFCGState.deserialize(reader),
       19 => Namco163State.deserialize(reader),
       66 => GxROMState.deserialize(reader),
       71 => SinglePrgBankState.deserialize(reader, 71),
