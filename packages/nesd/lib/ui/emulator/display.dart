@@ -133,7 +133,7 @@ class DisplayBuilder extends ConsumerWidget {
 
         final center = Offset(
           canvasSize.width / 2,
-          anchorAtTop ? canvasSize.height / 4 : canvasSize.height / 2,
+          anchorAtTop ? (canvasSize.height / 4 + 40) : canvasSize.height / 2,
         );
 
         final topLeft =

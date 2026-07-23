@@ -43,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Rewind playback now paces against the audio buffer like normal play
 
 ### Fixed
+- Fixed the menu button being covered by the status bar on Android
 - Fixed the recent ROM list showing an error instead of the ROMs when a single thumbnail failed to load
 - Fixed zapper hits not being detected reliably
 - Fixed uninitialized framebuffer memory being visible in areas the PPU

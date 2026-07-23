@@ -29,26 +29,28 @@ class EmulatorWidget extends ConsumerWidget {
               : KeyEventResult.ignored,
           child: const FrameBufferStreamBuilder(),
         ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Theme(
-              data: theme.copyWith(
-                iconButtonTheme: IconButtonThemeData(
-                  style: theme.iconButtonTheme.style!.copyWith(
-                    backgroundColor: WidgetStateProperty.all(
-                      Colors.black.withAlpha(150),
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Theme(
+                data: theme.copyWith(
+                  iconButtonTheme: IconButtonThemeData(
+                    style: theme.iconButtonTheme.style!.copyWith(
+                      backgroundColor: WidgetStateProperty.all(
+                        Colors.black.withAlpha(150),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              child: IconButton(
-                key: menuKey,
-                icon: const Icon(Icons.menu),
-                color: Colors.white,
-                onPressed: () =>
-                    ref.read(routerProvider).navigate(const MenuRoute()),
+                child: IconButton(
+                  key: menuKey,
+                  icon: const Icon(Icons.menu),
+                  color: Colors.white,
+                  onPressed: () =>
+                      ref.read(routerProvider).navigate(const MenuRoute()),
+                ),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/emulator_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 
 import '../robot.dart';
@@ -76,6 +77,40 @@ void main() {
     // and clears `nesState`. A single `fixAsync` round trip isn't always
     // enough real time for that chain to drain, so poll until it settles
     // instead of guessing a fixed pump count.
+    await r.waitUntil(() => r.container.read(nesStateProvider) == null);
+  });
+
+  testWidgets('Menu button is not covered by the system status bar', (
+    tester,
+  ) async {
+    final r = Robot(tester)
+      ..initSettings({
+        'recentRoms': [
+          {
+            'file': {
+              'path': '/test/roms/nestest.nes',
+              'name': '/test/roms/nestest.nes',
+              'type': 'file',
+            },
+          },
+        ],
+      });
+
+    tester.view.padding = const FakeViewPadding(top: 120);
+    addTearDown(tester.view.reset);
+
+    await r.pumpApp();
+    await r.mainMenu.tapFirstRomTile();
+    r.emulator.expectEmulatorWidgetFound();
+
+    final inset = tester.view.padding.top / tester.view.devicePixelRatio;
+    final buttonTop = tester.getTopLeft(find.byKey(EmulatorWidget.menuKey)).dy;
+
+    expect(buttonTop, greaterThanOrEqualTo(inset));
+
+    // Quit the game so the emulator's timers are gone before teardown.
+    await r.emulator.tapMenu();
+    await r.menuScreen.tapQuitGame();
     await r.waitUntil(() => r.container.read(nesStateProvider) == null);
   });
 }
