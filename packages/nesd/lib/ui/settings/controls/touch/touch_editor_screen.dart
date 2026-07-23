@@ -30,9 +30,9 @@ class TouchEditorScreen extends ConsumerWidget {
                     children: [
                       const PlaceholderDisplay(),
                       TouchControlsEditorView(orientation: orientation),
-                      if (state.editingConfig case final config?)
-                        if (state.editingIndex == null)
-                          TouchControl(config: config),
+                      if (state.editingConfig case final config?
+                          when state.editingIndex == null)
+                        TouchControl(config: config),
                       const EditingHint(),
                       ActionButtons(orientation: orientation),
                       EditorPopup(orientation: orientation),

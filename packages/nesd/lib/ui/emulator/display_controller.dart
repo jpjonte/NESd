@@ -422,10 +422,10 @@ class DisplayFrameController extends ChangeNotifier
         _rendererPreference != RendererPreference.cpu && !_textureFailed;
 
     if (wantsTexture) {
-      if (_texture case final currentTexture?) {
-        if (currentTexture.width != width || currentTexture.height != height) {
-          _invalidateTexture();
-        }
+      if (_texture case final currentTexture?
+          when currentTexture.width != width ||
+              currentTexture.height != height) {
+        _invalidateTexture();
       }
 
       if (_texture != null &&
