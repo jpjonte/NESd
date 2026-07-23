@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.15.0] - 2026-07-23
 
 ### Added
 - Added support for Bandai FCG (mapper 16)
@@ -12,60 +12,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The emulator display can now fill the entire screen
 - Improved compatibility with Android and macOS
-- Greatly reduced the performance cost of the rewind feature, especially
-  on lower-end devices
-- The emulator core now runs on a dedicated background thread. This removes
-  UI-induced stutter and makes gameplay dramatically smoother, especially on
-  lower-end Android devices.
-- Volume hotkeys now adjust the persisted volume setting instead of a
-  session-only value.
-- Emulation speed now locks to actual audio playback, fixing gradual
-  audio drift and pops after stutters
-- Frames are now presented in sync with the display refresh, reducing
-  judder
-- Audio recovers from underruns faster (single 20 ms threshold instead
-  of a double buffer-refill wait)
+- Greatly reduced the performance cost of the rewind feature, especially on lower-end devices
+- The emulator core now runs on a dedicated background thread, reducing stutter and making emulation smoother
+- Volume hotkeys now adjust the persisted volume setting instead of a session-only value
+- Emulation speed now locks to actual audio playback, fixing gradual audio drift and pops after stutters
+- Frames are now presented in sync with the display refresh, reducing judder
+- Audio recovers from underruns faster
 - Fast-forward now mutes audio instead of producing crackling
-- Improved emulation core performance (CPU dispatch, PPU sprite
-  rendering, bus/mapper hot paths): Reduces CPU usage and stuttering,
-  especially on lower-end devices
-- Frames are now uploaded directly to the display surface on Android,
-  removing a per-frame bitmap copy and render pass
+- Improved emulation core performance
+- Frames are now uploaded directly to the display surface on Android, removing a per-frame bitmap copy and render pass
 - Auto-save and save states no longer cause a periodic hitch (async file IO)
 - Console reset no longer restarts the audio device
-- Further improved emulation performance on low-end devices by batching
-  PPU background rendering and reducing per-cycle overhead
-- Debug overlay now shows the audio underrun count and minimum buffer
-  fill
-- Reduced audio crackling and improved frame rate on low-power Android
-  devices when rewind is enabled (rewind snapshots are now captured at a
-  device-appropriate rate)
+- Further improved emulation performance on low-end devices by batching PPU background rendering and reducing per-cycle overhead
+- Debug overlay now shows the audio underrun count and minimum buffer fill
+- Reduced rewind snapshot capture rate on mobile, improving performance on lower-end devices
 - Rewind playback now paces against the audio buffer like normal play
 
 ### Fixed
 - Fixed the menu button being covered by the status bar on Android
 - Fixed the recent ROM list showing an error instead of the ROMs when a single thumbnail failed to load
 - Fixed zapper hits not being detected reliably
-- Fixed uninitialized framebuffer memory being visible in areas the PPU
-  never draws (e.g. games that disable rendering); these areas are now
-  reliably black
+- Fixed uninitialized framebuffer memory being visible in areas the PPU never draws
 - Fixed some settings getting cut off on Android in portrait mode
 - Fixed touch controls not getting enabled when enabling them for the first time
 - Fixed battery-backed save RAM not being restored when loading a game
-- Fixed a memory leak that slowly increased memory usage during play while
-  rewind was enabled
+- Fixed a memory leak that slowly increased memory usage during play while rewind was enabled
 - Fixed CHR RAM not being writable for iNES 1.0 ROMs without CHR banks
-- Fixed a race condition in the native audio buffer that could cause
-  crackling audio
-- Save states no longer corrupt PPU timing counters, the in-flight
-  background tile, APU triangle/noise/DMC timers, the noise channel's
-  random-number state, the APU frame sequencer phase, or MMC5 CHR banking
-  on large-CHR games. Affected fields are now stored at full width.
-  Existing save states keep loading; saves written by this version need
-  this version or newer.
-- The debugger now records hardware-correct return addresses for calls
-  made at the top of the address space, and step-out no longer drifts
-  to the wrong frame after a BRK instruction.
+- Fixed a race condition in the native audio buffer that could cause crackling audio
+- Fixed multiple corruption issues in save states
+- Fix return address bookkeeping in the debugger, fixing step-out
 - Fixed a crash when reading save RAM that's smaller than 1 KB
 - Unexpected errors no longer kill the emulator thread, and a load that times out now restarts the emulator instead of failing forever
 

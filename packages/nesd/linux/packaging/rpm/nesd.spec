@@ -1,5 +1,5 @@
 Name: nesd
-Version: 0.14.0
+Version: 0.15.0
 Release: 1%{?dist}
 Summary: NES emulator
 Group: Games/Emulators
