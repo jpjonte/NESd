@@ -36,5 +36,29 @@ void main() {
 
       expect(manager.load(romInfo), [9, 8, 7]);
     });
+
+    test('getRomTileData returns null thumbnail for corrupt image', () async {
+      final thumbnailFile = manager.getThumbnailFile(romInfo);
+
+      await thumbnailFile.writeAsBytes([0, 1, 2, 3]);
+
+      final romTileData = await manager.getRomTileData(romInfo);
+
+      expect(romTileData.title, 'test');
+      expect(romTileData.thumbnail, isNull);
+    });
+
+    test('getRomTileData loads a valid thumbnail', () async {
+      await manager.saveThumbnail(
+        romInfo,
+        width: 2,
+        height: 2,
+        pixels: Uint8List(2 * 2 * 4),
+      );
+
+      final romTileData = await manager.getRomTileData(romInfo);
+
+      expect(romTileData.thumbnail, isNotNull);
+    });
   });
 }

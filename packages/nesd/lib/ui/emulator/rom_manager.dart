@@ -222,17 +222,22 @@ class RomManager {
       return null;
     }
 
-    final bytes = thumbnailFile.readAsBytesSync();
+    try {
+      final bytes = thumbnailFile.readAsBytesSync();
 
-    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
 
-    final descriptor = await ui.ImageDescriptor.encoded(buffer);
+      final descriptor = await ui.ImageDescriptor.encoded(buffer);
 
-    final codec = await descriptor.instantiateCodec();
+      final codec = await descriptor.instantiateCodec();
 
-    final frameInfo = await codec.getNextFrame();
+      final frameInfo = await codec.getNextFrame();
 
-    return frameInfo.image;
+      return frameInfo.image;
+    } on Exception {
+      // a broken thumbnail should not prevent the ROM from being listed
+      return null;
+    }
   }
 
   void _initializeDirectories() {
