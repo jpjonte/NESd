@@ -84,7 +84,6 @@ jobs:
         with:
           ssh-private-key: |
             ${{ secrets.GAMEPADS_PRIVATE_KEY }}
-            ${{ secrets.MP_AUDIO_STREAM_PRIVATE_KEY }}
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/macos/prepare.sh
         env:

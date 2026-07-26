@@ -8,4 +8,3 @@ workspace:
   - packages/nesd
   - packages/nesd_audio
   - packages/nesd_texture
-  - packages/mp_audio_stream

@@ -2,7 +2,7 @@ PODS:
   - FlutterMacOS (1.0.0)
   - gamepads_darwin (0.1.1):
     - FlutterMacOS
-  - mp_audio_stream (0.0.3):
+  - nesd_audio (0.1.0):
     - FlutterMacOS
   - nesd_texture (0.0.1):
     - FlutterMacOS
@@ -10,7 +10,7 @@ PODS:
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gamepads_darwin (from `Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos`)
-  - mp_audio_stream (from `Flutter/ephemeral/.symlinks/plugins/mp_audio_stream/macos`)
+  - nesd_audio (from `Flutter/ephemeral/.symlinks/plugins/nesd_audio/macos`)
   - nesd_texture (from `Flutter/ephemeral/.symlinks/plugins/nesd_texture/macos`)
 
 EXTERNAL SOURCES:
@@ -18,15 +18,15 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gamepads_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/gamepads_darwin/macos
-  mp_audio_stream:
-    :path: Flutter/ephemeral/.symlinks/plugins/mp_audio_stream/macos
+  nesd_audio:
+    :path: Flutter/ephemeral/.symlinks/plugins/nesd_audio/macos
   nesd_texture:
     :path: Flutter/ephemeral/.symlinks/plugins/nesd_texture/macos
 
 SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gamepads_darwin: 07af6c60c282902b66574c800e20b2b26e68fda8
-  mp_audio_stream: 6c773f43499f206e814f16a25e70d7d0820a2437
+  nesd_audio: d45453d19af7dfc393bc2eb5048077ff0204cdfe
   nesd_texture: b21389e0cc33708d4c181239f4e35e820fb2c5cc
 
 PODFILE CHECKSUM: e3cf4a919ff07c23e33d7443d3d91db8d923c21e
