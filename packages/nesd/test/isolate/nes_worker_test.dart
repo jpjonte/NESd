@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -45,10 +44,7 @@ void main() {
 
   setUp(() {
     events = <NesIsolateEvent>[];
-    worker = NesWorker(
-      send: events.add,
-      audioStreamFactory: MockAudioStream.new,
-    );
+    worker = NesWorker(send: events.add, audioFactory: FakeNesdAudio.new);
   });
 
   tearDown(() async {
@@ -253,7 +249,7 @@ void main() {
     // so overwriting it before shutdown leaks nothing.
     worker = NesWorker(
       send: events.add,
-      audioStreamFactory: MockAudioStream.new,
+      audioFactory: FakeNesdAudio.new,
       audioStatsInterval: Duration.zero,
     );
 
@@ -261,7 +257,7 @@ void main() {
 
     final stats = await waitForCount<AudioStatsEvent>(2);
 
-    expect(stats.first.exhaustDelta, 0); // MockAudioStream: empty stats
+    expect(stats.first.exhaustDelta, 0); // FakeNesdAudio
     expect(stats.first.fillMin, greaterThanOrEqualTo(0));
     expect(stats.first.timestampMilliseconds, greaterThan(0));
   });
@@ -269,12 +265,11 @@ void main() {
   test(
     'discards counters accrued before and during the first window',
     () async {
-      final stream = MockAudioStream()
-        ..nextStat = AudioStreamStat(full: 0, exhaust: 7);
+      final stream = FakeNesdAudio()..underrunsValue = 7;
 
       worker = NesWorker(
         send: events.add,
-        audioStreamFactory: () => stream,
+        audioFactory: () => stream,
         audioStatsInterval: Duration.zero,
       );
 

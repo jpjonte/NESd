@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:es_compression/lz4.dart';
-import 'package:nesd/audio/null_audio_stream.dart';
+import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_config.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 
 /// Entry point run inside the spawned isolate. Wires a [NesWorker] to a
 /// fresh command [ReceivePort] and hands the port back to the host via
@@ -16,10 +17,16 @@ void nesIsolateMain(NesIsolateConfig config) {
     Lz4Codec.libraryPath = path;
   }
 
+  if (config.audioLibraryPath case final path?) {
+    NesdAudio.libraryPath = path;
+  }
+
   final commandPort = ReceivePort();
   final worker = NesWorker(
     send: config.hostPort.send,
-    audioStreamFactory: config.disableAudio ? NullAudioStream.new : null,
+    audioFactory: config.disableAudio
+        ? () => defaultNesdAudio(nullDevice: true)
+        : null,
   );
 
   // Serialize command handling: chaining onto a single future prevents two
@@ -83,6 +90,7 @@ class NesIsolate implements NesIsolateHandle {
 
   static Future<NesIsolate> spawn({
     String? lz4LibraryPath,
+    String? audioLibraryPath,
     bool disableAudio = false,
   }) async {
     final receivePort = ReceivePort();
@@ -104,6 +112,7 @@ class NesIsolate implements NesIsolateHandle {
       NesIsolateConfig(
         hostPort: receivePort.sendPort,
         lz4LibraryPath: lz4LibraryPath,
+        audioLibraryPath: audioLibraryPath,
         disableAudio: disableAudio,
       ),
       errorsAreFatal: false,

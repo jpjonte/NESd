@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
@@ -23,6 +22,7 @@ import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 
 /// `NesDatabase` (`lib/nes/database/database.dart`) is a concrete class
 /// whose only public member is `NesDatabaseEntry? find(RomInfo info)`. Its
@@ -46,12 +46,12 @@ class _FixedDatabase implements NesDatabase {
 class NesWorker {
   NesWorker({
     required this.send,
-    AudioStream Function()? audioStreamFactory,
+    NesdAudio Function()? audioFactory,
     this.audioStatsInterval = const Duration(seconds: 1),
-  }) : _audioStreamFactory = audioStreamFactory ?? getAudioStream;
+  }) : _audioFactory = audioFactory ?? defaultNesdAudio;
 
   final void Function(NesIsolateEvent event) send;
-  final AudioStream Function() _audioStreamFactory;
+  final NesdAudio Function() _audioFactory;
 
   final Duration audioStatsInterval;
 
@@ -202,7 +202,7 @@ class NesWorker {
       final cartridge = factory.fromFile(command.file, rom)
         ..databaseEntry = command.databaseEntry;
 
-      _audioOutput ??= AudioOutput(audioStream: _audioStreamFactory());
+      _audioOutput ??= AudioOutput(audio: _audioFactory());
 
       // reset() starts the run loop and synchronously emulates the first
       // frame before _nes/_subscription are set below, so the very first
