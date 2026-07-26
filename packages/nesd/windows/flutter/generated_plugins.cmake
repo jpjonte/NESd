@@ -11,6 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   jni
   mp_audio_stream
+  nesd_audio
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

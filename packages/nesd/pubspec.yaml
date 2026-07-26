@@ -36,6 +36,7 @@ dependencies:
   intl: ^0.20.2
   json_annotation: ^4.9.0
   mp_audio_stream: any
+  nesd_audio: any
   nesd_texture: any
   package_info_plus: ^10.1.0
   path: ^1.9.1

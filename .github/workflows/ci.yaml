@@ -41,6 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: flutter pub get
+      - run: bin/build_test_libs.sh
       - run: |
           cd packages/nesd
           flutter test --coverage
