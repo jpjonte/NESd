@@ -104,15 +104,27 @@ class ToastState extends _$ToastState {
 enum ToastType { info, warning, error }
 
 class Toast {
-  Toast({required this.type, required this.message});
+  Toast({required this.type, required String message})
+    : message = _stripStackTrace(message);
 
-  Toast.info(this.message) : type = ToastType.info;
+  Toast.info(String message) : this(type: ToastType.info, message: message);
 
-  Toast.warning(this.message) : type = ToastType.warning;
+  Toast.warning(String message)
+    : this(type: ToastType.warning, message: message);
 
-  Toast.error(this.message) : type = ToastType.error;
+  Toast.error(String message) : this(type: ToastType.error, message: message);
 
   final String message;
   final ToastType type;
   final DateTime createdAt = DateTime.now();
+}
+
+final _stackFrame = RegExp(r'^\s*(#\d+\s|<asynchronous suspension>)');
+
+String _stripStackTrace(String message) {
+  final lines = message.split('\n');
+
+  final kept = lines.where((line) => !_stackFrame.hasMatch(line));
+
+  return kept.join('\n').trimRight();
 }

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - NESd can now handle the audio output disappearing (e.g. headphones unplugged)
 - Replaced the unmaintained third-party audio backend with a custom audio plugin
+- Error notifications no longer show raw stack traces
 
 ## [0.15.0] - 2026-07-23
 

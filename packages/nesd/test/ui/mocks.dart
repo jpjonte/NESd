@@ -183,6 +183,13 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
     });
   }
 
+  /// Injects [event] into [events] as if the worker had sent it.
+  void emit(NesIsolateEvent event) {
+    if (!_events.isClosed) {
+      _events.add(event);
+    }
+  }
+
   @override
   Future<void> dispose() async {
     await _worker.shutdown();
