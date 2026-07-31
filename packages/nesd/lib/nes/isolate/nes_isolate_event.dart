@@ -1,8 +1,11 @@
 import 'dart:isolate';
 
+import 'package:flutter/foundation.dart';
+import 'package:nesd/nes/apu/apu_channel_samples.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/execution_log_state.dart';
+import 'package:nesd/nes/isolate/apu_debug_state.dart';
 
 sealed class NesIsolateEvent {
   const NesIsolateEvent();
@@ -104,6 +107,156 @@ class ExecutionLogEvent extends NesIsolateEvent {
   const ExecutionLogEvent({required this.lines});
 
   final List<ExecutionLogLine> lines;
+}
+
+/// The per-channel sample views carried by one [ApuDebugEvent], sliced
+/// out of its single packed payload by [ApuDebugEvent.unpackSamples].
+@immutable
+class ApuDebugSamples {
+  const ApuDebugSamples({
+    required this.pulse1,
+    required this.pulse2,
+    required this.triangle,
+    required this.noise,
+    required this.dmc,
+    required this.mix,
+  });
+
+  /// Channel lanes, each `sampleCount` long. Values are raw channel
+  /// outputs, not normalized.
+  final Uint8List pulse1;
+  final Uint8List pulse2;
+  final Uint8List triangle;
+  final Uint8List noise;
+  final Uint8List dmc;
+
+  /// The mixed output, pre-volume, in the range 0-1.
+  final Float32List mix;
+}
+
+class ApuDebugEvent extends NesIsolateEvent {
+  const ApuDebugEvent({
+    required this.channelSamples,
+    required this.mixSamples,
+    required this.sampleCount,
+    required this.pulse1,
+    required this.pulse2,
+    required this.triangle,
+    required this.noise,
+    required this.dmc,
+    required this.cpuFrequency,
+  });
+
+  /// Packs the first [sampleCount] entries of [channels] and [mix] into
+  /// one transferable payload, in [_channelOrder].
+  ///
+  /// This is the only place the layout is written, [unpackSamples] is the
+  /// only place it is read. Keep the two in step.
+  factory ApuDebugEvent.pack({
+    required ApuChannelSamples channels,
+    required Float32List mix,
+    required int sampleCount,
+    required PulseDebugState pulse1,
+    required PulseDebugState pulse2,
+    required TriangleDebugState triangle,
+    required NoiseDebugState noise,
+    required DmcDebugState dmc,
+    required int cpuFrequency,
+  }) {
+    assert(sampleCount > 0, 'sampleCount must be positive');
+    assert(
+      mix.length == sampleCount,
+      'mix has ${mix.length} samples, expected $sampleCount',
+    );
+    assert(
+      channels.length >= sampleCount,
+      'channel buffers hold ${channels.length}, need $sampleCount',
+    );
+
+    final lanes = _channelOrder(channels);
+    final packed = Uint8List(lanes.length * sampleCount);
+
+    for (var i = 0; i < lanes.length; i++) {
+      packed.setRange(i * sampleCount, (i + 1) * sampleCount, lanes[i]);
+    }
+
+    return ApuDebugEvent(
+      channelSamples: TransferableTypedData.fromList([packed]),
+      mixSamples: TransferableTypedData.fromList([mix]),
+      sampleCount: sampleCount,
+      pulse1: pulse1,
+      pulse2: pulse2,
+      triangle: triangle,
+      noise: noise,
+      dmc: dmc,
+      cpuFrequency: cpuFrequency,
+    );
+  }
+
+  /// The packing order. Both halves of the protocol derive their offsets
+  /// from this list, so reordering it moves the sender and the receiver
+  /// together.
+  static List<Uint8List> _channelOrder(ApuChannelSamples channels) => [
+    channels.pulse1,
+    channels.pulse2,
+    channels.triangle,
+    channels.noise,
+    channels.dmc,
+  ];
+
+  static const channelCount = 5;
+
+  /// Materializes the payload and slices it back into per-channel views.
+  ApuDebugSamples unpackSamples() {
+    final bytes = channelSamples.materialize().asUint8List();
+    final mix = mixSamples.materialize().asFloat32List();
+
+    if (bytes.length != channelCount * sampleCount ||
+        mix.length != sampleCount) {
+      throw StateError(
+        'APU debug payload does not match sampleCount=$sampleCount: '
+        'channel bytes=${bytes.length} '
+        '(expected ${channelCount * sampleCount}), '
+        'mix=${mix.length} (expected $sampleCount)',
+      );
+    }
+
+    Uint8List lane(int index) => Uint8List.sublistView(
+      bytes,
+      index * sampleCount,
+      (index + 1) * sampleCount,
+    );
+
+    return ApuDebugSamples(
+      pulse1: lane(0),
+      pulse2: lane(1),
+      triangle: lane(2),
+      noise: lane(3),
+      dmc: lane(4),
+      mix: mix,
+    );
+  }
+
+  /// [channelCount] `sampleCount`-byte lanes packed back to back; see
+  /// [ApuDebugEvent.pack] for the order.
+  final TransferableTypedData channelSamples;
+
+  /// The frame's mixed samples as float32 bytes, pre-volume. Exactly
+  /// [sampleCount] floats, unlike [channelSamples] the receiver has no
+  /// separate length to slice against.
+  final TransferableTypedData mixSamples;
+
+  final int sampleCount;
+
+  final PulseDebugState pulse1;
+  final PulseDebugState pulse2;
+  final TriangleDebugState triangle;
+  final NoiseDebugState noise;
+  final DmcDebugState dmc;
+
+  /// CPU frequency in Hz for the active region, for deriving channel
+  /// frequencies UI-side.
+  final int cpuFrequency;
 }
 
 class BreakpointsEvent extends NesIsolateEvent {

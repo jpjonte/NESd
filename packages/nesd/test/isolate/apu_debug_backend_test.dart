@@ -1,0 +1,156 @@
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/isolate/nes_command.dart';
+import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/isolate/nes_worker.dart';
+import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+
+import '../ui/mocks.dart';
+
+const _romPath = '../../roms/test/nestest/nestest.nes';
+
+LoadRomCommand _loadRomCommand({bool rewindEnabled = false}) {
+  final bytes = File(_romPath).readAsBytesSync();
+
+  return LoadRomCommand(
+    rom: TransferableTypedData.fromList([bytes]),
+    file: const FilesystemFile(
+      path: _romPath,
+      name: 'nestest.nes',
+      type: FilesystemFileType.file,
+    ),
+    databaseEntry: null,
+    region: Region.ntsc,
+    rewindEnabled: rewindEnabled,
+    cheats: const [],
+    breakpoints: const [],
+  );
+}
+
+void main() {
+  late List<NesIsolateEvent> events;
+  late NesWorker worker;
+
+  setUp(() {
+    events = <NesIsolateEvent>[];
+    worker = NesWorker(send: events.add, audioFactory: FakeNesdAudio.new);
+  });
+
+  tearDown(() async {
+    await worker.shutdown();
+  });
+
+  Future<List<T>> waitForCount<T extends NesIsolateEvent>(
+    int count, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+
+    while (true) {
+      final matches = events.whereType<T>().toList();
+
+      if (matches.length >= count) {
+        return matches;
+      }
+
+      if (DateTime.now().isAfter(deadline)) {
+        fail(
+          'Timed out waiting for $count $T event(s); got '
+          '${matches.length}. All events: '
+          '${events.map((e) => e.runtimeType).toList()}',
+        );
+      }
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+  }
+
+  Future<T> waitFor<T extends NesIsolateEvent>({
+    Duration timeout = const Duration(seconds: 5),
+  }) async => (await waitForCount<T>(1, timeout: timeout)).first;
+
+  test('enabling APU debug emits ApuDebugEvents with a consistent '
+      'payload', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    expect(worker.nesForTesting!.apu.debugSamplingEnabled, isTrue);
+
+    final event = await waitFor<ApuDebugEvent>();
+
+    expect(event.sampleCount, greaterThan(0));
+
+    final channelBytes = event.channelSamples.materialize().asUint8List();
+
+    expect(channelBytes.length, 5 * event.sampleCount);
+
+    final mix = event.mixSamples.materialize().asFloat32List();
+
+    expect(mix.length, event.sampleCount);
+    expect(event.cpuFrequency, ntscCpuFrequency);
+  });
+
+  test('disabling APU debug stops emission and releases the '
+      'buffers', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+    await waitFor<ApuDebugEvent>();
+
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: false));
+
+    expect(worker.nesForTesting!.apu.debugSamplingEnabled, isFalse);
+
+    events.clear();
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(events.whereType<ApuDebugEvent>(), isEmpty);
+  });
+
+  test('no events are emitted while rewinding', () async {
+    await worker.handleCommand(_loadRomCommand(rewindEnabled: true));
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    // Let the rewind buffer fill, otherwise the first pop finds it empty
+    // and the run loop drops straight back out of rewind.
+    await waitForCount<ApuDebugEvent>(5);
+
+    // During rewind the frame's samples run backwards while the capture
+    // buffers still hold forward-ordered data, so the two would not line
+    // up. The panel must hold its last frame instead.
+    final nes = worker.nesForTesting!..rewind = true;
+
+    events.clear();
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(nes.rewind, isTrue, reason: 'rewind ended before it was observed');
+    expect(events.whereType<ApuDebugEvent>(), isEmpty);
+
+    nes.rewind = false;
+
+    await waitFor<ApuDebugEvent>();
+  });
+
+  test('APU debug emission survives a ROM reload', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+    await waitFor<ApuDebugEvent>();
+
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<RomLoadedEvent>(2);
+
+    events.clear();
+
+    await waitFor<ApuDebugEvent>();
+  });
+}
