@@ -42,7 +42,7 @@ void nesIsolateMain(NesIsolateConfig config) {
       try {
         await worker.handleCommand(command);
       } on Object catch (error, stackTrace) {
-        config.hostPort.send(ErrorEvent(message: '$error\n$stackTrace'));
+        config.hostPort.send(ErrorEvent.from(error, stackTrace));
       }
     });
   });
@@ -98,9 +98,15 @@ class NesIsolate implements NesIsolateHandle {
     final exitPort = ReceivePort();
 
     errorPort.listen((message) {
+      // Isolate error notifications arrive as [error, stackTrace].
       final parts = (message as List).map((e) => e?.toString() ?? '').toList();
 
-      receivePort.sendPort.send(ErrorEvent(message: parts.join('\n')));
+      receivePort.sendPort.send(
+        ErrorEvent(
+          message: parts.isNotEmpty ? parts.first : '',
+          stackTrace: parts.length > 1 ? parts.sublist(1).join('\n') : null,
+        ),
+      );
     });
 
     exitPort.listen((_) {

@@ -21,23 +21,14 @@ class _MockRomManager extends Mock implements RomManager {}
 
 class _MockFilesystem extends Mock implements Filesystem {}
 
-void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+/// A [NesController] wired to a [FakeNesIsolateHandle] with a ROM loaded.
+class _Harness {
+  _Harness._({required this.handle, required this.toaster});
 
-  setUpAll(() {
-    registerFallbackValue(Toast.info('fallback'));
-    registerFallbackValue(
-      const RomInfo(
-        file: FilesystemFile(
-          path: '/x',
-          name: 'x',
-          type: FilesystemFileType.file,
-        ),
-      ),
-    );
-  });
+  final FakeNesIsolateHandle handle;
+  final _MockToaster toaster;
 
-  test('worker errors are toasted without the stack trace', () async {
+  static Future<_Harness> load() async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
@@ -85,20 +76,65 @@ void main() {
 
     await controller.loadRom(file, data: minimalValidRom());
 
+    return _Harness._(handle: handle, toaster: toaster);
+  }
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    registerFallbackValue(Toast.info('fallback'));
+    registerFallbackValue(
+      const RomInfo(
+        file: FilesystemFile(
+          path: '/x',
+          name: 'x',
+          type: FilesystemFileType.file,
+        ),
+      ),
+    );
+  });
+
+  test('worker errors are logged toasted without the stack trace', () async {
+    final harness = await _Harness.load();
+
     const message =
         'Invalid argument(s): failed to load library\n'
         '#0      _open (dart:ffi-patch/ffi_dynamic_library_patch.dart:11)\n'
         '#1      RewindBuffer.add (package:nesd/nes/rewind/rewind_buffer.dart:59)';
 
-    handle.emit(const ErrorEvent(message: message));
+    harness.handle.emit(const ErrorEvent(message: message));
 
     await pumpEventQueue();
 
-    final toasts = verify(() => toaster.send(captureAny())).captured;
+    final toasts = verify(() => harness.toaster.send(captureAny())).captured;
     final errorToast = toasts.whereType<Toast>().lastWhere(
       (t) => t.type == ToastType.error,
     );
 
     expect(errorToast.message, 'Invalid argument(s): failed to load library');
+  });
+
+  test('a separate stack trace is kept out of the toast', () async {
+    final harness = await _Harness.load();
+
+    harness.handle.emit(
+      const ErrorEvent(
+        message: 'boom',
+        stackTrace:
+            '#0      RewindBuffer.add '
+            '(package:nesd/nes/rewind/rewind_buffer.dart:59)',
+      ),
+    );
+
+    await pumpEventQueue();
+
+    final toasts = verify(() => harness.toaster.send(captureAny())).captured;
+    final errorToast = toasts.whereType<Toast>().lastWhere(
+      (t) => t.type == ToastType.error,
+    );
+
+    expect(errorToast.message, 'boom');
   });
 }
