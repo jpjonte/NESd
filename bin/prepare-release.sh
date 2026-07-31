@@ -14,12 +14,6 @@ if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-if ! command -v yq &> /dev/null
-then
-    echo "yq could not be found"
-    exit
-fi
-
 date=$(date +'%Y-%m-%d')
 
 if sed --version &> /dev/null; then
