@@ -2,110 +2,103 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 
-class _FakeAudioStream implements AudioStream {
-  int filledSize = 0;
+class _FakeNesdAudio implements NesdAudio {
+  int filledValue = 0;
+  int underrunsValue = 0;
+  int overrunsValue = 0;
+  int closeCount = 0;
+  int resetStatsCount = 0;
 
   final List<Float32List> pushed = [];
 
-  int initCount = 0;
-  int uninitCount = 0;
-
-  AudioStreamStat nextStat = AudioStreamStat.empty();
-
-  int resetStatCount = 0;
+  @override
+  int get capacity => 2400;
 
   @override
-  int init({
-    int bufferMilliSec = 3000,
-    int waitingBufferMilliSec = 100,
-    int channels = 1,
-    int sampleRate = 44100,
-  }) {
-    initCount++;
-
-    return 0;
-  }
+  int get filled => filledValue;
 
   @override
-  void uninit() {
-    uninitCount++;
-  }
+  int get underruns => underrunsValue;
 
   @override
-  void resume() {}
+  int get overruns => overrunsValue;
 
   @override
-  int push(Float32List buf) {
+  int get restarts => 0;
+
+  @override
+  NesdAudioState get state => NesdAudioState.nullDevice;
+
+  @override
+  int push(Float32List samples) {
     // copy: the caller reuses its flush buffer between pushes
-    pushed.add(Float32List.fromList(buf));
+    pushed.add(Float32List.fromList(samples));
 
-    return 0;
+    return samples.length;
   }
 
   @override
-  AudioStreamStat stat() => nextStat;
-
-  @override
-  void resetStat() {
-    resetStatCount++;
+  void resetStats() {
+    resetStatsCount++;
+    underrunsValue = 0;
+    overrunsValue = 0;
   }
 
   @override
-  int getBufferSize() => 2400;
-
-  @override
-  int getBufferFilledSize() => filledSize;
+  void close() {
+    closeCount++;
+  }
 }
 
 void main() {
-  late _FakeAudioStream stream;
+  late _FakeNesdAudio audio;
   late AudioOutput output;
 
   setUp(() {
-    stream = _FakeAudioStream();
-    output = AudioOutput(audioStream: stream);
+    audio = _FakeNesdAudio();
+    output = AudioOutput(audio: audio);
   });
 
   test('pushes as many samples as fit in the native buffer', () {
-    stream.filledSize = 2000;
+    audio.filledValue = 2000;
 
     output.processSamples(Float32List(800));
 
-    expect(stream.pushed.single.length, 400);
+    expect(audio.pushed.single.length, 400);
   });
 
   test('keeps pushing immediately after an underrun', () {
-    stream.filledSize = 0;
+    audio.filledValue = 0;
 
     output.processSamples(Float32List(800));
 
-    expect(stream.pushed.single.length, 800);
+    expect(audio.pushed.single.length, 800);
   });
 
   test('retains pending samples while the native buffer is full', () {
-    stream.filledSize = 2400;
+    audio.filledValue = 2400;
 
     output.processSamples(Float32List(800));
 
-    expect(stream.pushed, isEmpty);
+    expect(audio.pushed, isEmpty);
 
-    stream.filledSize = 0;
+    audio.filledValue = 0;
 
     output.processSamples(Float32List(0));
 
-    expect(stream.pushed.single.length, 800);
+    expect(audio.pushed.single.length, 800);
   });
 
   test('bufferStatus sums native fill and pending samples', () {
-    stream.filledSize = 2400;
+    audio.filledValue = 2400;
 
     output.processSamples(Float32List(100));
 
-    stream.filledSize = 1000;
+    audio.filledValue = 1000;
 
     expect(output.bufferStatus, (fill: 1100, capacity: 2400));
   });
@@ -119,7 +112,7 @@ void main() {
 
     // the input buffer itself is mutated (documented contract)
     expect(samples, [0.5, -0.5, 0.25]);
-    expect(stream.pushed.single, [0.5, -0.5, 0.25]);
+    expect(audio.pushed.single, [0.5, -0.5, 0.25]);
   });
 
   test('leaves samples untouched at volume 1.0', () {
@@ -128,31 +121,38 @@ void main() {
     output.processSamples(samples);
 
     expect(samples, [1.0, -1.0, 0.5]);
-    expect(stream.pushed.single, [1.0, -1.0, 0.5]);
+    expect(audio.pushed.single, [1.0, -1.0, 0.5]);
   });
 
   test('reset does not tear down the audio device', () {
     output.reset();
 
-    expect(stream.uninitCount, 0);
-    expect(stream.initCount, 1); // constructor only
+    expect(audio.closeCount, 0);
+  });
+
+  test('dispose closes the stream', () {
+    output.dispose();
+
+    expect(audio.closeCount, 1);
   });
 
   test('takeStats returns native counters and resets them', () {
-    stream.nextStat = AudioStreamStat(full: 1, exhaust: 3);
+    audio
+      ..underrunsValue = 3
+      ..overrunsValue = 1;
 
     final stats = output.takeStats();
 
     expect(stats.exhaustDelta, 3);
     expect(stats.fullDelta, 1);
-    expect(stream.resetStatCount, 1);
+    expect(audio.resetStatsCount, 1);
   });
 
   test('takeStats tracks min and max fill across frames', () {
-    stream.filledSize = 500;
+    audio.filledValue = 500;
     output.processSamples(Float32List(0));
 
-    stream.filledSize = 1500;
+    audio.filledValue = 1500;
     output.processSamples(Float32List(0));
 
     final stats = output.takeStats();
@@ -162,7 +162,7 @@ void main() {
   });
 
   test('takeStats without samples reports current fill for both', () {
-    stream.filledSize = 700;
+    audio.filledValue = 700;
 
     final stats = output.takeStats();
 
@@ -171,12 +171,12 @@ void main() {
   });
 
   test('fill window resets between takeStats calls', () {
-    stream.filledSize = 100;
+    audio.filledValue = 100;
     output
       ..processSamples(Float32List(0))
       ..takeStats();
 
-    stream.filledSize = 900;
+    audio.filledValue = 900;
     output.processSamples(Float32List(0));
 
     final stats = output.takeStats();

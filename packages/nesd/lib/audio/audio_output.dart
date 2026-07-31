@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:mp_audio_stream/mp_audio_stream.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/util/ring_buffer.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 
 typedef AudioStats = ({
   int exhaustDelta,
@@ -13,12 +14,24 @@ typedef AudioStats = ({
   int fillMax,
 });
 
-class AudioOutput {
-  AudioOutput({required this.audioStream}) {
-    _init();
-  }
+/// Native ring capacity: 50 ms at the APU sample rate.
+const audioBufferSamples = 2400;
 
-  final AudioStream audioStream;
+/// Underrun recovery threshold: 20 ms.
+const audioRecoverSamples = 960;
+
+NesdAudio defaultNesdAudio({bool nullDevice = false}) => NesdAudio.open(
+  sampleRate: apuSampleRate,
+  channels: 1,
+  bufferSamples: audioBufferSamples,
+  recoverSamples: audioRecoverSamples,
+  nullDevice: nullDevice,
+);
+
+class AudioOutput {
+  AudioOutput({required this.audio});
+
+  final NesdAudio audio;
 
   final _audioBuffer = RingBuffer(
     buffer: Float32List(2400), // 50 ms
@@ -39,10 +52,8 @@ class AudioOutput {
     _volume = value.clamp(0.0, 1.0);
   }
 
-  AudioBufferStatus get bufferStatus => (
-    fill: audioStream.getBufferFilledSize() + _audioBuffer.current,
-    capacity: audioStream.getBufferSize(),
-  );
+  AudioBufferStatus get bufferStatus =>
+      (fill: audio.filled + _audioBuffer.current, capacity: audio.capacity);
 
   void reset() {
     _audioBuffer.clear();
@@ -51,7 +62,7 @@ class AudioOutput {
   void dispose() {
     pcmRecorder?.close();
     pcmRecorder = null;
-    audioStream.uninit();
+    audio.close();
   }
 
   void processSamples(Float32List samples) {
@@ -70,15 +81,8 @@ class AudioOutput {
     _flushSamples();
   }
 
-  void _init() {
-    audioStream
-      ..init(bufferMilliSec: 50, waitingBufferMilliSec: 20, sampleRate: 48000)
-      ..resume();
-  }
-
   void _flushSamples() {
-    final remaining =
-        audioStream.getBufferSize() - audioStream.getBufferFilledSize();
+    final remaining = audio.capacity - audio.filled;
     final flushSize = min(
       min(remaining, _audioBuffer.current),
       _flushBuffer.length,
@@ -90,21 +94,19 @@ class AudioOutput {
 
     final count = _audioBuffer.readInto(_flushBuffer, flushSize);
 
-    audioStream.push(Float32List.sublistView(_flushBuffer, 0, count));
+    audio.push(Float32List.sublistView(_flushBuffer, 0, count));
   }
 
   AudioStats takeStats() {
-    final stat = audioStream.stat();
-
-    audioStream.resetStat();
-
     final fill = bufferStatus.fill;
     final stats = (
-      exhaustDelta: stat.exhaust,
-      fullDelta: stat.full,
+      exhaustDelta: audio.underruns,
+      fullDelta: audio.overruns,
       fillMin: _fillMin ?? fill,
       fillMax: _fillMax ?? fill,
     );
+
+    audio.resetStats();
 
     _fillMin = null;
     _fillMax = null;

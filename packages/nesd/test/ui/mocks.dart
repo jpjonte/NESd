@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:mocktail/mocktail.dart';
-import 'package:mp_audio_stream/mp_audio_stream.dart';
-import 'package:nesd/audio/null_audio_stream.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
@@ -12,38 +10,44 @@ import 'package:nesd/nes/isolate/nes_worker.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MockAudioStream extends Mock implements AudioStream {
-  @override
-  int getBufferFilledSize() => 0;
+class FakeNesdAudio implements NesdAudio {
+  int underrunsValue = 0;
+
+  // Half full for proper emulation pacing
+  int filledValue = 96000;
 
   @override
-  int getBufferSize() => 192000; // 48 kHz * 4 bytes * 1 second
+  int get capacity => 192000; // 48 kHz * 4 bytes * 1 second
 
   @override
-  int push(Float32List buf) => 0;
+  int get filled => filledValue;
 
   @override
-  int init({
-    int bufferMilliSec = 3000,
-    int waitingBufferMilliSec = 100,
-    int channels = 1,
-    int sampleRate = 44100,
-  }) {
-    return 0;
+  int get underruns => underrunsValue;
+
+  @override
+  int get overruns => 0;
+
+  @override
+  int get restarts => 0;
+
+  @override
+  NesdAudioState get state => NesdAudioState.nullDevice;
+
+  @override
+  int push(Float32List samples) => samples.length;
+
+  @override
+  void resetStats() {
+    underrunsValue = 0;
   }
 
-  AudioStreamStat nextStat = AudioStreamStat.empty();
-
   @override
-  AudioStreamStat stat() => nextStat;
-
-  @override
-  void resetStat() {
-    nextStat = AudioStreamStat.empty();
-  }
+  void close() {}
 }
 
 class MockSharedPreferences extends Mock implements SharedPreferences {}
@@ -130,14 +134,8 @@ Uint8List minimalValidRom() {
 
 /// In-process [NesIsolateHandle] for widget tests.
 ///
-/// Instead of spawning a real isolate (no miniaudio symbols under
-/// `flutter_tester`, and isolate messages invisible to `FakeAsync`), it runs
-/// a real [NesWorker] on the test isolate with [NullAudioStream]. Commands
-/// are forwarded to the worker and its events are re-published, so the full
-/// emulator protocol (ROM loading, save states, SRAM, thumbnails) behaves
-/// exactly as in production, deterministically driven by the test's own
-/// pumping. Override `nesIsolateSpawnerProvider` with `() async =>
-/// FakeNesIsolateHandle()` to install it.
+/// Runs a real [NesWorker] on the test isolate with [FakeNesdAudio] instead of
+/// a separate isolate.
 ///
 /// See [forcedRomLoadFailurePath] for forcing a `RomLoadFailedEvent` without
 /// a real worker-side parse failure.
@@ -149,7 +147,7 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
           _events.add(event);
         }
       },
-      audioStreamFactory: NullAudioStream.new,
+      audioFactory: FakeNesdAudio.new,
     );
   }
 
@@ -177,9 +175,7 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
   void _forceLoadFailure() {
     // Defer by a microtask so callers that subscribe to `events` right
     // after calling `send` (e.g. `NesController.loadRom`'s `firstWhere`)
-    // are listening before this arrives. Mirrors the real worker's async
-    // dispatch, without relying on a real `Timer` (which the widget test
-    // clock won't advance without an explicit pump).
+    // are listening before this arrives.
     scheduleMicrotask(() {
       if (!_events.isClosed) {
         _events.add(const RomLoadFailedEvent(message: 'forced test failure'));

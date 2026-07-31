@@ -8,12 +8,14 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd_audio/nesd_audio.dart';
 
 void main() {
   test('spawn, load rom, receive frames, release, dispose', () async {
     final isolate = await NesIsolate.spawn(
       lz4LibraryPath: Lz4Codec.libraryPath,
-      disableAudio: true, // flutter_tester has no miniaudio symbols
+      audioLibraryPath: NesdAudio.libraryPath,
+      disableAudio: true, // null device: no audio hardware in tests
     );
 
     final rom = File('../../roms/test/nestest/nestest.nes').readAsBytesSync();
@@ -59,7 +61,8 @@ void main() {
   test('garbage LoadSramCommand keeps the isolate alive and framing', () async {
     final isolate = await NesIsolate.spawn(
       lz4LibraryPath: Lz4Codec.libraryPath,
-      disableAudio: true, // flutter_tester has no miniaudio symbols
+      audioLibraryPath: NesdAudio.libraryPath,
+      disableAudio: true, // null device: no audio hardware in tests
     );
 
     addTearDown(isolate.dispose);
@@ -112,7 +115,8 @@ void main() {
     () async {
       final isolate = await NesIsolate.spawn(
         lz4LibraryPath: Lz4Codec.libraryPath,
-        disableAudio: true, // flutter_tester has no miniaudio symbols
+        audioLibraryPath: NesdAudio.libraryPath,
+        disableAudio: true, // null device: no audio hardware in tests
       );
 
       addTearDown(isolate.dispose);
