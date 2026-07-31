@@ -22,11 +22,17 @@ fi
 
 date=$(date +'%Y-%m-%d')
 
-sed -i '' -e 's/\[Unreleased\]/['"$version"'] - '"$date"'/' CHANGELOG.md
+if sed --version &> /dev/null; then
+    sedi=(sed -i)
+else
+    sedi=(sed -i '')
+fi
 
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-x64
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-arm64
-sed -i '' -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/rpm/nesd.spec
+"${sedi[@]}" -e 's/\[Unreleased\]/['"$version"'] - '"$date"'/' CHANGELOG.md
+
+"${sedi[@]}" -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-x64
+"${sedi[@]}" -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/deb/control-arm64
+"${sedi[@]}" -e '/Version/s/.*/Version: '"$version"'/' packages/nesd/linux/packaging/rpm/nesd.spec
 
 awk '
 BEGIN {
@@ -40,4 +46,4 @@ BEGIN {
 
 mv -f metainfo.xml packages/nesd/linux/packaging/dev.jpj.NESd.metainfo.xml
 
-sed -i '' -e '/version:/s/.*/version: '"$version"'/' packages/nesd/pubspec.yaml
+"${sedi[@]}" -e '/version:/s/.*/version: '"$version"'/' packages/nesd/pubspec.yaml
