@@ -86,6 +86,7 @@ sealed class Settings with _$Settings {
     @Default(false) bool showCartridgeInfo,
     @Default(false) bool showDebugOverlay,
     @Default(false) bool showDebugger,
+    @Default(false) bool showApuDebug,
     @Default(Scaling.autoInteger) Scaling scaling,
     @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
@@ -172,6 +173,12 @@ class SettingsController extends _$SettingsController {
 
   set showDebugger(bool showDebugger) {
     _update(state.copyWith(showDebugger: showDebugger));
+  }
+
+  bool get showApuDebug => state.showApuDebug;
+
+  set showApuDebug(bool showApuDebug) {
+    _update(state.copyWith(showApuDebug: showApuDebug));
   }
 
   Scaling get scaling => state.scaling;

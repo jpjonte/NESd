@@ -14,6 +14,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   showCartridgeInfo: json['showCartridgeInfo'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
   showDebugger: json['showDebugger'] as bool? ?? false,
+  showApuDebug: json['showApuDebug'] as bool? ?? false,
   scaling:
       $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
       Scaling.autoInteger,
@@ -87,6 +88,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'showCartridgeInfo': instance.showCartridgeInfo,
   'showDebugOverlay': instance.showDebugOverlay,
   'showDebugger': instance.showDebugger,
+  'showApuDebug': instance.showApuDebug,
   'scaling': _$ScalingEnumMap[instance.scaling]!,
   'autoSave': instance.autoSave,
   'autoSaveInterval': instance.autoSaveInterval,
@@ -180,7 +182,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'7c9f030c0d39c37651ca5a61070b7f8509fb5db8';
+    r'dcf6e72738c6a41a6183e96755c43647e1480029';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

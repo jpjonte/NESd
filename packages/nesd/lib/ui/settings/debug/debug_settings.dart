@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nesd/ui/settings/debug/apu_debug_switch.dart';
 import 'package:nesd/ui/settings/debug/cartridge_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_tile_switch.dart';
@@ -19,6 +20,7 @@ class DebugSettings extends StatelessWidget {
             CartridgeSwitch(),
             DebugOverlaySwitch(),
             DebuggerSwitch(),
+            ApuDebugSwitch(),
           ],
         ),
       ),
