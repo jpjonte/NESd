@@ -1,29 +1,32 @@
+$ErrorActionPreference = "Stop"
+
 flutter pub get
+
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 $repoDirectory = Get-Location
 $nesdDirectory = Join-Path -Path $repoDirectory -ChildPath ".\packages\nesd"
-
-Get-ChildItem -Path "$env:USERPROFILE\AppData\Local\Pub\Cache\git" -Directory -Filter "mp-audio-stream*" | ForEach-Object {
-    Set-Location $_.FullName
-    git submodule init
-    git submodule update
-}
 
 Set-Location $nesdDirectory
 
 flutter build windows --release
 
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
+
 Set-Location $repoDirectory
 
-$lz4library = ".\windows\eslz4-win64.dll"
 $buildDirectory = ".\packages\nesd\build\windows\x64\runner\Release"
 
-New-Item -ItemType Directory -Path $buildDirectory -Force
+# The LZ4 library is installed into the bundle by windows/CMakeLists.txt.
+# Fail the build if it's missing.
+$lz4library = Join-Path -Path $buildDirectory -ChildPath "eslz4-win64.dll"
 
-if (Test-Path $lz4library) {
-    Copy-Item -Path $lz4library -Destination $buildDirectory
-} else {
-    Write-Host "File does not exist: $lz4library"
+if (-not (Test-Path $lz4library)) {
+    Write-Error "LZ4 library missing from the build output: $lz4library"
 }
 
 New-Item -ItemType Directory -Path ".\dist" -Force

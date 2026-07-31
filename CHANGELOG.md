@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Replaced the unmaintained third-party audio backend with a custom audio plugin
 - Error notifications no longer show raw stack traces
 
+### Fixed
+- Fixed rewind crashing on Windows: the LZ4 compression library was missing from the Windows builds since 0.14.0
+
 ## [0.15.0] - 2026-07-23
 
 ### Added
