@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -15,6 +16,7 @@ import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
+import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -428,7 +430,31 @@ class SettingsController extends _$SettingsController {
 
   void _update(Settings settings) {
     state = settings;
-    _prefs.setString(settingsKey, jsonEncode(state.toJson()));
+
+    unawaited(_persist(settings));
+  }
+
+  Future<void> _persist(Settings settings) async {
+    try {
+      final saved = await _prefs.setString(
+        settingsKey,
+        jsonEncode(settings.toJson()),
+      );
+
+      if (!saved) {
+        _reportSaveFailure('the platform rejected the write');
+      }
+    } on Object catch (e) {
+      _reportSaveFailure(e);
+    }
+  }
+
+  void _reportSaveFailure(Object reason) {
+    debugPrint('Failed to save settings: $reason');
+
+    ref
+        .read(toasterProvider)
+        .send(Toast.warning('Failed to save settings; changes may be lost'));
   }
 
   Settings _load() {
@@ -441,7 +467,7 @@ class SettingsController extends _$SettingsController {
         wideTouchInputConfig: defaultLandscapeConfig,
       );
 
-      _prefs.setString(settingsKey, jsonEncode(settings.toJson()));
+      unawaited(_persist(settings));
 
       return settings;
     }

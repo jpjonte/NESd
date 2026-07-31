@@ -58,6 +58,47 @@ void main() {
     await isolate.dispose();
   });
 
+  test('an uncaught worker error separates the stack trace from the '
+      'message', () async {
+    // Reproduces #234: a missing LZ4 library makes the first rewind
+    // snapshot throw outside the command queue, surfacing through the
+    // isolate's error port.
+    final isolate = await NesIsolate.spawn(
+      lz4LibraryPath: '/nonexistent/eslz4.so',
+      audioLibraryPath: NesdAudio.libraryPath,
+      disableAudio: true, // null device: no audio hardware in tests
+    );
+
+    addTearDown(isolate.dispose);
+
+    final rom = File('../../roms/test/nestest/nestest.nes').readAsBytesSync();
+
+    isolate.send(
+      LoadRomCommand(
+        rom: TransferableTypedData.fromList([rom]),
+        file: const FilesystemFile(
+          path: 'nestest.nes',
+          name: 'nestest.nes',
+          type: FilesystemFileType.file,
+        ),
+        databaseEntry: null,
+        region: null,
+        rewindEnabled: true,
+        cheats: const [],
+        breakpoints: const [],
+      ),
+    );
+
+    final event =
+        await isolate.events
+                .firstWhere((e) => e is ErrorEvent)
+                .timeout(const Duration(seconds: 10))
+            as ErrorEvent;
+
+    expect(event.message, isNot(contains('\n#')));
+    expect(event.stackTrace, contains('#0'));
+  });
+
   test('garbage LoadSramCommand keeps the isolate alive and framing', () async {
     final isolate = await NesIsolate.spawn(
       lz4LibraryPath: Lz4Codec.libraryPath,

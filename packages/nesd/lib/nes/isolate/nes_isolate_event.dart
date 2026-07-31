@@ -84,9 +84,13 @@ class AudioStatsEvent extends NesIsolateEvent {
 }
 
 class ErrorEvent extends NesIsolateEvent {
-  const ErrorEvent({required this.message});
+  const ErrorEvent({required this.message, this.stackTrace});
+
+  factory ErrorEvent.from(Object error, StackTrace stackTrace) =>
+      ErrorEvent(message: '$error', stackTrace: '$stackTrace');
 
   final String message;
+  final String? stackTrace;
 }
 
 class DebuggerEvent extends NesIsolateEvent {
