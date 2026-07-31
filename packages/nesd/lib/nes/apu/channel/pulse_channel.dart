@@ -6,11 +6,14 @@ import 'package:nesd/nes/apu/unit/length_counter_unit.dart';
 import 'package:nesd/nes/apu/unit/sweep_unit.dart';
 
 class PulseChannel {
-  PulseChannel({this.onesComplement = false});
+  PulseChannel({this.onesComplement = false, this.statusBit = 0});
 
   bool enabled = false;
 
   final bool onesComplement;
+
+  /// This channel's enable bit in `$4015`.
+  final int statusBit;
 
   final envelope = EnvelopeUnit();
   final lengthCounter = LengthCounterUnit();
@@ -76,7 +79,7 @@ class PulseChannel {
   int get status => lengthCounter.value > 0 ? 1 : 0;
 
   set status(int value) {
-    enabled = value.bit(0) == 1;
+    enabled = value.bit(statusBit) == 1;
 
     if (!enabled) {
       lengthCounter.value = 0;

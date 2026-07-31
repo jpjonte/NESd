@@ -30,7 +30,7 @@ class APU {
   final sampleBuffer = Float32List(apuSampleRate * 5);
 
   final pulse1 = PulseChannel(onesComplement: true);
-  final pulse2 = PulseChannel();
+  final pulse2 = PulseChannel(statusBit: 1);
 
   final triangle = TriangleChannel();
 
