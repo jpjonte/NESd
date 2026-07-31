@@ -81,8 +81,22 @@ class ToastState extends _$ToastState {
 
   Toast? get top => state.firstOrNull;
 
+  static const maxLength = 5;
+
   void add(Toast toast) {
-    state = [...state, toast];
+    final duplicate = state.any(
+      (t) => t.type == toast.type && t.message == toast.message,
+    );
+
+    if (duplicate) {
+      return;
+    }
+
+    final toasts = [...state, toast];
+
+    state = toasts.length > maxLength
+        ? toasts.sublist(toasts.length - maxLength)
+        : toasts;
   }
 
   void pop() {

@@ -1,7 +1,59 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
 void main() {
+  group('Toaster', () {
+    late ProviderContainer container;
+    late Toaster toaster;
+
+    setUp(() {
+      container = ProviderContainer()
+        ..listen(toastStateProvider, (_, _) {})
+        ..listen(toasterProvider, (_, _) {});
+
+      toaster = container.read(toasterProvider);
+    });
+
+    tearDown(() => container.dispose());
+
+    List<Toast> toasts() => container.read(toastStateProvider);
+
+    test('ignores a toast identical to one already queued', () {
+      toaster
+        ..send(Toast.error('boom'))
+        ..send(Toast.error('boom'));
+
+      expect(toasts(), hasLength(1));
+    });
+
+    test('queues toasts with different messages separately', () {
+      toaster
+        ..send(Toast.error('boom'))
+        ..send(Toast.error('bang'));
+
+      expect(toasts(), hasLength(2));
+    });
+
+    test('queues toasts with the same message but different types', () {
+      toaster
+        ..send(Toast.error('boom'))
+        ..send(Toast.warning('boom'));
+
+      expect(toasts(), hasLength(2));
+    });
+
+    test('drops the oldest toast when the queue is full', () {
+      for (var i = 0; i < 7; i++) {
+        toaster.send(Toast.info('toast $i'));
+      }
+
+      expect(toasts(), hasLength(5));
+      expect(toasts().first.message, 'toast 2');
+      expect(toasts().last.message, 'toast 6');
+    });
+  });
+
   group('Toast', () {
     test('strips stack trace frames from the message', () {
       final toast = Toast.error(

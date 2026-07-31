@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - NESd can now handle the audio output disappearing (e.g. headphones unplugged)
 - Replaced the unmaintained third-party audio backend with a custom audio plugin
 - Error notifications no longer show raw stack traces
+- Notifications are now deduplicated and capped, so a repeating error no longer floods the screen
 
 ### Fixed
 - Fixed rewind crashing on Windows: the LZ4 compression library was missing from the Windows builds since 0.14.0
