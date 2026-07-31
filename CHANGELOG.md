@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.15.1] - 2026-07-31
 
+### Added
+- APU visualization: per-channel waveforms and parameters (Settings → Debug → Show APU visualization)
+
 ### Changed
 - NESd can now handle the audio output disappearing (e.g. headphones unplugged)
 - Replaced the unmaintained third-party audio backend with a custom audio plugin

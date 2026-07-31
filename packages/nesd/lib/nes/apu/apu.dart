@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/apu_channel_samples.dart';
 import 'package:nesd/nes/apu/apu_state.dart';
 import 'package:nesd/nes/apu/channel/dmc_channel.dart';
 import 'package:nesd/nes/apu/channel/noise_channel.dart';
@@ -29,7 +30,7 @@ class APU {
   final sampleBuffer = Float32List(apuSampleRate * 5);
 
   final pulse1 = PulseChannel(onesComplement: true);
-  final pulse2 = PulseChannel();
+  final pulse2 = PulseChannel(statusBit: 1);
 
   final triangle = TriangleChannel();
 
@@ -52,6 +53,22 @@ class APU {
   // Integer accumulator for sample scheduling
   int _cpuFrequency = ntscCpuFrequency;
   int _sampleAccumulator = 0;
+
+  ApuChannelSamples? _channelSamples;
+
+  ApuChannelSamples? get channelSamples => _channelSamples;
+
+  bool get debugSamplingEnabled => _channelSamples != null;
+
+  set debugSamplingEnabled(bool enabled) {
+    if (enabled == debugSamplingEnabled) {
+      return;
+    }
+
+    _channelSamples = enabled ? ApuChannelSamples(sampleBuffer.length) : null;
+  }
+
+  int get cpuFrequency => _cpuFrequency;
 
   APUState get state => APUState(
     cycles: cycles,
@@ -254,7 +271,7 @@ class APU {
 
     if (_sampleAccumulator >= _cpuFrequency) {
       _sampleAccumulator -= _cpuFrequency;
-      sampleBuffer[sampleIndex++] = _output();
+      _emitSample();
     }
   }
 
@@ -266,7 +283,7 @@ class APU {
     _dmcSamples += dmc.output;
   }
 
-  double _output() {
+  void _emitSample() {
     final sampledCycles = cycles - _sampleStart;
 
     // average samples over the last [sampledCycles] cycles
@@ -275,21 +292,32 @@ class APU {
 
     final pulse1Sample = (_pulse1Samples * inv).floor();
     final pulse2Sample = (_pulse2Samples * inv).floor();
-    final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
-
     final triangleSample = (_triangleSamples * inv).floor();
     final dmcSample = (_dmcSamples * inv).floor();
 
-    final tndOut = tndTable[3 * triangleSample + 2 * noise.output + dmcSample];
+    // Noise is read instantaneously rather than averaged: its output is
+    // already a step function at the sample rate.
+    final noiseSample = noise.output;
 
-    final mixed = pulseOut + tndOut;
+    final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
+    final tndOut = tndTable[3 * triangleSample + 2 * noiseSample + dmcSample];
+
+    sampleBuffer[sampleIndex] = pulseOut + tndOut;
+
+    if (_channelSamples case final channelSamples?) {
+      channelSamples.pulse1[sampleIndex] = pulse1Sample;
+      channelSamples.pulse2[sampleIndex] = pulse2Sample;
+      channelSamples.triangle[sampleIndex] = triangleSample;
+      channelSamples.noise[sampleIndex] = noiseSample;
+      channelSamples.dmc[sampleIndex] = dmcSample;
+    }
+
+    sampleIndex++;
 
     _sampleStart = cycles;
     _pulse1Samples = 0;
     _pulse2Samples = 0;
     _triangleSamples = 0;
     _dmcSamples = 0;
-
-    return mixed;
   }
 }

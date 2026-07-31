@@ -174,6 +174,11 @@ class RemoteNes {
   void setExecutionLogEnabled(bool enabled) =>
       _send(SetExecutionLogEnabledCommand(enabled: enabled));
 
+  // the single bool parameter mirrors the protocol command it backs
+  // ignore: avoid_positional_boolean_parameters
+  void setApuDebugEnabled(bool enabled) =>
+      _send(SetApuDebugEnabledCommand(enabled: enabled));
+
   void setZapperPosition(Offset? position) {
     zapperPosition.value = position;
 

@@ -13,6 +13,7 @@ import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/debugger/disassembler.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/isolate/apu_debug_backend.dart';
 import 'package:nesd/nes/isolate/debugger_backend.dart';
 import 'package:nesd/nes/isolate/execution_log_backend.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -69,9 +70,11 @@ class NesWorker {
   AudioOutput? _audioOutput;
   DebuggerBackend? _debugger;
   ExecutionLogBackend? _executionLog;
+  ApuDebugBackend? _apuDebug;
   Disassembler? _disassembler;
   bool _debuggerActive = false;
   bool _executionLogEnabled = false;
+  bool _apuDebugEnabled = false;
 
   StreamSubscription<NesEvent>? _subscription;
 
@@ -153,6 +156,8 @@ class NesWorker {
         _setDebuggerActive(command.active);
       case SetExecutionLogEnabledCommand():
         _setExecutionLogEnabled(command.enabled);
+      case SetApuDebugEnabledCommand():
+        _setApuDebugEnabled(command.enabled);
       case SaveStateRequest():
         _handleSaveState(command.requestId);
       case LoadStateCommand():
@@ -239,6 +244,8 @@ class NesWorker {
       _debugger = null;
       _executionLog?.dispose();
       _executionLog = null;
+      _apuDebug?.dispose();
+      _apuDebug = null;
 
       _nes = nes;
       _disassembler = null;
@@ -278,6 +285,8 @@ class NesWorker {
     _debugger = null;
     _executionLog?.dispose();
     _executionLog = null;
+    _apuDebug?.dispose();
+    _apuDebug = null;
     _disassembler = null;
     _nes = null;
 
@@ -565,12 +574,9 @@ class NesWorker {
     );
   }
 
-  /// Ensures the debugger/execution-log backends match the current
-  /// `_debuggerActive` / `_executionLogEnabled` flags for the current
-  /// `_nes` (tearing existing ones down when the corresponding flag is
-  /// off or there is no NES, and lazily creating them otherwise). Backends
-  /// already bound to the current NES are left in place so toggling one
-  /// flag doesn't disturb the other's accumulated state.
+  /// Ensures each optional backend matches its enable flag for the current
+  /// `_nes` . Backends already bound to the current NES are left in place so
+  /// toggling one flag doesn't recreate the others.
   void _rebuildBackends() {
     final nes = _nes;
 
@@ -583,6 +589,11 @@ class NesWorker {
       _executionLog?.setEnabled(false);
       _executionLog?.dispose();
       _executionLog = null;
+    }
+
+    if (nes == null || !_apuDebugEnabled) {
+      _apuDebug?.dispose();
+      _apuDebug = null;
     }
 
     if (nes == null) {
@@ -624,6 +635,14 @@ class NesWorker {
         onLines: (lines) => send(ExecutionLogEvent(lines: lines)),
       )..setEnabled(true);
     }
+
+    if (_apuDebugEnabled) {
+      _apuDebug ??= ApuDebugBackend(
+        nes: nes,
+        eventBus: eventBus,
+        onEvent: send,
+      );
+    }
   }
 
   // the single bool parameter mirrors the protocol command it backs
@@ -638,6 +657,14 @@ class NesWorker {
   // ignore: avoid_positional_boolean_parameters
   void _setExecutionLogEnabled(bool enabled) {
     _executionLogEnabled = enabled;
+
+    _rebuildBackends();
+  }
+
+  // the single bool parameter mirrors the protocol command it backs
+  // ignore: avoid_positional_boolean_parameters
+  void _setApuDebugEnabled(bool enabled) {
+    _apuDebugEnabled = enabled;
 
     _rebuildBackends();
   }

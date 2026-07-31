@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -6,65 +5,14 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/bus.dart';
-import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
-import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
-import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
-import 'package:nesd/ui/emulator/rom_manager.dart';
-import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
-class _FakeNesIsolateHandle implements NesIsolateHandle {
-  final StreamController<NesIsolateEvent> _controller =
-      StreamController<NesIsolateEvent>.broadcast();
-
-  final List<NesCommand> commands = [];
-
-  @override
-  Stream<NesIsolateEvent> get events => _controller.stream;
-
-  @override
-  void send(NesCommand command) {
-    commands.add(command);
-  }
-
-  void emit(NesIsolateEvent event) => _controller.add(event);
-
-  @override
-  Future<void> dispose() => _controller.close();
-
-  Future<void> close() => _controller.close();
-}
-
-RomInfo _testRomInfo() => const RomInfo(
-  file: FilesystemFile(
-    path: 'test.nes',
-    name: 'test.nes',
-    type: FilesystemFileType.file,
-  ),
-);
-
-CartridgeInfo _testCartridgeInfo() => const CartridgeInfo(
-  filename: 'test.nes',
-  romFormat: RomFormat.iNes,
-  prgRomSize: 0,
-  chrRomSize: 0,
-  nametableLayout: NametableLayout.horizontal,
-  alternativeNametableLayout: false,
-  hasBattery: false,
-  hasTrainer: false,
-  consoleType: ConsoleType.nes,
-  mapperName: 'NROM',
-  mapperId: 0,
-  subMapperId: 0,
-  prgRamSize: 0,
-  prgSaveRamSize: 0,
-  tvSystem: TvSystem.ntsc,
-);
+import 'remote_nes_fixtures.dart';
 
 FrameEvent _frameEvent(int pointerAddress, {int width = 2, int height = 2}) =>
     FrameEvent(
@@ -180,20 +128,20 @@ void main() {
   });
 
   group('RemoteNes', () {
-    late _FakeNesIsolateHandle handle;
+    late RecordingNesIsolateHandle handle;
 
     setUp(() {
-      handle = _FakeNesIsolateHandle();
+      handle = RecordingNesIsolateHandle();
     });
 
-    tearDown(() => handle.close());
+    tearDown(() => handle.dispose());
 
     RemoteNes build({Duration? requestTimeout}) => RemoteNes(
       isolate: handle,
-      romInfo: _testRomInfo(),
+      romInfo: testRomInfo(),
       fileHash: 'abc123',
       hasZapper: true,
-      cartridgeInfo: _testCartridgeInfo(),
+      cartridgeInfo: testCartridgeInfo(),
       requestTimeout: requestTimeout ?? const Duration(seconds: 5),
     );
 
@@ -531,14 +479,14 @@ void main() {
     });
 
     test('setZapperPosition updates the crosshair notifier', () {
-      final handle = _FakeNesIsolateHandle();
+      final handle = RecordingNesIsolateHandle();
 
       final nes = RemoteNes(
         isolate: handle,
-        romInfo: _testRomInfo(),
+        romInfo: testRomInfo(),
         fileHash: 'hash',
         hasZapper: true,
-        cartridgeInfo: _testCartridgeInfo(),
+        cartridgeInfo: testCartridgeInfo(),
       );
 
       addTearDown(nes.dispose);

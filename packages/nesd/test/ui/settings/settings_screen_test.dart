@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/settings/debug/apu_debug_switch.dart';
 import 'package:nesd/ui/settings/debug/cartridge_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_tile_switch.dart';
@@ -79,6 +80,11 @@ void main() {
     await r.expectSwitch(
       find.byType(DebuggerSwitch),
       getValue: () => r.settings.showDebugger,
+    );
+
+    await r.expectSwitch(
+      find.byType(ApuDebugSwitch),
+      getValue: () => r.settings.showApuDebug,
     );
   });
 }

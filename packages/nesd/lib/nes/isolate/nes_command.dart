@@ -191,6 +191,12 @@ class SetExecutionLogEnabledCommand extends NesCommand {
   final bool enabled;
 }
 
+class SetApuDebugEnabledCommand extends NesCommand {
+  const SetApuDebugEnabledCommand({required this.enabled});
+
+  final bool enabled;
+}
+
 class SaveStateRequest extends NesCommand {
   const SaveStateRequest({required this.requestId});
 
