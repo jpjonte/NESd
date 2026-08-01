@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/cartridge/mapper/namco163.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
 import 'namco163_harness.dart';
@@ -121,6 +123,70 @@ void main() {
       final mapper = buildNamco163()..cpuWrite(0x5000, 0x34);
 
       expect(mapper.cpuRead(0x4800), isNot(0x34));
+    });
+  });
+
+  group('audio wiring', () {
+    test('the mapper exposes its chip as expansion audio', () {
+      final mapper = buildNamco163();
+
+      expect(mapper.expansionAudio, same(mapper.audio));
+    });
+
+    test(r'$F800 sets the sound address as well as the write protect', () {
+      final mapper = buildNamco163()
+        ..cpuWrite(0xf800, 0x45)
+        ..cpuWrite(0x4800, 0x77)
+        ..cpuWrite(0x6800, 0x42);
+
+      expect(mapper.audio.address, 0x45);
+      expect(mapper.audio.ram[0x45], 0x77);
+
+      // bit 1 is clear, so the second bank stayed writable
+      expect(mapper.cpuRead(0x6800), 0x42);
+    });
+
+    test(r'$4800 reads and writes sound RAM', () {
+      final mapper = buildNamco163()
+        ..cpuWrite(0xf800, 0x10)
+        ..cpuWrite(0x4800, 0x5a)
+        ..cpuWrite(0xf800, 0x10);
+
+      expect(mapper.cpuRead(0x4800), 0x5a);
+    });
+
+    test(r'$4800 reads honour disableSideEffects', () {
+      final mapper = buildNamco163()
+        ..cpuWrite(0xf800, 0x80 | 0x10)
+        ..cpuRead(0x4800, disableSideEffects: true);
+
+      expect(mapper.audio.address, 0x10);
+    });
+
+    test(r'$E000 bit 6 disables sound without disturbing the bank', () {
+      final mapper = buildNamco163()..cpuWrite(0xe000, 0x40 | 3);
+
+      expect(mapper.audio.soundDisabled, true);
+      expect(mapper.cpuRead(0x8000), 0xb0 + 3);
+    });
+
+    test('stepping the mapper clocks the chip', () {
+      final mapper = buildNamco163();
+
+      for (var i = 0; i < 5; i++) {
+        mapper.step();
+      }
+
+      // Deliberately not a multiple of the 15-cycle slot period: the
+      // timer reloads to 15, which is also its initial value, so a
+      // full period would pass even with the chip never clocked.
+      expect(mapper.audio.slotTimer, 10);
+    });
+
+    test('the submapper id reaches the chip', () {
+      final mapper = Mapper.fromId(19, 4, 0) as Namco163;
+
+      expect(mapper.audio.subMapperId, 4);
     });
   });
 }

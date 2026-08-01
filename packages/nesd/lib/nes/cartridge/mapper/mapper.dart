@@ -73,7 +73,7 @@ abstract class Mapper {
       7 => AxROM(),
       9 => MMC2(),
       16 => BandaiFCG(subMapperId, prgSaveRamSize),
-      19 => Namco163(),
+      19 => Namco163(subMapperId),
       66 => GxROM(),
       71 => BR909x(),
       118 => TxSROM(),

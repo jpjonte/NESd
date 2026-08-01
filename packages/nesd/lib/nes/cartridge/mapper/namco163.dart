@@ -1,13 +1,20 @@
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
+import 'package:nesd/nes/apu/expansion/namco163_audio.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/namco163_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
 class Namco163 extends Mapper {
-  Namco163() : super(19);
+  Namco163(int subMapperId) : super(19, subMapperId);
 
   @override
   String name = 'Namco 163';
+
+  late final Namco163Audio audio = Namco163Audio(subMapperId);
+
+  @override
+  ExpansionAudio? get expansionAudio => audio;
 
   @override
   Namco163State get state => Namco163State(
@@ -87,11 +94,15 @@ class Namco163 extends Mapper {
 
     mapPpu(0x0000, 0x1fff, 0);
 
+    audio.reset();
+
     _updateState();
   }
 
   @override
   void step() {
+    audio.step();
+
     if (_irqCounter < 0x7fff) {
       _irqCounter++;
 
@@ -108,7 +119,7 @@ class Namco163 extends Mapper {
   int cpuRead(int address, {bool disableSideEffects = false}) {
     switch (address & 0xf800) {
       case 0x4800:
-        return 0;
+        return audio.readData(disableSideEffects: disableSideEffects);
       case 0x5000:
         return _irqCounter & 0xff;
       case 0x5800:
@@ -122,6 +133,8 @@ class Namco163 extends Mapper {
   void cpuWrite(int address, int value) {
     switch (address & 0xf800) {
       case 0x4800:
+        audio.writeData(value);
+
         return;
       case 0x5000:
         _irqCounter = (_irqCounter & 0xff00) | value;
@@ -149,7 +162,8 @@ class Namco163 extends Mapper {
         _updateChrBanks();
       case 0xe000:
         _prgBank0 = value & 0x3f;
-        // bit 6: TODO sound disable
+
+        audio.soundDisabled = value.bit(6) == 1;
 
         _updatePrgBanks();
       case 0xe800:
@@ -171,6 +185,8 @@ class Namco163 extends Mapper {
         }
 
         _updatePrgRam();
+
+        audio.writeAddress(value);
     }
 
     super.cpuWrite(address, value);
