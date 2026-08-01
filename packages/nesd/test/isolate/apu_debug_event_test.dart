@@ -67,6 +67,7 @@ ApuDebugEvent _pack({required int capacity, required int count}) =>
       noise: _noise,
       dmc: _dmc,
       mmc5: null,
+      n163: null,
       cpuFrequency: 1789773,
     );
 
@@ -132,6 +133,7 @@ void main() {
           pulse2: _pulse,
           pcmLevel: 200,
         ),
+        n163: null,
         cpuFrequency: 1789773,
       );
 

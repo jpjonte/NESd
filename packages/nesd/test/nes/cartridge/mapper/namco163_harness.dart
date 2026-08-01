@@ -12,7 +12,7 @@ import '../../../ui/mocks.dart';
 ///
 /// PRG and CHR banks are filled with unique values so they can be
 /// distinguished.
-Namco163 buildNamco163() {
+Uint8List buildNamco163Rom() {
   const prgBanks = 8;
   const chrBanks = 8;
 
@@ -33,6 +33,12 @@ Namco163 buildNamco163() {
       0x10 + page,
     );
   }
+
+  return rom;
+}
+
+Namco163 buildNamco163() {
+  final rom = buildNamco163Rom();
 
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(

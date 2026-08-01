@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 
@@ -60,6 +61,7 @@ class ApuDebugData {
     required this.dmc,
     required this.expansionSamples,
     required this.mmc5,
+    required this.n163,
     required this.cpuFrequency,
   });
 
@@ -80,6 +82,7 @@ class ApuDebugData {
       dmc: event.dmc,
       expansionSamples: samples.expansion,
       mmc5: event.mmc5,
+      n163: event.n163,
       cpuFrequency: event.cpuFrequency,
     );
   }
@@ -103,6 +106,8 @@ class ApuDebugData {
 
   final Mmc5DebugState? mmc5;
 
+  final Namco163DebugState? n163;
+
   final int cpuFrequency;
 
   double pulseFrequency(PulseDebugState pulse) =>
@@ -110,6 +115,14 @@ class ApuDebugData {
 
   double get triangleFrequency =>
       cpuFrequency / (32 * (triangle.timerPeriod + 1));
+
+  double n163Frequency(
+    Namco163DebugState n163,
+    Namco163ChannelDebugState channel,
+  ) =>
+      cpuFrequency *
+      channel.frequency /
+      (n163SlotCycles * 65536 * channel.waveLength * n163.enabledChannels);
 
   /// Duty percentage for [pulse], or `?<raw>` if the selector is outside 0-3,
   /// so we don't crash inside `build`.

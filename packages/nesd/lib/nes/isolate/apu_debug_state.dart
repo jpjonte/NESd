@@ -87,3 +87,29 @@ class Mmc5DebugState {
 
   final int pcmLevel;
 }
+
+@immutable
+class Namco163ChannelDebugState {
+  const Namco163ChannelDebugState({
+    required this.volume,
+    required this.waveLength,
+    required this.frequency,
+  });
+
+  final int volume;
+  final int waveLength;
+
+  final int frequency;
+}
+
+@immutable
+class Namco163DebugState {
+  const Namco163DebugState({
+    required this.enabledChannels,
+    required this.channels,
+  });
+
+  final int enabledChannels;
+
+  final List<Namco163ChannelDebugState> channels;
+}
