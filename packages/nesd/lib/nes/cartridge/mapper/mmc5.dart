@@ -633,12 +633,20 @@ class MMC5 extends Mapper {
     };
   }
 
+  /// MMC5 work RAM lives in whichever region the cartridge actually
+  /// allocated. Battery-backed boards carry it in prgSaveRam and leave
+  /// prgRam empty, and mapping an empty source unmaps the window.
+  CpuMemoryType get _workRamType =>
+      cartridge.prgRam.isEmpty && cartridge.prgSaveRam.isNotEmpty
+      ? CpuMemoryType.prgSaveRam
+      : CpuMemoryType.prgRam;
+
   CpuMemoryType _memoryType(int register) {
     return switch (register) {
-      0 => CpuMemoryType.prgRam,
+      0 => _workRamType,
       4 => CpuMemoryType.prgRom,
       _ => switch ((_prgRegisters[register] >> 7) & 0x1) {
-        0 => CpuMemoryType.prgRam,
+        0 => _workRamType,
         _ => CpuMemoryType.prgRom,
       },
     };
