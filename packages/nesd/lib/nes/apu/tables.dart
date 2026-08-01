@@ -365,3 +365,7 @@ const mmc5PulseScale = 0.008583752695902228;
 
 /// `tndTable[127] / 255`, so full-scale PCM sits at DMC full-scale amplitude.
 const mmc5PcmScale = 0.0022013578122923264;
+
+/// Namco 163 updates exactly one channel every 15 CPU cycles, cycling through
+/// the enabled channels.
+const n163SlotCycles = 15;
