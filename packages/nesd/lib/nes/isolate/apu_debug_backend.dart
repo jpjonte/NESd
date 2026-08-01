@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:nesd/nes/apu/channel/pulse_channel.dart';
+import 'package:nesd/nes/apu/channel/pulse_channel_core.dart';
+import 'package:nesd/nes/apu/expansion/mmc5_audio.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
@@ -72,6 +73,16 @@ class ApuDebugBackend {
     final noise = apu.noise;
     final dmc = apu.dmc;
 
+    final expansion = apu.expansionAudio;
+
+    final mmc5 = expansion is Mmc5Audio
+        ? Mmc5DebugState(
+            pulse1: _pulseState(expansion.pulse1),
+            pulse2: _pulseState(expansion.pulse2),
+            pcmLevel: expansion.pcmLevel,
+          )
+        : null;
+
     onEvent(
       ApuDebugEvent.pack(
         channels: channels,
@@ -97,12 +108,13 @@ class ApuDebugBackend {
           rate: dmc.rate,
           bytesRemaining: dmc.length,
         ),
+        mmc5: mmc5,
         cpuFrequency: apu.cpuFrequency,
       ),
     );
   }
 
-  PulseDebugState _pulseState(PulseChannel pulse) => PulseDebugState(
+  PulseDebugState _pulseState(PulseChannelCore pulse) => PulseDebugState(
     enabled: pulse.enabled,
     duty: pulse.duty,
     volume: pulse.constantVolume ? pulse.volume : pulse.envelope.volume,

@@ -66,6 +66,7 @@ ApuDebugEvent _pack({required int capacity, required int count}) =>
       triangle: _triangle,
       noise: _noise,
       dmc: _dmc,
+      mmc5: null,
       cpuFrequency: 1789773,
     );
 
@@ -102,8 +103,55 @@ void main() {
 
       expect(
         event.channelSamples.materialize().asUint8List(),
-        hasLength(ApuDebugEvent.channelCount * 3),
+        hasLength(event.channelCount * 3),
       );
+    });
+
+    test('expansion lanes round-trip after the built-in lanes', () {
+      const count = 4;
+
+      final channels = ApuChannelSamples(count, 3);
+
+      for (var lane = 0; lane < 3; lane++) {
+        for (var i = 0; i < count; i++) {
+          channels.expansion[lane][i] = 100 + 10 * lane + i;
+        }
+      }
+
+      final event = ApuDebugEvent.pack(
+        channels: channels,
+        mix: Float32List(count),
+        sampleCount: count,
+        pulse1: _pulse,
+        pulse2: _pulse,
+        triangle: _triangle,
+        noise: _noise,
+        dmc: _dmc,
+        mmc5: const Mmc5DebugState(
+          pulse1: _pulse,
+          pulse2: _pulse,
+          pcmLevel: 200,
+        ),
+        cpuFrequency: 1789773,
+      );
+
+      expect(event.channelCount, 8);
+
+      final samples = event.unpackSamples();
+
+      expect(samples.expansion, hasLength(3));
+      expect(samples.expansion[0], [100, 101, 102, 103]);
+      expect(samples.expansion[2], [120, 121, 122, 123]);
+      // The built-in lanes must not have shifted.
+      expect(samples.pulse1, hasLength(count));
+    });
+
+    test('an event without expansion audio has five lanes', () {
+      final event = _pack(capacity: 8, count: 4);
+
+      expect(event.channelCount, 5);
+      expect(event.mmc5, isNull);
+      expect(event.unpackSamples().expansion, isEmpty);
     });
   });
 }

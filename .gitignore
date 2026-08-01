@@ -37,3 +37,4 @@ roms/
 !roms/test/scanline/scanline.nes
 !roms/test/spritecans-2011/spritecans.nes
 !roms/test/full_palette/full_palette.nes
+!roms/test/mmc5test_v2/mmc5test.nes

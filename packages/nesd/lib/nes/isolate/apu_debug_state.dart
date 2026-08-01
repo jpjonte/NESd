@@ -73,3 +73,17 @@ class DmcDebugState {
   final int rate;
   final int bytesRemaining;
 }
+
+@immutable
+class Mmc5DebugState {
+  const Mmc5DebugState({
+    required this.pulse1,
+    required this.pulse2,
+    required this.pcmLevel,
+  });
+
+  final PulseDebugState pulse1;
+  final PulseDebugState pulse2;
+
+  final int pcmLevel;
+}

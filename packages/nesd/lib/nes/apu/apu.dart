@@ -49,6 +49,10 @@ class APU {
 
   ExpansionAudio? _expansion;
 
+  /// The cached expansion chip, for debug consumers that need it outside the
+  /// hot path.
+  ExpansionAudio? get expansionAudio => _expansion;
+
   double _expansionSamples = 0;
 
   /// Mirrors the last DMC IRQ level reported to the bus so step() only
@@ -70,7 +74,12 @@ class APU {
       return;
     }
 
-    _channelSamples = enabled ? ApuChannelSamples(sampleBuffer.length) : null;
+    _channelSamples = enabled
+        ? ApuChannelSamples(
+            sampleBuffer.length,
+            _expansion?.debugOutputs.length ?? 0,
+          )
+        : null;
   }
 
   int get cpuFrequency => _cpuFrequency;
@@ -326,6 +335,19 @@ class APU {
       channelSamples.triangle[sampleIndex] = triangleSample;
       channelSamples.noise[sampleIndex] = noiseSample;
       channelSamples.dmc[sampleIndex] = dmcSample;
+
+      if (_expansion case final expansion?) {
+        final outputs = expansion.debugOutputs;
+
+        assert(
+          outputs.length == channelSamples.expansion.length,
+          'debugOutputs.length must not change after construction',
+        );
+
+        for (var i = 0; i < outputs.length; i++) {
+          channelSamples.expansion[i][sampleIndex] = outputs[i];
+        }
+      }
     }
 
     sampleIndex++;

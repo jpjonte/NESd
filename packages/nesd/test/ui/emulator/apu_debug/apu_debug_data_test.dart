@@ -49,6 +49,8 @@ ApuDebugEvent _event() {
     triangle: _triangle,
     noise: _noise,
     dmc: _dmc,
+    expansionLaneCount: 0,
+    mmc5: null,
     cpuFrequency: 1789773,
   );
 }
@@ -70,6 +72,8 @@ ApuDebugEvent _eventWith({
     triangle: _triangle,
     noise: _noise,
     dmc: _dmc,
+    expansionLaneCount: 0,
+    mmc5: null,
     cpuFrequency: 1789773,
   );
 }

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/apu/apu_channel_samples.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
 import '../../test_roms/rom_robot.dart';
@@ -8,6 +9,17 @@ import '../../test_roms/rom_robot.dart';
 const _romPath = '../../roms/test/scanline/scanline.nes';
 
 void main() {
+  test('expansion lanes are allocated on request', () {
+    final samples = ApuChannelSamples(64, 3);
+
+    expect(samples.expansion, hasLength(3));
+    expect(samples.expansion.first, hasLength(64));
+  });
+
+  test('no expansion lanes by default', () {
+    expect(ApuChannelSamples(64).expansion, isEmpty);
+  });
+
   test('channelSamples is null until debug sampling is enabled', () {
     final robot = RomRobot(_romPath);
 

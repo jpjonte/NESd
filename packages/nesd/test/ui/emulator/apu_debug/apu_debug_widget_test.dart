@@ -20,7 +20,7 @@ const _count = 8;
 ApuDebugEvent _event() => ApuDebugEvent(
   channelSamples: TransferableTypedData.fromList([
     Uint8List.fromList(
-      List.generate(ApuDebugEvent.channelCount * _count, (i) => i % 16),
+      List.generate(ApuDebugEvent.builtinChannelCount * _count, (i) => i % 16),
     ),
   ]),
   mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
@@ -60,6 +60,8 @@ ApuDebugEvent _event() => ApuDebugEvent(
     rate: 428,
     bytesRemaining: 17,
   ),
+  expansionLaneCount: 0,
+  mmc5: null,
   cpuFrequency: 1789773,
 );
 
