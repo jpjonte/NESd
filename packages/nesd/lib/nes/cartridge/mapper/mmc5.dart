@@ -261,6 +261,9 @@ class MMC5 extends Mapper {
   bool get needsStep => true;
 
   @override
+  bool get needsPpuReads => true;
+
+  @override
   int ppuRead(int address, {bool disableSideEffects = false}) {
     if (disableSideEffects) {
       return super.ppuRead(address, disableSideEffects: true);

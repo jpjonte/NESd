@@ -182,6 +182,10 @@ class PPU {
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
 
+  /// Set by NES at power-on; when true, fetches bypass the block cache so the
+  /// mapper can observe and answer them. See `Mapper.needsPpuReads`.
+  bool mapperNeedsPpuReads = false;
+
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -419,7 +423,7 @@ class PPU {
 
     final maskedAddress = address & 0x3fff;
 
-    if (maskedAddress < 0x3f00) {
+    if (maskedAddress < 0x3f00 && !mapperNeedsPpuReads) {
       final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
 
       if (source != null) {

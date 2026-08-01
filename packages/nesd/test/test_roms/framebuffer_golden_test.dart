@@ -42,6 +42,7 @@ const _goldens = <String, int>{
   '$_base/scanline/scanline.nes': -3956729394634635011,
   '$_base/spritecans-2011/spritecans.nes': 6027694824722942956,
   '$_base/full_palette/full_palette.nes': 6387691627853472549,
+  '$_base/mmc5test_v2/mmc5test.nes': 7390973552206513059,
 };
 
 void main() {

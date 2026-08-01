@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
+- Fixed MMC5 games showing a black screen or freezing
 
 ## [0.15.1] - 2026-07-31
 

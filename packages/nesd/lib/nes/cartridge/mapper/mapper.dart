@@ -275,6 +275,10 @@ abstract class Mapper {
   /// access (A12-edge / address-latch mappers: MMC3 family, MMC2).
   bool get needsPpuAddressUpdates => false;
 
+  /// Whether the PPU must route every fetch through [ppuRead] instead
+  /// of serving it from its own block cache.
+  bool get needsPpuReads => false;
+
   void mapCpu(
     int fromAddress,
     int toAddress,
