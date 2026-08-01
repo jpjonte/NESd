@@ -187,4 +187,88 @@ void main() {
       expect(audio.output, 0);
     });
   });
+
+  group('PCM', () {
+    test(r'$5011 sets the output level', () {
+      audio.writeRegister(0x5011, 0x80);
+
+      expect(audio.pcmLevel, 0x80);
+      expect(audio.output, closeTo(0x80 * mmc5PcmScale, 1e-12));
+    });
+
+    test('full-scale PCM sits at DMC full-scale amplitude', () {
+      audio.writeRegister(0x5011, 0xff);
+
+      expect(audio.output, closeTo(tndTable[127], 1e-9));
+    });
+
+    test('writing zero keeps the level and raises the IRQ flag', () {
+      audio
+        ..writeRegister(0x5011, 0x40)
+        ..writeRegister(0x5011, 0x00);
+
+      expect(audio.pcmLevel, 0x40);
+      expect(audio.pcmIrqPending, true);
+    });
+
+    test('a non-zero write clears the IRQ flag', () {
+      audio
+        ..writeRegister(0x5011, 0x00)
+        ..writeRegister(0x5011, 0x40);
+
+      expect(audio.pcmIrqPending, false);
+    });
+
+    test(r'$5010 bit 7 enables the IRQ, bit 0 selects read mode', () {
+      audio.writeRegister(0x5010, 0x81);
+
+      expect(audio.pcmIrqEnabled, true);
+      expect(audio.pcmReadMode, true);
+    });
+
+    test('the IRQ is only asserted while enabled', () {
+      audio.writeRegister(0x5011, 0x00);
+
+      expect(audio.pcmIrqPending, true);
+      expect(audio.pcmIrqAsserted, false);
+
+      audio.writeRegister(0x5010, 0x80);
+
+      expect(audio.pcmIrqAsserted, true);
+    });
+
+    test(r'reading $5010 returns the flag in bit 7 and acknowledges', () {
+      audio
+        ..writeRegister(0x5010, 0x80)
+        ..writeRegister(0x5011, 0x00);
+
+      expect(audio.readRegister(0x5010), 0x80);
+      expect(audio.pcmIrqPending, false);
+      expect(audio.readRegister(0x5010), 0x00);
+    });
+
+    test(r'reading $5010 with side effects disabled does not acknowledge', () {
+      audio
+        ..writeRegister(0x5010, 0x80)
+        ..writeRegister(0x5011, 0x00);
+
+      expect(audio.readRegister(0x5010, disableSideEffects: true), 0x80);
+      expect(audio.pcmIrqPending, true);
+    });
+
+    test(r'read mode makes $5011 inert', () {
+      audio
+        ..writeRegister(0x5011, 0x40)
+        ..writeRegister(0x5010, 0x01)
+        ..writeRegister(0x5011, 0x7f);
+
+      expect(audio.pcmLevel, 0x40);
+    });
+
+    test('debugOutputs reports the PCM level in lane 2', () {
+      audio.writeRegister(0x5011, 0x33);
+
+      expect(audio.debugOutputs, [0, 0, 0x33]);
+    });
+  });
 }

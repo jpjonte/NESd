@@ -13,14 +13,27 @@ class Mmc5Audio implements ExpansionAudio {
 
   final List<int> _debugOutputs = List.filled(3, 0);
 
+  int pcmLevel = 0;
+
+  /// Read mode is not emulated: no known game uses it, so the bit is stored and
+  /// makes `$5011` inert.
+  bool pcmReadMode = false;
+
+  bool pcmIrqEnabled = false;
+  bool pcmIrqPending = false;
+
+  bool get pcmIrqAsserted => pcmIrqEnabled && pcmIrqPending;
+
   @override
-  double get output => (pulse1.output + pulse2.output) * mmc5PulseScale;
+  double get output =>
+      (pulse1.output + pulse2.output) * mmc5PulseScale +
+      pcmLevel * mmc5PcmScale;
 
   @override
   List<int> get debugOutputs => _debugOutputs
     ..[0] = pulse1.output
     ..[1] = pulse2.output
-    ..[2] = 0;
+    ..[2] = pcmLevel;
 
   void reset() {
     cycles = 0;
@@ -28,6 +41,11 @@ class Mmc5Audio implements ExpansionAudio {
 
     pulse1.reset();
     pulse2.reset();
+
+    pcmLevel = 0;
+    pcmReadMode = false;
+    pcmIrqEnabled = false;
+    pcmIrqPending = false;
   }
 
   @override
@@ -57,14 +75,28 @@ class Mmc5Audio implements ExpansionAudio {
         pulse2.writeTimerLow(value);
       case 0x5007:
         pulse2.writeTimerHigh(value);
+      case 0x5010:
+        pcmIrqEnabled = value.bit(7) == 1;
+        pcmReadMode = value.bit(0) == 1;
+      case 0x5011:
+        _writePcmData(value);
       case 0x5015:
         _writeStatus(value);
     }
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
-    if (address == 0x5015) {
-      return pulse1.status | (pulse2.status << 1);
+    switch (address) {
+      case 0x5010:
+        final result = pcmIrqPending ? 0x80 : 0x00;
+
+        if (!disableSideEffects) {
+          pcmIrqPending = false;
+        }
+
+        return result;
+      case 0x5015:
+        return pulse1.status | (pulse2.status << 1);
     }
 
     return 0;
@@ -92,6 +124,21 @@ class Mmc5Audio implements ExpansionAudio {
     pulse2
       ..clockEnvelope()
       ..clockLengthCounter();
+  }
+
+  void _writePcmData(int value) {
+    if (pcmReadMode) {
+      return;
+    }
+
+    if (value == 0) {
+      pcmIrqPending = true;
+
+      return;
+    }
+
+    pcmIrqPending = false;
+    pcmLevel = value;
   }
 }
 

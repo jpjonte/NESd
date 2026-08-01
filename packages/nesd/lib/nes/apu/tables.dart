@@ -362,3 +362,6 @@ const mmc5SequencerPeriod = 3728;
 /// `pulseTable[30] / 30`, so the MMC5 pulse pair at full volume peaks
 /// at the same level as the internal pulse pair.
 const mmc5PulseScale = 0.008583752695902228;
+
+/// `tndTable[127] / 255`, so full-scale PCM sits at DMC full-scale amplitude.
+const mmc5PcmScale = 0.0022013578122923264;
