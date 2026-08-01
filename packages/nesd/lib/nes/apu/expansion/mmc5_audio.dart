@@ -1,6 +1,7 @@
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/channel/pulse_channel_core.dart';
 import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
+import 'package:nesd/nes/apu/expansion/mmc5_audio_state.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
 class Mmc5Audio implements ExpansionAudio {
@@ -23,6 +24,30 @@ class Mmc5Audio implements ExpansionAudio {
   bool pcmIrqPending = false;
 
   bool get pcmIrqAsserted => pcmIrqEnabled && pcmIrqPending;
+
+  Mmc5AudioState get state => Mmc5AudioState(
+    pulse1State: pulse1.state,
+    pulse2State: pulse2.state,
+    cycles: cycles,
+    sequencerTimer: sequencerTimer,
+    pcmLevel: pcmLevel,
+    pcmReadMode: pcmReadMode,
+    pcmIrqEnabled: pcmIrqEnabled,
+    pcmIrqPending: pcmIrqPending,
+  );
+
+  set state(Mmc5AudioState state) {
+    pulse1.state = state.pulse1State;
+    pulse2.state = state.pulse2State;
+
+    cycles = state.cycles;
+    sequencerTimer = state.sequencerTimer;
+
+    pcmLevel = state.pcmLevel;
+    pcmReadMode = state.pcmReadMode;
+    pcmIrqEnabled = state.pcmIrqEnabled;
+    pcmIrqPending = state.pcmIrqPending;
+  }
 
   @override
   double get output =>
@@ -144,6 +169,32 @@ class Mmc5Audio implements ExpansionAudio {
 
 /// One MMC5 pulse channel: [PulseChannelCore] with no sweep unit.
 class Mmc5Pulse extends PulseChannelCore {
+  Mmc5PulseState get state => Mmc5PulseState(
+    enabled: enabled,
+    duty: duty,
+    constantVolume: constantVolume,
+    volume: volume,
+    dutyIndex: dutyIndex,
+    timer: timer,
+    timerPeriod: timerPeriod,
+    envelopeState: envelope.state,
+    lengthCounterState: lengthCounter.state,
+  );
+
+  set state(Mmc5PulseState state) {
+    enabled = state.enabled;
+    duty = state.duty;
+    constantVolume = state.constantVolume;
+    volume = state.volume;
+    dutyIndex = state.dutyIndex;
+    timer = state.timer;
+    timerPeriod = state.timerPeriod;
+    envelope.state = state.envelopeState;
+    lengthCounter.state = state.lengthCounterState;
+
+    updateOutput();
+  }
+
   // we don't need a getter, `enabled` is public
   // ignore: avoid_setters_without_getters
   set enable(bool value) {

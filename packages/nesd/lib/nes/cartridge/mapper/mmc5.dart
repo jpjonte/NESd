@@ -121,6 +121,7 @@ class MMC5 extends Mapper {
     extendedAttributeOffset: _extendedAttributeOffset,
     extendedAttributeFetchCountdown: _extendedAttributeFetchCountdown,
     extendedAttributeChrBank: _extendedAttributeChrBank,
+    audioState: audio.state,
   );
 
   @override
@@ -175,6 +176,12 @@ class MMC5 extends Mapper {
     _extendedAttributeOffset = state.extendedAttributeOffset;
     _extendedAttributeFetchCountdown = state.extendedAttributeFetchCountdown;
     _extendedAttributeChrBank = state.extendedAttributeChrBank;
+
+    audio.state = state.audioState;
+
+    _pcmIrqAsserted = audio.pcmIrqAsserted;
+
+    _applyPcmIrq(_pcmIrqAsserted);
 
     _updateState();
   }
@@ -336,6 +343,10 @@ class MMC5 extends Mapper {
 
     _pcmIrqAsserted = asserted;
 
+    _applyPcmIrq(asserted);
+  }
+
+  void _applyPcmIrq(bool asserted) {
     if (asserted) {
       bus.triggerIrq(IrqSource.mapperAudio);
     } else {
