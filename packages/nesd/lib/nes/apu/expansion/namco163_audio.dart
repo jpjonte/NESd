@@ -1,12 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
-class Namco163Audio {
-  Namco163Audio(this.subMapperId);
+class Namco163Audio implements ExpansionAudio {
+  Namco163Audio(this.subMapperId) : _scale = n163ScaleFor(subMapperId);
 
   final int subMapperId;
+
+  final double _scale;
 
   final Uint8List ram = Uint8List(0x80);
 
@@ -19,6 +22,22 @@ class Namco163Audio {
   int slot = 0;
 
   final Int8List channelOutput = Int8List(8);
+
+  bool soundDisabled = false;
+
+  final List<int> _debugOutputs = List.filled(8, n163DebugBias);
+
+  @override
+  double get output => soundDisabled ? 0.0 : channelOutput[7 - slot] * _scale;
+
+  @override
+  List<int> get debugOutputs {
+    for (var i = 0; i < _debugOutputs.length; i++) {
+      _debugOutputs[i] = channelOutput[i] + n163DebugBias;
+    }
+
+    return _debugOutputs;
+  }
 
   int get enabledChannels => ((ram[0x7f] >> 4) & 7) + 1;
 
@@ -62,6 +81,8 @@ class Namco163Audio {
 
     slotTimer = n163SlotCycles;
     slot = 0;
+
+    soundDisabled = false;
   }
 
   /// Auto-increment stops at `0x7f` instead of wrapping to `0x00`.
@@ -71,6 +92,7 @@ class Namco163Audio {
     }
   }
 
+  @override
   @pragma('vm:prefer-inline')
   void step() {
     if (--slotTimer > 0) {

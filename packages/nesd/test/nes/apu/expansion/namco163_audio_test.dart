@@ -313,4 +313,139 @@ void main() {
       expect(audio.frequencyOf(7), 0x12345);
     });
   });
+
+  group('output', () {
+    test('carries only the channel currently being serviced', () {
+      enable(audio, 2);
+
+      program(
+        audio,
+        6,
+        frequency: 0x10000,
+        length: 4,
+        waveAddress: 0,
+        volume: 15,
+      );
+      program(
+        audio,
+        7,
+        frequency: 0x10000,
+        length: 4,
+        waveAddress: 0,
+        volume: 0,
+      );
+
+      audio.ram[0] = 0x00;
+
+      for (var i = 0; i < n163SlotCycles; i++) {
+        audio.step();
+      }
+
+      expect(audio.output, isNot(0));
+
+      for (var i = 0; i < n163SlotCycles; i++) {
+        audio.step();
+      }
+
+      expect(audio.output, 0);
+    });
+
+    test('scales by the submapper level', () {
+      final loud = Namco163Audio(4);
+
+      for (final chip in [audio, loud]) {
+        enable(chip, 1);
+        program(
+          chip,
+          7,
+          frequency: 0x10000,
+          length: 4,
+          waveAddress: 0,
+          volume: 15,
+        );
+        chip.ram[0] = 0x00;
+
+        for (var i = 0; i < n163SlotCycles; i++) {
+          chip.step();
+        }
+      }
+
+      expect(audio.output, closeTo(-120 * n163ScaleFor(0), 1e-9));
+      expect(loud.output, closeTo(-120 * n163ScaleFor(4), 1e-9));
+      expect(loud.output.abs(), greaterThan(audio.output.abs()));
+    });
+
+    test('submapper 2 declares no expansion sound and stays silent', () {
+      final muted = Namco163Audio(2);
+
+      enable(muted, 1);
+      program(
+        muted,
+        7,
+        frequency: 0x10000,
+        length: 4,
+        waveAddress: 0,
+        volume: 15,
+      );
+      muted.ram[0] = 0x00;
+
+      for (var i = 0; i < n163SlotCycles; i++) {
+        muted.step();
+      }
+
+      expect(muted.output, 0);
+    });
+
+    test('sound disable silences the output but keeps the chip running', () {
+      enable(audio, 1);
+      program(
+        audio,
+        7,
+        frequency: 0x10000,
+        length: 4,
+        waveAddress: 0,
+        volume: 15,
+      );
+      audio.ram[0] = 0x00;
+
+      for (var i = 0; i < n163SlotCycles; i++) {
+        audio.step();
+      }
+
+      audio.soundDisabled = true;
+
+      expect(audio.output, 0);
+      expect(audio.channelOutput[7], isNot(0));
+    });
+
+    test('untagged ROMs get the submapper 3 level', () {
+      expect(n163ScaleFor(0), n163ScaleFor(3));
+      expect(n163ScaleFor(1), n163ScaleFor(3));
+    });
+  });
+
+  group('debug outputs', () {
+    test('are eight lanes biased into the unsigned byte range', () {
+      expect(audio.debugOutputs, hasLength(8));
+      expect(audio.debugOutputs.every((v) => v == n163DebugBias), true);
+
+      enable(audio, 1);
+      program(
+        audio,
+        7,
+        frequency: 0x10000,
+        length: 4,
+        waveAddress: 0,
+        volume: 15,
+      );
+      audio.ram[0] = 0x00;
+
+      for (var i = 0; i < n163SlotCycles; i++) {
+        audio.step();
+      }
+
+      expect(audio.debugOutputs[7], (0 - 8) * 15 + n163DebugBias);
+      expect(audio.debugOutputs.every((v) => v >= 0 && v <= 255), true);
+    });
+  });
 }

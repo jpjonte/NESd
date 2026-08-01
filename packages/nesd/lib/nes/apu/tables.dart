@@ -369,3 +369,22 @@ const mmc5PcmScale = 0.0022013578122923264;
 /// Namco 163 updates exactly one channel every 15 CPU cycles, cycling through
 /// the enabled channels.
 const n163SlotCycles = 15;
+
+/// Namco 163 audio mixes linearly on the cartridge, so it scales by a constant
+/// instead of using [pulseTable] or [tndTable].
+const n163UnitScale = 0.002145938173975557;
+
+/// Namco 163 channel outputs are signed (-120 to 105). This offset maps the
+/// values into our APU visualizer's unsigned range.
+const n163DebugBias = 120;
+
+/// N163's output level for a cartridge declaring [subMapperId].
+///
+/// NES 2.0 submappers 3, 4 and 5 declare the chip 11.0-13.0, 16.0-17.0 and
+/// 18.0-19.5 dB louder than the NES APU.
+double n163ScaleFor(int subMapperId) => switch (subMapperId) {
+  2 => 0.0,
+  4 => n163UnitScale * 6.6834,
+  5 => n163UnitScale * 8.6596,
+  _ => n163UnitScale * 3.9811,
+};
