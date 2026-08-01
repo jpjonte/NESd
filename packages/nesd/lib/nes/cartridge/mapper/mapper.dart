@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/exception/unsupported_mapper.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom.dart';
@@ -196,6 +197,10 @@ abstract class Mapper {
   /// override [step] should return true.
   bool get needsStep => false;
 
+  /// This mapper's expansion sound chip, or null when it has none.
+  /// The APU caches this at reset, so it must not change afterwards.
+  ExpansionAudio? get expansionAudio => null;
+
   int cpuRead(int address, {bool disableSideEffects = false}) {
     final mapping = _mapCpuAddress(address);
 
@@ -269,6 +274,10 @@ abstract class Mapper {
   /// Whether [updatePpuAddress] must be called on every PPU memory
   /// access (A12-edge / address-latch mappers: MMC3 family, MMC2).
   bool get needsPpuAddressUpdates => false;
+
+  /// Whether the PPU must route every fetch through [ppuRead] instead
+  /// of serving it from its own block cache.
+  bool get needsPpuReads => false;
 
   void mapCpu(
     int fromAddress,

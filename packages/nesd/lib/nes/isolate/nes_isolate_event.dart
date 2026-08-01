@@ -119,6 +119,7 @@ class ApuDebugSamples {
     required this.triangle,
     required this.noise,
     required this.dmc,
+    required this.expansion,
     required this.mix,
   });
 
@@ -129,6 +130,8 @@ class ApuDebugSamples {
   final Uint8List triangle;
   final Uint8List noise;
   final Uint8List dmc;
+
+  final List<Uint8List> expansion;
 
   /// The mixed output, pre-volume, in the range 0-1.
   final Float32List mix;
@@ -144,6 +147,8 @@ class ApuDebugEvent extends NesIsolateEvent {
     required this.triangle,
     required this.noise,
     required this.dmc,
+    required this.expansionLaneCount,
+    required this.mmc5,
     required this.cpuFrequency,
   });
 
@@ -161,6 +166,7 @@ class ApuDebugEvent extends NesIsolateEvent {
     required TriangleDebugState triangle,
     required NoiseDebugState noise,
     required DmcDebugState dmc,
+    required Mmc5DebugState? mmc5,
     required int cpuFrequency,
   }) {
     assert(sampleCount > 0, 'sampleCount must be positive');
@@ -189,6 +195,8 @@ class ApuDebugEvent extends NesIsolateEvent {
       triangle: triangle,
       noise: noise,
       dmc: dmc,
+      expansionLaneCount: channels.expansion.length,
+      mmc5: mmc5,
       cpuFrequency: cpuFrequency,
     );
   }
@@ -202,9 +210,14 @@ class ApuDebugEvent extends NesIsolateEvent {
     channels.triangle,
     channels.noise,
     channels.dmc,
+    ...channels.expansion,
   ];
 
-  static const channelCount = 5;
+  static const builtinChannelCount = 5;
+
+  final int expansionLaneCount;
+
+  int get channelCount => builtinChannelCount + expansionLaneCount;
 
   /// Materializes the payload and slices it back into per-channel views.
   ApuDebugSamples unpackSamples() {
@@ -233,6 +246,11 @@ class ApuDebugEvent extends NesIsolateEvent {
       triangle: lane(2),
       noise: lane(3),
       dmc: lane(4),
+      expansion: List.generate(
+        expansionLaneCount,
+        (i) => lane(builtinChannelCount + i),
+        growable: false,
+      ),
       mix: mix,
     );
   }
@@ -253,6 +271,8 @@ class ApuDebugEvent extends NesIsolateEvent {
   final TriangleDebugState triangle;
   final NoiseDebugState noise;
   final DmcDebugState dmc;
+
+  final Mmc5DebugState? mmc5;
 
   /// CPU frequency in Hz for the active region, for deriving channel
   /// frequencies UI-side.

@@ -13,6 +13,9 @@ const _triangleColor = Color(0xff199e70);
 const _noiseColor = Color(0xffc98500);
 const _dmcColor = Color(0xffd55181);
 const _mixColor = Colors.white;
+const _mmc5Pulse1Color = Color(0xff8a63d2);
+const _mmc5Pulse2Color = Color(0xff2bb3c0);
+const _mmc5PcmColor = Color(0xff9aa832);
 
 const _disabledOpacity = 0.38;
 
@@ -86,6 +89,9 @@ final _triangleStyle = _LaneStyle(_triangleColor);
 final _noiseStyle = _LaneStyle(_noiseColor);
 final _dmcStyle = _LaneStyle(_dmcColor);
 final _mixStyle = _LaneStyle(_mixColor);
+final _mmc5Pulse1Style = _LaneStyle(_mmc5Pulse1Color);
+final _mmc5Pulse2Style = _LaneStyle(_mmc5Pulse2Color);
+final _mmc5PcmStyle = _LaneStyle(_mmc5PcmColor);
 
 String _frequency(double value) => '${value.toStringAsFixed(1).padLeft(6)}Hz';
 
@@ -160,6 +166,35 @@ class ApuDebugWidget extends HookConsumerWidget {
           style: _dmcStyle,
           enabled: data.dmc.enabled,
         ),
+        if (data.mmc5 case final mmc5?
+            when data.expansionSamples.length >= 3) ...[
+          _ApuLane(
+            label: 'MMC5 Pulse 1',
+            params: _pulseParams(data, mmc5.pulse1),
+            samples: data.expansionSamples[0],
+            maxValue: 15,
+            style: _mmc5Pulse1Style,
+            triggered: true,
+            enabled: mmc5.pulse1.enabled,
+          ),
+          _ApuLane(
+            label: 'MMC5 Pulse 2',
+            params: _pulseParams(data, mmc5.pulse2),
+            samples: data.expansionSamples[1],
+            maxValue: 15,
+            style: _mmc5Pulse2Style,
+            triggered: true,
+            enabled: mmc5.pulse2.enabled,
+          ),
+          _ApuLane(
+            label: 'MMC5 PCM',
+            params: [_Param('LVL', '${mmc5.pcmLevel}'.padLeft(3))],
+            samples: data.expansionSamples[2],
+            maxValue: 255,
+            style: _mmc5PcmStyle,
+            enabled: mmc5.pcmLevel > 0,
+          ),
+        ],
         _ApuLane(
           label: 'Mix',
           params: const [],

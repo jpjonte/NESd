@@ -8,19 +8,24 @@ import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:path/path.dart' as p;
 
 import '../ui/mocks.dart';
 
 const _romPath = '../../roms/test/nestest/nestest.nes';
+const _mmc5RomPath = '../../roms/test/mmc5test_v2/mmc5test.nes';
 
-LoadRomCommand _loadRomCommand({bool rewindEnabled = false}) {
-  final bytes = File(_romPath).readAsBytesSync();
+LoadRomCommand _loadRomCommand({
+  bool rewindEnabled = false,
+  String romPath = _romPath,
+}) {
+  final bytes = File(romPath).readAsBytesSync();
 
   return LoadRomCommand(
     rom: TransferableTypedData.fromList([bytes]),
-    file: const FilesystemFile(
-      path: _romPath,
-      name: 'nestest.nes',
+    file: FilesystemFile(
+      path: romPath,
+      name: p.basename(romPath),
       type: FilesystemFileType.file,
     ),
     databaseEntry: null,
@@ -152,5 +157,26 @@ void main() {
     events.clear();
 
     await waitFor<ApuDebugEvent>();
+  });
+
+  test('an MMC5 ROM reports expansion lanes and state', () async {
+    await worker.handleCommand(_loadRomCommand(romPath: _mmc5RomPath));
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    final event = await waitFor<ApuDebugEvent>();
+
+    expect(event.expansionLaneCount, 3);
+    expect(event.mmc5, isNotNull);
+    expect(event.channelCount, 8);
+  });
+
+  test('a non-MMC5 ROM reports no expansion lanes', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    final event = await waitFor<ApuDebugEvent>();
+
+    expect(event.expansionLaneCount, 0);
+    expect(event.mmc5, isNull);
   });
 }

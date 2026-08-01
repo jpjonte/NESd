@@ -32,15 +32,34 @@ void main() {
     expect(actual.pulse2Samples, expected.pulse2Samples);
     expect(actual.triangleSamples, expected.triangleSamples);
     expect(actual.dmcSamples, expected.dmcSamples);
+    expect(actual.expansionSamples, expected.expansionSamples);
     expect(actual.sampleStart, expected.sampleStart);
   }
 
-  test('serialize writes version 1 and round-trips', () {
+  APUState withExpansionSamples(double value) => APUState(
+    cycles: original.cycles,
+    sampleIndex: original.sampleIndex,
+    sampleBuffer: original.sampleBuffer,
+    pulse1Samples: original.pulse1Samples,
+    pulse2Samples: original.pulse2Samples,
+    triangleSamples: original.triangleSamples,
+    dmcSamples: original.dmcSamples,
+    expansionSamples: value,
+    sampleStart: original.sampleStart,
+    frameCounterState: original.frameCounterState,
+    pulse1State: original.pulse1State,
+    pulse2State: original.pulse2State,
+    triangleState: original.triangleState,
+    noiseState: original.noiseState,
+    dmcState: original.dmcState,
+  );
+
+  test('serialize writes version 2 and round-trips', () {
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 1, reason: 'APUState version');
+    expect(bytes[0], 2, reason: 'APUState version');
 
     final decoded = APUState.deserialize(Payload.read(bytes));
 
@@ -72,5 +91,41 @@ void main() {
     final decoded = APUState.deserialize(Payload.read(binarize(writer)));
 
     expectStatesEqual(decoded, original);
+  });
+
+  test('expansionSamples round-trips through version 2', () {
+    final writer = Payload.write();
+
+    withExpansionSamples(0.125).serialize(writer);
+
+    final decoded = APUState.deserialize(Payload.read(binarize(writer)));
+
+    expect(decoded.expansionSamples, 0.125);
+  });
+
+  test('still reads legacy version 1 payloads', () {
+    // replicate the exact v1 wire format the previous code produced
+    final writer = Payload.write()
+      ..set(uint8, 1)
+      ..set(uint64, original.cycles)
+      ..set(uint64, original.sampleIndex)
+      ..set(float32List(lengthType: uint32), original.sampleBuffer)
+      ..set(uint64, original.pulse1Samples)
+      ..set(uint64, original.pulse2Samples)
+      ..set(uint64, original.triangleSamples)
+      ..set(uint64, original.dmcSamples)
+      ..set(uint64, original.sampleStart);
+
+    original.frameCounterState.serialize(writer);
+    original.pulse1State.serialize(writer);
+    original.pulse2State.serialize(writer);
+    original.triangleState.serialize(writer);
+    original.noiseState.serialize(writer);
+    original.dmcState.serialize(writer);
+
+    final decoded = APUState.deserialize(Payload.read(binarize(writer)));
+
+    expectStatesEqual(decoded, original);
+    expect(decoded.expansionSamples, 0);
   });
 }

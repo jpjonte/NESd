@@ -1,14 +1,12 @@
 import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/nes/cartridge/cartridge_factory.dart';
+import 'package:nesd/nes/apu/expansion/mmc5_audio_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5_state.dart';
-import 'package:nesd/nes/event/event_bus.dart';
-import 'package:nesd/nes/nes.dart';
-import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 
-import '../../../ui/mocks.dart';
+import 'mmc5_harness.dart';
 
 MMC5State buildState({
   List<int> chrRegisters = const [
@@ -27,6 +25,7 @@ MMC5State buildState({
   ],
   int extendedAttributeOffset = 1023,
   int chrPageHigh = 2,
+  Mmc5AudioState audioState = const Mmc5AudioState.initial(),
 }) {
   return MMC5State(
     prgBankMode: 3,
@@ -67,6 +66,7 @@ MMC5State buildState({
     extendedAttributeOffset: extendedAttributeOffset,
     extendedAttributeFetchCountdown: 3,
     extendedAttributeChrBank: 0xbf,
+    audioState: audioState,
   );
 }
 
@@ -110,33 +110,15 @@ void expectStatesEqual(MMC5State actual, MMC5State expected) {
     expected.extendedAttributeFetchCountdown,
   );
   expect(actual.extendedAttributeChrBank, expected.extendedAttributeChrBank);
-}
-
-/// Minimal in-memory iNES image with mapper 5 (flags6 = 0x50), 128 KB PRG,
-/// 64 KB CHR. Enough for MMC5's bank math, no ROM file needed.
-MMC5 buildMmc5() {
-  const prgBanks = 8;
-  const chrBanks = 8;
-
-  final rom = Uint8List(16 + prgBanks * 0x4000 + chrBanks * 0x2000)
-    ..setAll(0, const [0x4e, 0x45, 0x53, 0x1a, prgBanks, chrBanks, 0x50, 0]);
-
-  final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
-    const FilesystemFile(
-      path: 'mmc5-test.nes',
-      name: 'mmc5-test.nes',
-      type: FilesystemFileType.file,
-    ),
-    rom,
-  )..databaseEntry = null;
-
-  NES(cartridge: cartridge, eventBus: EventBus());
-
-  return cartridge.mapper as MMC5;
+  expect(actual.audioState.pcmLevel, expected.audioState.pcmLevel);
+  expect(
+    actual.audioState.pulse1State.timerPeriod,
+    expected.audioState.pulse1State.timerPeriod,
+  );
 }
 
 void main() {
-  test('serialize writes version 1 and round-trips 10-bit CHR banks', () {
+  test('serialize writes version 2 and round-trips 10-bit CHR banks', () {
     final original = buildState();
 
     final writer = Payload.write();
@@ -145,7 +127,7 @@ void main() {
 
     expect(bytes[0], 0, reason: 'MapperState envelope version');
     expect(bytes[1], 5, reason: 'mapper id');
-    expect(bytes[2], 1, reason: 'MMC5State version');
+    expect(bytes[2], 2, reason: 'MMC5State version');
 
     final decoded = MapperState.deserialize(Payload.read(bytes)) as MMC5State;
 
@@ -214,5 +196,125 @@ void main() {
 
     expect(restored.chrPageHigh, 2);
     expect(restored.chrRegisters, buildState().chrRegisters);
+  });
+
+  group('audio state', () {
+    test('serialize writes version 2 and round-trips audio state', () {
+      final mapper = buildMmc5()
+        ..cpuWrite(0x5015, 0x03)
+        ..cpuWrite(0x5000, 0xdf)
+        ..cpuWrite(0x5003, 0x18)
+        ..cpuWrite(0x5010, 0x80)
+        ..cpuWrite(0x5011, 0x7f)
+        ..step()
+        ..step();
+
+      final writer = Payload.write();
+
+      mapper.state.serialize(writer);
+
+      final reader = Payload.read(binarize(writer));
+      final restored = MapperState.deserialize(reader) as MMC5State;
+
+      final audio = restored.audioState;
+
+      expect(audio.pcmLevel, 0x7f);
+      expect(audio.pcmIrqEnabled, true);
+      expect(audio.cycles, 2);
+      expect(audio.pulse1State.enabled, true);
+      expect(audio.pulse1State.duty, 3);
+      expect(audio.pulse1State.lengthCounterState.value, 2);
+    });
+
+    test('restoring state restores the audible output', () {
+      final source = buildMmc5()
+        ..cpuWrite(0x5015, 0x01)
+        ..cpuWrite(0x5000, 0xdf)
+        ..cpuWrite(0x5003, 0x18)
+        ..cpuWrite(0x5011, 0x40);
+
+      final target = buildMmc5()..state = source.state;
+
+      expect(target.audio.output, source.audio.output);
+      expect(target.audio.output, greaterThan(0));
+    });
+
+    test('a version 1 state loads with silent audio', () {
+      final original = buildState();
+
+      // replicate the exact v1 wire format the previous code produced:
+      // like v0, but chrRegisters is list(uint16) and
+      // extendedAttributeOffset is uint16, to fit the 10-bit CHR banks
+      // the MMC5's extra-CHR mode introduced.
+      final writer = Payload.write()
+        ..set(uint8, 0) // envelope version
+        ..set(uint8, 5) // mapper id
+        ..set(uint8, 1) // MMC5State version
+        ..set(uint8, original.prgBankMode)
+        ..set(uint8, original.prgRamProtect1)
+        ..set(uint8, original.prgRamProtect2)
+        ..set(list(uint8), original.prgRegisters)
+        ..set(uint8, original.chrBankMode)
+        ..set(list(uint16), original.chrRegisters)
+        ..set(list(uint8), original.exram)
+        ..set(list(uint8), original.filledNametable)
+        ..set(uint16, original.lastChrAddress)
+        ..set(uint8, original.chrPageHigh)
+        ..set(uint8, original.nametables)
+        ..set(uint8, original.fillModeTile)
+        ..set(uint8, original.fillModeColor)
+        ..set(uint16, original.lastPpuAddress)
+        ..set(uint8, original.ppuIdleCountdown)
+        ..set(boolean, original.ppuInFrame)
+        ..set(uint8, original.ppuNtReadCount)
+        ..set(uint8, original.scanline)
+        ..set(uint8, original.irqTargetScanline)
+        ..set(boolean, original.irqEnabled)
+        ..set(boolean, original.irqPending)
+        ..set(uint8, original.multiplicand)
+        ..set(uint8, original.multiplier)
+        ..set(uint8, original.tileCounter)
+        ..set(boolean, original.lastExtraChr)
+        ..set(boolean, original.splitEnabled)
+        ..set(boolean, original.splitActive)
+        ..set(enumeration(SplitSide.values), original.splitSide)
+        ..set(uint8, original.splitTile)
+        ..set(uint16, original.splitTileAddress)
+        ..set(uint8, original.splitScroll)
+        ..set(uint8, original.splitBank)
+        ..set(uint8, original.extendedRamMode)
+        ..set(uint16, original.extendedAttributeOffset)
+        ..set(uint8, original.extendedAttributeFetchCountdown)
+        ..set(uint8, original.extendedAttributeChrBank);
+
+      final decoded =
+          MapperState.deserialize(Payload.read(binarize(writer))) as MMC5State;
+
+      expectStatesEqual(decoded, original);
+
+      expect(decoded.audioState.pcmLevel, 0);
+      expect(decoded.audioState.pulse1State.enabled, false);
+    });
+
+    test('restoring a state mid-PCM-IRQ re-asserts the bus line', () {
+      final source = buildMmc5()
+        ..cpuWrite(0x5010, 0x80)
+        ..cpuWrite(0x5011, 0x00);
+
+      final target = buildMmc5()..state = source.state;
+
+      expect(target.bus.cpu.irq & IrqSource.mapperAudio.value, isNot(0));
+    });
+
+    test('restoring a state with no pending PCM IRQ clears the bus line', () {
+      final source = buildMmc5();
+
+      final target = buildMmc5()
+        ..cpuWrite(0x5010, 0x80)
+        ..cpuWrite(0x5011, 0x00)
+        ..state = source.state;
+
+      expect(target.bus.cpu.irq & IrqSource.mapperAudio.value, 0);
+    });
   });
 }

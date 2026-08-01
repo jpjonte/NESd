@@ -1,5 +1,6 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/nes/apu/expansion/mmc5_audio_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5.dart';
 
@@ -41,6 +42,7 @@ class MMC5State extends MapperState {
     required this.extendedAttributeOffset,
     required this.extendedAttributeFetchCountdown,
     required this.extendedAttributeChrBank,
+    required this.audioState,
     super.id = 5,
   });
 
@@ -50,6 +52,7 @@ class MMC5State extends MapperState {
     return switch (version) {
       0 => MMC5State._version0(reader),
       1 => MMC5State._version1(reader),
+      2 => MMC5State._version2(reader),
       _ => throw InvalidSerializationVersion('MMC5', version),
     };
   }
@@ -92,6 +95,7 @@ class MMC5State extends MapperState {
       extendedAttributeOffset: reader.get(uint8),
       extendedAttributeFetchCountdown: reader.get(uint8),
       extendedAttributeChrBank: reader.get(uint8),
+      audioState: const Mmc5AudioState.initial(),
     );
   }
 
@@ -133,6 +137,49 @@ class MMC5State extends MapperState {
       extendedAttributeOffset: reader.get(uint16),
       extendedAttributeFetchCountdown: reader.get(uint8),
       extendedAttributeChrBank: reader.get(uint8),
+      audioState: const Mmc5AudioState.initial(),
+    );
+  }
+
+  factory MMC5State._version2(PayloadReader reader) {
+    return MMC5State(
+      prgBankMode: reader.get(uint8),
+      prgRamProtect1: reader.get(uint8),
+      prgRamProtect2: reader.get(uint8),
+      prgRegisters: reader.get(list(uint8)),
+      chrBankMode: reader.get(uint8),
+      chrRegisters: reader.get(list(uint16)),
+      exram: Uint8List.fromList(reader.get(list(uint8))),
+      filledNametable: Uint8List.fromList(reader.get(list(uint8))),
+      lastChrAddress: reader.get(uint16),
+      chrPageHigh: reader.get(uint8),
+      nametables: reader.get(uint8),
+      fillModeTile: reader.get(uint8),
+      fillModeColor: reader.get(uint8),
+      lastPpuAddress: reader.get(uint16),
+      ppuIdleCountdown: reader.get(uint8),
+      ppuInFrame: reader.get(boolean),
+      ppuNtReadCount: reader.get(uint8),
+      scanline: reader.get(uint8),
+      irqTargetScanline: reader.get(uint8),
+      irqEnabled: reader.get(boolean),
+      irqPending: reader.get(boolean),
+      multiplicand: reader.get(uint8),
+      multiplier: reader.get(uint8),
+      tileCounter: reader.get(uint8),
+      lastExtraChr: reader.get(boolean),
+      splitEnabled: reader.get(boolean),
+      splitActive: reader.get(boolean),
+      splitSide: reader.get(enumeration(SplitSide.values)),
+      splitTile: reader.get(uint8),
+      splitTileAddress: reader.get(uint16),
+      splitScroll: reader.get(uint8),
+      splitBank: reader.get(uint8),
+      extendedRamMode: reader.get(uint8),
+      extendedAttributeOffset: reader.get(uint16),
+      extendedAttributeFetchCountdown: reader.get(uint8),
+      extendedAttributeChrBank: reader.get(uint8),
+      audioState: Mmc5AudioState.deserialize(reader),
     );
   }
 
@@ -191,12 +238,14 @@ class MMC5State extends MapperState {
   final int extendedAttributeFetchCountdown;
   final int extendedAttributeChrBank;
 
+  final Mmc5AudioState audioState;
+
   @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
     writer
-      ..set(uint8, 1) // version
+      ..set(uint8, 2) // version
       ..set(uint8, prgBankMode)
       ..set(uint8, prgRamProtect1)
       ..set(uint8, prgRamProtect2)
@@ -233,5 +282,7 @@ class MMC5State extends MapperState {
       ..set(uint16, extendedAttributeOffset)
       ..set(uint8, extendedAttributeFetchCountdown)
       ..set(uint8, extendedAttributeChrBank);
+
+    audioState.serialize(writer);
   }
 }
