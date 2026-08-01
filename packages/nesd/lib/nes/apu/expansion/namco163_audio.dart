@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/tables.dart';
 
 class Namco163Audio {
   Namco163Audio(this.subMapperId);
@@ -12,6 +13,24 @@ class Namco163Audio {
   int address = 0;
 
   bool autoIncrement = false;
+
+  int slotTimer = n163SlotCycles;
+
+  int slot = 0;
+
+  final Int8List channelOutput = Int8List(8);
+
+  int get enabledChannels => ((ram[0x7f] >> 4) & 7) + 1;
+
+  int volumeOf(int index) => ram[0x40 + index * 8 + 7] & 0x0f;
+
+  int waveLengthOf(int index) => 256 - (ram[0x40 + index * 8 + 4] & 0xfc);
+
+  int frequencyOf(int index) {
+    final base = 0x40 + index * 8;
+
+    return ((ram[base + 4] & 0x03) << 16) | (ram[base + 2] << 8) | ram[base];
+  }
 
   void writeAddress(int value) {
     address = value & 0x7f;
@@ -36,9 +55,13 @@ class Namco163Audio {
 
   void reset() {
     ram.fillRange(0, ram.length, 0);
+    channelOutput.fillRange(0, channelOutput.length, 0);
 
     address = 0;
     autoIncrement = false;
+
+    slotTimer = n163SlotCycles;
+    slot = 0;
   }
 
   /// Auto-increment stops at `0x7f` instead of wrapping to `0x00`.
@@ -46,5 +69,41 @@ class Namco163Audio {
     if (autoIncrement && address < 0x7f) {
       address++;
     }
+  }
+
+  @pragma('vm:prefer-inline')
+  void step() {
+    if (--slotTimer > 0) {
+      return;
+    }
+
+    slotTimer = n163SlotCycles;
+
+    final next = slot + 1;
+
+    slot = next >= enabledChannels ? 0 : next;
+
+    _updateChannel(7 - slot);
+  }
+
+  void _updateChannel(int index) {
+    final base = 0x40 + index * 8;
+
+    final frequency = frequencyOf(index);
+    final length = waveLengthOf(index);
+
+    final previous =
+        (ram[base + 5] << 16) | (ram[base + 3] << 8) | ram[base + 1];
+
+    final phase = (previous + frequency) % (length << 16);
+
+    ram[base + 1] = phase & 0xff;
+    ram[base + 3] = (phase >> 8) & 0xff;
+    ram[base + 5] = (phase >> 16) & 0xff;
+
+    final sampleIndex = ((phase >> 16) + ram[base + 6]) & 0xff;
+    final sample = (ram[sampleIndex >> 1] >> ((sampleIndex & 1) * 4)) & 0x0f;
+
+    channelOutput[index] = (sample - 8) * volumeOf(index);
   }
 }
