@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
+import 'package:nesd/nes/apu/expansion/mmc5_audio.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
@@ -18,6 +20,13 @@ class MMC5 extends Mapper {
 
   @override
   int get chrPageSize => 0x400;
+
+  final Mmc5Audio audio = Mmc5Audio();
+
+  @override
+  ExpansionAudio? get expansionAudio => audio;
+
+  bool _pcmIrqAsserted = false;
 
   int _prgBankMode = 0;
   int _prgRamProtect1 = 0;
@@ -174,6 +183,10 @@ class MMC5 extends Mapper {
   void reset() {
     super.reset();
 
+    audio.reset();
+
+    _pcmIrqAsserted = false;
+
     _prgBankMode = 3;
     _prgRegisters[4] = 0xff;
     _prgRamProtect1 = 0;
@@ -224,6 +237,8 @@ class MMC5 extends Mapper {
 
   @override
   void step() {
+    audio.step();
+
     if (_ppuIdleCountdown > 0) {
       _ppuIdleCountdown--;
 
@@ -312,6 +327,22 @@ class MMC5 extends Mapper {
     }
   }
 
+  void _syncPcmIrq() {
+    final asserted = audio.pcmIrqAsserted;
+
+    if (asserted == _pcmIrqAsserted) {
+      return;
+    }
+
+    _pcmIrqAsserted = asserted;
+
+    if (asserted) {
+      bus.triggerIrq(IrqSource.mapperAudio);
+    } else {
+      bus.clearIrq(IrqSource.mapperAudio);
+    }
+  }
+
   int _ppuReadSplitMode(int address, bool fetchingNametable) {
     final scroll = (_scanline + _splitScroll) % 240;
 
@@ -379,8 +410,16 @@ class MMC5 extends Mapper {
     switch (address) {
       case 0x5010:
       case 0x5015:
-        // audio
-        return 0;
+        final result = audio.readRegister(
+          address,
+          disableSideEffects: disableSideEffects,
+        );
+
+        if (!disableSideEffects) {
+          _syncPcmIrq();
+        }
+
+        return result;
       case 0x5204:
         final result =
             (_irqPending ? (1 << 7) : 0) | (_ppuInFrame ? (1 << 6) : 0);
@@ -427,8 +466,9 @@ class MMC5 extends Mapper {
 
     switch (address) {
       case >= 0x5000 && <= 0x5015:
-        // audio
-        break;
+        audio.writeRegister(address, value);
+
+        _syncPcmIrq();
       case 0x5100:
         _prgBankMode = value & 0x3;
 
