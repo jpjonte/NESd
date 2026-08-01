@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- MMC5 expansion audio: Additional audio channels used by Japanese MMC5 games
+
 ### Fixed
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
 

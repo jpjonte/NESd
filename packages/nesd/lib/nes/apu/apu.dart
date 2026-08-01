@@ -7,6 +7,7 @@ import 'package:nesd/nes/apu/channel/dmc_channel.dart';
 import 'package:nesd/nes/apu/channel/noise_channel.dart';
 import 'package:nesd/nes/apu/channel/pulse_channel.dart';
 import 'package:nesd/nes/apu/channel/triangle_channel.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter.dart';
 import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/bus.dart';
@@ -46,6 +47,10 @@ class APU {
   int _dmcSamples = 0;
   int _sampleStart = 0;
 
+  ExpansionAudio? _expansion;
+
+  double _expansionSamples = 0;
+
   /// Mirrors the last DMC IRQ level reported to the bus so step() only
   /// calls trigger/clear on transitions instead of every CPU cycle.
   bool _dmcIrqAsserted = false;
@@ -78,6 +83,7 @@ class APU {
     pulse2Samples: _pulse2Samples,
     triangleSamples: _triangleSamples,
     dmcSamples: _dmcSamples,
+    expansionSamples: _expansionSamples,
     sampleStart: _sampleStart,
     frameCounterState: _frameCounter.state,
     pulse1State: pulse1.state,
@@ -98,6 +104,7 @@ class APU {
     _pulse2Samples = state.pulse2Samples;
     _triangleSamples = state.triangleSamples;
     _dmcSamples = state.dmcSamples;
+    _expansionSamples = state.expansionSamples;
     _sampleStart = state.sampleStart;
 
     _frameCounter.state = state.frameCounterState;
@@ -203,6 +210,9 @@ class APU {
     _sampleStart = 0;
     _sampleAccumulator = 0;
 
+    _expansion = bus.cartridge.mapper.expansionAudio;
+    _expansionSamples = 0;
+
     _dmcIrqAsserted = false;
 
     _frameCounter.reset();
@@ -281,6 +291,10 @@ class APU {
     _pulse2Samples += pulse2.output;
     _triangleSamples += triangle.output;
     _dmcSamples += dmc.output;
+
+    if (_expansion case final expansion?) {
+      _expansionSamples += expansion.output;
+    }
   }
 
   void _emitSample() {
@@ -302,7 +316,9 @@ class APU {
     final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
     final tndOut = tndTable[3 * triangleSample + 2 * noiseSample + dmcSample];
 
-    sampleBuffer[sampleIndex] = pulseOut + tndOut;
+    final expansionSample = _expansionSamples * inv;
+
+    sampleBuffer[sampleIndex] = pulseOut + tndOut + expansionSample;
 
     if (_channelSamples case final channelSamples?) {
       channelSamples.pulse1[sampleIndex] = pulse1Sample;
@@ -319,5 +335,6 @@ class APU {
     _pulse2Samples = 0;
     _triangleSamples = 0;
     _dmcSamples = 0;
+    _expansionSamples = 0;
   }
 }
