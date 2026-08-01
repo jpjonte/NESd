@@ -2,8 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   late Directory tempDir;
@@ -24,6 +26,13 @@ void main() {
 
   tearDown(() => tempDir.delete(recursive: true));
 
+  Future<void> saveThumbnail(int size) => manager.saveThumbnail(
+    romInfo,
+    width: size,
+    height: size,
+    pixels: Uint8List(size * size * 4),
+  );
+
   group('RomManager', () {
     test('saveState writes asynchronously and loadState reads back', () async {
       await manager.saveState(romInfo, 3, [1, 2, 3]);
@@ -37,28 +46,45 @@ void main() {
       expect(manager.load(romInfo), [9, 8, 7]);
     });
 
-    test('getRomTileData returns null thumbnail for corrupt image', () async {
-      final thumbnailFile = manager.getThumbnailFile(romInfo);
-
-      await thumbnailFile.writeAsBytes([0, 1, 2, 3]);
-
-      final romTileData = await manager.getRomTileData(romInfo);
+    // the thumbnail file itself is read by the tile, see rom_tile_test.dart
+    test('getRomTileData leaves the thumbnail to the tile', () {
+      final romTileData = manager.getRomTileData(romInfo);
 
       expect(romTileData.title, 'test');
-      expect(romTileData.thumbnail, isNull);
+      expect(romTileData.thumbnail, isA<StoredThumbnail>());
     });
 
-    test('getRomTileData loads a valid thumbnail', () async {
-      await manager.saveThumbnail(
-        romInfo,
-        width: 2,
-        height: 2,
-        pixels: Uint8List(2 * 2 * 4),
+    test('saveThumbnail writes a decodable image', () async {
+      await saveThumbnail(2);
+
+      expect(
+        await loadStoredThumbnail(manager.getThumbnailFile(romInfo)),
+        isNotNull,
+      );
+    });
+
+    test('saveThumbnail replaces an existing thumbnail', () async {
+      await saveThumbnail(2);
+      await saveThumbnail(4);
+
+      final thumbnail = await loadStoredThumbnail(
+        manager.getThumbnailFile(romInfo),
       );
 
-      final romTileData = await manager.getRomTileData(romInfo);
+      expect(thumbnail?.width, 4);
+    });
 
-      expect(romTileData.thumbnail, isNotNull);
+    // the thumbnail is written next to its destination and renamed into
+    // place. The rename itself is not observable, but it must not leave the
+    // temporary file behind
+    test('saveThumbnail leaves no temporary file behind', () async {
+      await saveThumbnail(2);
+
+      final thumbnails = Directory(
+        p.dirname(manager.getThumbnailFile(romInfo).path),
+      ).listSync().map((entity) => p.basename(entity.path));
+
+      expect(thumbnails, ['test.png']);
     });
   });
 }

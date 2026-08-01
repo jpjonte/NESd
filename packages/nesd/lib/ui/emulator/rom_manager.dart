@@ -148,7 +148,13 @@ class RomManager {
 
     await _ensureDirectoryExists(file);
 
-    await file.writeAsBytes(png);
+    // the ROM list reads thumbnails while this runs, so the new one is
+    // written next to the old one and then renamed into place
+    final temporaryFile = File('${file.path}.tmp');
+
+    await temporaryFile.writeAsBytes(png);
+
+    await temporaryFile.rename(file.path);
   }
 
   File getThumbnailFile(RomInfo romInfo) {
@@ -157,13 +163,13 @@ class RomManager {
     return File(filename);
   }
 
-  Future<RomTileData> getRomTileData(RomInfo romInfo) async {
-    return RomTileData(
-      romInfo: romInfo,
-      title: p.basenameWithoutExtension(romInfo.file.name),
-      thumbnail: await _getLastThumbnail(romInfo),
-    );
-  }
+  // the tile loads the thumbnail itself, so building the ROM list needs no
+  // file IO and does not have to wait for the thumbnail of a stopped game
+  RomTileData getRomTileData(RomInfo romInfo) => RomTileData(
+    romInfo: romInfo,
+    title: p.basenameWithoutExtension(romInfo.file.name),
+    thumbnail: const StoredThumbnail(),
+  );
 
   Future<RomTileData?> getRomTileDataForSlot(RomInfo romInfo, int slot) async {
     final saveStateFile = _getSaveStateFile(romInfo, slot);
@@ -183,7 +189,7 @@ class RomManager {
         romInfo: romInfo,
         title:
             'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
-        thumbnail: await _getStateThumbnail(state),
+        thumbnail: DecodedThumbnail(await _getStateThumbnail(state)),
         state: state,
         slot: slot,
       );
@@ -213,31 +219,6 @@ class RomManager {
     final frameBuffer = state.ppuState.frameBuffer;
 
     return await convertFrameBufferToImage(frameBuffer);
-  }
-
-  Future<ui.Image?> _getLastThumbnail(RomInfo romInfo) async {
-    final thumbnailFile = getThumbnailFile(romInfo);
-
-    if (!thumbnailFile.existsSync()) {
-      return null;
-    }
-
-    try {
-      final bytes = thumbnailFile.readAsBytesSync();
-
-      final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-
-      final descriptor = await ui.ImageDescriptor.encoded(buffer);
-
-      final codec = await descriptor.instantiateCodec();
-
-      final frameInfo = await codec.getNextFrame();
-
-      return frameInfo.image;
-    } on Exception {
-      // a broken thumbnail should not prevent the ROM from being listed
-      return null;
-    }
   }
 
   void _initializeDirectories() {

@@ -38,22 +38,14 @@ class RecentRomList extends HookConsumerWidget {
       );
     }
 
-    final future = useMemoized(
-      () => _getRomTileDataForRoms(romManager, recentRoms),
+    // rebuilding the tile data makes the tiles reload their thumbnails, so
+    // returning to the list after playing shows the thumbnail just saved
+    final roms = useMemoized(
+      () => [
+        for (final romInfo in recentRoms) romManager.getRomTileData(romInfo),
+      ],
       [recentRoms, route == MainRoute.name],
     );
-
-    final romsSnapshot = useFuture(future);
-
-    if (romsSnapshot.hasError) {
-      return const Center(child: Text('Error loading ROMs'));
-    }
-
-    if (!romsSnapshot.hasData) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final roms = romsSnapshot.data!;
 
     Future<void> remove(BuildContext context, RomTileData romTileData) async {
       final confirmed = await ConfirmationDialog.show(
@@ -148,14 +140,5 @@ class RecentRomList extends HookConsumerWidget {
         ],
       ),
     );
-  }
-
-  Future<List<RomTileData>> _getRomTileDataForRoms(
-    RomManager romManager,
-    List<RomInfo> romInfos,
-  ) async {
-    return [
-      for (final romInfo in romInfos) await romManager.getRomTileData(romInfo),
-    ];
   }
 }

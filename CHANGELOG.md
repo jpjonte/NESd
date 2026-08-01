@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+- Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
+
 ## [0.15.1] - 2026-07-31
 
 ### Added
