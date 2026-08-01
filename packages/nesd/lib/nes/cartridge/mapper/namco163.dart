@@ -27,6 +27,7 @@ class Namco163 extends Mapper {
     disableNametables1: _disableNametables1,
     irqCounter: _irqCounter,
     irqEnabled: _irqEnabled,
+    audioState: audio.state,
   );
 
   @override
@@ -44,6 +45,8 @@ class Namco163 extends Mapper {
 
     _irqCounter = state.irqCounter;
     _irqEnabled = state.irqEnabled;
+
+    audio.state = state.audioState;
 
     _updateState();
   }

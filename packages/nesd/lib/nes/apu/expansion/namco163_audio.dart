@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
+import 'package:nesd/nes/apu/expansion/namco163_audio_state.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
 class Namco163Audio implements ExpansionAudio {
@@ -26,6 +27,28 @@ class Namco163Audio implements ExpansionAudio {
   bool soundDisabled = false;
 
   final List<int> _debugOutputs = List.filled(8, n163DebugBias);
+
+  Namco163AudioState get state => Namco163AudioState(
+    ram: Uint8List.fromList(ram),
+    channelOutput: Int8List.fromList(channelOutput),
+    address: address,
+    autoIncrement: autoIncrement,
+    soundDisabled: soundDisabled,
+    slotTimer: slotTimer,
+    slot: slot,
+  );
+
+  set state(Namco163AudioState state) {
+    ram.setAll(0, state.ram);
+    channelOutput.setAll(0, state.channelOutput);
+
+    address = state.address;
+    autoIncrement = state.autoIncrement;
+    soundDisabled = state.soundDisabled;
+
+    slotTimer = state.slotTimer;
+    slot = state.slot;
+  }
 
   @override
   double get output => soundDisabled ? 0.0 : channelOutput[7 - slot] * _scale;
