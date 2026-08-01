@@ -17,6 +17,17 @@ const _mmc5Pulse1Color = Color(0xff8a63d2);
 const _mmc5Pulse2Color = Color(0xff2bb3c0);
 const _mmc5PcmColor = Color(0xff9aa832);
 
+const _n163Colors = [
+  Color(0xffb98cff),
+  Color(0xffc389f2),
+  Color(0xffcd86e5),
+  Color(0xffd783d8),
+  Color(0xffe180cb),
+  Color(0xffeb7dbe),
+  Color(0xfff57ab1),
+  Color(0xffff77a4),
+];
+
 const _disabledOpacity = 0.38;
 
 @immutable
@@ -92,6 +103,7 @@ final _mixStyle = _LaneStyle(_mixColor);
 final _mmc5Pulse1Style = _LaneStyle(_mmc5Pulse1Color);
 final _mmc5Pulse2Style = _LaneStyle(_mmc5Pulse2Color);
 final _mmc5PcmStyle = _LaneStyle(_mmc5PcmColor);
+final _n163Styles = [for (final color in _n163Colors) _LaneStyle(color)];
 
 String _frequency(double value) => '${value.toStringAsFixed(1).padLeft(6)}Hz';
 
@@ -195,6 +207,16 @@ class ApuDebugWidget extends HookConsumerWidget {
             enabled: mmc5.pcmLevel > 0,
           ),
         ],
+        if (data.n163 case final n163? when data.expansionSamples.length >= 8)
+          for (var i = 0; i < n163.channels.length; i++)
+            _ApuLane(
+              label: 'N163 CH${8 - i}',
+              params: _n163Params(data, n163, n163.channels[i]),
+              samples: data.expansionSamples[7 - i],
+              maxValue: 225,
+              style: _n163Styles[i],
+              enabled: n163.channels[i].volume > 0,
+            ),
         _ApuLane(
           label: 'Mix',
           params: const [],
@@ -212,6 +234,21 @@ class ApuDebugWidget extends HookConsumerWidget {
     return [
       _Param('VOL', '${pulse.volume}'.padLeft(2)),
       _Param('DUTY', data.dutyLabel(pulse).padLeft(5)),
+      _Param('FREQ', _frequency(frequency)),
+      _Param('NOTE', noteName(frequency).padLeft(4)),
+    ];
+  }
+
+  List<_Param> _n163Params(
+    ApuDebugData data,
+    Namco163DebugState n163,
+    Namco163ChannelDebugState channel,
+  ) {
+    final frequency = data.n163Frequency(n163, channel);
+
+    return [
+      _Param('VOL', '${channel.volume}'.padLeft(2)),
+      _Param('LEN', '${channel.waveLength}'.padLeft(3)),
       _Param('FREQ', _frequency(frequency)),
       _Param('NOTE', noteName(frequency).padLeft(4)),
     ];
