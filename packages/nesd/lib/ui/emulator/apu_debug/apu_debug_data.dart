@@ -58,6 +58,8 @@ class ApuDebugData {
     required this.triangle,
     required this.noise,
     required this.dmc,
+    required this.expansionSamples,
+    required this.mmc5,
     required this.cpuFrequency,
   });
 
@@ -76,6 +78,8 @@ class ApuDebugData {
       triangle: event.triangle,
       noise: event.noise,
       dmc: event.dmc,
+      expansionSamples: samples.expansion,
+      mmc5: event.mmc5,
       cpuFrequency: event.cpuFrequency,
     );
   }
@@ -94,6 +98,10 @@ class ApuDebugData {
   final TriangleDebugState triangle;
   final NoiseDebugState noise;
   final DmcDebugState dmc;
+
+  final List<Uint8List> expansionSamples;
+
+  final Mmc5DebugState? mmc5;
 
   final int cpuFrequency;
 

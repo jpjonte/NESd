@@ -34,10 +34,11 @@ const _dmc = DmcDebugState(
   bytesRemaining: 17,
 );
 
-ApuDebugEvent _event() {
+ApuDebugEvent _event({bool mmc5 = false}) {
   const count = 4;
+  final laneCount = 5 + (mmc5 ? 3 : 0);
 
-  final packed = Uint8List.fromList(List.generate(5 * count, (i) => i));
+  final packed = Uint8List.fromList(List.generate(laneCount * count, (i) => i));
   final mix = Float32List.fromList([0.1, 0.2, 0.3, 0.4]);
 
   return ApuDebugEvent(
@@ -49,8 +50,10 @@ ApuDebugEvent _event() {
     triangle: _triangle,
     noise: _noise,
     dmc: _dmc,
-    expansionLaneCount: 0,
-    mmc5: null,
+    expansionLaneCount: mmc5 ? 3 : 0,
+    mmc5: mmc5
+        ? const Mmc5DebugState(pulse1: _pulse, pulse2: _pulse, pcmLevel: 200)
+        : null,
     cpuFrequency: 1789773,
   );
 }
@@ -197,6 +200,30 @@ void main() {
       final data = ApuDebugData.fromEvent(_event());
 
       expect(data.noiseModeLabel, 'short');
+    });
+  });
+
+  group('MMC5', () {
+    test('MMC5 state and lanes survive the trip from the event', () {
+      final data = ApuDebugData.fromEvent(_event(mmc5: true));
+
+      expect(data.mmc5, isNotNull);
+      expect(data.mmc5!.pcmLevel, 200);
+      expect(data.expansionSamples, hasLength(3));
+    });
+
+    test('no MMC5 means no state and no lanes', () {
+      final data = ApuDebugData.fromEvent(_event());
+
+      expect(data.mmc5, isNull);
+      expect(data.expansionSamples, isEmpty);
+    });
+
+    test('MMC5 pulses reuse the APU pulse frequency formula', () {
+      final data = ApuDebugData.fromEvent(_event(mmc5: true));
+
+      // timerPeriod 253 -> 1789773 / (16 * 254) = 440.4 Hz
+      expect(data.pulseFrequency(data.mmc5!.pulse1), closeTo(440.4, 0.1));
     });
   });
 }

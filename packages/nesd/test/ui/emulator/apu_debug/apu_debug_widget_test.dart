@@ -17,53 +17,61 @@ import '../remote_nes_fixtures.dart';
 
 const _count = 8;
 
-ApuDebugEvent _event() => ApuDebugEvent(
-  channelSamples: TransferableTypedData.fromList([
-    Uint8List.fromList(
-      List.generate(ApuDebugEvent.builtinChannelCount * _count, (i) => i % 16),
-    ),
-  ]),
-  mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
-  sampleCount: _count,
+ApuDebugEvent _event({bool mmc5 = false}) {
   // timerPeriod 253 -> 1789773 / (16 * 254) = 440.4 Hz = A-4
-  pulse1: const PulseDebugState(
+  const pulse1 = PulseDebugState(
     enabled: true,
     duty: 2,
     volume: 7,
     timerPeriod: 253,
-  ),
+  );
+
   // timerPeriod 63 -> 1789773 / (16 * 64) = 1747.8 Hz, one digit wider
   // than pulse 1 -- the case that used to shift the whole row.
-  pulse2: const PulseDebugState(
+  const pulse2 = PulseDebugState(
     enabled: false,
     duty: 0,
     volume: 3,
     timerPeriod: 63,
-  ),
-  // timerPeriod 254 -> 1789773 / (32 * 255) = 219.3 Hz, kept distinct
-  // from the pulse frequencies so the assertions stay unambiguous.
-  triangle: const TriangleDebugState(
-    enabled: true,
-    timerPeriod: 254,
-    linearCounter: 1,
-    lengthCounter: 2,
-  ),
-  noise: const NoiseDebugState(
-    enabled: true,
-    volume: 9,
-    mode: true,
-    timerPeriod: 30,
-  ),
-  dmc: const DmcDebugState(
-    enabled: false,
-    level: 64,
-    rate: 428,
-    bytesRemaining: 17,
-  ),
-  expansionLaneCount: 0,
-  mmc5: null,
-  cpuFrequency: 1789773,
-);
+  );
+
+  final laneCount = 5 + (mmc5 ? 3 : 0);
+
+  return ApuDebugEvent(
+    channelSamples: TransferableTypedData.fromList([
+      Uint8List.fromList(List.generate(laneCount * _count, (i) => i % 16)),
+    ]),
+    mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
+    sampleCount: _count,
+    pulse1: pulse1,
+    pulse2: pulse2,
+    // timerPeriod 254 -> 1789773 / (32 * 255) = 219.3 Hz, kept distinct
+    // from the pulse frequencies so the assertions stay unambiguous.
+    triangle: const TriangleDebugState(
+      enabled: true,
+      timerPeriod: 254,
+      linearCounter: 1,
+      lengthCounter: 2,
+    ),
+    noise: const NoiseDebugState(
+      enabled: true,
+      volume: 9,
+      mode: true,
+      timerPeriod: 30,
+    ),
+    dmc: const DmcDebugState(
+      enabled: false,
+      level: 64,
+      rate: 428,
+      bytesRemaining: 17,
+    ),
+    expansionLaneCount: mmc5 ? 3 : 0,
+    mmc5: mmc5
+        ? const Mmc5DebugState(pulse1: pulse1, pulse2: pulse2, pcmLevel: 200)
+        : null,
+    cpuFrequency: 1789773,
+  );
+}
 
 void main() {
   group('ApuDebugWidget rendering', () {
@@ -212,6 +220,41 @@ void main() {
         reason: 'disabled lane went grey instead of dimming its hue',
       );
       expect(disabled, isNot(equals(Colors.white38)));
+    });
+
+    testWidgets('MMC5 lanes appear only for MMC5 cartridges', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_event(mmc5: true));
+      await tester.pump();
+
+      expect(find.text('MMC5 Pulse 1'), findsOneWidget);
+      expect(find.text('MMC5 Pulse 2'), findsOneWidget);
+      expect(find.text('MMC5 PCM'), findsOneWidget);
+    });
+
+    testWidgets('no MMC5 lanes without an MMC5 cartridge', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_event());
+      await tester.pump();
+
+      expect(find.text('MMC5 Pulse 1'), findsNothing);
+      expect(find.text('MMC5 PCM'), findsNothing);
+    });
+
+    testWidgets('the PCM lane scales to 255', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_event(mmc5: true));
+      await tester.pump();
+
+      final painters = tester
+          .widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((paint) => paint.painter)
+          .whereType<ApuWaveformPainter>();
+
+      expect(painters.any((painter) => painter.maxValue == 255), true);
     });
   });
 
