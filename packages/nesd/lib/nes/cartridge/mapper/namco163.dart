@@ -108,7 +108,7 @@ class Namco163 extends Mapper {
   int cpuRead(int address, {bool disableSideEffects = false}) {
     switch (address & 0xf800) {
       case 0x4800:
-      // TODO sound RAM
+        return 0;
       case 0x5000:
         return _irqCounter & 0xff;
       case 0x5800:
@@ -122,7 +122,7 @@ class Namco163 extends Mapper {
   void cpuWrite(int address, int value) {
     switch (address & 0xf800) {
       case 0x4800:
-      // TODO sound RAM
+        return;
       case 0x5000:
         _irqCounter = (_irqCounter & 0xff00) | value;
 
