@@ -307,7 +307,10 @@ class APU {
   }
 
   void _emitSample() {
-    final sampledCycles = cycles - _sampleStart;
+    // [_sampleStart] is the first cycle of the window and the current cycle
+    // is part of it, so the window is inclusive on both ends. [cycles] is only
+    // incremented after sampling, hence the +1.
+    final sampledCycles = cycles + 1 - _sampleStart;
 
     // average samples over the last [sampledCycles] cycles
     // Use a single reciprocal to avoid multiple divisions.
@@ -352,7 +355,8 @@ class APU {
 
     sampleIndex++;
 
-    _sampleStart = cycles;
+    // the next window opens on the cycle after this one
+    _sampleStart = cycles + 1;
     _pulse1Samples = 0;
     _pulse2Samples = 0;
     _triangleSamples = 0;

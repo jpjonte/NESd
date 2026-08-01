@@ -25,9 +25,8 @@ void main() {
       mapper.step();
     }
 
-    // The first sample after a reset is averaged over one cycle too few
-    // (issue #245), so assert on the second, which uses a correct window.
     expect(apu.sampleIndex, greaterThan(1));
+    expect(apu.sampleBuffer[0], closeTo(tndTable[127], 1e-6));
     expect(apu.sampleBuffer[1], closeTo(tndTable[127], 1e-6));
   });
 
