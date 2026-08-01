@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
 - Fixed MMC5 games showing a black screen or freezing
 - Fixed MMC5 games with battery-backed save RAM having no working memory at all, which also meant their saves were never written
+- Fixed a crash in MMC5 games that use ExRAM attribute mode
 
 ## [0.15.1] - 2026-07-31
 

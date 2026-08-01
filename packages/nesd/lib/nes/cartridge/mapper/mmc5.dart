@@ -762,6 +762,12 @@ class MMC5 extends Mapper {
   }
 
   int _readChr(int address) {
-    return cartridge.chrRom[address];
+    final chrRom = cartridge.chrRom;
+
+    if (chrRom.isEmpty) {
+      return 0;
+    }
+
+    return chrRom[address % chrRom.length];
   }
 }
