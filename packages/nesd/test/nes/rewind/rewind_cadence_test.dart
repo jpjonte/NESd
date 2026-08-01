@@ -53,6 +53,15 @@ Future<void> _waitUntil(
   }
 }
 
+// Parks the run loop on a frame boundary and waits for that frame to reach the
+// listener.
+Future<void> _parkAfterNextFrame(NES nes, List<int> frames) async {
+  nes.stopAfterNextFrame = true;
+
+  await _waitUntil(() => !nes.running);
+  await _waitUntil(() => frames.isNotEmpty && frames.last == nes.ppu.frames);
+}
+
 // The rewind capture site lives in _sendFrame, which only runs inside
 // run(); for a synchronous test we call the capture predicate directly
 // through the public shouldCaptureRewind seam below instead of driving
@@ -202,21 +211,50 @@ void main() {
 
     unawaited(nes.run());
 
-    await _waitUntil(() => frames.length > 40);
+    await _waitUntil(() => nes.ppu.frames > 40);
 
-    // Enter rewind just long enough to be mid-hold, then leave.
-    nes.rewind = true;
-    await _waitUntil(() => false, timeout: const Duration(milliseconds: 50));
+    // Park first: with the loop stopped and the stream drained, the next frame
+    // to arrive is unambiguously the first of the rewind session, because run()
+    // tests `rewind` before it ever steps forward again.
+    await _parkAfterNextFrame(nes, frames);
+
+    // Enter rewind and leave as soon as that first pop lands. The pop arms
+    // interval - 1 hold frames, so this exits mid-hold.
+    final beforeRewind = frames.length;
+
+    nes
+      ..rewind = true
+      ..unpause();
+
+    await _waitUntil(() => frames.length > beforeRewind);
+
     nes.rewind = false;
 
-    await _waitUntil(() => frames.length > 60);
+    await _waitUntil(() => nes.ppu.frames > 60);
 
-    // Re-enter: the FIRST rewind frame must be a fresh pop (a value
-    // BELOW the current forward frame), not a stale filler repeat.
+    // Park again so the baseline below cannot be separated from the next
+    // session by forward frames still in flight on the event bus.
+    await _parkAfterNextFrame(nes, frames);
+
+    // _sendFrame snapshots the frame it just emitted, so a snapshot taken on a
+    // boundary frame carries that frame's own number. Restoring it looks
+    // exactly like a filler repeat. Step off the boundary to keep the two
+    // distinguishable.
+    while (nes.shouldCaptureRewind(nes.ppu.frames)) {
+      nes.runUntilFrame();
+
+      await _parkAfterNextFrame(nes, frames);
+    }
+
+    // Re-enter: the FIRST rewind frame must be a fresh pop (a value BELOW the
+    // current forward frame), not a stale filler repeat.
     final lastForward = frames.last;
 
     frames.clear();
-    nes.rewind = true;
+
+    nes
+      ..rewind = true
+      ..unpause();
 
     await _waitUntil(() => frames.isNotEmpty);
 
