@@ -248,9 +248,37 @@ class ActionHandler {
       case OpenMenu():
         router.navigate(const EmulatorRoute());
       default:
-      // no-op
+        _warnIfInGameAction(action);
     }
   }
+
+  void _warnIfInGameAction(InputAction action) {
+    assert(() {
+      if (_isInGameAction(action)) {
+        debugPrint(
+          'ActionHandler: dropped in-game action "${action.code}" - '
+          'current route is $_currentRoute, '
+          'expected ${EmulatorRoute.name}',
+        );
+      }
+
+      return true;
+    }());
+  }
+
+  bool _isInGameAction(InputAction action) => switch (action) {
+    ControllerPress() ||
+    SaveState() ||
+    LoadState() ||
+    FastForward() ||
+    Rewind() ||
+    PauseAction() ||
+    ResetAction() ||
+    StopAction() ||
+    DecreaseVolume() ||
+    IncreaseVolume() => true,
+    _ => false,
+  };
 
   void _saveState(int slot) {
     unawaited(nesController.saveState(slot));
