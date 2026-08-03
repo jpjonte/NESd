@@ -15,13 +15,13 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
+import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
-import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
@@ -114,8 +114,9 @@ NesController nesController(Ref ref) {
   ref.onDispose(rewindSubscription.close);
 
   final routeSubscription = ref.listen(
-    currentRouteProvider,
-    (_, route) => controller._updateRoute(route),
+    emulatorActiveProvider,
+    (_, active) => controller.emulatorActive = active,
+    fireImmediately: true,
   );
 
   ref.onDispose(routeSubscription.close);
@@ -169,6 +170,8 @@ class NesController {
   late final AppLifecycleListener _lifecycleListener;
 
   bool lifeCycleListenerEnabled = true;
+
+  bool _emulatorActive = false;
 
   Timer? _autoSaveTimer;
 
@@ -252,7 +255,7 @@ class NesController {
     );
 
     if (result == null) {
-      resume();
+      _applyRunState();
 
       return;
     }
@@ -260,7 +263,7 @@ class NesController {
     final path = result.files.single.path;
 
     if (path == null) {
-      resume();
+      _applyRunState();
 
       return;
     }
@@ -274,7 +277,7 @@ class NesController {
     );
 
     if (!started) {
-      resume();
+      _applyRunState();
     }
   }
 
@@ -403,6 +406,11 @@ class NesController {
       );
 
       settingsController.addRecentRom(romInfo);
+
+      // The NES that existed when the active-screen signal last changed was
+      // a different one (or none at all), so apply the current run state to
+      // the instance that just came up.
+      _applyRunState();
     } on PathNotFoundException {
       return false;
     } on TimeoutException {
@@ -525,7 +533,7 @@ class NesController {
 
   void _appResumed() {
     if (lifeCycleListenerEnabled) {
-      resume();
+      _applyRunState();
     }
   }
 
@@ -558,16 +566,22 @@ class NesController {
     return Uint8List.fromList(roms.single.content as List<int>);
   }
 
-  void _updateRoute(String? route) {
-    if (route == EmulatorRoute.name) {
-      lifeCycleListenerEnabled = true;
+  // ignore: avoid_setters_without_getters
+  set emulatorActive(bool value) {
+    _emulatorActive = value;
+    lifeCycleListenerEnabled = value;
 
+    _applyRunState();
+  }
+
+  void _applyRunState() {
+    if (_emulatorActive) {
       resume();
-    } else {
-      suspend();
 
-      lifeCycleListenerEnabled = false;
+      return;
     }
+
+    suspend();
   }
 
   Uint8List? _autoLoadBytes(RomInfo romInfo) {

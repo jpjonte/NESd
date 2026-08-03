@@ -154,6 +154,8 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
   final StreamController<NesIsolateEvent> _events =
       StreamController<NesIsolateEvent>.broadcast();
 
+  final List<NesCommand> sentCommands = [];
+
   late final NesWorker _worker;
 
   @override
@@ -161,6 +163,8 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
 
   @override
   void send(NesCommand command) {
+    sentCommands.add(command);
+
     if (command case LoadRomCommand(
       file: final file,
     ) when file.path == forcedRomLoadFailurePath) {

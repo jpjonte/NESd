@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
+import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
-import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -65,8 +65,9 @@ ActionHandler actionHandler(Ref ref) {
   ref.onDispose(handler.dispose);
 
   final routeSubscription = ref.listen(
-    currentRouteProvider,
-    (_, route) => handler._currentRoute = route,
+    emulatorActiveProvider,
+    (_, active) => handler.emulatorActive = active,
+    fireImmediately: true,
   );
 
   ref.onDispose(routeSubscription.close);
@@ -96,9 +97,9 @@ class ActionHandler {
 
   bool enabled = true;
 
-  bool get _inGame => _currentRoute == EmulatorRoute.name;
+  bool emulatorActive = false;
 
-  String? _currentRoute = MainRoute.name;
+  bool get _inGame => emulatorActive;
 
   void dispose() {
     _actionSubscription.cancel();
@@ -257,8 +258,7 @@ class ActionHandler {
       if (_isInGameAction(action)) {
         debugPrint(
           'ActionHandler: dropped in-game action "${action.code}" - '
-          'current route is $_currentRoute, '
-          'expected ${EmulatorRoute.name}',
+          'the emulator is not the active screen',
         );
       }
 

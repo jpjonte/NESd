@@ -52,13 +52,14 @@ void main() {
   );
 
   test('logs an in-game action dropped outside the emulator route', () {
-    // The handler starts on MainRoute, so this press is not `_inGame`.
+    // The handler starts with emulatorActive false, so this press is not
+    // `_inGame`.
     handler.handleAction(press(controller1A));
 
     expect(logs, hasLength(1));
     expect(logs.single, contains('dropped in-game action'));
     expect(logs.single, contains('controller1.a'));
-    expect(logs.single, contains('MainRoute'));
+    expect(logs.single, contains('not the active screen'));
   });
 
   test('logs every in-game action type dropped outside the emulator', () {
