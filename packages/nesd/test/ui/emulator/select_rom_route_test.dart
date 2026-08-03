@@ -59,7 +59,7 @@ void main() {
     await r.waitUntil(() => r.container.read(nesStateProvider) != null);
 
     await r.waitUntil(
-      () => r.container.read(routerObserverProvider) == EmulatorRoute.name,
+      () => r.container.read(currentRouteProvider) == EmulatorRoute.name,
     );
 
     await r.emulator.tapMenu();

@@ -8,29 +8,35 @@ part of 'router_observer.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// The name of the topmost route, or null when the topmost route is unnamed
+/// (`showDialog` pushes unnamed routes, so an open dialog reads as null).
 
-@ProviderFor(RouterObserver)
-final routerObserverProvider = RouterObserverProvider._();
+@ProviderFor(CurrentRoute)
+final currentRouteProvider = CurrentRouteProvider._();
 
-final class RouterObserverProvider
-    extends $NotifierProvider<RouterObserver, String?> {
-  RouterObserverProvider._()
+/// The name of the topmost route, or null when the topmost route is unnamed
+/// (`showDialog` pushes unnamed routes, so an open dialog reads as null).
+final class CurrentRouteProvider
+    extends $NotifierProvider<CurrentRoute, String?> {
+  /// The name of the topmost route, or null when the topmost route is unnamed
+  /// (`showDialog` pushes unnamed routes, so an open dialog reads as null).
+  CurrentRouteProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'routerObserverProvider',
+        name: r'currentRouteProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$routerObserverHash();
+  String debugGetCreateSourceHash() => _$currentRouteHash();
 
   @$internal
   @override
-  RouterObserver create() => RouterObserver();
+  CurrentRoute create() => CurrentRoute();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(String? value) {
@@ -41,9 +47,12 @@ final class RouterObserverProvider
   }
 }
 
-String _$routerObserverHash() => r'a00cc83890f24abe5862c9ec3ef62f6656128a4c';
+String _$currentRouteHash() => r'58924f22ae02f85a3bf5a47901718a5d1290b5d9';
 
-abstract class _$RouterObserver extends $Notifier<String?> {
+/// The name of the topmost route, or null when the topmost route is unnamed
+/// (`showDialog` pushes unnamed routes, so an open dialog reads as null).
+
+abstract class _$CurrentRoute extends $Notifier<String?> {
   String? build();
   @$mustCallSuper
   @override
@@ -60,3 +69,51 @@ abstract class _$RouterObserver extends $Notifier<String?> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(nesdRouterObserver)
+final nesdRouterObserverProvider = NesdRouterObserverProvider._();
+
+final class NesdRouterObserverProvider
+    extends
+        $FunctionalProvider<
+          NesdRouterObserver,
+          NesdRouterObserver,
+          NesdRouterObserver
+        >
+    with $Provider<NesdRouterObserver> {
+  NesdRouterObserverProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nesdRouterObserverProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nesdRouterObserverHash();
+
+  @$internal
+  @override
+  $ProviderElement<NesdRouterObserver> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  NesdRouterObserver create(Ref ref) {
+    return nesdRouterObserver(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NesdRouterObserver value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NesdRouterObserver>(value),
+    );
+  }
+}
+
+String _$nesdRouterObserverHash() =>
+    r'6d9b6638cd1aa3f605bcfecc049e55399f1cb845';

@@ -36,7 +36,7 @@ void main() {
     expect(started, isTrue);
 
     await r.waitUntil(
-      () => r.container.read(routerObserverProvider) == EmulatorRoute.name,
+      () => r.container.read(currentRouteProvider) == EmulatorRoute.name,
     );
 
     await r.emulator.tapMenu();
@@ -67,6 +67,6 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(r.container.read(routerObserverProvider), MainRoute.name);
+    expect(r.container.read(currentRouteProvider), MainRoute.name);
   });
 }

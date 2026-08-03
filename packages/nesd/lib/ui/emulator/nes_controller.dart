@@ -114,7 +114,7 @@ NesController nesController(Ref ref) {
   ref.onDispose(rewindSubscription.close);
 
   final routeSubscription = ref.listen(
-    routerObserverProvider,
+    currentRouteProvider,
     (_, route) => controller._updateRoute(route),
   );
 

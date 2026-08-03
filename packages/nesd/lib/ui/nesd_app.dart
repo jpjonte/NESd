@@ -15,7 +15,7 @@ class NesdApp extends ConsumerWidget {
     // No-op unless main.dart overrode soakConfigProvider (soak mode).
     ref.watch(soakRunnerProvider);
 
-    final observer = ref.watch(routerObserverProvider.notifier);
+    final observer = ref.watch(nesdRouterObserverProvider);
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(
       settingsControllerProvider.select((s) => s.themeMode),

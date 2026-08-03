@@ -89,4 +89,4 @@ final class ActionHandlerProvider
   }
 }
 
-String _$actionHandlerHash() => r'a80524c0b93f5c990f4ad1041dd41c553d41e3b0';
+String _$actionHandlerHash() => r'10dcce3813265996cae97456f8f33300e1e02591';

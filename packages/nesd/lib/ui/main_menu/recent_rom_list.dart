@@ -25,7 +25,7 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
-    final route = ref.watch(routerObserverProvider);
+    final route = ref.watch(currentRouteProvider);
 
     if (recentRoms.isEmpty) {
       return Center(

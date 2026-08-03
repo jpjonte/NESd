@@ -65,7 +65,7 @@ ActionHandler actionHandler(Ref ref) {
   ref.onDispose(handler.dispose);
 
   final routeSubscription = ref.listen(
-    routerObserverProvider,
+    currentRouteProvider,
     (_, route) => handler._currentRoute = route,
   );
 

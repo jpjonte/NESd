@@ -10,7 +10,7 @@ Route<void> route(String name) => PageRouteBuilder<void>(
 
 void main() {
   late ProviderContainer container;
-  late RouterObserver observer;
+  late NesdRouterObserver observer;
 
   setUp(() {
     container = ProviderContainer();
@@ -18,22 +18,25 @@ void main() {
     // `@riverpod` providers auto-dispose, so hold a subscription for the
     // duration of the test.
     final subscription = container.listen(
-      routerObserverProvider,
+      currentRouteProvider,
       (_, _) {},
       fireImmediately: true,
     );
 
-    observer = container.read(routerObserverProvider.notifier);
+    observer = NesdRouterObserver(
+      container.read(currentRouteProvider.notifier),
+    );
 
     addTearDown(subscription.close);
     addTearDown(container.dispose);
   });
 
-  // `_update` defers to a microtask, so let it run before asserting.
+  // `NesdRouterObserver.didChangeTop` defers to `CurrentRoute.update` via a
+  // microtask, so let it run before asserting.
   Future<String?> currentRoute() async {
     await Future<void>.delayed(Duration.zero);
 
-    return container.read(routerObserverProvider);
+    return container.read(currentRouteProvider);
   }
 
   test('reports the pushed route', () async {
