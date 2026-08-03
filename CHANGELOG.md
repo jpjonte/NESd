@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - MMC5 expansion audio: Additional audio channels used by Japanese MMC5 games
+- Namco 163 expansion audio: Additional audio channels used by Japanese Namco 163 games
 
 ### Fixed
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
@@ -15,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed MMC5 games with battery-backed save RAM having no working memory at all, which also meant their saves were never written
 - Fixed a crash in MMC5 games that use ExRAM attribute mode
 - Fixed the first audio sample after a reset being slightly too loud
+- Fixed Namco 163 games glitching or freezing whenever the game wrote to its sound hardware
 
 ## [0.15.1] - 2026-07-31
 

@@ -49,7 +49,10 @@ class EmulatorScreen extends HookConsumerWidget {
                   if (cartridgeInfo != null && showCartridgeInfo)
                     CartridgeInfoWidget(info: cartridgeInfo),
                   if (showDebugger) const DebuggerWidget(),
-                  if (showApuDebug) const ApuDebugWidget(),
+                  if (showApuDebug)
+                    const Expanded(
+                      child: SingleChildScrollView(child: ApuDebugWidget()),
+                    ),
                 ],
               ),
             ),

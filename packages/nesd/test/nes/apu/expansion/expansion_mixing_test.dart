@@ -3,6 +3,7 @@ import 'package:nesd/nes/apu/tables.dart';
 
 import '../../../test_roms/rom_robot.dart';
 import '../../cartridge/mapper/mmc5_harness.dart';
+import '../../cartridge/mapper/namco163_harness.dart';
 
 void main() {
   test('a non-MMC5 cartridge contributes nothing', () {
@@ -40,5 +41,23 @@ void main() {
     }
 
     expect(apu.sampleBuffer[0], 0);
+  });
+
+  test('Namco 163 audio reaches the mixed sample buffer', () {
+    final mapper = buildNamco163();
+    final apu = mapper.bus.apu..reset();
+
+    mapper.audio.ram[0x7f] = 0x0f;
+    mapper.audio.ram[0x7c] = 0xfc;
+    mapper.audio.ram[0x78] = 0x00;
+    mapper.audio.ram[0x7a] = 0x01;
+
+    for (var i = 0; i < 256; i++) {
+      apu.step();
+      mapper.step();
+    }
+
+    expect(apu.sampleIndex, greaterThan(1));
+    expect(apu.sampleBuffer[1], lessThan(0));
   });
 }

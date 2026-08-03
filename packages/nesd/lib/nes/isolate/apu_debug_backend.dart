@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/nes/apu/channel/pulse_channel_core.dart';
 import 'package:nesd/nes/apu/expansion/mmc5_audio.dart';
+import 'package:nesd/nes/apu/expansion/namco163_audio.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
@@ -83,6 +84,21 @@ class ApuDebugBackend {
           )
         : null;
 
+    final n163 = expansion is Namco163Audio
+        ? Namco163DebugState(
+            enabledChannels: expansion.enabledChannels,
+            channels: List.generate(
+              expansion.enabledChannels,
+              (i) => Namco163ChannelDebugState(
+                volume: expansion.volumeOf(7 - i),
+                waveLength: expansion.waveLengthOf(7 - i),
+                frequency: expansion.frequencyOf(7 - i),
+              ),
+              growable: false,
+            ),
+          )
+        : null;
+
     onEvent(
       ApuDebugEvent.pack(
         channels: channels,
@@ -109,6 +125,7 @@ class ApuDebugBackend {
           bytesRemaining: dmc.length,
         ),
         mmc5: mmc5,
+        n163: n163,
         cpuFrequency: apu.cpuFrequency,
       ),
     );

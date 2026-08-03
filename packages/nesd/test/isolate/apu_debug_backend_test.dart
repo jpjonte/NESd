@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/apu/expansion/namco163_audio.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -10,6 +12,7 @@ import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:path/path.dart' as p;
 
+import '../nes/cartridge/mapper/namco163_harness.dart';
 import '../ui/mocks.dart';
 
 const _romPath = '../../roms/test/nestest/nestest.nes';
@@ -35,6 +38,21 @@ LoadRomCommand _loadRomCommand({
     breakpoints: const [],
   );
 }
+
+LoadRomCommand _loadSyntheticRomCommand(Uint8List bytes, String name) =>
+    LoadRomCommand(
+      rom: TransferableTypedData.fromList([bytes]),
+      file: FilesystemFile(
+        path: name,
+        name: name,
+        type: FilesystemFileType.file,
+      ),
+      databaseEntry: null,
+      region: Region.ntsc,
+      rewindEnabled: false,
+      cheats: const [],
+      breakpoints: const [],
+    );
 
 void main() {
   late List<NesIsolateEvent> events;
@@ -178,5 +196,62 @@ void main() {
 
     expect(event.expansionLaneCount, 0);
     expect(event.mmc5, isNull);
+  });
+
+  test('a Namco 163 ROM reports eight expansion lanes and state', () async {
+    await worker.handleCommand(
+      _loadSyntheticRomCommand(buildNamco163Rom(), 'namco163-test.nes'),
+    );
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    final event = await waitFor<ApuDebugEvent>();
+
+    expect(event.expansionLaneCount, 8);
+    expect(event.n163, isNotNull);
+    expect(event.mmc5, isNull);
+    expect(event.channelCount, 13);
+  });
+
+  test(
+    'a Namco 163 ROM reports each enabled channel at its hardware index',
+    () async {
+      await worker.handleCommand(
+        _loadSyntheticRomCommand(buildNamco163Rom(), 'namco163-test.nes'),
+      );
+      await waitFor<RomLoadedEvent>();
+
+      final audio = worker.nesForTesting!.apu.expansionAudio! as Namco163Audio;
+
+      audio.ram[0x7f] = (1 << 4) | 5; // channel 8: 2 channels, volume 5
+      audio.ram[0x77] = 9; // channel 7: volume 9
+
+      await worker.handleCommand(
+        const SetApuDebugEnabledCommand(enabled: true),
+      );
+
+      final event = await waitFor<ApuDebugEvent>();
+      final n163 = event.n163!;
+
+      expect(n163.enabledChannels, 2);
+      expect(
+        n163.channels[0].volume,
+        5,
+        reason: 'channels[0] must report hardware channel 8',
+      );
+      expect(
+        n163.channels[1].volume,
+        9,
+        reason: 'channels[1] must report hardware channel 7',
+      );
+    },
+  );
+
+  test('a non-Namco 163 ROM reports no N163 state', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await worker.handleCommand(const SetApuDebugEnabledCommand(enabled: true));
+
+    final event = await waitFor<ApuDebugEvent>();
+
+    expect(event.n163, isNull);
   });
 }

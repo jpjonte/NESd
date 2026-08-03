@@ -149,6 +149,7 @@ class ApuDebugEvent extends NesIsolateEvent {
     required this.dmc,
     required this.expansionLaneCount,
     required this.mmc5,
+    required this.n163,
     required this.cpuFrequency,
   });
 
@@ -167,6 +168,7 @@ class ApuDebugEvent extends NesIsolateEvent {
     required NoiseDebugState noise,
     required DmcDebugState dmc,
     required Mmc5DebugState? mmc5,
+    required Namco163DebugState? n163,
     required int cpuFrequency,
   }) {
     assert(sampleCount > 0, 'sampleCount must be positive');
@@ -197,6 +199,7 @@ class ApuDebugEvent extends NesIsolateEvent {
       dmc: dmc,
       expansionLaneCount: channels.expansion.length,
       mmc5: mmc5,
+      n163: n163,
       cpuFrequency: cpuFrequency,
     );
   }
@@ -273,6 +276,8 @@ class ApuDebugEvent extends NesIsolateEvent {
   final DmcDebugState dmc;
 
   final Mmc5DebugState? mmc5;
+
+  final Namco163DebugState? n163;
 
   /// CPU frequency in Hz for the active region, for deriving channel
   /// frequencies UI-side.

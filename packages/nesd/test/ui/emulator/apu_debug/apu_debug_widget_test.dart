@@ -69,8 +69,99 @@ ApuDebugEvent _event({bool mmc5 = false}) {
     mmc5: mmc5
         ? const Mmc5DebugState(pulse1: pulse1, pulse2: pulse2, pcmLevel: 200)
         : null,
+    n163: null,
     cpuFrequency: 1789773,
   );
+}
+
+ApuDebugEvent _n163Event({int enabledChannels = 8}) {
+  const laneCount = 13; // 5 builtin + 8 N163 expansion lanes
+  final packed = Uint8List(laneCount * _count);
+
+  for (var j = 0; j < 8; j++) {
+    final laneStart = (5 + j) * _count;
+
+    for (var s = 0; s < _count; s++) {
+      packed[laneStart + s] = 50 + j * 5 + s;
+    }
+  }
+
+  return ApuDebugEvent(
+    channelSamples: TransferableTypedData.fromList([packed]),
+    mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
+    sampleCount: _count,
+    pulse1: const PulseDebugState(
+      enabled: false,
+      duty: 0,
+      volume: 0,
+      timerPeriod: 0,
+    ),
+    pulse2: const PulseDebugState(
+      enabled: false,
+      duty: 0,
+      volume: 0,
+      timerPeriod: 0,
+    ),
+    triangle: const TriangleDebugState(
+      enabled: false,
+      timerPeriod: 0,
+      linearCounter: 0,
+      lengthCounter: 0,
+    ),
+    noise: const NoiseDebugState(
+      enabled: false,
+      volume: 0,
+      mode: false,
+      timerPeriod: 0,
+    ),
+    dmc: const DmcDebugState(
+      enabled: false,
+      level: 0,
+      rate: 0,
+      bytesRemaining: 0,
+    ),
+    expansionLaneCount: 8,
+    mmc5: null,
+    n163: Namco163DebugState(
+      enabledChannels: enabledChannels,
+      channels: List.generate(
+        enabledChannels,
+        (i) => Namco163ChannelDebugState(
+          volume: i + 1,
+          waveLength: 100 + i,
+          frequency: 20000 + i * 1000,
+        ),
+        growable: false,
+      ),
+    ),
+    cpuFrequency: 1789773,
+  );
+}
+
+({Map<String, Set<String>> texts, Map<String, ApuWaveformPainter> painters})
+_laneContentByLabel(WidgetTester tester, Set<String> labels) {
+  final texts = <String, Set<String>>{};
+  final painters = <String, ApuWaveformPainter>{};
+  String? currentLabel;
+
+  for (final widget in tester.allWidgets) {
+    if (widget is Text && widget.data != null) {
+      if (labels.contains(widget.data)) {
+        currentLabel = widget.data;
+      }
+
+      if (currentLabel != null) {
+        texts.putIfAbsent(currentLabel, () => {}).add(widget.data!);
+      }
+    } else if (currentLabel != null &&
+        widget is CustomPaint &&
+        widget.painter is ApuWaveformPainter) {
+      painters[currentLabel] = widget.painter! as ApuWaveformPainter;
+      currentLabel = null;
+    }
+  }
+
+  return (texts: texts, painters: painters);
 }
 
 void main() {
@@ -255,6 +346,63 @@ void main() {
           .whereType<ApuWaveformPainter>();
 
       expect(painters.any((painter) => painter.maxValue == 255), true);
+    });
+
+    testWidgets(
+      'N163 CH8 shows channel 8 params and expansionSamples[7], not a '
+      'transposed channel',
+      (tester) async {
+        await pumpPanel(tester);
+
+        handle.emit(_n163Event());
+        await tester.pump();
+
+        final rows = _laneContentByLabel(tester, {
+          for (var i = 0; i < 8; i++) 'N163 CH${8 - i}',
+        });
+
+        expect(
+          rows.texts['N163 CH8'],
+          contains(' 1'),
+          reason: 'CH8 should show channels[0].volume (1)',
+        );
+        expect(
+          rows.texts['N163 CH1'],
+          contains(' 8'),
+          reason: 'CH1 should show channels[7].volume (8)',
+        );
+
+        final ch8Painter = rows.painters['N163 CH8']!;
+
+        expect(ch8Painter.samples, [85, 86, 87, 88, 89, 90, 91, 92]);
+        expect(ch8Painter.samples, isNot([50, 51, 52, 53, 54, 55, 56, 57]));
+
+        final ch1Painter = rows.painters['N163 CH1']!;
+
+        expect(ch1Painter.samples, [50, 51, 52, 53, 54, 55, 56, 57]);
+      },
+    );
+
+    testWidgets('renders exactly enabledChannels N163 lanes', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_n163Event(enabledChannels: 3));
+      await tester.pump();
+
+      for (final label in ['N163 CH8', 'N163 CH7', 'N163 CH6']) {
+        expect(find.text(label), findsOneWidget, reason: 'missing $label lane');
+      }
+
+      expect(find.text('N163 CH5'), findsNothing);
+    });
+
+    testWidgets('no N163 lanes without a Namco 163 cartridge', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_event());
+      await tester.pump();
+
+      expect(find.text('N163 CH8'), findsNothing);
     });
   });
 

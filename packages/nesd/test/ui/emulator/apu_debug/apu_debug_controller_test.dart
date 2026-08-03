@@ -43,6 +43,7 @@ ApuDebugEvent _event() => ApuDebugEvent(
   dmc: const DmcDebugState(enabled: true, level: 0, rate: 0, bytesRemaining: 0),
   expansionLaneCount: 0,
   mmc5: null,
+  n163: null,
   cpuFrequency: 1789773,
 );
 

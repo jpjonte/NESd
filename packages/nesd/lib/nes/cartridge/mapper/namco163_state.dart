@@ -1,5 +1,6 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/nes/apu/expansion/namco163_audio_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class Namco163State extends MapperState {
@@ -13,6 +14,7 @@ class Namco163State extends MapperState {
     required this.disableNametables1,
     required this.irqCounter,
     required this.irqEnabled,
+    required this.audioState,
     super.id = 19,
   });
 
@@ -21,6 +23,7 @@ class Namco163State extends MapperState {
 
     return switch (version) {
       0 => Namco163State._version0(reader),
+      1 => Namco163State._version1(reader),
       _ => throw InvalidSerializationVersion('Namco 163', version),
     };
   }
@@ -36,6 +39,22 @@ class Namco163State extends MapperState {
       disableNametables1: reader.get(boolean),
       irqCounter: reader.get(uint16),
       irqEnabled: reader.get(boolean),
+      audioState: Namco163AudioState.initial(),
+    );
+  }
+
+  factory Namco163State._version1(PayloadReader reader) {
+    return Namco163State(
+      prgBank0: reader.get(uint8),
+      prgBank1: reader.get(uint8),
+      prgBank2: reader.get(uint8),
+      prgRamWriteProtect: reader.get(list(boolean)),
+      chrBanks: reader.get(list(uint8)),
+      disableNametables0: reader.get(boolean),
+      disableNametables1: reader.get(boolean),
+      irqCounter: reader.get(uint16),
+      irqEnabled: reader.get(boolean),
+      audioState: Namco163AudioState.deserialize(reader),
     );
   }
 
@@ -53,12 +72,14 @@ class Namco163State extends MapperState {
   final int irqCounter;
   final bool irqEnabled;
 
+  final Namco163AudioState audioState;
+
   @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(uint8, prgBank0)
       ..set(uint8, prgBank1)
       ..set(uint8, prgBank2)
@@ -68,5 +89,7 @@ class Namco163State extends MapperState {
       ..set(boolean, disableNametables1)
       ..set(uint16, irqCounter)
       ..set(boolean, irqEnabled);
+
+    audioState.serialize(writer);
   }
 }
