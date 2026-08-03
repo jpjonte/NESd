@@ -10,24 +10,27 @@ class RouterObserver extends _$RouterObserver implements NavigatorObserver {
   @override
   String? build() => null;
 
-  @override
-  void didPush(Route route, Route? previousRoute) => _update(route);
-
-  @override
-  void didPop(Route route, Route? previousRoute) => _update(route);
-
-  @override
-  void didReplace({Route? newRoute, Route? oldRoute}) => _update(newRoute);
-
-  @override
-  void didRemove(Route route, Route? previousRoute) => _update(route);
-
+  // `didChangeTop` is the only callback whose route is guaranteed to be the one
+  // on screen, and the navigator fires it for every change of the topmost
+  // route.
   @override
   void didChangeTop(Route topRoute, Route? previousTopRoute) =>
       _update(topRoute);
 
   @override
-  void didStartUserGesture(Route route, Route? previousRoute) => _update(route);
+  void didPush(Route route, Route? previousRoute) {}
+
+  @override
+  void didPop(Route route, Route? previousRoute) {}
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {}
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {}
+
+  @override
+  void didStartUserGesture(Route route, Route? previousRoute) {}
 
   @override
   void didStopUserGesture() {}
