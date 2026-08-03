@@ -102,13 +102,11 @@ class SaveStatesScreen extends HookConsumerWidget {
                     romTileData: romTileData,
                     onPressed: () {
                       unawaited(
-                        nesController.loadRom(
+                        nesController.startRom(
                           romTileData.romInfo.file,
                           stateBytes: romTileData.state?.serialize(),
                         ),
                       );
-
-                      ref.read(routerProvider).navigate(const EmulatorRoute());
                     },
                     onRemove: () async => await delete(context, romTileData),
                     contextMenuBuilder: (context, close) => [

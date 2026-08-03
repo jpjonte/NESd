@@ -69,13 +69,11 @@ class RecentRomList extends HookConsumerWidget {
           for (final romTileData in roms)
             RomTile(
               onPressed: () async {
-                final success = await controller.loadRom(
+                final started = await controller.startRom(
                   romTileData.romInfo.file,
                 );
 
-                if (success || !context.mounted) {
-                  ref.read(routerProvider).navigate(const EmulatorRoute());
-
+                if (started || !context.mounted) {
                   return;
                 }
 

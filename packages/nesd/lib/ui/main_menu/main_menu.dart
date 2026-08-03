@@ -51,7 +51,7 @@ class MainMenu extends HookConsumerWidget {
           unawaited(
             ref
                 .read(nesControllerProvider)
-                .loadRom(
+                .startRom(
                   FilesystemFile(
                     path: initialRom,
                     name: p.basename(initialRom),
@@ -59,7 +59,6 @@ class MainMenu extends HookConsumerWidget {
                   ),
                 ),
           );
-          ref.read(routerProvider).navigate(const EmulatorRoute());
           ref.read(initialRomProvider.notifier).clear();
         });
       }
@@ -124,8 +123,7 @@ class OpenRomButton extends ConsumerWidget {
           );
 
           if (file != null) {
-            unawaited(controller.loadRom(file));
-            ref.read(routerProvider).navigate(const EmulatorRoute());
+            await controller.startRom(file);
           }
         },
         child: const Text('Open ROM'),

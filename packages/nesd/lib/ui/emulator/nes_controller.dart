@@ -265,7 +265,7 @@ class NesController {
       return;
     }
 
-    final loaded = await loadRom(
+    final started = await startRom(
       FilesystemFile(
         path: path,
         name: p.basename(path),
@@ -273,13 +273,30 @@ class NesController {
       ),
     );
 
-    if (!loaded) {
+    if (!started) {
       resume();
+    }
+  }
 
-      return;
+  /// Loads [file] and, if it loaded, switches to the emulator.
+  ///
+  /// This is the single entry point for opening a ROM. Navigating is part of
+  /// starting a game. [loadRom] already reports failures via [Toaster], so
+  /// callers only need the returned flag if they want to react themselves.
+  Future<bool> startRom(
+    FilesystemFile file, {
+    Uint8List? stateBytes,
+    Uint8List? data,
+  }) async {
+    final loaded = await loadRom(file, stateBytes: stateBytes, data: data);
+
+    if (!loaded) {
+      return false;
     }
 
     unawaited(router.navigate(const EmulatorRoute()));
+
+    return true;
   }
 
   Future<bool> loadRom(
