@@ -67,6 +67,7 @@ NesController nesController(Ref ref) {
   final controller = NesController(
     nesState: ref.watch(nesStateProvider.notifier),
     spawner: ref.watch(nesIsolateSpawnerProvider),
+    router: ref.read(routerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
     toaster: ref.watch(toasterProvider),
     romManager: ref.watch(romManagerProvider),
@@ -126,6 +127,7 @@ class NesController {
   NesController({
     required this.nesState,
     required this.spawner,
+    required this.router,
     required this.settingsController,
     required this.toaster,
     required this.romManager,
@@ -143,6 +145,8 @@ class NesController {
   }
 
   final NesState nesState;
+
+  final Router router;
 
   final SettingsController settingsController;
 
@@ -261,13 +265,21 @@ class NesController {
       return;
     }
 
-    await loadRom(
+    final loaded = await loadRom(
       FilesystemFile(
         path: path,
         name: p.basename(path),
         type: FilesystemFileType.file,
       ),
     );
+
+    if (!loaded) {
+      resume();
+
+      return;
+    }
+
+    unawaited(router.navigate(const EmulatorRoute()));
   }
 
   Future<bool> loadRom(
