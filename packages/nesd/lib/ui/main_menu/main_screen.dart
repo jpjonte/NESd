@@ -6,15 +6,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/quit.dart';
-import 'package:nesd/ui/emulator/input/action_handler.dart';
-import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toast_overlay.dart';
-import 'package:nesd/ui/toast/toaster.dart';
 
 @RoutePage()
 class MainScreen extends HookConsumerWidget {
@@ -34,14 +30,6 @@ class MainScreen extends HookConsumerWidget {
 
       return null;
     }, []);
-
-    // make sure services are kept alive
-    ref
-      ..watch(actionHandlerProvider)
-      ..watch(gamepadInputHandlerProvider)
-      ..watch(toasterProvider)
-      ..watch(nesControllerProvider)
-      ..watch(romManagerProvider);
 
     return PlatformMenuBar(
       menus: [

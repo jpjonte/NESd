@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
@@ -60,6 +61,7 @@ class _Harness {
     final controller = NesController(
       nesState: container.read(nesStateProvider.notifier),
       spawner: spawner,
+      router: Router(),
       settingsController: settings,
       toaster: toaster,
       romManager: romManager,

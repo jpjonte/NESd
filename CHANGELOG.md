@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed a crash in MMC5 games that use ExRAM attribute mode
 - Fixed the first audio sample after a reset being slightly too loud
 - Fixed Namco 163 games glitching or freezing whenever the game wrote to its sound hardware
+- Fixed controls being dead after opening a ROM from the file picker, until the game was closed and started again
+- Fixed opening a ROM via the "File → Open..." menu leaving the game running behind the main menu, with the controls dead
+- Fixed a game briefly continuing to run in the background when it finished loading while another screen was open
+- Fixed cancelling the "Open ROM" file picker resuming the game behind the in-game menu instead of leaving it paused
 
 ## [0.15.1] - 2026-07-31
 
