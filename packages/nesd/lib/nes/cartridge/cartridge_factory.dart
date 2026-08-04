@@ -106,6 +106,8 @@ class CartridgeFactory {
     return ((msb << 8) | lsb) * unitSize;
   }
 
+  int _ramSize(int shift) => shift == 0 ? 0 : 64 << shift;
+
   int _prgRomSize(Uint8List rom, RomFormat romFormat) {
     if (romFormat == .iNes) {
       return rom[4] * 0x4000;
@@ -181,17 +183,17 @@ class CartridgeFactory {
   int _parsePrgRamSize(Uint8List rom, RomFormat romFormat) {
     if (romFormat == .iNes) {
       return max(1, rom[8]) * 0x2000;
-    } else {
-      return 0;
     }
+
+    return _ramSize(rom[10] & 0x0f);
   }
 
   int _parsePrgSaveRamSize(Uint8List rom, RomFormat romFormat) {
     if (romFormat == .iNes) {
       return 0x2000;
-    } else {
-      return 0;
     }
+
+    return _ramSize(rom[10] >> 4);
   }
 
   int _parseChrRamSize(Uint8List rom, RomFormat romFormat) {
@@ -201,9 +203,9 @@ class CartridgeFactory {
       // iNES 1.0 has no CHR-RAM size field; boards with 0 CHR-ROM banks
       // default to the standard 8KB CHR RAM.
       return chrRomSize == 0 ? 0x2000 : 0;
-    } else {
-      return 64 << (rom[11] & 0x0f);
     }
+
+    return _ramSize(rom[11] & 0x0f);
   }
 
   TvSystem _parseTvSystem(Uint8List rom) {
