@@ -9,6 +9,7 @@ import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper176.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc2.dart';
@@ -77,6 +78,7 @@ abstract class Mapper {
       66 => GxROM(),
       71 => BR909x(),
       118 => TxSROM(),
+      176 => Mapper176(subMapperId),
       206 => Namco108(),
       _ => throw UnsupportedMapper(mapperId, subMapperId),
     };

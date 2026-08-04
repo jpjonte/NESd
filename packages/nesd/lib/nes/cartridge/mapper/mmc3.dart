@@ -5,7 +5,7 @@ import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
 class MMC3 extends Mapper {
-  MMC3([super.id = 4]);
+  MMC3([super.id = 4, super.subMapperId = 0]);
 
   @override
   String name = 'MMC3';
@@ -161,11 +161,11 @@ class MMC3 extends Mapper {
         chrBankMode = value.bit(7);
 
         if (prgBankMode != previousPrgBankMode) {
-          _updatePrgPages();
+          updatePrgPages();
         }
 
         if (chrBankMode != previousChrBankMode) {
-          _updateChrPages();
+          updateChrPages();
         }
 
       // bank data (0x8001 - 0x9fff, odd)
@@ -173,9 +173,9 @@ class MMC3 extends Mapper {
         banks[register] = value & bankWriteMask(register);
 
         if (isPrgBankRegister(register)) {
-          _updatePrgPages();
+          updatePrgPages();
         } else {
-          _updateChrPages();
+          updateChrPages();
         }
 
       // Mirroring (0xa000 - 0xbffe, even)
@@ -203,8 +203,8 @@ class MMC3 extends Mapper {
   }
 
   void _remapAll() {
-    _updatePrgPages();
-    _updateChrPages();
+    updatePrgPages();
+    updateChrPages();
     _updateMirroring();
   }
 
@@ -240,7 +240,7 @@ class MMC3 extends Mapper {
     },
   };
 
-  void _updatePrgPages() {
+  void updatePrgPages() {
     for (var slot = 0; slot < 4; slot++) {
       final address = 0x8000 + slot * 0x2000;
 
@@ -248,7 +248,7 @@ class MMC3 extends Mapper {
     }
   }
 
-  void _updateChrPages() {
+  void updateChrPages() {
     for (var slot = 0; slot < 8; slot++) {
       final address = slot * 0x400;
 

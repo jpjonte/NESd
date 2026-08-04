@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - MMC5 expansion audio: Additional audio channels used by Japanese MMC5 games
 - Namco 163 expansion audio: Additional audio channels used by Japanese Namco 163 games
+- Mapper 176 support: Chinese multicarts and educational cartridges using the 8025 enhanced MMC3 chipset
 
 ### Fixed
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
