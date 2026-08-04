@@ -248,4 +248,81 @@ void main() {
       expect(mapper.cpuRead(0x8000), 0x10 | (3 << 1));
     });
   });
+
+  group('CHR banking', () {
+    test('MMC3 CHR mode with a 256 KiB outer bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0) // $5xx0.6=0, .4=0
+        ..cpuWrite(0x5012, 0x20) // page base 0x100 -> outer bits 10..8
+        ..cpuWrite(0x8000, 2)
+        ..cpuWrite(0x8001, 0x91);
+
+      expect(mapper.ppuRead(0x1000), 0x91);
+    });
+
+    test('MMC3 CHR mode with a 128 KiB outer bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0x10) // .4=1 -> 7 MMC3 bits
+        ..cpuWrite(0x5012, 0x10) // page base 0x80
+        ..cpuWrite(0x8000, 2)
+        ..cpuWrite(0x8001, 0x11);
+
+      expect(mapper.ppuRead(0x1000), 0x80 | 0x11);
+    });
+
+    test('NROM CHR mode maps a flat 8 KiB window', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0x40) // .6=1 -> CHR from PPU
+        ..cpuWrite(0x5012, 0x0a); // page base 0x50
+
+      for (var slot = 0; slot < 8; slot++) {
+        expect(mapper.ppuRead(slot * 0x400), 0x50 | slot);
+      }
+    });
+
+    test('CNROM 32 KiB mode uses two latch bits, submapper 1', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0x40) // .6=1, .5=0, .4=0
+        ..cpuWrite(0x5012, 0x08) // page base 0x40
+        ..cpuWrite(0x8000, 0x02);
+
+      expect(mapper.ppuRead(0x0000), 0x40 | (2 << 3));
+      expect(mapper.ppuRead(0x0400), 0x40 | (2 << 3) | 1);
+    });
+
+    test('CNROM 16 KiB mode uses one latch bit, submapper 1', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0x50) // .6=1, .5=0, .4=1
+        ..cpuWrite(0x5012, 0x08)
+        ..cpuWrite(0x8000, 0x01);
+
+      expect(mapper.ppuRead(0x0000), 0x40 | (1 << 3));
+    });
+
+    test('CNROM 32 KiB mode masks a misaligned base', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0x40) // .6=1, .5=0, .4=0
+        ..cpuWrite(0x5012, 0x09) // page base 0x48
+        ..cpuWrite(0x8000, 0x02);
+
+      expect(mapper.ppuRead(0x0000), 0x50);
+    });
+
+    test('CNROM 16 KiB mode masks a misaligned base', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0x50) // .6=1, .5=0, .4=1
+        ..cpuWrite(0x5012, 0x09); // page base 0x48
+
+      expect(mapper.ppuRead(0x0000), 0x40);
+    });
+
+    test('submapper 0 with .6=1 is always NROM, never CNROM', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0x40)
+        ..cpuWrite(0x5012, 0x08)
+        ..cpuWrite(0x8000, 0x02); // would be a CNROM latch on SM1
+
+      expect(mapper.ppuRead(0x0000), 0x40);
+    });
+  });
 }

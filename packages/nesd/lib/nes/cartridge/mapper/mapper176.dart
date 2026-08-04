@@ -1,4 +1,6 @@
 import 'package:nesd/exception/unsupported_mapper.dart';
+import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
 
 class Mapper176 extends MMC3 {
@@ -25,6 +27,9 @@ class Mapper176 extends MMC3 {
 
   @override
   int get registerAddressMask => 0xe003;
+
+  @override
+  PpuMemoryType get chrMemoryType => PpuMemoryType.chrRom;
 
   @override
   int bankWriteMask(int register) {
@@ -74,6 +79,12 @@ class Mapper176 extends MMC3 {
       unromLatch = value;
 
       updatePrgPages();
+    }
+
+    if (cnromMode) {
+      cnromLatch = value;
+
+      updateChrPages();
     }
   }
 
@@ -169,4 +180,34 @@ class Mapper176 extends MMC3 {
 
     return (prgBase & ~mask) | (inner & mask);
   }
+
+  int get chrBase => chrBaseLsb << 3;
+
+  bool get chrFromPpu => mode.bit(6) == 1;
+
+  bool get chrSmallOuterBank => mode.bit(4) == 1;
+
+  bool get cnromMode => subMapperId == 1 && chrFromPpu && mode.bit(5) == 0;
+
+  @override
+  int chrPage(int slot) {
+    if (!chrFromPpu) {
+      final bits = chrSmallOuterBank ? 7 : 8;
+      final mask = (1 << bits) - 1;
+
+      return (chrBase & ~mask) | (_innerChrPage(slot) & mask);
+    }
+
+    if (cnromMode) {
+      final latchBits = chrSmallOuterBank ? 1 : 2;
+      final latchMask = (1 << latchBits) - 1;
+      final baseMask = ~(((1 << latchBits) - 1) << 3 | 0x7);
+
+      return (chrBase & baseMask) | ((cnromLatch & latchMask) << 3) | slot;
+    }
+
+    return (chrBase & ~0x7) | slot;
+  }
+
+  int _innerChrPage(int slot) => super.chrPage(slot);
 }
