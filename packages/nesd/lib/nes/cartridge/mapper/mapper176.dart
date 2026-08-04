@@ -145,7 +145,14 @@ class Mapper176 extends MMC3 {
       _ => prgBaseLsb & 0x7f,
     };
 
-    return lsb << 1;
+    final msb = switch (subMapperId) {
+      3 => (prgBaseMsb & 0xf) << 8,
+      4 => chrBaseLsb.bit(7) << 8,
+      5 => (prgBaseMsb & 0x3f) << 6,
+      _ => 0,
+    };
+
+    return (lsb << 1) | msb;
   }
 
   int get prgMmc3Bits => switch (mode & 0x7) {
@@ -190,7 +197,11 @@ class Mapper176 extends MMC3 {
     return (prgBase & ~mask) | (inner & mask);
   }
 
-  int get chrBase => chrBaseLsb << 3;
+  int get chrBase {
+    final msb = subMapperId == 3 ? (chrBaseMsb & 0xf) << 11 : 0;
+
+    return (chrBaseLsb << 3) | msb;
+  }
 
   bool get chrFromPpu => mode.bit(6) == 1;
 

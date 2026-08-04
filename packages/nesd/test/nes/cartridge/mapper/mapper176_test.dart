@@ -381,4 +381,91 @@ void main() {
       expect(mapper.ppuRead(0x0000), 0x40);
     });
   });
+
+  group('submapper deltas', () {
+    test('submappers 1 and 3 store eight PRG bits', () {
+      for (final subMapper in const [1, 3]) {
+        final mapper = buildMapper176(subMapper: subMapper)
+          ..cpuWrite(0x8000, 6)
+          ..cpuWrite(0x8001, 0xa5);
+
+        expect(mapper.banks[6], 0xa5, reason: 'submapper $subMapper');
+      }
+    });
+
+    test('submappers 0, 4 and 5 store six PRG bits', () {
+      for (final subMapper in const [0, 4, 5]) {
+        final mapper = buildMapper176(subMapper: subMapper)
+          ..cpuWrite(0x8000, 6)
+          ..cpuWrite(0x8001, 0xa5);
+
+        expect(mapper.banks[6], 0x25, reason: 'submapper $subMapper');
+      }
+    });
+
+    test(r'submapper 3 takes PRG A24-A21 from $5xx5', () {
+      final mapper = buildMapper176(subMapper: 3)
+        ..cpuWrite(0x5011, 0x02) // page base $04
+        ..cpuWrite(0x5015, 0x01); // page bits 11-8 -> $100
+
+      expect(mapper.prgBase, 0x104);
+    });
+
+    test(r'submapper 3 takes CHR A24-A21 from $5xx6', () {
+      final mapper = buildMapper176(subMapper: 3)
+        ..cpuWrite(0x5012, 0x05) // page base $28
+        ..cpuWrite(0x5016, 0x03); // page bits 14-11 -> $1800
+
+      expect(mapper.chrBase, 0x1828);
+    });
+
+    test(r'submapper 4 takes PRG A21 from $5xx2 bit 7', () {
+      final mapper = buildMapper176(subMapper: 4)
+        ..cpuWrite(0x5010, 4) // NROM-256
+        ..cpuWrite(0x5011, 0x02) // page base 0x04
+        ..cpuWrite(0x5012, 0x80); // page bit 8 -> 0x100
+
+      expect(mapper.prgBase, 0x104);
+    });
+
+    test(r'submapper 5 takes PRG A24-A19 from $4800', () {
+      final mapper = buildMapper176(subMapper: 5)
+        ..cpuWrite(0x5010, 4) // NROM-256
+        ..cpuWrite(0x5011, 0x02) // masked to 5 bits -> page base 0x04
+        ..cpuWrite(0x4800, 0x02); // page bits 11-6 -> 0x80
+
+      expect(mapper.prgBase, 0x84);
+    });
+
+    test(r'submapper 5 masks $5xx1 to five bits', () {
+      final mapper = buildMapper176(subMapper: 5)..cpuWrite(0x5011, 0x7f);
+
+      expect(mapper.prgBase, 0x3e);
+    });
+  });
+
+  group('PRG base alignment', () {
+    test('NROM-256 discards base bits below its 32 KiB window', () {
+      // $5xx1 = $07 -> prgBase $0e. Mode 4 clears page bits 1-0, so the
+      // window starts at $0c, not $0e.
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x07)
+        ..cpuWrite(0x5010, 4);
+
+      expect(mapper.cpuRead(0x8000), 0x0c);
+      expect(mapper.cpuRead(0xe000), 0x0f);
+    });
+
+    test('UNROM discards base bits below its 128 KiB window', () {
+      // $5xx1 = $0d -> prgBase $1a. Mode 5 clears page bits 3-0, so the
+      // window starts at $10.
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x0d)
+        ..cpuWrite(0x5010, 5)
+        ..cpuWrite(0x8000, 2);
+
+      expect(mapper.cpuRead(0x8000), 0x10 | (2 << 1));
+      expect(mapper.cpuRead(0xc000), 0x10 | (7 << 1));
+    });
+  });
 }
