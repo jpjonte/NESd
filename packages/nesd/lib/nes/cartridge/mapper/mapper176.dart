@@ -1,6 +1,7 @@
 import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper176_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
 
 class Mapper176 extends MMC3 {
@@ -75,6 +76,64 @@ class Mapper176 extends MMC3 {
 
   int get outerAddressMask =>
       (subMapperId == 3 ? 0xf007 : 0xf003) | (0x10 << solderPad);
+
+  @override
+  Mapper176State get state {
+    final mmc3 = super.state;
+
+    return Mapper176State(
+      register: mmc3.register,
+      r0: mmc3.r0,
+      r1: mmc3.r1,
+      r2: mmc3.r2,
+      r3: mmc3.r3,
+      r4: mmc3.r4,
+      r5: mmc3.r5,
+      r6: mmc3.r6,
+      r7: mmc3.r7,
+      prgBankMode: mmc3.prgBankMode,
+      chrBankMode: mmc3.chrBankMode,
+      mirroring: mmc3.mirroring,
+      irqCounter: mmc3.irqCounter,
+      irqLatch: mmc3.irqLatch,
+      irqReload: mmc3.irqReload,
+      irqEnabled: mmc3.irqEnabled,
+      a12LowStart: mmc3.a12LowStart,
+      bank8: banks[8],
+      bank9: banks[9],
+      bank10: banks[10],
+      bank11: banks[11],
+      mode: mode,
+      prgBaseLsb: prgBaseLsb,
+      prgBaseMsb: prgBaseMsb,
+      chrBaseLsb: chrBaseLsb,
+      chrBaseMsb: chrBaseMsb,
+      extendedRegister: extendedRegister,
+      unromLatch: unromLatch,
+      cnromLatch: cnromLatch,
+      solderPad: solderPad,
+    );
+  }
+
+  @override
+  set state(covariant Mapper176State state) {
+    banks
+      ..[8] = state.bank8
+      ..[9] = state.bank9
+      ..[10] = state.bank10
+      ..[11] = state.bank11;
+
+    mode = state.mode;
+    prgBaseLsb = state.prgBaseLsb;
+    prgBaseMsb = state.prgBaseMsb;
+    chrBaseLsb = state.chrBaseLsb;
+    chrBaseMsb = state.chrBaseMsb;
+    extendedRegister = state.extendedRegister;
+    unromLatch = state.unromLatch;
+    cnromLatch = state.cnromLatch;
+
+    super.state = state;
+  }
 
   @override
   void reset() {
