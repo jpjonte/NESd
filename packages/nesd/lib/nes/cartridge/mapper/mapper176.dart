@@ -62,7 +62,19 @@ class Mapper176 extends MMC3 {
       return;
     }
 
+    if (address >= 0x8000) {
+      _writeLatches(value);
+    }
+
     super.cpuWrite(address, value);
+  }
+
+  void _writeLatches(int value) {
+    if ((mode & 0x7) == 5) {
+      unromLatch = value;
+
+      updatePrgPages();
+    }
   }
 
   void _writeOuter(int address, int value) {
@@ -123,7 +135,20 @@ class Mapper176 extends MMC3 {
   };
 
   @override
-  int prgPage(int slot) {
+  int prgPage(int slot) => switch (mode & 0x7) {
+    // NROM-128: 16 KiB mirrored across $8000-$FFFF.
+    3 => (prgBase & ~0x1) | (slot & 0x1),
+    // NROM-256: 32 KiB at $8000-$FFFF.
+    4 => (prgBase & ~0x3) | slot,
+    // UNROM: latched 16 KiB at $8000, inner bank 7 at $C000.
+    5 =>
+      (prgBase & ~0xf) |
+          ((slot < 2 ? unromLatch & 0x7 : 0x7) << 1) |
+          (slot & 0x1),
+    _ => _mmc3PrgPage(slot),
+  };
+
+  int _mmc3PrgPage(int slot) {
     final bits = prgMmc3Bits;
     final mask = (1 << bits) - 1;
 

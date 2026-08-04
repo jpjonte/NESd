@@ -203,4 +203,49 @@ void main() {
       expect(mapper.cpuRead(0xe000), 0xff);
     });
   });
+
+  group('PRG banking, NROM and UNROM modes', () {
+    test('mode 3 mirrors a 16 KiB bank across the whole window', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x05) // page base 0x0a, 16 KiB aligned
+        ..cpuWrite(0x5010, 3);
+
+      expect(mapper.cpuRead(0x8000), 0x0a);
+      expect(mapper.cpuRead(0xa000), 0x0b);
+      expect(mapper.cpuRead(0xc000), 0x0a);
+      expect(mapper.cpuRead(0xe000), 0x0b);
+    });
+
+    test('mode 4 maps a 32 KiB bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x06) // page base 0x0c, 32 KiB aligned
+        ..cpuWrite(0x5010, 4);
+
+      expect(mapper.cpuRead(0x8000), 0x0c);
+      expect(mapper.cpuRead(0xa000), 0x0d);
+      expect(mapper.cpuRead(0xc000), 0x0e);
+      expect(mapper.cpuRead(0xe000), 0x0f);
+    });
+
+    test(r'mode 5 switches $8000 by latch and fixes inner bank 7', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x08) // page base 0x10, 128 KiB aligned
+        ..cpuWrite(0x5010, 5)
+        ..cpuWrite(0x8000, 3);
+
+      expect(mapper.cpuRead(0x8000), 0x10 | (3 << 1));
+      expect(mapper.cpuRead(0xa000), 0x10 | (3 << 1) | 1);
+      expect(mapper.cpuRead(0xc000), 0x10 | (7 << 1));
+      expect(mapper.cpuRead(0xe000), 0x10 | (7 << 1) | 1);
+    });
+
+    test('mode 5 masks the UNROM latch to three bits', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5011, 0x08)
+        ..cpuWrite(0x5010, 5)
+        ..cpuWrite(0xc000, 0xfb);
+
+      expect(mapper.cpuRead(0x8000), 0x10 | (3 << 1));
+    });
+  });
 }
