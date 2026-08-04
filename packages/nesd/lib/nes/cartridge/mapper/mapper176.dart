@@ -26,6 +26,17 @@ class Mapper176 extends MMC3 {
   @override
   int get registerAddressMask => 0xe003;
 
+  @override
+  int bankWriteMask(int register) {
+    final eightBitPrg = subMapperId == 1 || subMapperId == 3;
+
+    return switch (register) {
+      0 || 1 => 0xfe,
+      6 || 7 => eightBitPrg ? 0xff : 0x3f,
+      _ => 0xff,
+    };
+  }
+
   int get outerAddressMask =>
       (subMapperId == 3 ? 0xf007 : 0xf003) | (0x10 << solderPad);
 
@@ -94,5 +105,43 @@ class Mapper176 extends MMC3 {
   void _remapAll() {
     updatePrgPages();
     updateChrPages();
+  }
+
+  int get prgBase {
+    final lsb = switch (subMapperId) {
+      5 => prgBaseLsb & 0x1f,
+      _ => prgBaseLsb & 0x7f,
+    };
+
+    return lsb << 1;
+  }
+
+  int get prgMmc3Bits => switch (mode & 0x7) {
+    1 => 5,
+    2 => 4,
+    _ => subMapperId == 1 || subMapperId == 3 ? 8 : 6,
+  };
+
+  @override
+  int prgPage(int slot) {
+    final bits = prgMmc3Bits;
+    final mask = (1 << bits) - 1;
+
+    final inner = switch (prgBankMode) {
+      0 => switch (slot) {
+        0 => banks[6],
+        1 => banks[7],
+        2 => mask - 1,
+        _ => mask,
+      },
+      _ => switch (slot) {
+        0 => mask - 1,
+        1 => banks[7],
+        2 => banks[6],
+        _ => mask,
+      },
+    };
+
+    return (prgBase & ~mask) | (inner & mask);
   }
 }

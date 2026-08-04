@@ -128,4 +128,79 @@ void main() {
       expect(mapper.prgBaseMsb, 0);
     });
   });
+
+  group('PRG banking, MMC3 modes', () {
+    test('mode 0 on submapper 0 uses a 512 KiB outer bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0)
+        ..cpuWrite(0x5011, 0x40)
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 3)
+        ..cpuWrite(0x8000, 7)
+        ..cpuWrite(0x8001, 5);
+
+      expect(mapper.cpuRead(0x8000), 0x80 | 3);
+      expect(mapper.cpuRead(0xa000), 0x80 | 5);
+      expect(mapper.cpuRead(0xc000), 0x80 | 0x3e);
+      expect(mapper.cpuRead(0xe000), 0x80 | 0x3f);
+    });
+
+    test('modes 6 and 7 alias mode 0 on submapper 0', () {
+      for (final mode in const [6, 7]) {
+        final mapper = buildMapper176()
+          ..cpuWrite(0x5010, mode)
+          ..cpuWrite(0x5011, 0x40)
+          ..cpuWrite(0x8000, 6)
+          ..cpuWrite(0x8001, 3);
+
+        expect(mapper.cpuRead(0x8000), 0x80 | 3, reason: 'mode $mode');
+        expect(mapper.cpuRead(0xe000), 0x80 | 0x3f, reason: 'mode $mode');
+      }
+    });
+
+    test('mode 1 uses a 256 KiB outer bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 1)
+        ..cpuWrite(0x5011, 0x40) // page base 0x80
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 3);
+
+      expect(mapper.cpuRead(0x8000), 0x80 | 3);
+      expect(mapper.cpuRead(0xe000), 0x80 | 0x1f);
+    });
+
+    test('mode 2 uses a 128 KiB outer bank', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 2)
+        ..cpuWrite(0x5011, 0x48) // page base 0x90
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 3);
+
+      expect(mapper.cpuRead(0x8000), 0x90 | 3);
+      expect(mapper.cpuRead(0xe000), 0x90 | 0x0f);
+    });
+
+    test('base bits below the outer window size are discarded', () {
+      // $5xx1 = $44 -> page base $88. In mode 2 the MMC3 supplies page
+      // bits 3-0, so the base's bit 3 is dropped by the hardware.
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 2)
+        ..cpuWrite(0x5011, 0x44)
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 3);
+
+      expect(mapper.cpuRead(0x8000), 0x83);
+    });
+
+    test('mode 0 on submapper 1 addresses the full 2 MiB from MMC3', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0)
+        ..cpuWrite(0x5011, 0x7f) // ignored: no base bits in this mode
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 0xa3);
+
+      expect(mapper.cpuRead(0x8000), 0xa3);
+      expect(mapper.cpuRead(0xe000), 0xff);
+    });
+  });
 }
