@@ -25,8 +25,29 @@ class Mapper176 extends MMC3 {
   int unromLatch = 0;
   int cnromLatch = 0;
 
+  /// Slot order for the 1 KiB CHR banks in extended MMC3 mode.
+  static const _extendedChrOrder = [0, 0xa, 1, 0xb, 2, 3, 4, 5];
+
+  /// PRG window order in extended mode: register per slot ($8000, $A000,
+  /// $C000, $E000) when `prgBankMode` is 0.
+  static const _extendedPrgOrder = [6, 7, 8, 9];
+
+  /// PRG window order in extended mode when `prgBankMode` is 1: registers
+  /// 6 and 8 trade places, which swaps the $8000 and $C000 windows.
+  static const _extendedPrgOrderSwapped = [8, 7, 6, 9];
+
+  /// Extended MMC3 mode, enabled by $5xx3 bit 1 on submapper 1.
+  bool get extendedMode => subMapperId == 1 && extendedRegister.bit(1) == 1;
+
   @override
   int get registerAddressMask => 0xe003;
+
+  @override
+  int get bankSelectMask => extendedMode ? 0x0f : 0x07;
+
+  @override
+  bool isPrgBankRegister(int register) =>
+      extendedMode ? register >= 6 && register <= 9 : register >= 6;
 
   @override
   int get minChrRamSize => subMapperId <= 1 ? 0x2000 : 0;
@@ -45,7 +66,8 @@ class Mapper176 extends MMC3 {
     final eightBitPrg = subMapperId == 1 || subMapperId == 3;
 
     return switch (register) {
-      0 || 1 => 0xfe,
+      // In extended mode these are 1 KiB banks, not 2 KiB pairs.
+      0 || 1 => extendedMode ? 0xff : 0xfe,
       6 || 7 => eightBitPrg ? 0xff : 0x3f,
       _ => 0xff,
     };
@@ -66,6 +88,23 @@ class Mapper176 extends MMC3 {
     cnromLatch = 0;
 
     super.reset();
+
+    banks
+      ..[0] = 0x00
+      ..[1] = 0x02
+      ..[2] = 0x04
+      ..[3] = 0x05
+      ..[4] = 0x06
+      ..[5] = 0x07
+      ..[6] = 0x00
+      ..[7] = 0x01
+      ..[8] = 0xfe
+      ..[9] = 0xff
+      ..[10] = 0xff
+      ..[11] = 0xff;
+
+    updatePrgPages();
+    updateChrPages();
   }
 
   @override
@@ -84,7 +123,7 @@ class Mapper176 extends MMC3 {
   }
 
   void _writeLatches(int value) {
-    if ((mode & 0x7) == 5) {
+    if (!extendedMode && (mode & 0x7) == 5) {
       unromLatch = value;
 
       updatePrgPages();
@@ -101,7 +140,7 @@ class Mapper176 extends MMC3 {
     if (subMapperId == 5 && (address & 0xf800) == 0x4800) {
       prgBaseMsb = value & 0x3f;
 
-      _remapAll();
+      _remapBanks();
 
       return;
     }
@@ -131,10 +170,10 @@ class Mapper176 extends MMC3 {
         }
     }
 
-    _remapAll();
+    _remapBanks();
   }
 
-  void _remapAll() {
+  void _remapBanks() {
     updatePrgPages();
     updateChrPages();
   }
@@ -155,44 +194,61 @@ class Mapper176 extends MMC3 {
     return (lsb << 1) | msb;
   }
 
-  int get prgMmc3Bits => switch (mode & 0x7) {
-    1 => 5,
-    2 => 4,
-    _ => subMapperId == 1 || subMapperId == 3 ? 8 : 6,
-  };
+  int get prgMmc3Bits {
+    if (extendedMode) {
+      return 8;
+    }
+
+    return switch (mode & 0x7) {
+      1 => 5,
+      2 => 4,
+      _ => subMapperId == 1 || subMapperId == 3 ? 8 : 6,
+    };
+  }
 
   @override
-  int prgPage(int slot) => switch (mode & 0x7) {
-    // NROM-128: 16 KiB mirrored across $8000-$FFFF.
-    3 => (prgBase & ~0x1) | (slot & 0x1),
-    // NROM-256: 32 KiB at $8000-$FFFF.
-    4 => (prgBase & ~0x3) | slot,
-    // UNROM: latched 16 KiB at $8000, inner bank 7 at $C000.
-    5 =>
-      (prgBase & ~0xf) |
-          ((slot < 2 ? unromLatch & 0x7 : 0x7) << 1) |
-          (slot & 0x1),
-    _ => _mmc3PrgPage(slot),
-  };
+  int prgPage(int slot) {
+    if (extendedMode) {
+      return _mmc3PrgPage(slot);
+    }
+
+    return switch (mode & 0x7) {
+      // NROM-128: 16 KiB mirrored across $8000-$FFFF.
+      3 => (prgBase & ~0x1) | (slot & 0x1),
+      // NROM-256: 32 KiB at $8000-$FFFF.
+      4 => (prgBase & ~0x3) | slot,
+      // UNROM: latched 16 KiB at $8000, inner bank 7 at $C000.
+      5 =>
+        (prgBase & ~0xf) |
+            ((slot < 2 ? unromLatch & 0x7 : 0x7) << 1) |
+            (slot & 0x1),
+      _ => _mmc3PrgPage(slot),
+    };
+  }
 
   int _mmc3PrgPage(int slot) {
     final bits = prgMmc3Bits;
     final mask = (1 << bits) - 1;
 
-    final inner = switch (prgBankMode) {
-      0 => switch (slot) {
-        0 => banks[6],
-        1 => banks[7],
-        2 => mask - 1,
-        _ => mask,
-      },
-      _ => switch (slot) {
-        0 => mask - 1,
-        1 => banks[7],
-        2 => banks[6],
-        _ => mask,
-      },
-    };
+    final inner = extendedMode
+        ? switch (prgBankMode) {
+            0 => banks[_extendedPrgOrder[slot]],
+            _ => banks[_extendedPrgOrderSwapped[slot]],
+          }
+        : switch (prgBankMode) {
+            0 => switch (slot) {
+              0 => banks[6],
+              1 => banks[7],
+              2 => mask - 1,
+              _ => mask,
+            },
+            _ => switch (slot) {
+              0 => mask - 1,
+              1 => banks[7],
+              2 => banks[6],
+              _ => mask,
+            },
+          };
 
     return (prgBase & ~mask) | (inner & mask);
   }
@@ -229,5 +285,13 @@ class Mapper176 extends MMC3 {
     return (chrBase & ~0x7) | slot;
   }
 
-  int _innerChrPage(int slot) => super.chrPage(slot);
+  int _innerChrPage(int slot) {
+    if (!extendedMode) {
+      return super.chrPage(slot);
+    }
+
+    final index = chrBankMode == 0 ? slot : (slot + 4) & 0x7;
+
+    return banks[_extendedChrOrder[index]];
+  }
 }

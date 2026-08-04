@@ -32,7 +32,7 @@ class MMC3 extends Mapper {
 
   int register = 0;
 
-  final List<int> banks = List.filled(12, 0);
+  final List<int> banks = List.filled(16, 0);
 
   int prgBankMode = 0;
 
@@ -71,7 +71,7 @@ class MMC3 extends Mapper {
 
   @override
   set state(covariant MMC3State state) {
-    register = state.register;
+    register = state.register & bankSelectMask;
 
     banks
       ..[0] = state.r0

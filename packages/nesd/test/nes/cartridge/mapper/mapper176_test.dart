@@ -326,6 +326,177 @@ void main() {
     });
   });
 
+  group('extended MMC3 mode', () {
+    Mapper176 extended() => buildMapper176(subMapper: 1)
+      ..cpuWrite(0x5013, 0x02)
+      ..cpuWrite(0x5010, 0);
+
+    test('all four PRG windows become selectable', () {
+      final mapper = extended();
+
+      for (final entry in const {6: 0x11, 7: 0x22, 8: 0x33, 9: 0x44}.entries) {
+        mapper
+          ..cpuWrite(0x8000, entry.key)
+          ..cpuWrite(0x8001, entry.value);
+      }
+
+      expect(mapper.cpuRead(0x8000), 0x11);
+      expect(mapper.cpuRead(0xa000), 0x22);
+      expect(mapper.cpuRead(0xc000), 0x33);
+      expect(mapper.cpuRead(0xe000), 0x44);
+    });
+
+    test(r'$8000 bit 6 swaps only the $8000 and $C000 windows', () {
+      final mapper = extended();
+
+      for (final entry in const {6: 0x51, 7: 0x62, 8: 0x73, 9: 0x84}.entries) {
+        mapper
+          ..cpuWrite(0x8000, entry.key)
+          ..cpuWrite(0x8001, entry.value);
+      }
+
+      mapper.cpuWrite(0x8000, 0x40 | 6);
+
+      expect(mapper.cpuRead(0x8000), 0x73);
+      expect(mapper.cpuRead(0xa000), 0x62);
+      expect(mapper.cpuRead(0xc000), 0x51);
+      expect(mapper.cpuRead(0xe000), 0x84);
+    });
+
+    test(r'registers $0, $A, $1 and $B are 1 KiB CHR banks', () {
+      final mapper = extended();
+
+      for (final entry in const {
+        0x0: 0x11,
+        0xa: 0x22,
+        0x1: 0x33,
+        0xb: 0x44,
+      }.entries) {
+        mapper
+          ..cpuWrite(0x8000, entry.key)
+          ..cpuWrite(0x8001, entry.value);
+      }
+
+      expect(mapper.ppuRead(0x0000), 0x11);
+      expect(mapper.ppuRead(0x0400), 0x22);
+      expect(mapper.ppuRead(0x0800), 0x33);
+      expect(mapper.ppuRead(0x0c00), 0x44);
+    });
+
+    test('chrBankMode 1 rotates the extended CHR order by four slots', () {
+      final mapper = extended();
+
+      for (final entry in const {
+        0x0: 0x11,
+        0xa: 0x22,
+        0x1: 0x33,
+        0xb: 0x44,
+        0x2: 0x55,
+        0x3: 0x66,
+        0x4: 0x77,
+        0x5: 0x88,
+      }.entries) {
+        mapper
+          ..cpuWrite(0x8000, 0x80 | entry.key)
+          ..cpuWrite(0x8001, entry.value);
+      }
+
+      expect(mapper.ppuRead(0x0000), 0x55);
+      expect(mapper.ppuRead(0x0400), 0x66);
+      expect(mapper.ppuRead(0x0800), 0x77);
+      expect(mapper.ppuRead(0x0c00), 0x88);
+      expect(mapper.ppuRead(0x1000), 0x11);
+      expect(mapper.ppuRead(0x1400), 0x22);
+      expect(mapper.ppuRead(0x1800), 0x33);
+      expect(mapper.ppuRead(0x1c00), 0x44);
+    });
+
+    test(r'register $0 loses its 2 KiB alignment', () {
+      final mapper = extended()
+        ..cpuWrite(0x8000, 0)
+        ..cpuWrite(0x8001, 0x11);
+
+      expect(mapper.ppuRead(0x0000), 0x11);
+    });
+
+    test('PRG addresses the full 2 MiB regardless of the mode bits', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5013, 0x02)
+        ..cpuWrite(0x5010, 2) // would be a 128 KiB outer bank
+        ..cpuWrite(0x5011, 0x7f)
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 0xa5);
+
+      expect(mapper.cpuRead(0x8000), 0xa5);
+    });
+
+    test('extended mode overrides UNROM mode entirely', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5013, 0x02) // enable extended mode
+        ..cpuWrite(0x5010, 5) // UNROM mode bits, ignored under extended
+        ..unromLatch = 0x5a
+        ..cpuWrite(0x8000, 6)
+        ..cpuWrite(0x8001, 0x11)
+        ..cpuWrite(0x8000, 7)
+        ..cpuWrite(0x8001, 0x22)
+        ..cpuWrite(0x8000, 8)
+        ..cpuWrite(0x8001, 0x33)
+        ..cpuWrite(0x8000, 9)
+        ..cpuWrite(0x8001, 0x44);
+
+      // The MMC3 layout wins: all four windows come from registers
+      // 6-9, not the UNROM latch/fixed-bank-7 formula.
+      expect(mapper.cpuRead(0x8000), 0x11);
+      expect(mapper.cpuRead(0xa000), 0x22);
+      expect(mapper.cpuRead(0xc000), 0x33);
+      expect(mapper.cpuRead(0xe000), 0x44);
+
+      // None of the writes to $8000-$FFFF above updated the UNROM
+      // latch, even though the mode register still selects UNROM.
+      expect(mapper.unromLatch, 0x5a);
+    });
+
+    test(r'$44 written to $5xx3 leaves extended mode disabled', () {
+      final mapper = buildMapper176(subMapper: 1)..cpuWrite(0x5013, 0x44);
+
+      expect(mapper.extendedMode, isFalse);
+    });
+
+    test('extended mode is submapper 1 only', () {
+      final mapper = buildMapper176()..cpuWrite(0x5013, 0x02);
+
+      expect(mapper.extendedMode, isFalse);
+    });
+
+    test(r'a register above $B does not crash, even once extended mode '
+        'is later disabled', () {
+      final mapper = extended()
+        ..cpuWrite(0x8000, 0xf) // select register $F, out of range pre-fix
+        ..cpuWrite(0x5013, 0x44); // disable extended mode; register stays $F
+
+      expect(() => mapper.cpuWrite(0x8001, 0x55), returnsNormally);
+    });
+
+    test('reset seeds the documented power-on bank values', () {
+      final mapper = buildMapper176(subMapper: 1)..reset();
+
+      expect(mapper.banks.sublist(0, 12), const [
+        0x00,
+        0x02,
+        0x04,
+        0x05,
+        0x06,
+        0x07,
+        0x00,
+        0x01,
+        0xfe,
+        0xff,
+        0xff,
+        0xff,
+      ]);
+    });
+  });
+
   group('CHR-ROM and CHR-RAM', () {
     test('submappers 0 and 1 get 8 KiB of CHR-RAM', () {
       for (final subMapper in const [0, 1]) {
