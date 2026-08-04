@@ -22,8 +22,10 @@ class CartridgeFactory {
       throw InvalidRomHeader(rom.sublist(0, 4));
     }
 
-    final chr = _parseChr(rom);
-    final prgRom = _parsePrgRom(rom);
+    final romFormat = _parseRomFormat(rom);
+
+    final chr = _parseChr(rom, romFormat);
+    final prgRom = _parsePrgRom(rom, romFormat);
 
     final romHash = sha1.convert(rom.sublist(16)).toString();
     final prgHash = sha1.convert(prgRom).toString();
@@ -31,8 +33,6 @@ class CartridgeFactory {
     final databaseEntry = database.find(
       RomInfo(file: file, romHash: romHash, prgHash: prgHash),
     );
-
-    final romFormat = _parseRomFormat(rom);
 
     final prgRamSize =
         databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom, romFormat);
@@ -71,26 +71,55 @@ class CartridgeFactory {
     );
   }
 
-  Uint8List _parsePrgRom(Uint8List rom) {
+  Uint8List _parsePrgRom(Uint8List rom, RomFormat romFormat) {
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
-    final prgRomSize = rom[4] * 0x4000;
+    final prgRomSize = _prgRomSize(rom, romFormat);
 
     return rom.sublist(16 + trainerSize, 16 + trainerSize + prgRomSize);
   }
 
-  Uint8List _parseChr(Uint8List rom) {
-    final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
-    final prgRomSize = rom[4] * 0x4000;
-    final chrRomSize = rom[5] * 0x2000;
+  Uint8List _parseChr(Uint8List rom, RomFormat romFormat) {
+    final chrRomSize = _chrRomSize(rom, romFormat);
 
     if (chrRomSize == 0) {
       return Uint8List(0x10000);
     }
 
-    return rom.sublist(
-      16 + trainerSize + prgRomSize,
-      16 + trainerSize + prgRomSize + chrRomSize,
-    );
+    final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
+    final start = 16 + trainerSize + _prgRomSize(rom, romFormat);
+
+    return rom.sublist(start, start + chrRomSize);
+  }
+
+  /// Decodes a NES 2.0 ROM size field.
+  int _romSize(int lsb, int msb, int unitSize) {
+    if (msb == 0x0f) {
+      /// A most-significant nibble of $F selects exponent-multiplier form,
+      /// where the least-significant byte is `EEEEEEMM` and the size is
+      /// `2^E * (MM * 2 + 1)` bytes.
+      final exponent = lsb >> 2;
+      final multiplier = (lsb & 0x03) * 2 + 1;
+
+      return (1 << exponent) * multiplier;
+    }
+
+    return ((msb << 8) | lsb) * unitSize;
+  }
+
+  int _prgRomSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == .iNes) {
+      return rom[4] * 0x4000;
+    }
+
+    return _romSize(rom[4], rom[9] & 0x0f, 0x4000);
+  }
+
+  int _chrRomSize(Uint8List rom, RomFormat romFormat) {
+    if (romFormat == .iNes) {
+      return rom[5] * 0x2000;
+    }
+
+    return _romSize(rom[5], rom[9] >> 4, 0x2000);
   }
 
   NametableLayout _parseNametableLayout(Uint8List rom) {
