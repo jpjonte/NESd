@@ -16,6 +16,20 @@ class MMC3 extends Mapper {
   @override
   int chrPageSize = 0x0400;
 
+  int get registerAddressMask => 0xe001;
+
+  int get bankSelectMask => 0x07;
+
+  int bankWriteMask(int register) => switch (register) {
+    0 || 1 => 0xfe,
+    6 || 7 => 0x3f,
+    _ => 0xff,
+  };
+
+  bool isPrgBankRegister(int register) => register >= 6;
+
+  PpuMemoryType? get chrMemoryType => null;
+
   int register = 0;
 
   final List<int> banks = List.filled(12, 0);
@@ -136,13 +150,13 @@ class MMC3 extends Mapper {
   void cpuWrite(int address, int value) {
     super.cpuWrite(address, value);
 
-    switch (address & 0xe001) {
+    switch (address & registerAddressMask) {
       // bank select (0x8000 - 0x9ffe, even)
       case 0x8000:
         final previousPrgBankMode = prgBankMode;
         final previousChrBankMode = chrBankMode;
 
-        register = value & 0x7;
+        register = value & bankSelectMask;
         prgBankMode = value.bit(6);
         chrBankMode = value.bit(7);
 
@@ -156,15 +170,9 @@ class MMC3 extends Mapper {
 
       // bank data (0x8001 - 0x9fff, odd)
       case 0x8001:
-        banks[register] =
-            value &
-            switch (register) {
-              0 || 1 => 0xfe,
-              6 || 7 => 0x3f,
-              _ => 0xff,
-            };
+        banks[register] = value & bankWriteMask(register);
 
-        if (register >= 6) {
+        if (isPrgBankRegister(register)) {
           _updatePrgPages();
         } else {
           _updateChrPages();
@@ -244,7 +252,7 @@ class MMC3 extends Mapper {
     for (var slot = 0; slot < 8; slot++) {
       final address = slot * 0x400;
 
-      mapPpu(address, address + 0x3ff, chrPage(slot));
+      mapPpu(address, address + 0x3ff, chrPage(slot), type: chrMemoryType);
     }
   }
 
