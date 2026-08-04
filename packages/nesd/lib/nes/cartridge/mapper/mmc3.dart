@@ -17,16 +17,10 @@ class MMC3 extends Mapper {
   int chrPageSize = 0x0400;
 
   int register = 0;
-  int _r0 = 0;
-  int _r1 = 0;
-  int _r2 = 2;
-  int _r3 = 3;
-  int _r4 = 4;
-  int _r5 = 5;
-  int _r6 = 6;
-  int _r7 = 1;
 
-  int _prgBankMode = 0;
+  final List<int> banks = List.filled(12, 0);
+
+  int prgBankMode = 0;
 
   int chrBankMode = 0;
 
@@ -43,15 +37,15 @@ class MMC3 extends Mapper {
   @override
   MMC3State get state => MMC3State(
     register: register,
-    r0: _r0,
-    r1: _r1,
-    r2: _r2,
-    r3: _r3,
-    r4: _r4,
-    r5: _r5,
-    r6: _r6,
-    r7: _r7,
-    prgBankMode: _prgBankMode,
+    r0: banks[0],
+    r1: banks[1],
+    r2: banks[2],
+    r3: banks[3],
+    r4: banks[4],
+    r5: banks[5],
+    r6: banks[6],
+    r7: banks[7],
+    prgBankMode: prgBankMode,
     chrBankMode: chrBankMode,
     mirroring: _mirroring,
     irqCounter: _irqCounter,
@@ -64,15 +58,18 @@ class MMC3 extends Mapper {
   @override
   set state(covariant MMC3State state) {
     register = state.register;
-    _r0 = state.r0;
-    _r1 = state.r1;
-    _r2 = state.r2;
-    _r3 = state.r3;
-    _r4 = state.r4;
-    _r5 = state.r5;
-    _r6 = state.r6;
-    _r7 = state.r7;
-    _prgBankMode = state.prgBankMode;
+
+    banks
+      ..[0] = state.r0
+      ..[1] = state.r1
+      ..[2] = state.r2
+      ..[3] = state.r3
+      ..[4] = state.r4
+      ..[5] = state.r5
+      ..[6] = state.r6
+      ..[7] = state.r7;
+
+    prgBankMode = state.prgBankMode;
     chrBankMode = state.chrBankMode;
     _mirroring = state.mirroring;
     _irqCounter = state.irqCounter;
@@ -81,7 +78,7 @@ class MMC3 extends Mapper {
     _irqEnabled = state.irqEnabled;
     _a12LowStart = state.a12LowStart;
 
-    _updateState();
+    _remapAll();
   }
 
   @override
@@ -89,16 +86,9 @@ class MMC3 extends Mapper {
     super.reset();
 
     register = 0;
-    _r0 = 0;
-    _r1 = 0;
-    _r2 = 0;
-    _r3 = 0;
-    _r4 = 0;
-    _r5 = 0;
-    _r6 = 0;
-    _r7 = 0;
+    banks.fillRange(0, banks.length, 0);
 
-    _prgBankMode = 0;
+    prgBankMode = 0;
     chrBankMode = switch (bus.cartridge.nametableLayout) {
       NametableLayout.vertical => 1,
       NametableLayout.horizontal => 0,
@@ -117,7 +107,7 @@ class MMC3 extends Mapper {
 
     _a12LowStart = 0;
 
-    _updateState();
+    _remapAll();
   }
 
   @override
@@ -149,47 +139,35 @@ class MMC3 extends Mapper {
     switch (address & 0xe001) {
       // bank select (0x8000 - 0x9ffe, even)
       case 0x8000:
-        final previousPrgBankMode = _prgBankMode;
+        final previousPrgBankMode = prgBankMode;
         final previousChrBankMode = chrBankMode;
 
         register = value & 0x7;
-        _prgBankMode = value.bit(6);
+        prgBankMode = value.bit(6);
         chrBankMode = value.bit(7);
 
-        if (_prgBankMode != previousPrgBankMode) {
+        if (prgBankMode != previousPrgBankMode) {
           _updatePrgPages();
         }
 
         if (chrBankMode != previousChrBankMode) {
           _updateChrPages();
         }
+
       // bank data (0x8001 - 0x9fff, odd)
       case 0x8001:
-        switch (register) {
-          case 0:
-            _r0 = value & 0xfe;
-            _updateChrPages();
-          case 1:
-            _r1 = value & 0xfe;
-            _updateChrPages();
-          case 2:
-            _r2 = value;
-            _updateChrPages();
-          case 3:
-            _r3 = value;
-            _updateChrPages();
-          case 4:
-            _r4 = value;
-            _updateChrPages();
-          case 5:
-            _r5 = value;
-            _updateChrPages();
-          case 6:
-            _r6 = value & 0x3f;
-            _updatePrgPages();
-          case 7:
-            _r7 = value & 0x3f;
-            _updatePrgPages();
+        banks[register] =
+            value &
+            switch (register) {
+              0 || 1 => 0xfe,
+              6 || 7 => 0x3f,
+              _ => 0xff,
+            };
+
+        if (register >= 6) {
+          _updatePrgPages();
+        } else {
+          _updateChrPages();
         }
 
       // Mirroring (0xa000 - 0xbffe, even)
@@ -216,43 +194,57 @@ class MMC3 extends Mapper {
     }
   }
 
-  void _updateState() {
+  void _remapAll() {
     _updatePrgPages();
     _updateChrPages();
     _updateMirroring();
   }
 
+  int prgPage(int slot) => switch (prgBankMode) {
+    0 => switch (slot) {
+      0 => banks[6],
+      1 => banks[7],
+      2 => -2,
+      _ => -1,
+    },
+    _ => switch (slot) {
+      0 => -2,
+      1 => banks[7],
+      2 => banks[6],
+      _ => -1,
+    },
+  };
+
+  int chrPage(int slot) => switch (chrBankMode) {
+    0 => switch (slot) {
+      0 => banks[0],
+      1 => banks[0] + 1,
+      2 => banks[1],
+      3 => banks[1] + 1,
+      _ => banks[slot - 2],
+    },
+    _ => switch (slot) {
+      0 || 1 || 2 || 3 => banks[slot + 2],
+      4 => banks[0],
+      5 => banks[0] + 1,
+      6 => banks[1],
+      _ => banks[1] + 1,
+    },
+  };
+
   void _updatePrgPages() {
-    switch (_prgBankMode) {
-      case 0:
-        mapCpu(0x8000, 0x9fff, _r6);
-        mapCpu(0xa000, 0xbfff, _r7);
-        mapCpu(0xc000, 0xdfff, -2);
-        mapCpu(0xe000, 0xffff, -1);
-      case 1:
-        mapCpu(0x8000, 0x9fff, -2);
-        mapCpu(0xa000, 0xbfff, _r7);
-        mapCpu(0xc000, 0xdfff, _r6);
-        mapCpu(0xe000, 0xffff, -1);
+    for (var slot = 0; slot < 4; slot++) {
+      final address = 0x8000 + slot * 0x2000;
+
+      mapCpu(address, address + 0x1fff, prgPage(slot));
     }
   }
 
   void _updateChrPages() {
-    switch (chrBankMode) {
-      case 0:
-        mapPpu(0x0000, 0x07ff, _r0);
-        mapPpu(0x0800, 0x0fff, _r1);
-        mapPpu(0x1000, 0x13ff, _r2);
-        mapPpu(0x1400, 0x17ff, _r3);
-        mapPpu(0x1800, 0x1bff, _r4);
-        mapPpu(0x1c00, 0x1fff, _r5);
-      case 1:
-        mapPpu(0x0000, 0x03ff, _r2);
-        mapPpu(0x0400, 0x07ff, _r3);
-        mapPpu(0x0800, 0x0bff, _r4);
-        mapPpu(0x0c00, 0x0fff, _r5);
-        mapPpu(0x1000, 0x17ff, _r0);
-        mapPpu(0x1800, 0x1fff, _r1);
+    for (var slot = 0; slot < 8; slot++) {
+      final address = slot * 0x400;
+
+      mapPpu(address, address + 0x3ff, chrPage(slot));
     }
   }
 
