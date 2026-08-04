@@ -38,8 +38,6 @@ class CartridgeFactory {
         databaseEntry?.prgRamSize ?? _parsePrgRamSize(rom, romFormat);
     final prgSaveRamSize =
         databaseEntry?.prgSaveRamSize ?? _parsePrgSaveRamSize(rom, romFormat);
-    final chrRamSize =
-        databaseEntry?.chrRamSize ?? _parseChrRamSize(rom, romFormat);
 
     final hasBattery = databaseEntry?.hasBattery ?? _parseHasBattery(rom);
 
@@ -47,6 +45,11 @@ class CartridgeFactory {
     final subMapperId = _parseSubMapperId(rom, romFormat, databaseEntry);
 
     final mapper = Mapper.fromId(mapperId, subMapperId, prgSaveRamSize);
+
+    final chrRamSize = max(
+      databaseEntry?.chrRamSize ?? _parseChrRamSize(rom, romFormat),
+      mapper.minChrRamSize,
+    );
 
     return Cartridge(
       file: file,

@@ -325,4 +325,60 @@ void main() {
       expect(mapper.ppuRead(0x0000), 0x40);
     });
   });
+
+  group('CHR-ROM and CHR-RAM', () {
+    test('submappers 0 and 1 get 8 KiB of CHR-RAM', () {
+      for (final subMapper in const [0, 1]) {
+        final mapper = buildMapper176(subMapper: subMapper);
+
+        expect(
+          mapper.cartridge.chrRam.length,
+          0x2000,
+          reason: 'submapper $subMapper',
+        );
+      }
+    });
+
+    test('submappers 3, 4 and 5 get no CHR-RAM', () {
+      // chrMemoryType always resolves to chrRom above submapper 1, so
+      // CHR-RAM would be allocated but never reachable.
+      for (final subMapper in const [3, 4, 5]) {
+        final mapper = buildMapper176(subMapper: subMapper);
+
+        expect(
+          mapper.cartridge.chrRam,
+          isEmpty,
+          reason: 'submapper $subMapper',
+        );
+      }
+    });
+
+    test(r'$5xx0.5 selects CHR-RAM and writes land there', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0x60) // .6=1 NROM window, .5=1 CHR-RAM
+        ..ppuWrite(0x0000, 0x5a);
+
+      expect(mapper.ppuRead(0x0000), 0x5a);
+      expect(mapper.cartridge.chrRam[0], 0x5a);
+    });
+
+    test(r'clearing $5xx0.5 returns to CHR-ROM', () {
+      final mapper = buildMapper176()
+        ..cpuWrite(0x5010, 0x60)
+        ..ppuWrite(0x0000, 0x5a)
+        ..cpuWrite(0x5010, 0x40) // .5=0 -> CHR-ROM
+        ..cpuWrite(0x5012, 0x00);
+
+      expect(mapper.ppuRead(0x0000), 0);
+      expect(mapper.cartridge.chrRam[0], 0x5a);
+    });
+
+    test('submapper 1 with .6=1 uses bit 5 as the CNROM latch enable', () {
+      final mapper = buildMapper176(subMapper: 1)
+        ..cpuWrite(0x5010, 0x60) // .6=1, .5=1 -> NROM, CHR-ROM
+        ..cpuWrite(0x5012, 0x08);
+
+      expect(mapper.ppuRead(0x0000), 0x40);
+    });
+  });
 }

@@ -141,6 +141,8 @@ abstract class Mapper {
 
   int get prgRamPageSize => 0x2000;
 
+  int get minChrRamSize => 0;
+
   Uint8List? save() => null;
 
   void load(Uint8List save) {}

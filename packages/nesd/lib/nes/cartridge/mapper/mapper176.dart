@@ -29,7 +29,16 @@ class Mapper176 extends MMC3 {
   int get registerAddressMask => 0xe003;
 
   @override
-  PpuMemoryType get chrMemoryType => PpuMemoryType.chrRom;
+  int get minChrRamSize => subMapperId <= 1 ? 0x2000 : 0;
+
+  @override
+  PpuMemoryType get chrMemoryType {
+    if (subMapperId > 1 || (subMapperId == 1 && chrFromPpu)) {
+      return PpuMemoryType.chrRom;
+    }
+
+    return mode.bit(5) == 1 ? PpuMemoryType.chrRam : PpuMemoryType.chrRom;
+  }
 
   @override
   int bankWriteMask(int register) {
