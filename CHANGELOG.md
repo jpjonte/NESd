@@ -7,11 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- APU visualization: per-channel waveforms and parameters (Settings → Debug → Show APU visualization)
 - MMC5 expansion audio: Additional audio channels used by Japanese MMC5 games
 - Namco 163 expansion audio: Additional audio channels used by Japanese Namco 163 games
 - Mapper 176 support: Chinese multicarts and educational cartridges using the 8025 enhanced MMC3 chipset
 
 ### Fixed
+- Fixed the second pulse channel following the first one's enable bit, so it could fall silent or keep playing along with the wrong channel
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
 - Fixed MMC5 games showing a black screen or freezing
 - Fixed MMC5 games with battery-backed save RAM having no working memory at all, which also meant their saves were never written
@@ -26,9 +28,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed NES 2.0 ROMs getting the wrong amount of work RAM, save RAM and CHR RAM, which could show as blank or garbled graphics and lost saves
 
 ## [0.15.1] - 2026-07-31
-
-### Added
-- APU visualization: per-channel waveforms and parameters (Settings → Debug → Show APU visualization)
 
 ### Changed
 - NESd can now handle the audio output disappearing (e.g. headphones unplugged)
