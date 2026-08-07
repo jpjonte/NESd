@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - MMC5 expansion audio: Additional audio channels used by Japanese MMC5 games
 - Namco 163 expansion audio: Additional audio channels used by Japanese Namco 163 games
+- Mapper 176 support: Chinese multicarts and educational cartridges using the 8025 enhanced MMC3 chipset
 
 ### Fixed
 - Fixed ROM tiles frequently showing a blank thumbnail after returning from a game
@@ -21,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed opening a ROM via the "File → Open..." menu leaving the game running behind the main menu, with the controls dead
 - Fixed a game briefly continuing to run in the background when it finished loading while another screen was open
 - Fixed cancelling the "Open ROM" file picker resuming the game behind the in-game menu instead of leaving it paused
+- Fixed NES 2.0 ROMs with more than 4 MiB of PRG ROM or 2 MiB of CHR ROM loading at the wrong size, which showed as blank or corrupt graphics
+- Fixed NES 2.0 ROMs getting the wrong amount of work RAM, save RAM and CHR RAM, which could show as blank or garbled graphics and lost saves
 
 ## [0.15.1] - 2026-07-31
 

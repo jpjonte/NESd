@@ -9,7 +9,7 @@ class TxSROM extends MMC3 {
 
   @override
   void cpuWrite(int address, int value) {
-    switch (address & 0xe001) {
+    switch (address & registerAddressMask) {
       // bank data (0x8001 - 0x9fff, odd)
       case 0x8001:
         final nametable = value.bit(7);
