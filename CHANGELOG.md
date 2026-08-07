@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.16.0] - 2026-08-07
 
 ### Added
 - APU visualization: per-channel waveforms and parameters (Settings → Debug → Show APU visualization)
