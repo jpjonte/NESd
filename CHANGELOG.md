@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+- Fixed the ROM grid on the main menu and the save state screen overflowing on phones and narrow windows
+
 ## [0.16.0] - 2026-08-07
 
 ### Added
