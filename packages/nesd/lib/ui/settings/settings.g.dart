@@ -10,11 +10,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
-  showTiles: json['showTiles'] as bool? ?? false,
-  showCartridgeInfo: json['showCartridgeInfo'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
-  showDebugger: json['showDebugger'] as bool? ?? false,
-  showApuDebug: json['showApuDebug'] as bool? ?? false,
   openTools: json['openTools'] == null
       ? const <EmulatorTool>{}
       : openToolsFromJson(json['openTools']),
@@ -87,11 +83,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
-  'showTiles': instance.showTiles,
-  'showCartridgeInfo': instance.showCartridgeInfo,
   'showDebugOverlay': instance.showDebugOverlay,
-  'showDebugger': instance.showDebugger,
-  'showApuDebug': instance.showApuDebug,
   'openTools': instance.openTools
       .map((e) => _$EmulatorToolEnumMap[e]!)
       .toList(),
@@ -196,7 +188,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'b58946c3a508f9e765463adb1fe204793233e178';
+    r'b0870c4d7c18f0f300cf74eae4f9a56f5b5dfbde';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

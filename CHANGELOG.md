@@ -6,8 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Debug tools are now opened from the in-game menu under "Debug Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
+- The execution log now shares the debug tool column instead of taking a column of its own
+
 ### Fixed
 - Fixed the ROM grid on the main menu and the save state screen overflowing on phones and narrow windows
+- Fixed opening a debug tool in a narrow window squeezing the game display down to nothing
 
 ## [0.16.0] - 2026-08-07
 

@@ -83,11 +83,7 @@ sealed class Settings with _$Settings {
     @Default(1.0) double volume,
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
-    @Default(false) bool showTiles,
-    @Default(false) bool showCartridgeInfo,
     @Default(false) bool showDebugOverlay,
-    @Default(false) bool showDebugger,
-    @Default(false) bool showApuDebug,
     @JsonKey(fromJson: openToolsFromJson)
     @Default(<EmulatorTool>{})
     Set<EmulatorTool> openTools,
@@ -155,34 +151,10 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(stretch: stretch));
   }
 
-  bool get showTiles => state.showTiles;
-
-  set showTiles(bool showTiles) {
-    _update(state.copyWith(showTiles: showTiles));
-  }
-
-  bool get showCartridgeInfo => state.showCartridgeInfo;
-
-  set showCartridgeInfo(bool showCartridgeInfo) {
-    _update(state.copyWith(showCartridgeInfo: showCartridgeInfo));
-  }
-
   bool get showDebugOverlay => state.showDebugOverlay;
 
   set showDebugOverlay(bool showDebugOverlay) {
     _update(state.copyWith(showDebugOverlay: showDebugOverlay));
-  }
-
-  bool get showDebugger => state.showDebugger;
-
-  set showDebugger(bool showDebugger) {
-    _update(state.copyWith(showDebugger: showDebugger));
-  }
-
-  bool get showApuDebug => state.showApuDebug;
-
-  set showApuDebug(bool showApuDebug) {
-    _update(state.copyWith(showApuDebug: showApuDebug));
   }
 
   Set<EmulatorTool> get openTools => state.openTools;

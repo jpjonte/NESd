@@ -45,11 +45,11 @@ void main() {
   test('a rejected settings write shows a warning toast', () async {
     when(() => prefs.setString(any(), any())).thenAnswer((_) async => false);
 
-    controller.showTiles = true;
+    controller.showDebugOverlay = true;
 
     await pumpEventQueue();
 
-    expect(controller.showTiles, isTrue);
+    expect(controller.showDebugOverlay, isTrue);
 
     final toasts = container.read(toastStateProvider);
 
@@ -64,11 +64,11 @@ void main() {
       () => prefs.setString(any(), any()),
     ).thenAnswer((_) async => throw Exception('disk full'));
 
-    controller.showTiles = true;
+    controller.showDebugOverlay = true;
 
     await pumpEventQueue();
 
-    expect(controller.showTiles, isTrue);
+    expect(controller.showDebugOverlay, isTrue);
 
     final toasts = container.read(toastStateProvider);
 
