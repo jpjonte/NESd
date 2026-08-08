@@ -86,14 +86,6 @@ class CompactToolHost extends HookConsumerWidget {
 
   Widget _panned(EmulatorTool tool, Widget child) => SingleChildScrollView(
     scrollDirection: Axis.horizontal,
-    child: SizedBox(width: _compactWidth(tool), child: child),
+    child: SizedBox(width: tool.contentWidth, child: child),
   );
-
-  double _compactWidth(EmulatorTool tool) => switch (tool) {
-    EmulatorTool.executionLog => executionLogWidth,
-    EmulatorTool.tileViewer ||
-    EmulatorTool.cartridgeInfo ||
-    EmulatorTool.debugger ||
-    EmulatorTool.apuDebug => 512,
-  };
 }

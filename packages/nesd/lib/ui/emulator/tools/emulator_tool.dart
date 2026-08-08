@@ -1,16 +1,34 @@
 import 'package:collection/collection.dart';
 
 enum EmulatorTool {
-  tileViewer('Tile Viewer'),
-  cartridgeInfo('Cartridge Info'),
-  apuDebug('APU Debug'),
-  debugger('Debugger'),
-  executionLog('Execution Log');
+  tileViewer('Tile Viewer', contentWidth: _standardToolWidth, minHeight: 480),
+  cartridgeInfo(
+    'Cartridge Info',
+    contentWidth: _standardToolWidth,
+    minHeight: 372,
+  ),
+  apuDebug('APU Debug', contentWidth: _standardToolWidth, minHeight: 408),
+  debugger('Debugger', contentWidth: _standardToolWidth, minHeight: 400),
+  executionLog(
+    'Execution Log',
+    contentWidth: executionLogWidth,
+    minHeight: 400,
+  );
 
-  const EmulatorTool(this.title);
+  const EmulatorTool(
+    this.title, {
+    required this.contentWidth,
+    required this.minHeight,
+  });
 
   final String title;
+
+  final double contentWidth;
+
+  final double minHeight;
 }
+
+const _standardToolWidth = 512.0;
 
 const executionLogWidth = 560.0;
 
