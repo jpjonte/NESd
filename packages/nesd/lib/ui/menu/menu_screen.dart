@@ -18,6 +18,7 @@ class MenuScreen extends ConsumerWidget {
   static const resetGameKey = Key('resetGame');
   static const quitGameKey = Key('quitGame');
   static const settingsKey = Key('settings');
+  static const debugToolsKey = Key('debugTools');
 
   const MenuScreen({super.key});
 
@@ -82,6 +83,16 @@ class MenuScreen extends ConsumerWidget {
                           ),
                         ),
                     child: const Text('Cheats'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    key: debugToolsKey,
+                    onPressed: () => ref
+                        .read(routerProvider)
+                        .navigate(const DebugToolsRoute()),
+                    child: const Text('Debug Tools'),
                   ),
                 ),
                 const NesdVerticalDivider(),
