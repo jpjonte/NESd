@@ -12,10 +12,7 @@ void main() {
     (tester) async {
       final r = Robot(tester)
         ..initSettings({
-          'showTiles': true,
-          'showCartridgeInfo': true,
-          'showDebugger': true,
-          'showApuDebug': true,
+          'openTools': ['tileViewer', 'cartridgeInfo', 'debugger', 'apuDebug'],
           'recentRoms': [
             {
               'file': {

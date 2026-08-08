@@ -410,7 +410,7 @@ void main() {
       'setting is on', (tester) async {
     final r = Robot(tester)
       ..initSettings({
-        'showApuDebug': true,
+        'openTools': ['apuDebug'],
         'recentRoms': [
           {
             'file': {
