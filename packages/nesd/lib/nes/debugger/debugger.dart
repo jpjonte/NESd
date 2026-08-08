@@ -47,8 +47,6 @@ abstract class DebuggerInterface {
 
   void hideStack();
 
-  void toggleExecutionLog();
-
   int read(int address);
 
   void selectAddress(int address);
@@ -140,13 +138,6 @@ class Debugger implements DebuggerInterface {
     notifier.debuggerState = notifier.debuggerState.copyWith(showStack: false);
   }
 
-  @override
-  void toggleExecutionLog() {
-    notifier.debuggerState = notifier.debuggerState.copyWith(
-      executionLogOpen: !notifier.debuggerState.executionLogOpen,
-    );
-  }
-
   // `ResumeNesEvent` clears the dump to an empty `Uint8List` (see
   // `DebuggerBackend`) rather than omitting it, so an out-of-range address
   // here means "no dump available" and must fall back to 0, not throw.
@@ -181,7 +172,6 @@ class Debugger implements DebuggerInterface {
 
         notifier.debuggerState = state.copyWith(
           showStack: notifier.debuggerState.showStack,
-          executionLogOpen: notifier.debuggerState.executionLogOpen,
           selectedAddress: notifier.debuggerState.selectedAddress,
         );
 
@@ -229,9 +219,6 @@ class DummyDebugger implements DebuggerInterface {
 
   @override
   void showStack() {}
-
-  @override
-  void toggleExecutionLog() {}
 
   @override
   int read(int address) => 0;

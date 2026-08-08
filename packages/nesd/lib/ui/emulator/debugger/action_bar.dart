@@ -8,6 +8,8 @@ import 'package:nesd/ui/emulator/debugger/address_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/breakpoint_dialog.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/theme/base.dart';
 
 class ActionBar extends StatelessWidget {
@@ -232,12 +234,17 @@ class OpenExecutionLogButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debugger = ref.watch(debuggerProvider);
+    final open = ref.watch(
+      emulatorToolsControllerProvider.select(
+        (tools) => tools.contains(EmulatorTool.executionLog),
+      ),
+    );
+    final tools = ref.read(emulatorToolsControllerProvider.notifier);
 
     return IconButton(
-      onPressed: () => debugger.toggleExecutionLog(),
-      icon: const Icon(Icons.list),
-      tooltip: 'Execution log',
+      onPressed: () => tools.toggle(EmulatorTool.executionLog),
+      icon: Icon(open ? Icons.list_alt : Icons.list),
+      tooltip: open ? 'Close execution log' : 'Open execution log',
     );
   }
 }

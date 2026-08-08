@@ -149,7 +149,6 @@ void main() {
 
       notifier.debuggerState = notifier.debuggerState.copyWith(
         showStack: true,
-        executionLogOpen: true,
         selectedAddress: 0x4242,
       );
 
@@ -165,7 +164,6 @@ void main() {
       expect(notifier.debuggerState.PC, 0x1234);
       expect(notifier.debuggerState.A, 0x56);
       expect(notifier.debuggerState.showStack, isTrue);
-      expect(notifier.debuggerState.executionLogOpen, isTrue);
       expect(notifier.debuggerState.selectedAddress, 0x4242);
 
       debugger.dispose();
@@ -357,7 +355,7 @@ void main() {
     },
   );
 
-  test('showStack/hideStack/toggleExecutionLog/selectAddress stay local', () {
+  test('showStack/hideStack/selectAddress stay local', () {
     final debugger = build();
 
     // The constructor's own initial-breakpoints push already sent one
@@ -369,9 +367,6 @@ void main() {
 
     debugger.hideStack();
     expect(notifier.debuggerState.showStack, isFalse);
-
-    debugger.toggleExecutionLog();
-    expect(notifier.debuggerState.executionLogOpen, isTrue);
 
     debugger.selectAddress(0x5000);
     expect(notifier.debuggerState.selectedAddress, 0x5000);

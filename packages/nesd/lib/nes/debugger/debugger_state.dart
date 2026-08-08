@@ -40,7 +40,6 @@ sealed class DebuggerState with _$DebuggerState {
     @Default(false) bool spriteOverflow,
     @Default(false) bool sprite0Hit,
     @Default(false) bool vBlank,
-    @Default(false) bool executionLogOpen,
     @Default(false) bool showStack,
     @Default(null) int? selectedAddress,
   }) = _DebuggerState;
