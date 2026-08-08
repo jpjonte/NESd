@@ -4,6 +4,7 @@ import 'package:nesd/nes/debugger/execution_log.dart';
 import 'package:nesd/nes/debugger/execution_log_state.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/action_bar.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 class ExecutionLogWidget extends ConsumerWidget {
   const ExecutionLogWidget({super.key});
@@ -16,7 +17,7 @@ class ExecutionLogWidget extends ConsumerWidget {
     return DefaultTextStyle(
       style: monoStyle,
       child: SizedBox(
-        width: 560,
+        width: executionLogWidth,
         child: Column(
           children: [
             const ActionBar(),

@@ -90,7 +90,10 @@ class CompactToolHost extends HookConsumerWidget {
   );
 
   double _compactWidth(EmulatorTool tool) => switch (tool) {
-    EmulatorTool.executionLog => 560,
-    _ => 512,
+    EmulatorTool.executionLog => executionLogWidth,
+    EmulatorTool.tileViewer ||
+    EmulatorTool.cartridgeInfo ||
+    EmulatorTool.debugger ||
+    EmulatorTool.apuDebug => 512,
   };
 }

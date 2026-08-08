@@ -6,8 +6,6 @@ import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_widgets.dart';
 
-const _dockedColumnMaxWidth = 560.0;
-
 class DockedToolHost extends ConsumerWidget {
   const DockedToolHost({super.key});
 
@@ -26,7 +24,7 @@ class DockedToolHost extends ConsumerWidget {
     final tools = EmulatorTool.values.where(openTools.contains).toList();
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: _dockedColumnMaxWidth),
+      constraints: const BoxConstraints(maxWidth: dockedToolColumnWidth),
       child: Column(
         children: [for (final tool in tools) _docked(tool, cartridgeInfo)],
       ),
