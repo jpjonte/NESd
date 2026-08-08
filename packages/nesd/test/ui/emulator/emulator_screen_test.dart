@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 import '../robot.dart';
 
@@ -31,8 +32,11 @@ void main() {
       // Let a real frame land so the APU panel has data to render.
       await r.waitUntil(() => find.text('Pulse 1').evaluate().isNotEmpty);
 
+      // Wide enough to stay above dockedToolsMinWidth: this test targets
+      // the docked host, not the compact one.
       tester.view.physicalSize =
-          const Size(900, 800) * tester.view.devicePixelRatio;
+          const Size(dockedToolsMinWidth + 200, 800) *
+          tester.view.devicePixelRatio;
       addTearDown(tester.view.resetPhysicalSize);
       await tester.pump();
 
