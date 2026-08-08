@@ -6,6 +6,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 
+const _gutterWidth = 40.0;
+
 class PaginatedGrid extends HookConsumerWidget {
   const PaginatedGrid({
     this.tileWidth = gameTileWidth,
@@ -29,11 +31,16 @@ class PaginatedGrid extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = min(mediaQuery.size.width, constraints.maxWidth) - 80;
+        final available = min(mediaQuery.size.width, constraints.maxWidth);
         final height = min(mediaQuery.size.height, constraints.maxHeight);
 
-        final columnCount = max(1, width ~/ tileWidth);
+        final columnCount = max(1, (available - 2 * _gutterWidth) ~/ tileWidth);
         final rowCount = max(1, height ~/ tileHeight - skipRows);
+
+        final gutter = min(
+          _gutterWidth,
+          max(0.0, (available - columnCount * tileWidth) / 2),
+        );
 
         final count = columnCount * rowCount;
 
@@ -50,7 +57,7 @@ class PaginatedGrid extends HookConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
-              width: 40,
+              width: gutter,
               height: rowCount * tileHeight,
               child: currentPage > 0
                   ? InkWell(
@@ -70,7 +77,7 @@ class PaginatedGrid extends HookConsumerWidget {
               ],
             ),
             SizedBox(
-              width: 40,
+              width: gutter,
               height: rowCount * tileHeight,
               child: currentPage < pages - 1
                   ? InkWell(
