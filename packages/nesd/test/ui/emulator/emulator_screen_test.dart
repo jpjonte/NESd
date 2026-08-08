@@ -8,8 +8,9 @@ import '../robot.dart';
 
 void main() {
   testWidgets(
-    'all four side rail panels lay out without error at a comfortably '
-    'tall window, and the APU panel stays scrollable',
+    'all four side rail panels lay out without error at an 800px window '
+    'that over-subscribes them, the column scrolls, and the APU panel '
+    'keeps its own scroll view',
     (tester) async {
       final r = Robot(tester)
         ..initSettings({
@@ -48,15 +49,25 @@ void main() {
       expect(apuDebugBox.hasSize, isTrue);
       expect(apuDebugBox.size.height, greaterThan(0));
 
-      final apuScrollableFinder = find.ancestor(
+      // Match the docked column's own scroll view and the APU panel's.
+      // `.first` is the panel's own and `.last` is the column's.
+      final apuScrollables = find.ancestor(
         of: find.byType(ApuDebugWidget),
         matching: find.byType(Scrollable),
       );
 
-      expect(apuScrollableFinder, findsOneWidget);
+      expect(
+        tester
+            .state<ScrollableState>(apuScrollables.first)
+            .position
+            .viewportDimension,
+        EmulatorTool.apuDebug.minHeight,
+      );
+
+      final columnScrollableFinder = apuScrollables.last;
 
       final scrollableState = tester.state<ScrollableState>(
-        apuScrollableFinder,
+        columnScrollableFinder,
       );
       final position = scrollableState.position;
 
@@ -65,7 +76,7 @@ void main() {
 
       expect(position.maxScrollExtent, greaterThan(0));
 
-      await tester.drag(apuScrollableFinder, const Offset(0, -100));
+      await tester.drag(columnScrollableFinder, const Offset(0, -100));
       await tester.pump();
 
       expect(scrollableState.position.pixels, greaterThan(0));
