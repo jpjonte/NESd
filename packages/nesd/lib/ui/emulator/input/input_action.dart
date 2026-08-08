@@ -1,11 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 part 'action/controller_press.dart';
 part 'action/load_state.dart';
 part 'action/save_state.dart';
 part 'action/state.dart';
+part 'action/tools.dart';
 part 'action/ui.dart';
 
 sealed class InputAction {

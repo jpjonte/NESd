@@ -69,9 +69,18 @@ const saveStateActions = [
   loadState9,
 ];
 
+const toolActions = [
+  toggleTileViewer,
+  toggleCartridgeInfo,
+  toggleDebugger,
+  toggleApuDebug,
+  toggleExecutionLog,
+];
+
 const allActions = [
   ...menuActions,
   ...emulatorActions,
   ...inputActions,
   ...saveStateActions,
+  ...toolActions,
 ];

@@ -7,6 +7,7 @@ import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -59,6 +60,7 @@ ActionHandler actionHandler(Ref ref) {
     router: ref.read(routerProvider),
     romManager: ref.watch(romManagerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
+    toolsController: ref.watch(emulatorToolsControllerProvider.notifier),
     actionStream: actionStream.stream,
   );
 
@@ -82,6 +84,7 @@ class ActionHandler {
     required this.router,
     required this.romManager,
     required this.settingsController,
+    required this.toolsController,
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
@@ -92,6 +95,7 @@ class ActionHandler {
   final Router router;
   final RomManager romManager;
   final SettingsController settingsController;
+  final EmulatorToolsController toolsController;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
@@ -107,6 +111,14 @@ class ActionHandler {
 
   void handleAction(InputActionEvent event) {
     if (!enabled) {
+      return;
+    }
+
+    if (event.action case ToggleTool(tool: final tool)) {
+      if (event.value > 0.5) {
+        toolsController.toggle(tool);
+      }
+
       return;
     }
 
