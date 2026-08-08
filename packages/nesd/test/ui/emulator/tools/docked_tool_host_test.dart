@@ -62,11 +62,41 @@ void main() {
     await quit(r);
   });
 
-  testWidgets('renders the execution log beside the column', (tester) async {
+  testWidgets('renders the execution log inside the column', (tester) async {
     final r = await start(tester, ['debugger', 'executionLog']);
 
     expect(find.byType(ExecutionLogWidget), findsOneWidget);
     expect(find.byType(DebuggerWidget), findsOneWidget);
+
+    expect(tester.takeException(), isNull);
+
+    await quit(r);
+  });
+
+  testWidgets('renders exactly the open tools in registry order', (
+    tester,
+  ) async {
+    final r = await start(tester, [
+      'executionLog',
+      'debugger',
+      'cartridgeInfo',
+    ]);
+
+    expect(find.byType(TileDebugWidget), findsNothing);
+    expect(find.byType(ApuDebugWidget), findsNothing);
+
+    final cartridgeInfoTop = tester
+        .getTopLeft(find.byType(CartridgeInfoWidget))
+        .dy;
+    final debuggerTop = tester.getTopLeft(find.byType(DebuggerWidget)).dy;
+    final executionLogTop = tester
+        .getTopLeft(find.byType(ExecutionLogWidget))
+        .dy;
+
+    expect(cartridgeInfoTop, lessThan(debuggerTop));
+    expect(debuggerTop, lessThan(executionLogTop));
+
+    expect(tester.takeException(), isNull);
 
     await quit(r);
   });

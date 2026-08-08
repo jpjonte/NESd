@@ -12,7 +12,7 @@ enum EmulatorTool {
   final String title;
 }
 
-const dockedToolsMinWidth = 1024.0;
+const dockedToolsMinWidth = 1072.0;
 
 Set<EmulatorTool> openToolsFromJson(dynamic json) {
   if (json is! List) {

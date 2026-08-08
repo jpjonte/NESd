@@ -74,6 +74,7 @@ void main() {
   testWidgets('the tab strip switches the visible tool', (tester) async {
     final r = await start(tester, ['debugger', 'executionLog']);
 
+    expect(tester.takeException(), isNull);
     expect(find.byType(DebuggerWidget), findsOneWidget);
     expect(find.byType(ExecutionLogWidget), findsNothing);
 
@@ -82,6 +83,7 @@ void main() {
 
     expect(find.byType(ExecutionLogWidget), findsOneWidget);
     expect(find.byType(DebuggerWidget), findsNothing);
+    expect(tester.takeException(), isNull);
 
     await quit(r, tester);
   });
@@ -91,6 +93,8 @@ void main() {
   ) async {
     final r = await start(tester, ['debugger', 'executionLog']);
 
+    expect(tester.takeException(), isNull);
+
     await tester.tap(find.byKey(const Key('compactToolClose')));
     await tester.pump();
 
@@ -98,6 +102,7 @@ void main() {
       EmulatorTool.executionLog,
     });
     expect(find.byType(ExecutionLogWidget), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await quit(r, tester);
   });
