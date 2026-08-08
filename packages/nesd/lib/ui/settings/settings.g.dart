@@ -15,6 +15,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
   showDebugger: json['showDebugger'] as bool? ?? false,
   showApuDebug: json['showApuDebug'] as bool? ?? false,
+  openTools: json['openTools'] == null
+      ? const <EmulatorTool>{}
+      : openToolsFromJson(json['openTools']),
   scaling:
       $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
       Scaling.autoInteger,
@@ -89,6 +92,9 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'showDebugOverlay': instance.showDebugOverlay,
   'showDebugger': instance.showDebugger,
   'showApuDebug': instance.showApuDebug,
+  'openTools': instance.openTools
+      .map((e) => _$EmulatorToolEnumMap[e]!)
+      .toList(),
   'scaling': _$ScalingEnumMap[instance.scaling]!,
   'autoSave': instance.autoSave,
   'autoSaveInterval': instance.autoSaveInterval,
@@ -142,6 +148,14 @@ const _$PixelAspectRatioEnumMap = {
   PixelAspectRatio.custom: 'custom',
 };
 
+const _$EmulatorToolEnumMap = {
+  EmulatorTool.tileViewer: 'tileViewer',
+  EmulatorTool.cartridgeInfo: 'cartridgeInfo',
+  EmulatorTool.debugger: 'debugger',
+  EmulatorTool.apuDebug: 'apuDebug',
+  EmulatorTool.executionLog: 'executionLog',
+};
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
@@ -182,7 +196,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'dcf6e72738c6a41a6183e96755c43647e1480029';
+    r'b58946c3a508f9e765463adb1fe204793233e178';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
