@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed the ROM grid on the main menu and the save state screen overflowing on phones and narrow windows
 - Fixed opening a debug tool in a narrow window squeezing the game display down to nothing
 - Fixed the debug tools overlapping each other when several are open at once
+- Fixed the arm64 deb and flatpak missing from release pages because the x64 files overwrote them
 
 ## [0.16.0] - 2026-08-07
 

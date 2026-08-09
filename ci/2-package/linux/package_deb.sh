@@ -27,4 +27,4 @@ cp "$app_root/linux/packaging/dev.jpj.NESd.desktop" \
 
 chmod +x deb/DEBIAN/postinst deb/DEBIAN/postrm
 
-dpkg-deb --build --root-owner-group deb nesd.deb
+dpkg-deb --build --root-owner-group deb "$ARTIFACT".linux-"$ARCH".deb
