@@ -482,7 +482,7 @@ Spike branch for #243. **Never merges.** Design:
   (docked-mode repro) pending.
 
 ### 2026-08-09 — Gamepad bug diagnosis (from source; full report in
-### .superpowers/sdd/.../gamepad-bug-diagnosis.md on this branch)
+### gamepad-bug-diagnosis.md at the repo root of this branch)
 
 - Tagged `architectural`: FLAPPING EXPLAINED (established) —
   GamepadInputHandler hold-to-repeat: 500 ms delay, then
