@@ -567,3 +567,21 @@ Spike branch for #243. **Never merges.** Design:
 - Tagged `Linux`: GPU display path VERDICT — a loaded ROM renders on
   Linux too. nesd_texture's Linux implementation works under the
   windowing path unchanged, on the stock runner.
+
+### 2026-08-09 — Correction: flapping behavior at branch head (user)
+
+- Tagged `Linux`: CORRECTION to the Linux session above — at the
+  current branch head (with e148384d), a held gamepad toggle does
+  NOT visibly flap on Linux. The earlier "flapping is present there"
+  observation most plausibly ran a pre-mitigation checkout (the
+  branch was pushed before e148384d; exact Linux checkout not
+  recorded — lesson: note the commit in every session entry).
+  Plausible mechanism for the platform difference: the coalesced
+  idle-deferred sync lets consecutive open/close state flips cancel
+  before any window operation happens; Linux's event-loop timing
+  coalesces more of the 10 Hz storm than macOS's does.
+- Tagged `macOS`: at the same head, macOS still flaps visibly under
+  a held toggle — its loop keeps pace with the repeat storm. On BOTH
+  platforms there are no errors and window input handling stays
+  intact. The remaining flap is purely the main-side hold-to-repeat
+  bug (#251's fix); the windowing side is stable under it.
