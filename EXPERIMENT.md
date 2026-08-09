@@ -15,8 +15,10 @@ Spike branch for #243. **Never merges.** Design:
 
 ## Run
 
-    FLUTTER_WINDOWING=true fvm flutter run -d macos
+    FLUTTER_WINDOWING=true fvm flutter run -d macos --flavor dev
     FLUTTER_WINDOWING=true fvm flutter run -d linux
+    (macOS needs --flavor dev — see the first-interactive-run entry; Linux
+    takes no flavor, Flutter supports flavors only on Android/iOS/macOS.)
 
 ## Observations
 
@@ -82,7 +84,7 @@ Spike branch for #243. **Never merges.** Design:
   test suite unmodified, twice, in under 2 minutes each run. No
   application code was touched by this task.
 
-### 2026-08-10 — Task 2: windowed bootstrap on the stock macOS runner
+### 2026-08-09 — Task 2: windowed bootstrap on the stock macOS runner
 
 - Tagged `architectural`: the plan's `WindowManager`/`WindowEntry`/
   `WindowController`/`WindowControllerDelegate` surface transcribed
@@ -351,6 +353,9 @@ Spike branch for #243. **Never merges.** Design:
   shows only this task's four files changed.
 - Pending user run: open all five tools as windows, native close
   round-trip, GPU path with tools open (plan Task 4 step 6).
+- [Superseded 2026-08-09: the sync mechanism above was replaced by commit
+  e148384d (coalesced idle-deferred sync) — see the error-loop trigger entry
+  below.]
 
 ### 2026-08-09 — First interactive run (macOS, user at the keyboard)
 
