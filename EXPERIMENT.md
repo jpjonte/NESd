@@ -451,3 +451,27 @@ Spike branch for #243. **Never merges.** Design:
   the 12.0 deployment target — unrelated to windowing.
 - Still pending: gamepad bindings with a tool window focused (user
   testing shortly); Linux (Task 5).
+
+### 2026-08-09 — Interactive session 4, gamepad (macOS)
+
+- Tagged `architectural`: gamepad tool-toggles work regardless of
+  window focus — the global-provider prediction confirmed. In-game
+  gamepad controls likewise work without main-window focus. Keyboard
+  remains main-window-only. (Q3 fully answered.)
+- Tagged `macOS`: BUG observed — the first window opened via gamepad
+  entered a rapid open-close loop; other tools toggled cleanly with
+  the same tap pattern. Unexplained; note this branch predates the
+  #251 gamepad-input migration (old gamepad stack).
+- Tagged `architectural`: BUG observed — after a while, a rapid loop
+  of `Bad state: Tried to read the state of an uninitialized
+  provider` from EmulatorToolsController.isOpen via
+  ActionHandler.handleAction (action_handler.dart:119); tool bindings
+  then stayed dead while in-game bindings kept working. Structural
+  suspect (from reading the merged prep, not yet proven):
+  actionHandler captures the notifier once as a constructor dep
+  (`ref.watch(...notifier)`), while the autoDispose controller's
+  build() re-runs on every settings write — a stale-notifier recipe
+  under Riverpod 3 lifecycle rules. If confirmed this is a bug in the
+  MERGED #243 prep (PR #298), merely first exercised by the windowed
+  host's global gamepad path; diagnosis dispatched, discriminator
+  (docked-mode repro) pending.
