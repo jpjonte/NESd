@@ -105,7 +105,7 @@ void main() {
     test('Android hat axes produce discrete directions', () async {
       final result = await emit(mapper(GamepadPlatform.android), [
         event('AXIS_HAT_X', type: KeyType.analog, value: -1),
-        event('AXIS_HAT_Y', type: KeyType.analog, value: 1),
+        event('AXIS_HAT_Y', type: KeyType.analog),
       ]);
 
       final pressed = result.where((e) => e.value == 1.0);
@@ -118,8 +118,8 @@ void main() {
 
     test('macOS d-pad axes produce discrete directions', () async {
       final result = await emit(mapper(GamepadPlatform.macos), [
-        event('dpad - xAxis', type: KeyType.analog, value: 1),
-        event('dpad - yAxis', type: KeyType.analog, value: 1),
+        event('dpad - xAxis', type: KeyType.analog),
+        event('dpad - yAxis', type: KeyType.analog),
       ]);
 
       final pressed = result.where((e) => e.value == 1.0);
@@ -198,6 +198,17 @@ void main() {
 
       expect(first.single.gamepadName, 'Unknown');
       expect(second.single.gamepadName, 'Test Pad');
+    });
+
+    test('keeps emitting events when the names lookup fails', () async {
+      final gamepadMapper = mapper(
+        GamepadPlatform.android,
+        namesLookup: () async => throw Exception('no permission'),
+      );
+
+      final result = await emit(gamepadMapper, [event('KEYCODE_BUTTON_A')]);
+
+      expect(result.single.gamepadName, 'Unknown');
     });
   });
 }

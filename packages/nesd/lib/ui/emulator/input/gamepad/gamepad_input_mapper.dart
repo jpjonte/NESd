@@ -37,10 +37,10 @@ class GamepadInputMapper {
   GamepadInputMapper({
     Stream<GamepadEvent>? events,
     GamepadNormalizer? normalizer,
-    GamepadNamesLookup namesLookup = defaultGamepadNamesLookup,
+    GamepadNamesLookup? namesLookup,
     bool? scaleAnalogFallback,
   }) : _normalizer = normalizer ?? GamepadNormalizer(),
-       _namesLookup = namesLookup,
+       _namesLookup = namesLookup ?? defaultGamepadNamesLookup,
        _scaleAnalogFallback =
            scaleAnalogFallback ??
            (defaultTargetPlatform == TargetPlatform.linux),
@@ -133,6 +133,8 @@ class GamepadInputMapper {
 
     try {
       _names.addAll(await _namesLookup());
+    } on Exception catch (e) {
+      debugPrint('Failed to look up gamepad names: $e');
     } finally {
       _refreshingNames = false;
     }
