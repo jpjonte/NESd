@@ -18,6 +18,10 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
+    // Without this, macOS merges the Dart-created tool windows into tabs
+    // of one window when "Prefer tabs when opening documents" is Always.
+    NSWindow.allowsAutomaticWindowTabbing = false
+
     let project = FlutterDartProject()
     project.dartEntrypointArguments = Array(CommandLine.arguments.dropFirst())
 

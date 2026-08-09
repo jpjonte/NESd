@@ -351,3 +351,34 @@ Spike branch for #243. **Never merges.** Design:
   shows only this task's four files changed.
 - Pending user run: open all five tools as windows, native close
   round-trip, GPU path with tools open (plan Task 4 step 6).
+
+### 2026-08-09 — First interactive run (macOS, user at the keyboard)
+
+- Tagged `macOS`: with no `--flavor`, `fvm flutter run -d macos` dies
+  with `Error: Unable to find expected configuration in Xcode project.`
+  from `build_macos.dart:164` — the tool wants a configuration named
+  `Debug`, and this project only has `Debug-dev`/`Debug-prod`. Same
+  pre-existing flavor gate Task 2 found for `flutter build`; the error
+  text never mentions flavors. Run recipe for this branch is therefore
+  `FLUTTER_WINDOWING=true fvm flutter run -d macos --flavor dev`.
+- Tagged `architectural`: Flutter master enables Swift Package Manager
+  by default; `flutter run` printed `Adding Swift Package Manager
+  integration...` and warned that `gamepads_darwin`, `nesd_audio` and
+  `nesd_texture` do not support SPM (staying on CocoaPods). The step
+  rewrote `Runner.xcscheme` (recurring toolchain effect, committed
+  here per the Task 3 precedent). "This will become an error in a
+  future version of Flutter" — #244 should track SPM adoption for the
+  two nesd plugins and the gamepads fork.
+- Tagged `macOS`: FINDING — with the runner untouched on this point,
+  all six windows (main + five tools) opened as native *tabs* of one
+  window: macOS automatic window tabbing applies to the windowing
+  API's NSWindows, and the framework does not opt out. Observed with
+  "Prefer tabs when opening documents" presumably set on this machine;
+  tab titles matched the tool titles, so per-window titles work.
+  Runner-level fix applied: `NSWindow.allowsAutomaticWindowTabbing =
+  false` in `applicationDidFinishLaunching`. Every macOS consumer of
+  the windowing API will need this (or per-window `tabbingMode`) until
+  the framework handles it; filed for the findings report.
+- Tagged `macOS`: session restore observed working — the persisted
+  `openTools` set reopened all five tools at app launch, before any
+  menu interaction. (Plan Task 6 step 5.3 answered early.)
