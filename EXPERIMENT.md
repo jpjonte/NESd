@@ -268,3 +268,86 @@ Spike branch for #243. **Never merges.** Design:
   Task 3 steps 4-5).
 - Pending user run: nesd_texture verdict gates the fix-don't-fall-back
   decision.
+
+### 2026-08-09 — Task 4: `WindowedToolHost`, `ToolWindow`, and host selection
+
+- Tagged `architectural`: both new files
+  (`lib/ui/emulator/tools/windowed_tool_host.dart`,
+  `lib/ui/emulator/tools/tool_window.dart`) transcribed from the brief
+  with registration/unregistration kept out of `build` as designed —
+  `WindowedToolHost.build` only ever *defines* the local `sync`
+  closure; the only two call sites are the `useEffect(..., const [])`
+  post-frame callback (`WidgetsBinding.instance
+  .addPostFrameCallback((_) => sync(open))`, so the first sync happens
+  after the first frame, not during it) and the `ref.listen(...)`
+  callback (which Riverpod invokes outside build, on state changes).
+  `registry.register`/`registry.unregister` and
+  `entry.controller.destroy()` are therefore only ever reached from
+  those two callbacks, never synchronously inside `build`. Preserved
+  the brief's comment on `_close` explaining the
+  unregister-before-destroy order.
+- **Compiler-forced adaptation, tagged `architectural`:** the brief's
+  interface list claimed `EmulatorTool.contentWidth` /
+  `EmulatorTool.minHeight` were "verified present on this branch" —
+  false for this branch. `lib/ui/emulator/tools/emulator_tool.dart`
+  here still has only `title` (last touched by `95915ca7 #243 Extract
+  tool widths to named constants`, itself pre-dating this experiment).
+  `dart analyze` on the brief's literal code confirmed it:
+  `windowed_tool_host.dart:57:23 - The getter 'contentWidth' isn't
+  defined for the type 'EmulatorTool'. ... - undefined_getter` (and
+  the same for `minHeight` at 57:42 and `contentWidth` again at
+  59:24). Those two members were added later, upstream, by `main`
+  commit `95c343b3` ("#296 Register tool sizes in registry" —
+  confirmed an ancestor of `main` and of
+  `feature/251-gamepads-upstream`, confirmed **not** an ancestor of
+  this branch via `git merge-base --is-ancestor`): this experiment
+  branched off `main` at `bef1bd93`, before `95c343b3` landed, and per
+  the plan's Global Constraints never merges, so it will never pick
+  that commit up. `emulator_tool.dart` is on the do-not-modify list,
+  so rather than adding the members there, `tool_window.dart` gains
+  two local top-level functions, `toolContentWidth(EmulatorTool)` and
+  `toolMinHeight(EmulatorTool)`, reproducing the exact per-tool values
+  from `95c343b3` (`contentWidth`: 512 for every tool except
+  `executionLog`, which uses the existing `executionLogWidth` = 560;
+  `minHeight`: tileViewer 480, cartridgeInfo 372, apuDebug 408,
+  debugger 400, executionLog 400) — not invented, transcribed from
+  that commit's diff. `windowed_tool_host.dart` calls these instead of
+  `tool.contentWidth`/`tool.minHeight` (it already imports
+  `tool_window.dart` for `ToolWindow`, so no new import was needed).
+  `emulator_tool.dart` itself was not touched — confirmed by `git
+  status --short` showing no change to it.
+- Tagged `architectural`: two more `flutter analyze` findings, both
+  fixed inside the brief's own files rather than suppressed: (1)
+  `directives_ordering` on `main.dart`'s new
+  `windowed_tool_host.dart` import — resorted alphabetically ahead of
+  `file_picker/...` and after `emulator/rom_manager.dart`; (2)
+  `comment_references` on a doc comment in `tool_window.dart` that
+  bracket-referenced `[CompactToolHost]`, a type not imported into
+  that file — reworded to a plain (non-linked) name so the doc comment
+  no longer promises a resolvable reference.
+- Tagged `architectural`: file-scope check — `git status --short`
+  after all edits shows exactly `packages/nesd/lib/main.dart` and
+  `packages/nesd/lib/ui/emulator/emulator_screen.dart` modified, plus
+  the two new files under `lib/ui/emulator/tools/`. None of the
+  do-not-modify files (`emulator_tool.dart`,
+  `emulator_tools_controller.dart`, `tool_widgets.dart`,
+  `docked_tool_host.dart`, `compact_tool_host.dart`, any tool widget,
+  `action_handler.dart`, the menu, settings, `RemoteNes`/isolate
+  protocol) were touched.
+- Tagged `macOS`: `fvm dart format .` clean (474 files, 0 changed on
+  the final pass) and `fvm flutter analyze` (packages/nesd) back to
+  the single pre-existing `analysis_options_deprecated_plugins`
+  warning carried since Task 1 — nothing attributable to this task's
+  four files.
+- Tagged `macOS`: both required builds succeeded, back to back, with
+  no Podfile/pbxproj/xcscheme rewrite this run (Task 3 already
+  committed the recurring rewrite, so this task's builds landed on an
+  already-upgraded project). `fvm flutter build macos --debug --flavor
+  dev` (windowing off): 34.9s wall clock (9.29s user, 2.56s system) —
+  `✓ Built build/macos/Build/Products/Debug-dev/NESd.app`.
+  `FLUTTER_WINDOWING=true fvm flutter build macos --debug --flavor
+  dev` (windowing on): 30.3s wall clock (9.83s user, 2.46s system) —
+  same success output. `git status --short` after both builds still
+  shows only this task's four files changed.
+- Pending user run: open all five tools as windows, native close
+  round-trip, GPU path with tools open (plan Task 4 step 6).

@@ -1,5 +1,8 @@
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/_features.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
@@ -22,6 +25,10 @@ class EmulatorScreen extends ConsumerWidget {
       autofocus: !toolsFocused,
       child: const EmulatorWidget(),
     );
+
+    if (isWindowingEnabled) {
+      return NesdScaffold(body: RomDropTarget(child: game));
+    }
 
     final body = LayoutBuilder(
       builder: (context, constraints) =>
