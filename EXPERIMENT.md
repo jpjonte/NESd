@@ -545,3 +545,14 @@ Spike branch for #243. **Never merges.** Design:
   embedder connects a signal on a NULL GObject during rapid window
   create/destroy. Non-fatal (app keeps running). Linux sibling of
   the macOS destroyWindow frame pump; upstream-issue-worthy.
+- Tagged `Linux`: CORRECTION to "nothing observable" above, from a
+  follow-up user report — the stock runner leaves an additional,
+  completely BLACK window open: its own GtkWindow hosting the
+  implicit FlView, unused once Dart creates the real windows. Linux
+  therefore mirrors macOS in kind, smaller in degree: the windowing
+  path works without runner surgery, but shipping needs the
+  runner-created window suppressed. Note for #244: fl_register_plugins
+  currently hangs off that FlView (my_application.cc), so removing
+  the window is not a pure deletion — the plugin registration path
+  must move, the same problem the macOS rewrite solved with an
+  engine-owned delegate.
