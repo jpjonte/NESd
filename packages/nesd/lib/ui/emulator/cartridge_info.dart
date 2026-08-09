@@ -70,35 +70,32 @@ class CartridgeInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            KeyValue('Filename', info.filename),
-            KeyValue('ROM format', info.romFormat.toString()),
-            KeyValue('PRG ROM size', '${info.prgRomSize} bytes'),
-            KeyValue('CHR ROM size', '${info.chrRomSize} bytes'),
-            KeyValue('Nametable layout', '${info.nametableLayout}'),
-            KeyValue(
-              'Alternative nametable layout',
-              '${info.alternativeNametableLayout}',
-            ),
-            KeyValue('Has battery', '${info.hasBattery}'),
-            KeyValue('Has trainer', '${info.hasTrainer}'),
-            KeyValue('Console type', '${info.consoleType}'),
-            KeyValue(
-              'Mapper',
-              '${info.mapperName} (${info.mapperId}'
-                  ', submapper ${info.subMapperId})',
-            ),
-            KeyValue('PRG Work RAM size', '${info.prgRamSize} bytes'),
-            KeyValue('PRG Save RAM size', '${info.prgSaveRamSize} bytes'),
-            KeyValue('TV system', '${info.tvSystem}'),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          KeyValue('Filename', info.filename),
+          KeyValue('ROM format', info.romFormat.toString()),
+          KeyValue('PRG ROM size', '${info.prgRomSize} bytes'),
+          KeyValue('CHR ROM size', '${info.chrRomSize} bytes'),
+          KeyValue('Nametable layout', '${info.nametableLayout}'),
+          KeyValue(
+            'Alternative nametable layout',
+            '${info.alternativeNametableLayout}',
+          ),
+          KeyValue('Has battery', '${info.hasBattery}'),
+          KeyValue('Has trainer', '${info.hasTrainer}'),
+          KeyValue('Console type', '${info.consoleType}'),
+          KeyValue(
+            'Mapper',
+            '${info.mapperName} (${info.mapperId}'
+                ', submapper ${info.subMapperId})',
+          ),
+          KeyValue('PRG Work RAM size', '${info.prgRamSize} bytes'),
+          KeyValue('PRG Save RAM size', '${info.prgSaveRamSize} bytes'),
+          KeyValue('TV system', '${info.tvSystem}'),
+        ],
       ),
     );
   }

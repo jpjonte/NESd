@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_widget.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
@@ -8,6 +9,7 @@ import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
 import 'package:nesd/ui/emulator/tools/docked_tool_host.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 import '../../robot.dart';
 
@@ -114,5 +116,81 @@ void main() {
     expect(find.byType(DockedToolHost), findsOneWidget);
     expect(find.byType(CartridgeInfoWidget), findsNothing);
     expect(find.byType(DebuggerWidget), findsOneWidget);
+  });
+
+  testWidgets('all five tools lay out without overflowing', (tester) async {
+    final r = await start(tester, [
+      'tileViewer',
+      'cartridgeInfo',
+      'debugger',
+      'apuDebug',
+      'executionLog',
+    ]);
+
+    tester.view.physicalSize =
+        const Size(1920, 800) * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+
+    tester.view.physicalSize =
+        const Size(1920, 1080) * tester.view.devicePixelRatio;
+    await tester.pump();
+
+    await quit(r);
+  });
+
+  testWidgets('tools still expand to fill when they fit', (tester) async {
+    final r = await start(tester, ['debugger', 'apuDebug']);
+
+    final height = tester.getSize(find.byType(DebuggerWidget)).height;
+
+    expect(height, greaterThan(EmulatorTool.debugger.minHeight));
+
+    await quit(r);
+  });
+
+  testWidgets('cartridge info fits its registered minHeight', (tester) async {
+    final r = await start(tester, ['cartridgeInfo']);
+
+    expect(
+      tester.getSize(find.byType(CartridgeInfoWidget)).height,
+      lessThanOrEqualTo(EmulatorTool.cartridgeInfo.minHeight),
+    );
+
+    await quit(r);
+  });
+
+  testWidgets('tools are pinned and scrollable when they do not fit', (
+    tester,
+  ) async {
+    final r = await start(tester, [
+      'tileViewer',
+      'cartridgeInfo',
+      'debugger',
+      'apuDebug',
+      'executionLog',
+    ]);
+
+    expect(
+      tester.getSize(find.byType(DebuggerWidget)).height,
+      EmulatorTool.debugger.minHeight,
+    );
+
+    final column = find
+        .descendant(
+          of: find.byType(DockedToolHost),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+
+    expect(
+      tester.state<ScrollableState>(column).position.maxScrollExtent,
+      greaterThan(0),
+    );
+
+    await quit(r);
   });
 }

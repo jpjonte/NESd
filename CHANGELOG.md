@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Fixed the ROM grid on the main menu and the save state screen overflowing on phones and narrow windows
 - Fixed opening a debug tool in a narrow window squeezing the game display down to nothing
+- Fixed the debug tools overlapping each other when several are open at once
 
 ## [0.16.0] - 2026-08-07
 
