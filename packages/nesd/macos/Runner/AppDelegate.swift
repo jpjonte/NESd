@@ -3,11 +3,29 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
-  override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+  var engine: FlutterEngine?
+
+  override func applicationShouldTerminateAfterLastWindowClosed(
+    _ sender: NSApplication
+  ) -> Bool {
     return true
   }
 
-  override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+  override func applicationSupportsSecureRestorableState(
+    _ app: NSApplication
+  ) -> Bool {
     return true
+  }
+
+  override func applicationDidFinishLaunching(_ notification: Notification) {
+    let project = FlutterDartProject()
+    project.dartEntrypointArguments = Array(CommandLine.arguments.dropFirst())
+
+    let engine = FlutterEngine(name: "nesd", project: project)
+
+    engine.run(withEntrypoint: nil)
+    RegisterGeneratedPlugins(registry: engine)
+
+    self.engine = engine
   }
 }
