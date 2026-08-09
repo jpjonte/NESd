@@ -56,15 +56,21 @@ void main() {
     await r.mainMenu.tapFirstRomTile();
 
     void press(InputAction action) {
-      r.container
-          .read(actionStreamProvider)
-          .add(
-            InputActionEvent(
-              action: action,
-              value: 1.0,
-              bindingType: BindingType.hold,
-            ),
-          );
+      r.container.read(actionStreamProvider)
+        ..add(
+          InputActionEvent(
+            action: action,
+            value: 1.0,
+            bindingType: BindingType.hold,
+          ),
+        )
+        ..add(
+          InputActionEvent(
+            action: action,
+            value: 0.0,
+            bindingType: BindingType.hold,
+          ),
+        );
     }
 
     press(toggleDebugger);
@@ -84,5 +90,62 @@ void main() {
 
     await r.menuScreen.tapQuitGame();
     await r.waitUntil(() => r.container.read(nesStateProvider) == null);
+  });
+
+  testWidgets('a held tool binding toggles only once until released', (
+    tester,
+  ) async {
+    final r = Robot(tester)
+      ..initSettings({
+        'recentRoms': [
+          {
+            'file': {
+              'path': '/test/roms/nestest.nes',
+              'name': '/test/roms/nestest.nes',
+              'type': 'file',
+            },
+          },
+        ],
+      });
+
+    await r.pumpApp();
+    await r.mainMenu.tapFirstRomTile();
+
+    void send(double value) {
+      r.container
+          .read(actionStreamProvider)
+          .add(
+            InputActionEvent(
+              action: toggleDebugger,
+              value: value,
+              bindingType: BindingType.hold,
+            ),
+          );
+    }
+
+    send(1.0);
+    await tester.pump();
+
+    // Hold-to-repeat re-emits the held action; it must not toggle again.
+    send(1.0);
+    await tester.pump();
+
+    expect(r.container.read(emulatorToolsControllerProvider), {
+      EmulatorTool.debugger,
+    });
+
+    // Releasing and pressing again is a new edge and toggles again.
+    send(0.0);
+    send(1.0);
+    await tester.pump();
+
+    expect(r.container.read(emulatorToolsControllerProvider), isEmpty);
+
+    await r.emulator.tapMenu();
+    await r.menuScreen.tapQuitGame();
+    await r.waitUntil(() => r.container.read(nesStateProvider) == null);
+
+    // Drain the worker's shutdown timer scheduled in the final cycle.
+    await r.fixAsync();
   });
 }

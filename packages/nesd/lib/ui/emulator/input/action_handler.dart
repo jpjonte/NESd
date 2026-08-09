@@ -7,6 +7,7 @@ import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
@@ -99,6 +100,8 @@ class ActionHandler {
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
+  final _heldToggleTools = <EmulatorTool>{};
+
   bool enabled = true;
 
   bool emulatorActive = false;
@@ -115,8 +118,14 @@ class ActionHandler {
     }
 
     if (event.action case ToggleTool(tool: final tool)) {
+      // Edge-triggered: hold-to-repeat re-emissions and analog jitter
+      // around the threshold must not toggle again (#251).
       if (event.value > 0.5) {
-        toolsController.toggle(tool);
+        if (_heldToggleTools.add(tool)) {
+          toolsController.toggle(tool);
+        }
+      } else {
+        _heldToggleTools.remove(tool);
       }
 
       return;
