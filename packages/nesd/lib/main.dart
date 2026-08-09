@@ -12,6 +12,7 @@ import 'package:nesd/bench/bench_runner.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/tools/windowed_tool_host.dart';
 import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/native_filesystem.dart';
@@ -92,7 +93,7 @@ void main(List<String> arguments) async {
               title: 'NESd',
               delegate: MainWindowDelegate(),
             ),
-            builder: (_) => const NesdApp(),
+            builder: (_) => const WindowedToolHost(child: NesdApp()),
           ),
         ],
       ),
