@@ -10,6 +10,14 @@ part 'gamepad_input_mapper.g.dart';
 
 typedef GamepadNamesLookup = Future<Map<String, String>> Function();
 
+/// Sensor nodes (e.g. the DualSense "Motion Sensors" joystick device on
+/// Linux) share the controller's vendor/product id, so the SDL mapping
+/// turns their constantly-streaming axes into phantom gamepad input.
+final _sensorDevicePattern = RegExp(
+  r'\b(motion sensors|imu|accelerometer)\b',
+  caseSensitive: false,
+);
+
 @riverpod
 GamepadInputMapper gamepadInputMapper(Ref ref) {
   final inputMapper = GamepadInputMapper();
@@ -72,6 +80,11 @@ class GamepadInputMapper {
     }
 
     final name = _names[event.gamepadId] ?? 'Unknown';
+
+    if (_sensorDevicePattern.hasMatch(name)) {
+      return;
+    }
+
     final normalized = _normalizer.normalize(event);
 
     if (normalized.isEmpty) {

@@ -211,4 +211,40 @@ void main() {
       expect(result.single.gamepadName, 'Unknown');
     });
   });
+
+  group('sensor devices', () {
+    test('drops events from motion-sensor devices', () async {
+      final gamepadMapper = mapper(
+        GamepadPlatform.linux,
+        namesLookup: () async => {
+          '0': 'DualSense Wireless Controller',
+          '1': 'DualSense Wireless Controller Motion Sensors',
+        },
+      );
+
+      // Warm the name cache before asserting on the filter.
+      await emit(gamepadMapper, [event('0')]);
+
+      final result = await emit(gamepadMapper, [
+        event('3', type: KeyType.analog, value: 128, gamepadId: '1'),
+        event('1'),
+      ]);
+
+      expect(result.map((e) => e.inputId), ['button_b']);
+    });
+
+    test('keeps devices whose name merely contains a sensor word', () async {
+      final gamepadMapper = mapper(
+        GamepadPlatform.linux,
+        namesLookup: () async => {'0': 'Optimus Pad'},
+      );
+
+      // Warm the name cache before asserting on the filter.
+      await emit(gamepadMapper, [event('0')]);
+
+      final result = await emit(gamepadMapper, [event('1')]);
+
+      expect(result.single.inputId, 'button_b');
+    });
+  });
 }
