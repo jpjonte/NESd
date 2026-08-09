@@ -524,3 +524,24 @@ Spike branch for #243. **Never merges.** Design:
   idle-scheduled sync); with it, a held toggle should still flap
   (main-side repeat bug, until #251) but no longer corrupt the
   scheduler or kill the bindings.
+
+### 2026-08-09 — Linux session (user)
+
+- Tagged `Linux`: tool windows "work well" on the COMPLETELY STOCK
+  GTK runner — no runner changes were applied at all (the planned
+  thread-policy edit was never needed; plan Task 5's question "what
+  does the Linux runner need" answers: nothing observable). macOS
+  needed an engine-owned runner rewrite; Linux needed zero lines.
+- Tagged `Linux`: gamepad hold-to-repeat flapping reproduces (same
+  main-side bug; the e148384d mitigation defers lifecycle, it does
+  not stop the storm — #251 owns that fix). No Dart-side scheduler
+  assertions and no provider poisoning observed on Linux, consistent
+  with the mitigation working.
+- Tagged `Linux`: during the flap storm the console repeats
+  `GLib-GObject-CRITICAL: invalid (NULL) pointer instance` +
+  `g_signal_connect_object: assertion 'G_TYPE_CHECK_INSTANCE
+  (instance)' failed`, one pair per ~200 ms — i.e. one per
+  open/close cycle at the storm's 5 windows/sec. Flutter's Linux
+  embedder connects a signal on a NULL GObject during rapid window
+  create/destroy. Non-fatal (app keeps running). Linux sibling of
+  the macOS destroyWindow frame pump; upstream-issue-worthy.
