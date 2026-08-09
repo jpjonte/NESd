@@ -81,3 +81,82 @@ Spike branch for #243. **Never merges.** Design:
   analysis_options.yaml rewrite above), and passes the full existing
   test suite unmodified, twice, in under 2 minutes each run. No
   application code was touched by this task.
+
+### 2026-08-10 — Task 2: windowed bootstrap on the stock macOS runner
+
+- Tagged `architectural`: the plan's `WindowManager`/`WindowEntry`/
+  `WindowController`/`WindowControllerDelegate` surface transcribed
+  verbatim against the pinned SDK (`f69633ed`) — no API adaptation
+  was forced. Verified each signature directly in
+  `$FVM_SDK/packages/flutter/lib/src/widgets/_window.dart` and
+  `_features.dart` before writing the code:
+  `WindowController({required Size size, BoxConstraints? constraints,
+  String? title, WindowControllerDelegate? delegate})` is a factory
+  that creates the native window on construction;
+  `WindowEntry({required BaseWindowController controller, required
+  WidgetBuilder builder})`; `WindowManager({required
+  List<WindowEntry> initialWindows})`; `mixin class
+  WindowControllerDelegate` exposes `onWindowCloseRequested` and
+  `onWindowDestroyed`. `main.dart` now hoists the `overrides` list to
+  a local, branches on `isWindowingEnabled` between `runApp` (with
+  `return`) and `runWidget` + `WindowManager`, and defines
+  `MainWindowDelegate` at the bottom of the file, calling `exit(0)`
+  from `onWindowDestroyed`. `fvm dart format .` collapsed two of the
+  brief's multi-line expressions (the
+  `applicationSupportPathProvider.overrideWithValue(...)` call and
+  the `BoxConstraints(minWidth: ..., minHeight: ...)` literal) onto a
+  single line each — both fit under 80 columns as one-liners; this is
+  ordinary formatter output, not a content change from the brief.
+- Tagged `architectural`: `fvm flutter analyze` (packages/nesd) came
+  back with exactly the one pre-existing warning carried over from
+  Task 1 (`analysis_options_deprecated_plugins` at
+  `analysis_options.yaml:4:3`) and nothing attributable to
+  `main.dart` — the `// ignore_for_file: implementation_imports,
+  invalid_use_of_internal_member` header suppresses the `@internal`
+  and `implementation_imports` lint on the windowing imports as
+  intended.
+- Tagged `macOS`: `fvm flutter build macos --debug --flavor dev`
+  (windowing off) succeeded — `✓ Built
+  build/macos/Build/Products/Debug-dev/NESd.app` — in 61.5s wall
+  clock (10.69s user, 3.06s system), including a `pod install` step
+  since this was the first build of the session. A bare `flutter
+  build macos --debug` with no `--flavor` fails before touching our
+  code, on either build, with `Unable to find expected configuration
+  in Xcode project.` (`flutter_tools/src/macos/build_macos.dart:164`)
+  — this project defines `dev`/`prod` flavors (`Debug-dev`,
+  `Debug-prod`, ... configurations; confirmed against
+  `ci/1-build/macos/build.sh`, which always passes `--flavor`), so an
+  unflavored build has no matching Xcode configuration to select.
+  Preexisting project shape, unrelated to windowing; adding
+  `--flavor dev` was enough.
+- Tagged `macOS`: `FLUTTER_WINDOWING=true fvm flutter build macos
+  --debug --flavor dev` (windowing on) also succeeded — `✓ Built
+  build/macos/Build/Products/Debug-dev/NESd.app` — in 39.1s wall
+  clock (11.04s user, 3.29s system); faster than the first build only
+  because pods were already installed and CocoaPods/Xcode caches were
+  warm, not because of the flag itself. Diffing the two build logs
+  (deduped of the `pub get` outdated-package banner) shows no
+  observable difference in build *output* attributable to the flag
+  — no mention of "windowing" or "feature" in either log; the only
+  differences are the one-time `pod install` line and a "Run Script
+  phase" warning present only in the first (cold) build. The flag is
+  read by `flutter_tools/src/features.dart:260`
+  (`environmentOverride: 'FLUTTER_WINDOWING'`), which flips a
+  compile-time constant baked into the built app rather than
+  producing tool-visible output, so the only way to observe its
+  effect is at runtime.
+- Tagged `architectural`: the first `flutter build macos` on this
+  pinned SDK auto-upgraded `macos/Podfile`,
+  `macos/Runner.xcodeproj/project.pbxproj`, and the `Runner.xcscheme`
+  (deployment target bump to 12.0, Swift Package Manager
+  integration) — logged as "Upgrading project.pbxproj" / "Upgrading
+  Podfile" / "Adding Swift Package Manager integration". Same shape
+  as Task 1's `analysis_options.yaml` finding: the tool rewrites
+  project files as a side effect of the SDK bump, not of this task's
+  code. Per this task's file-scope constraint, those four files were
+  reverted with `git checkout --` after both builds completed
+  successfully; the builds themselves are unaffected by the revert
+  since `build/` output is untracked. A later task that runs `flutter
+  build macos` again will hit the same rewrite.
+- Pending user run: docked boot check (plan Task 2 step 4).
+- Pending user run: windowed run on stock runner (plan Task 2 step 5).

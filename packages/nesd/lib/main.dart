@@ -1,8 +1,12 @@
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/foundation/_features.dart';
+import 'package:flutter/src/widgets/_window.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/bench/bench_runner.dart';
 import 'package:nesd/build_id.dart';
@@ -118,25 +122,43 @@ void main(List<String> arguments) async {
 
   await logoReady;
 
-  runApp(
+  final overrides = [
+    sharedPreferencesProvider.overrideWithValue(preferences),
+    packageInfoProvider.overrideWithValue(packageInfo),
+    filesystemProvider.overrideWithValue(filesystem),
+    storageFilesystemProvider.overrideWithValue(storage),
+    applicationSupportPathProvider.overrideWithValue(applicationSupportPath),
+    initialRomProvider.overrideWith(
+      () => InitialRom(initialValue: _initialRom(arguments)),
+    ),
+    if (startupWarning != null)
+      startupWarningProvider.overrideWithValue(startupWarning),
+    if (soakConfig != null)
+      soakConfigProvider.overrideWith((ref) => soakConfig!),
+  ];
+
+  if (!isWindowingEnabled) {
+    runApp(ProviderScope(overrides: overrides, child: const NesdApp()));
+
+    return;
+  }
+
+  runWidget(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(preferences),
-        packageInfoProvider.overrideWithValue(packageInfo),
-        filesystemProvider.overrideWithValue(filesystem),
-        storageFilesystemProvider.overrideWithValue(storage),
-        applicationSupportPathProvider.overrideWithValue(
-          applicationSupportPath,
-        ),
-        initialRomProvider.overrideWith(
-          () => InitialRom(initialValue: _initialRom(arguments)),
-        ),
-        if (startupWarning != null)
-          startupWarningProvider.overrideWithValue(startupWarning),
-        if (soakConfig != null)
-          soakConfigProvider.overrideWith((ref) => soakConfig!),
-      ],
-      child: const NesdApp(),
+      overrides: overrides,
+      child: WindowManager(
+        initialWindows: [
+          WindowEntry(
+            controller: WindowController(
+              size: const Size(1280, 720),
+              constraints: const BoxConstraints(minWidth: 640, minHeight: 480),
+              title: 'NESd',
+              delegate: MainWindowDelegate(),
+            ),
+            builder: (_) => const NesdApp(),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -186,4 +208,11 @@ Future<void> _migrateLinuxDevProfile(Directory applicationSupport) async {
       'Copied the profile from ${legacy.path} to ${applicationSupport.path}',
     );
   }
+}
+
+/// Quits the app when the main window is destroyed; tool windows must
+/// not keep the process alive.
+class MainWindowDelegate with WindowControllerDelegate {
+  @override
+  void onWindowDestroyed() => exit(0);
 }
