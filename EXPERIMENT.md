@@ -382,3 +382,38 @@ Spike branch for #243. **Never merges.** Design:
 - Tagged `macOS`: session restore observed working — the persisted
   `openTools` set reopened all five tools at app launch, before any
   menu interaction. (Plan Task 6 step 5.3 answered early.)
+
+### 2026-08-09 — Interactive session, user observations (macOS)
+
+- Tagged `macOS`: GPU display path VERDICT — rendering works. The
+  `nesd_texture` Texture path survived engine-level plugin
+  registration unchanged; the fix-don't-fall-back contingency never
+  triggered. (Plan Task 3 step 5, the experiment's gating risk.)
+- Tagged `macOS`: in the tabbed configuration, tabs can be dragged out
+  of the tab bar to become separate windows — native tab tear-out
+  works on the windowing API's NSWindows.
+- Tagged `architectural`: APU Debug opens completely black while the
+  game is paused (in-game menu open) and starts painting when the game
+  resumes. New-visibility artifact, not a regression: the panel draws
+  from per-frame data, and a windowed tool is visible during pause — a
+  state the docked host never exposed (tools lived behind the menu
+  route). Any windowed host inherits this for frame-fed tools.
+- Tagged `macOS`: menu switch <-> native window round-trip "works
+  perfectly" (user's words): native close flips the Debug Tools
+  switch; re-toggle reopens the window. The
+  EmulatorToolsController seam holds under a real window host.
+- Tagged `macOS`: closing the main window quits NESd — designed
+  behavior (MainWindowDelegate.onWindowDestroyed -> exit(0)); tool
+  windows do not keep the process alive.
+- Tagged `macOS`: execution log at full speed kills performance, and
+  its window only repaints once recording is disabled again. User
+  suspects this predates windowing; needs the docked control case
+  (536d4ade or stable main) for comparison before the report calls it
+  a windowing cost. (Plan Task 6 step 4, partially answered.)
+- Tagged `architectural`: keyboard bindings — including the tool
+  toggles — register only while the MAIN window has focus. Confirms
+  the registry spec's Amendment 3 exactly: KeyboardInputHandler hangs
+  off EmulatorWidget's Focus node, which lives in the main window's
+  tree. Gamepad path untested so far. #244's biggest scope item.
+- User's overall verdict after the session: "this feels production
+  ready."
