@@ -556,3 +556,14 @@ Spike branch for #243. **Never merges.** Design:
   the window is not a pure deletion — the plugin registration path
   must move, the same problem the macOS rewrite solved with an
   engine-owned delegate.
+
+### 2026-08-09 — Final measurement gaps (user)
+
+- Tagged `macOS`: post-fix hold test — with e148384d, a held gamepad
+  toggle still flaps (main-side repeat bug, #251's to fix) but
+  produces NO scheduler assertions and NO provider poisoning;
+  bindings survive. The idle-deferred lifecycle mitigation is
+  verified on macOS as well as Linux.
+- Tagged `Linux`: GPU display path VERDICT — a loaded ROM renders on
+  Linux too. nesd_texture's Linux implementation works under the
+  windowing path unchanged, on the stock runner.
