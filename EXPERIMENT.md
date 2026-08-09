@@ -160,3 +160,111 @@ Spike branch for #243. **Never merges.** Design:
   build macos` again will hit the same rewrite.
 - Pending user run: docked boot check (plan Task 2 step 4).
 - Pending user run: windowed run on stock runner (plan Task 2 step 5).
+
+### 2026-08-09 — Task 3: macOS runner surgery and the GPU display path
+
+- Tagged `macOS`: the runner had to become engine-owned.
+  `AppDelegate.applicationDidFinishLaunching` now constructs a
+  headless `FlutterEngine(name: "nesd", project:)`, calls
+  `engine.run(withEntrypoint: nil)`, and hands the engine itself to
+  `RegisterGeneratedPlugins(registry: engine)` — the generated
+  registrant (`macos/Flutter/GeneratedPluginRegistrant.swift`, not
+  edited) already takes a `FlutterPluginRegistry`, a protocol
+  `FlutterEngine` satisfies, so no regen was needed. In
+  `MainMenu.xib`, deleted the `<window id="QvC-M9-y7g"
+  customClass="MainFlutterWindow">` element (contentView, constraints,
+  `canvasLocation`) and the `mainFlutterWindow` outlet line from the
+  `AppDelegate` custom object's connections. Verified zero `<window`
+  elements remain and only `delegate`/`applicationMenu` outlets
+  survive, matching the shape of Flutter's own
+  `dev/integration_tests/windowing_test` reference xib.
+- Tagged `macOS`: `MainFlutterWindow.swift` is now orphaned — it
+  stays on disk and in the Xcode target (per plan, no
+  `project.pbxproj` target surgery), just unreferenced by
+  `AppDelegate` and never instantiated.
+- Tagged `macOS`: entrypoint-arguments answer — yes, exposed.
+  `FlutterDartProject.h` (pinned engine artifacts,
+  `darwin-x64/FlutterMacOS.xcframework/macos-arm64_x86_64/
+  FlutterMacOS.framework/Versions/A/Headers/FlutterDartProject.h`)
+  declares:
+  `@property(nonatomic, nullable, copy) NSArray<NSString*>*
+  dartEntrypointArguments API_UNAVAILABLE(ios);`
+  documented as defaulting to `[NSProcessInfo arguments]` minus the
+  binary name when left unset. Wired it per the brief: construct
+  `FlutterDartProject()`, set `.dartEntrypointArguments =
+  Array(CommandLine.arguments.dropFirst())`, pass it as
+  `FlutterEngine(name:project:)`'s `project:`. Cross-checked against
+  the engine's own Objective-C source
+  (`FlutterDartProject.mm:45-66`, present in this pinned checkout):
+  the default `init` already seeds `_dartEntrypointArguments` from
+  `NSProcessInfo` with the binary name dropped, so the explicit Swift
+  wiring is redundant with that default but makes the ROM-path
+  argument delivery visible and intentional rather than relying on
+  implicit Objective-C default-init behavior. Not runtime-verified
+  (see pending line below) — #244 can treat this as answered but
+  untested.
+- Tagged `architectural`: auto-upgrade recurrence test, same method
+  Task 1 applied to `analysis_options.yaml`. Starting from a clean
+  `Podfile`/`Podfile.lock`/`project.pbxproj` (Task 2 had reverted
+  them), built with `FLUTTER_WINDOWING=true` — the rewrite fired
+  again (`Updating minimum macOS deployment target to 12.0` /
+  `Upgrading project.pbxproj` / `Upgrading Podfile`: `platform :osx`
+  bumped 10.15→12.0 in the Podfile, `PODFILE CHECKSUM` and the
+  `FlutterMacOS` spec checksum updated in Podfile.lock,
+  `MACOSX_DEPLOYMENT_TARGET` bumped 10.15→12.0 in all 6 build
+  configurations in project.pbxproj — 9 lines across 3 files, no
+  Swift Package Manager section added this time since the target's
+  pbxproj already carries SPM integration from before this branch).
+  Reverted those 3 files again and built a second time without the
+  flag: the identical 9-line rewrite recurred verbatim. Verdict:
+  forced-and-recurring, same class of finding as
+  `analysis_options.yaml` — committed `Podfile`, `Podfile.lock`, and
+  `project.pbxproj` in this task's commit rather than fighting a
+  rewrite that would just reappear on every later task's build.
+  `Runner.xcscheme` (the fourth file Task 2 flagged) was **not**
+  touched by either of this task's builds — its earlier rewrite did
+  not recur here, so it was left alone (already at HEAD, nothing to
+  revert or commit).
+- Tagged `macOS`: both required builds succeeded.
+  `FLUTTER_WINDOWING=true fvm flutter build macos --debug --flavor
+  dev`: 34.3s wall clock (10.22s user, 3.29s system) — `✓ Built
+  build/macos/Build/Products/Debug-dev/NESd.app`. `fvm flutter build
+  macos --debug --flavor dev` (no flag): 26.8s wall clock (9.82s
+  user, 2.76s system) — same success output. No Swift compiler
+  errors or warnings attributable to `AppDelegate.swift` or the xib
+  change in either build; the brief's AppDelegate code compiled
+  without adaptation. Confirms the runner change is flag-independent
+  — the engine is constructed unconditionally in
+  `applicationDidFinishLaunching`.
+- Tagged `macOS`: docked-path asymmetry, a known property of this
+  runner shape, not a bug. Without `FLUTTER_WINDOWING`, Dart's
+  `main.dart` takes the plain `runApp` branch and never touches
+  `runWidget`/`WindowManager` — but the runner no longer creates a
+  window either, since `MainFlutterWindow.swift` is orphaned and
+  `AppDelegate` never instantiates any `FlutterViewController` or
+  `NSWindow`. So the docked (non-windowing) build on this
+  engine-owned runner likely opens with **zero** windows, not the one
+  it used to get for free from the stock runner — `runApp` on macOS
+  has always depended on the platform runner supplying a window to
+  render into, and this runner no longer supplies one regardless of
+  the flag. That means the meaningful "docked control case" (one
+  native window, no windowing API involved) now lives at Task 2's
+  commit `536d4ade` (stock runner, `FLUTTER_WINDOWING` unset) rather
+  than anywhere on this branch's head. Not run interactively; see
+  pending line below.
+- Tagged `macOS`: the GPU display path (`nesd_texture`,
+  `NesdTexturePlugin.register(with:)` / `registrar.textures`) was not
+  touched — reviewed but not modified. `RegisterGeneratedPlugins`
+  hands each plugin a registrar from `engine.registrar(forPlugin:)`,
+  so `registrar.textures` now resolves against the engine's texture
+  registry rather than one scoped to a view controller the runner
+  used to own; whether that registry is still reachable by whatever
+  view ends up hosting the `Texture` widget under `WindowManager` is
+  a runtime question this task did not answer, per the division of
+  labor (Step 5 is an interactive verification left to the user, and
+  the design decision is fix-here over CPU-painter fallback, which
+  only applies once the texture path is confirmed broken).
+- Pending user run: single-window check + GPU display path (plan
+  Task 3 steps 4-5).
+- Pending user run: nesd_texture verdict gates the fix-don't-fall-back
+  decision.
