@@ -92,27 +92,25 @@ class DebuggerWidget extends HookConsumerWidget {
       style: monoStyle,
       child: DividerTheme(
         data: Theme.of(context).dividerTheme.copyWith(color: debuggerColor),
-        child: Expanded(
-          child: Stack(
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ActionBar(scrollController: scrollController),
-                  const StatusBar(),
-                  Expanded(
-                    child: DisassemblyList(scrollController: scrollController),
-                  ),
-                ],
-              ),
-              if (state.showStack)
-                Positioned(
-                  left: 175,
-                  top: 100,
-                  child: StackTooltip(stack: state.stack),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ActionBar(scrollController: scrollController),
+                const StatusBar(),
+                Expanded(
+                  child: DisassemblyList(scrollController: scrollController),
                 ),
-            ],
-          ),
+              ],
+            ),
+            if (state.showStack)
+              Positioned(
+                left: 175,
+                top: 100,
+                child: StackTooltip(stack: state.stack),
+              ),
+          ],
         ),
       ),
     );

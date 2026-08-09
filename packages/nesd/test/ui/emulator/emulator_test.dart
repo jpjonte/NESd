@@ -11,7 +11,7 @@ void main() {
     final r = Robot(tester)
       ..initSettings({
         'showDebugOverlay': true,
-        'showDebugger': true,
+        'openTools': ['debugger'],
         'showTouchControls': true,
         'recentRoms': [
           {

@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/ui/settings/debug/apu_debug_switch.dart';
-import 'package:nesd/ui/settings/debug/cartridge_switch.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
-import 'package:nesd/ui/settings/debug/debug_tile_switch.dart';
-import 'package:nesd/ui/settings/debug/debugger_switch.dart';
+import 'package:nesd/ui/settings/debug/debug_settings.dart';
 
 import '../robot.dart';
 
@@ -63,28 +61,16 @@ void main() {
     r.settingsScreen.debug.expectDebugSettingsFound();
 
     await r.expectSwitch(
-      find.byType(DebugTileSwitch),
-      getValue: () => r.settings.showTiles,
-    );
-
-    await r.expectSwitch(
-      find.byType(CartridgeSwitch),
-      getValue: () => r.settings.showCartridgeInfo,
-    );
-
-    await r.expectSwitch(
       find.byType(DebugOverlaySwitch),
       getValue: () => r.settings.showDebugOverlay,
     );
 
-    await r.expectSwitch(
-      find.byType(DebuggerSwitch),
-      getValue: () => r.settings.showDebugger,
-    );
-
-    await r.expectSwitch(
-      find.byType(ApuDebugSwitch),
-      getValue: () => r.settings.showApuDebug,
+    expect(
+      find.descendant(
+        of: find.byType(DebugSettings),
+        matching: find.byType(SwitchSettingsTile),
+      ),
+      findsOneWidget,
     );
   });
 }

@@ -10,11 +10,10 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
-  showTiles: json['showTiles'] as bool? ?? false,
-  showCartridgeInfo: json['showCartridgeInfo'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
-  showDebugger: json['showDebugger'] as bool? ?? false,
-  showApuDebug: json['showApuDebug'] as bool? ?? false,
+  openTools: json['openTools'] == null
+      ? const <EmulatorTool>{}
+      : openToolsFromJson(json['openTools']),
   scaling:
       $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
       Scaling.autoInteger,
@@ -84,11 +83,10 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
-  'showTiles': instance.showTiles,
-  'showCartridgeInfo': instance.showCartridgeInfo,
   'showDebugOverlay': instance.showDebugOverlay,
-  'showDebugger': instance.showDebugger,
-  'showApuDebug': instance.showApuDebug,
+  'openTools': instance.openTools
+      .map((e) => _$EmulatorToolEnumMap[e]!)
+      .toList(),
   'scaling': _$ScalingEnumMap[instance.scaling]!,
   'autoSave': instance.autoSave,
   'autoSaveInterval': instance.autoSaveInterval,
@@ -142,6 +140,14 @@ const _$PixelAspectRatioEnumMap = {
   PixelAspectRatio.custom: 'custom',
 };
 
+const _$EmulatorToolEnumMap = {
+  EmulatorTool.tileViewer: 'tileViewer',
+  EmulatorTool.cartridgeInfo: 'cartridgeInfo',
+  EmulatorTool.debugger: 'debugger',
+  EmulatorTool.apuDebug: 'apuDebug',
+  EmulatorTool.executionLog: 'executionLog',
+};
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
@@ -182,7 +188,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'dcf6e72738c6a41a6183e96755c43647e1480029';
+    r'b0870c4d7c18f0f300cf74eae4f9a56f5b5dfbde';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

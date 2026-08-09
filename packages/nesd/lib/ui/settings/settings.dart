@@ -11,6 +11,7 @@ import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -82,11 +83,10 @@ sealed class Settings with _$Settings {
     @Default(1.0) double volume,
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
-    @Default(false) bool showTiles,
-    @Default(false) bool showCartridgeInfo,
     @Default(false) bool showDebugOverlay,
-    @Default(false) bool showDebugger,
-    @Default(false) bool showApuDebug,
+    @JsonKey(fromJson: openToolsFromJson)
+    @Default(<EmulatorTool>{})
+    Set<EmulatorTool> openTools,
     @Default(Scaling.autoInteger) Scaling scaling,
     @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
@@ -151,34 +151,16 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(stretch: stretch));
   }
 
-  bool get showTiles => state.showTiles;
-
-  set showTiles(bool showTiles) {
-    _update(state.copyWith(showTiles: showTiles));
-  }
-
-  bool get showCartridgeInfo => state.showCartridgeInfo;
-
-  set showCartridgeInfo(bool showCartridgeInfo) {
-    _update(state.copyWith(showCartridgeInfo: showCartridgeInfo));
-  }
-
   bool get showDebugOverlay => state.showDebugOverlay;
 
   set showDebugOverlay(bool showDebugOverlay) {
     _update(state.copyWith(showDebugOverlay: showDebugOverlay));
   }
 
-  bool get showDebugger => state.showDebugger;
+  Set<EmulatorTool> get openTools => state.openTools;
 
-  set showDebugger(bool showDebugger) {
-    _update(state.copyWith(showDebugger: showDebugger));
-  }
-
-  bool get showApuDebug => state.showApuDebug;
-
-  set showApuDebug(bool showApuDebug) {
-    _update(state.copyWith(showApuDebug: showApuDebug));
+  set openTools(Set<EmulatorTool> openTools) {
+    _update(state.copyWith(openTools: openTools));
   }
 
   Scaling get scaling => state.scaling;
@@ -479,7 +461,11 @@ class SettingsController extends _$SettingsController {
       return settings;
     }
 
-    final loaded = Settings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    final json = jsonDecode(raw) as Map<String, dynamic>;
+
+    _migrateOpenTools(json);
+
+    final loaded = Settings.fromJson(json);
 
     final recentRoms = _migrateRecentRoms(loaded.recentRomPaths);
 
@@ -501,6 +487,19 @@ class SettingsController extends _$SettingsController {
           ),
           hash: '',
         ),
+    ];
+  }
+
+  void _migrateOpenTools(Map<String, dynamic> json) {
+    if (json.containsKey('openTools')) {
+      return;
+    }
+
+    json['openTools'] = [
+      if (json['showTiles'] == true) EmulatorTool.tileViewer.name,
+      if (json['showCartridgeInfo'] == true) EmulatorTool.cartridgeInfo.name,
+      if (json['showDebugger'] == true) EmulatorTool.debugger.name,
+      if (json['showApuDebug'] == true) EmulatorTool.apuDebug.name,
     ];
   }
 }
