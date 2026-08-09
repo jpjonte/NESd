@@ -417,3 +417,37 @@ Spike branch for #243. **Never merges.** Design:
   tree. Gamepad path untested so far. #244's biggest scope item.
 - User's overall verdict after the session: "this feels production
   ready."
+
+### 2026-08-09 — Interactive session 3, user observations (macOS)
+
+- Tagged `macOS`: after the tabbing opt-out (883125b7), tools open as
+  separate windows directly. The fix works.
+- Tagged `macOS`: debugger from its own window "works perfectly" —
+  pause, stepping, breakpoint add/remove dialogs, address dialog, all
+  against the running emulator. The per-window MaterialApp/Navigator
+  design carries the dialogs. (Q4 answered: works.)
+- Tagged `macOS`: hot reload with tool windows open works perfectly.
+- Tagged `architectural`: execution-log performance collapse
+  reproduced in DOCKED mode too — it is pre-existing, NOT a windowing
+  cost. The windowed observation stands (window repaints only once
+  recording stops) but the report must not attribute the slowdown to
+  multi-view rasterization. (Q5 resolved for the log's part.)
+- Tagged `macOS`: STOCK RUNNER VERDICT (536d4ade + windowing flag) —
+  hard crash at startup:
+  `NSInternalInconsistencyException: 'Multiview can only be enabled
+  before adding any view controllers.'`, thrown from
+  `-[FlutterEngine enableMultiView]` via
+  `InternalFlutter_WindowController_CreateRegularWindow` when Dart
+  constructs the first WindowController. The stock runner's
+  MainFlutterWindow attaches a FlutterViewController before Dart runs,
+  which forecloses multi-view. Conclusion for #244: on macOS the
+  engine-owned runner is a hard prerequisite for the windowing API,
+  not a cleanup. (Q2 answered definitively; plan Task 2 step 5's
+  "crash" arm.)
+- Tagged `macOS`: incidental, same run — master defaults to Impeller
+  (`Using the Impeller rendering backend (MetalSDF)`); the GPU path
+  verdict above therefore also covers nesd_texture-under-Impeller.
+  Pre-existing ld warning: `eslz4-mac64.dylib` built for macOS 26.4 vs
+  the 12.0 deployment target — unrelated to windowing.
+- Still pending: gamepad bindings with a tool window focused (user
+  testing shortly); Linux (Task 5).
