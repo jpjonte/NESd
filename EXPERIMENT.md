@@ -475,3 +475,52 @@ Spike branch for #243. **Never merges.** Design:
   MERGED #243 prep (PR #298), merely first exercised by the windowed
   host's global gamepad path; diagnosis dispatched, discriminator
   (docked-mode repro) pending.
+
+### 2026-08-09 — Gamepad bug diagnosis (from source; full report in
+### .superpowers/sdd/.../gamepad-bug-diagnosis.md on this branch)
+
+- Tagged `architectural`: FLAPPING EXPLAINED (established) —
+  GamepadInputHandler hold-to-repeat: 500 ms delay, then
+  Timer.periodic re-emits active actions at 10 Hz with value 1.0
+  (gamepad_input_handler.dart:186-215); ActionHandler's ToggleTool
+  branch is level-triggered, no edge detection
+  (action_handler.dart:117-123). Held press flaps at ~10 Hz; a tap is
+  fine. Pre-existing on main; fix (edge-trigger ToggleTool or exclude
+  one-shots from repeat) belongs in the #251 gamepad migration.
+- Tagged `architectural`: the stale-notifier suspicion recorded above
+  was WRONG — riverpod 3.1.0 does not recreate notifiers on rebuild
+  (notifier_provider.dart:543), and a disposed element throws
+  UnmountedRefException, not this error. Actual steady state: once
+  one EmulatorToolsController.build() throws, riverpod's debug-mode
+  readSelf (element.dart:463-486) reports "uninitialized" on every
+  later read, permanently — tool bindings die, everything else runs.
+
+### 2026-08-09 — Error-loop trigger identified (user scrollback +
+### docked discriminator)
+
+- Tagged `macOS`: user confirmed the error loop does NOT occur in
+  docked mode — windowing involvement proven empirically.
+- Tagged `macOS`: first exception in the scrollback names the
+  trigger: `'schedulerPhase == SchedulerPhase.idle' is not true` in
+  SchedulerBinding.handleBeginFrame, reached from
+  _MacOSPlatformInterface.destroyWindow <- WindowController.destroy
+  <- WindowedToolHost._close <- sync <- ref.listen callback <-
+  riverpod flush inside _UncontrolledProviderScopeState.build —
+  i.e. Flutter's macOS destroyWindow SYNCHRONOUSLY pumps
+  _beginFrame, and our listener ran during the build phase, so the
+  frame pipeline re-entered mid-frame. Framework sharp edge worth an
+  upstream flutter/flutter issue.
+- Tagged `macOS`: the re-entrant frame then makes the provider
+  rebuild twice in one frame: `Bad state: Tried to rebuild
+  emulatorToolsControllerProvider multiple times in the same frame`
+  (ProviderScheduler.debugNotifyDidBuild) — THE exception that
+  poisons the element (see diagnosis above). Full chain: 10 Hz
+  repeat storm (main bug) x destroy-during-build (host) x
+  destroyWindow frame pump (framework) x riverpod debug poisoning.
+- Tagged `architectural`: CONSEQUENCE FOR #244 — a windowed host
+  must not run window create/destroy synchronously from provider
+  notifications; lifecycle work must be deferred to scheduler-idle.
+  Mitigation applied to WindowedToolHost on this branch (coalesced
+  idle-scheduled sync); with it, a held toggle should still flap
+  (main-side repeat bug, until #251) but no longer corrupt the
+  scheduler or kill the bindings.

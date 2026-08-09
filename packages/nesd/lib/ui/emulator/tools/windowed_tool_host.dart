@@ -18,9 +18,11 @@ class WindowedToolHost extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = useRef(<EmulatorTool, WindowEntry>{});
+    final syncScheduled = useRef(false);
     final registry = WindowRegistry.of(context);
 
-    void sync(Set<EmulatorTool> open) {
+    void sync() {
+      final open = ref.read(emulatorToolsControllerProvider);
       final current = entries.value.keys.toSet();
 
       for (final tool in open.difference(current)) {
@@ -32,15 +34,34 @@ class WindowedToolHost extends HookConsumerWidget {
       }
     }
 
-    useEffect(() {
-      final open = ref.read(emulatorToolsControllerProvider);
+    // Window create/destroy must not run synchronously from a provider
+    // notification: riverpod flushes listeners during the build phase,
+    // and the macOS destroyWindow implementation pumps _beginFrame
+    // re-entrantly, corrupting the scheduler mid-frame. Coalesce and
+    // defer to an idle event-loop turn instead.
+    void scheduleSync() {
+      if (syncScheduled.value) {
+        return;
+      }
 
-      WidgetsBinding.instance.addPostFrameCallback((_) => sync(open));
+      syncScheduled.value = true;
+
+      Future(() {
+        syncScheduled.value = false;
+
+        if (context.mounted) {
+          sync();
+        }
+      });
+    }
+
+    useEffect(() {
+      scheduleSync();
 
       return null;
     }, const []);
 
-    ref.listen(emulatorToolsControllerProvider, (_, next) => sync(next));
+    ref.listen(emulatorToolsControllerProvider, (_, _) => scheduleSync());
 
     return child;
   }
