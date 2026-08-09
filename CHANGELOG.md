@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Debug tools are now opened from the in-game menu under "Debug Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
 - The execution log now shares the debug tool column instead of taking a column of its own
+- Gamepad input now uses the upstream gamepads plugin with normalized button and axis names on all platforms. Saved gamepad bindings are translated automatically where possible
 
 ### Fixed
 - Fixed the ROM grid on the main menu and the save state screen overflowing on phones and narrow windows
