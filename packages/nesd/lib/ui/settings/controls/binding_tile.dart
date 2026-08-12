@@ -22,7 +22,7 @@ class BindingTile extends HookConsumerWidget {
     final controller = ref.watch(binderControllerProvider(action));
     final indexController = ref.watch(profileIndexProvider.notifier);
 
-    final focusNode = useFocusNode();
+    final focusNode = useFocusNode(skipTraversal: true);
 
     final focused = useState(false);
 
@@ -42,7 +42,7 @@ class BindingTile extends HookConsumerWidget {
         focusNode: focusNode,
         onKeyEvent: controller.handleKeyEvent,
         onFocusChange: (hasFocus) {
-          if (!hasFocus) {
+          if (!hasFocus && focused.value) {
             controller.editing = false;
           }
 

@@ -14,6 +14,7 @@ import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
+import 'package:nesd/ui/settings/controls/gamepad_binding_migration.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -92,6 +93,7 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(false) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
+    @Default(2) int bindingsVersion,
     @JsonKey(fromJson: _lastRomPathFromJson)
     @Default(null)
     FilesystemFile? lastRomPath,
@@ -469,9 +471,15 @@ class SettingsController extends _$SettingsController {
 
     final recentRoms = _migrateRecentRoms(loaded.recentRomPaths);
 
+    final bindings = loaded.bindings.isNotEmpty
+        ? loaded.bindings
+        : defaultBindings;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: loaded.bindings.isNotEmpty ? loaded.bindings : defaultBindings,
+      bindings: json.containsKey('bindingsVersion')
+          ? bindings
+          : migrateGamepadBindings(bindings),
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }

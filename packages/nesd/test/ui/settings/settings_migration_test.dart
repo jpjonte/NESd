@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,5 +60,63 @@ void main() {
     final controller = load('{}');
 
     expect(controller.openTools, isEmpty);
+  });
+
+  test('gamepad binding ids migrate when bindingsVersion is absent', () {
+    final controller = load('''
+      {
+        "bindings": [
+          {
+            "index": 0,
+            "action": "controller1.left",
+            "type": "hold",
+            "input": {
+              "type": "gamepad",
+              "gamepadId": "0",
+              "gamepadName": "Old Pad",
+              "inputs": [
+                {
+                  "id": "analog_AXIS_HAT_X",
+                  "direction": -1,
+                  "label": "Axis AXIS_HAT_X"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ''');
+
+    final input = controller.bindings.single.input;
+    final gamepad = input as GamepadInputCombination;
+
+    expect(gamepad.inputs.single.id, 'button_dpadLeft');
+    expect(gamepad.inputs.single.direction, 1);
+  });
+
+  test('bindings are left alone when bindingsVersion is present', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 2,
+        "bindings": [
+          {
+            "index": 0,
+            "action": "controller1.left",
+            "type": "hold",
+            "input": {
+              "type": "gamepad",
+              "gamepadId": "0",
+              "gamepadName": "Pad",
+              "inputs": [{"id": "button_3", "direction": 1}]
+            }
+          }
+        ]
+      }
+    ''');
+
+    final input = controller.bindings.single.input;
+    final gamepad = input as GamepadInputCombination;
+
+    expect(gamepad.inputs.single.id, 'button_3');
   });
 }

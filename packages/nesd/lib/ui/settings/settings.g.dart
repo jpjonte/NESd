@@ -23,6 +23,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   bindings: json['bindings'] == null
       ? const []
       : bindingsFromJson(json['bindings']),
+  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 2,
   lastRomPath: json['lastRomPath'] == null
       ? null
       : _lastRomPathFromJson(json['lastRomPath']),
@@ -92,6 +93,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'autoSaveInterval': instance.autoSaveInterval,
   'autoLoad': instance.autoLoad,
   'bindings': instance.bindings,
+  'bindingsVersion': instance.bindingsVersion,
   'lastRomPath': instance.lastRomPath,
   'recentRomPaths': instance.recentRomPaths,
   'recentRoms': instance.recentRoms,
@@ -143,8 +145,8 @@ const _$PixelAspectRatioEnumMap = {
 const _$EmulatorToolEnumMap = {
   EmulatorTool.tileViewer: 'tileViewer',
   EmulatorTool.cartridgeInfo: 'cartridgeInfo',
-  EmulatorTool.debugger: 'debugger',
   EmulatorTool.apuDebug: 'apuDebug',
+  EmulatorTool.debugger: 'debugger',
   EmulatorTool.executionLog: 'executionLog',
 };
 

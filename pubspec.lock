@@ -451,29 +451,27 @@ packages:
   gamepads:
     dependency: transitive
     description:
-      path: "packages/gamepads"
-      ref: "feature/nesd"
-      resolved-ref: "84204e298b610ac307ec46ea9157ad3968d27a34"
-      url: "https://github.com/jpjonte/gamepads.git"
-    source: git
-    version: "0.1.9"
+      name: gamepads
+      sha256: bc2b4368f7f01e0390187f63c063f1fa26f420224e159fed1aaa2c449f5a1125
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.10+5"
   gamepads_android:
     dependency: transitive
     description:
       name: gamepads_android
-      sha256: "1fac5d0e854529f0734eea7f9122e8c92f7e201414ce65d42989132ee40ae785"
+      sha256: "8d8430deab5c35bafee3124bec0db19d3df605bb8f42da9ba188e826fda551e2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.8"
+    version: "0.1.8+2"
   gamepads_darwin:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "packages/gamepads_darwin"
-      ref: "feature/nesd"
-      resolved-ref: "84204e298b610ac307ec46ea9157ad3968d27a34"
-      url: "https://github.com/jpjonte/gamepads.git"
-    source: git
-    version: "0.1.2+2"
+      name: gamepads_darwin
+      sha256: a7668dc17f2e4b95c29c54e961c3ef6e34e3997718383e96dd0bdf5a5c3b03c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2+4"
   gamepads_ios:
     dependency: transitive
     description:
@@ -483,23 +481,21 @@ packages:
     source: hosted
     version: "0.1.3+3"
   gamepads_linux:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "packages/gamepads_linux"
-      ref: "feature/nesd"
-      resolved-ref: "84204e298b610ac307ec46ea9157ad3968d27a34"
-      url: "https://github.com/jpjonte/gamepads.git"
-    source: git
-    version: "0.1.1+3"
+      name: gamepads_linux
+      sha256: "80bf70df6da6185926e6d8b2feb98e725e6fe99290afafaea91dba471e8c1c1e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   gamepads_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "packages/gamepads_platform_interface"
-      ref: "feature/nesd"
-      resolved-ref: "84204e298b610ac307ec46ea9157ad3968d27a34"
-      url: "https://github.com/jpjonte/gamepads.git"
-    source: git
-    version: "0.1.2+1"
+      name: gamepads_platform_interface
+      sha256: "9ddb3b61c780284a17739d759929d2e32b912d12d9145ee493ffe2b43fc6256a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.3"
   gamepads_web:
     dependency: transitive
     description:
@@ -509,14 +505,13 @@ packages:
     source: hosted
     version: "0.1.1+1"
   gamepads_windows:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "packages/gamepads_windows"
-      ref: "feature/nesd"
-      resolved-ref: "84204e298b610ac307ec46ea9157ad3968d27a34"
-      url: "https://github.com/jpjonte/gamepads.git"
-    source: git
-    version: "0.1.4+1"
+      name: gamepads_windows
+      sha256: "650b68a4bc5d729abf12f0d2d3a53c05e4070a288c7e5575edfd485774550d8c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0+1"
   glob:
     dependency: transitive
     description:
