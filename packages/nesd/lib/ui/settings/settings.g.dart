@@ -78,6 +78,12 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       PixelAspectRatio.auto,
   customPixelAspectRatio:
       (json['customPixelAspectRatio'] as num?)?.toDouble() ?? 1.0,
+  videoFilter:
+      $enumDecodeNullable(_$VideoFilterEnumMap, json['videoFilter']) ??
+      VideoFilter.none,
+  crtFilter: json['crtFilter'] == null
+      ? const CrtFilterSettings()
+      : _crtFilterFromJson(json['crtFilter']),
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -108,6 +114,8 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'rewind': instance.rewind,
   'pixelAspectRatio': _$PixelAspectRatioEnumMap[instance.pixelAspectRatio]!,
   'customPixelAspectRatio': instance.customPixelAspectRatio,
+  'videoFilter': _$VideoFilterEnumMap[instance.videoFilter]!,
+  'crtFilter': _crtFilterToJson(instance.crtFilter),
 };
 
 const _$ScalingEnumMap = {
@@ -140,6 +148,12 @@ const _$PixelAspectRatioEnumMap = {
   PixelAspectRatio.square: 'square',
   PixelAspectRatio.stretch: 'stretch',
   PixelAspectRatio.custom: 'custom',
+};
+
+const _$VideoFilterEnumMap = {
+  VideoFilter.none: 'none',
+  VideoFilter.crt: 'crt',
+  VideoFilter.smooth: 'smooth',
 };
 
 const _$EmulatorToolEnumMap = {
@@ -190,7 +204,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'b0870c4d7c18f0f300cf74eae4f9a56f5b5dfbde';
+    r'91a7fd6484da7f169f54db3fbc9e7ffe535bea82';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

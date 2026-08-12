@@ -1,0 +1,277 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'crt_filter_settings.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$CrtFilterSettings {
+
+ double get scanlineIntensity; double get maskStrength; double get curvature;
+/// Create a copy of CrtFilterSettings
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CrtFilterSettingsCopyWith<CrtFilterSettings> get copyWith => _$CrtFilterSettingsCopyWithImpl<CrtFilterSettings>(this as CrtFilterSettings, _$identity);
+
+  /// Serializes this CrtFilterSettings to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CrtFilterSettings&&(identical(other.scanlineIntensity, scanlineIntensity) || other.scanlineIntensity == scanlineIntensity)&&(identical(other.maskStrength, maskStrength) || other.maskStrength == maskStrength)&&(identical(other.curvature, curvature) || other.curvature == curvature));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,scanlineIntensity,maskStrength,curvature);
+
+@override
+String toString() {
+  return 'CrtFilterSettings(scanlineIntensity: $scanlineIntensity, maskStrength: $maskStrength, curvature: $curvature)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CrtFilterSettingsCopyWith<$Res>  {
+  factory $CrtFilterSettingsCopyWith(CrtFilterSettings value, $Res Function(CrtFilterSettings) _then) = _$CrtFilterSettingsCopyWithImpl;
+@useResult
+$Res call({
+ double scanlineIntensity, double maskStrength, double curvature
+});
+
+
+
+
+}
+/// @nodoc
+class _$CrtFilterSettingsCopyWithImpl<$Res>
+    implements $CrtFilterSettingsCopyWith<$Res> {
+  _$CrtFilterSettingsCopyWithImpl(this._self, this._then);
+
+  final CrtFilterSettings _self;
+  final $Res Function(CrtFilterSettings) _then;
+
+/// Create a copy of CrtFilterSettings
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? scanlineIntensity = null,Object? maskStrength = null,Object? curvature = null,}) {
+  return _then(_self.copyWith(
+scanlineIntensity: null == scanlineIntensity ? _self.scanlineIntensity : scanlineIntensity // ignore: cast_nullable_to_non_nullable
+as double,maskStrength: null == maskStrength ? _self.maskStrength : maskStrength // ignore: cast_nullable_to_non_nullable
+as double,curvature: null == curvature ? _self.curvature : curvature // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [CrtFilterSettings].
+extension CrtFilterSettingsPatterns on CrtFilterSettings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CrtFilterSettings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CrtFilterSettings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CrtFilterSettings value)  $default,){
+final _that = this;
+switch (_that) {
+case _CrtFilterSettings():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CrtFilterSettings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CrtFilterSettings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double scanlineIntensity,  double maskStrength,  double curvature)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CrtFilterSettings() when $default != null:
+return $default(_that.scanlineIntensity,_that.maskStrength,_that.curvature);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double scanlineIntensity,  double maskStrength,  double curvature)  $default,) {final _that = this;
+switch (_that) {
+case _CrtFilterSettings():
+return $default(_that.scanlineIntensity,_that.maskStrength,_that.curvature);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double scanlineIntensity,  double maskStrength,  double curvature)?  $default,) {final _that = this;
+switch (_that) {
+case _CrtFilterSettings() when $default != null:
+return $default(_that.scanlineIntensity,_that.maskStrength,_that.curvature);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _CrtFilterSettings implements CrtFilterSettings {
+  const _CrtFilterSettings({this.scanlineIntensity = 0.35, this.maskStrength = 0.25, this.curvature = 0.0});
+  factory _CrtFilterSettings.fromJson(Map<String, dynamic> json) => _$CrtFilterSettingsFromJson(json);
+
+@override@JsonKey() final  double scanlineIntensity;
+@override@JsonKey() final  double maskStrength;
+@override@JsonKey() final  double curvature;
+
+/// Create a copy of CrtFilterSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CrtFilterSettingsCopyWith<_CrtFilterSettings> get copyWith => __$CrtFilterSettingsCopyWithImpl<_CrtFilterSettings>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$CrtFilterSettingsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CrtFilterSettings&&(identical(other.scanlineIntensity, scanlineIntensity) || other.scanlineIntensity == scanlineIntensity)&&(identical(other.maskStrength, maskStrength) || other.maskStrength == maskStrength)&&(identical(other.curvature, curvature) || other.curvature == curvature));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,scanlineIntensity,maskStrength,curvature);
+
+@override
+String toString() {
+  return 'CrtFilterSettings(scanlineIntensity: $scanlineIntensity, maskStrength: $maskStrength, curvature: $curvature)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CrtFilterSettingsCopyWith<$Res> implements $CrtFilterSettingsCopyWith<$Res> {
+  factory _$CrtFilterSettingsCopyWith(_CrtFilterSettings value, $Res Function(_CrtFilterSettings) _then) = __$CrtFilterSettingsCopyWithImpl;
+@override @useResult
+$Res call({
+ double scanlineIntensity, double maskStrength, double curvature
+});
+
+
+
+
+}
+/// @nodoc
+class __$CrtFilterSettingsCopyWithImpl<$Res>
+    implements _$CrtFilterSettingsCopyWith<$Res> {
+  __$CrtFilterSettingsCopyWithImpl(this._self, this._then);
+
+  final _CrtFilterSettings _self;
+  final $Res Function(_CrtFilterSettings) _then;
+
+/// Create a copy of CrtFilterSettings
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? scanlineIntensity = null,Object? maskStrength = null,Object? curvature = null,}) {
+  return _then(_CrtFilterSettings(
+scanlineIntensity: null == scanlineIntensity ? _self.scanlineIntensity : scanlineIntensity // ignore: cast_nullable_to_non_nullable
+as double,maskStrength: null == maskStrength ? _self.maskStrength : maskStrength // ignore: cast_nullable_to_non_nullable
+as double,curvature: null == curvature ? _self.curvature : curvature // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+// dart format on
