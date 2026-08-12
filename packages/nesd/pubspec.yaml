@@ -64,6 +64,10 @@ flutter:
     - assets/
     - assets/fonts/
 
+  shaders:
+    - shaders/crt.frag
+    - shaders/smooth.frag
+
   fonts:
     - family: Inter
       fonts:
