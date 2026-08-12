@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/activate_first_descendant.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
@@ -25,7 +24,7 @@ class ScalingDropdown extends HookConsumerWidget {
       child: SettingsTile(
         title: const Text('Scaling'),
         adaptive: true,
-        onTap: () => _activateFirstDescendant(focusNode),
+        onTap: () => activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(maxWidth: 300),
@@ -51,25 +50,5 @@ class ScalingDropdown extends HookConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _activateFirstDescendant(FocusNode focusNode) {
-    final childContext = focusNode.descendants.firstOrNull?.context;
-
-    if (childContext != null) {
-      const intent = ActivateIntent();
-
-      final flutterAction = Actions.maybeFind(childContext, intent: intent);
-
-      if (flutterAction != null) {
-        scheduleMicrotask(() {
-          if (!childContext.mounted) {
-            return;
-          }
-
-          Actions.of(childContext).invokeAction(flutterAction, intent);
-        });
-      }
-    }
   }
 }

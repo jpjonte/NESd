@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/border_switch.dart';
+import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/video_filter_dropdown.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 
@@ -15,6 +18,9 @@ class GraphicsSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pixelAspectRatio = ref.watch(
       settingsControllerProvider.select((s) => s.pixelAspectRatio),
+    );
+    final videoFilter = ref.watch(
+      settingsControllerProvider.select((s) => s.videoFilter),
     );
 
     return SettingsTab(
@@ -30,6 +36,12 @@ class GraphicsSettings extends ConsumerWidget {
             PixelAspectRatioSlider(
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
+            const VideoFilterDropdown(),
+            if (videoFilter == VideoFilter.crt) ...[
+              const ScanlineIntensitySlider(),
+              const MaskStrengthSlider(),
+              const CurvatureSlider(),
+            ],
           ],
         ),
       ),
