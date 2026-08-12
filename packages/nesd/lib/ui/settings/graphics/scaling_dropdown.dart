@@ -18,7 +18,7 @@ class ScalingDropdown extends HookConsumerWidget {
       settingsControllerProvider.select((s) => s.scaling),
     );
     final controller = ref.read(settingsControllerProvider.notifier);
-    final focusNode = useFocusNode();
+    final focusNode = useFocusNode(skipTraversal: true);
 
     return FocusOnHover(
       focusNode: focusNode,
