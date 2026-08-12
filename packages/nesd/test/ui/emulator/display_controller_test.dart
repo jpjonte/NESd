@@ -279,4 +279,56 @@ void main() {
 
     expect(notifications, 1);
   });
+
+  test('an active video filter forces CPU decode on the GPU path', () async {
+    final platform = _FakeNesdTexturePlatform();
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+    )..updateVideoFilter(active: true);
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource(_handle());
+
+    controller.updateFrameSource(source);
+
+    await source.released.timeout(const Duration(seconds: 5));
+
+    expect(platform.updates, 0);
+    expect(controller.value, isA<ImageDisplayFrameState>());
+  });
+
+  test('disabling the video filter restores the texture path', () async {
+    final platform = _FakeNesdTexturePlatform();
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+    )..updateVideoFilter(active: true);
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource();
+
+    controller
+      ..updateFrameSource(source)
+      ..updateVideoFilter(active: false);
+
+    for (var i = 0; i < 3; i++) {
+      source.produceFrame(_handle());
+      await pumpEventQueue();
+    }
+
+    expect(platform.updates, greaterThanOrEqualTo(1));
+  });
 }

@@ -6,6 +6,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd_texture/nesd_texture.dart';
 import 'package:riverpod/riverpod.dart';
@@ -33,7 +35,18 @@ DisplayFrameController displayFrameController(Ref ref) {
       settingsControllerProvider.select((value) => value.renderer),
       (_, preference) => controller.updateRendererPreference(preference),
       fireImmediately: true,
-    );
+    )
+    ..listen(videoFilterActiveProvider, (_, active) {
+      controller.updateVideoFilter(active: active);
+    }, fireImmediately: true)
+    ..listen(settingsControllerProvider.select((s) => s.videoFilter), (
+      _,
+      filter,
+    ) {
+      if (filter != VideoFilter.none) {
+        ref.read(videoFilterRegistryProvider.notifier).ensureLoaded(filter);
+      }
+    }, fireImmediately: true);
 
   return controller;
 }
@@ -85,6 +98,7 @@ class DisplayFrameController extends ChangeNotifier
 
   FrameSource? _frameSource;
   RendererPreference _rendererPreference = RendererPreference.auto;
+  bool _videoFilterActive = false;
 
   StreamSubscription<NesIsolateEvent>? _eventSubscription;
 
@@ -408,6 +422,24 @@ class DisplayFrameController extends ChangeNotifier
     scheduleFrame();
   }
 
+  void updateVideoFilter({required bool active}) {
+    if (_disposed || _videoFilterActive == active) {
+      return;
+    }
+
+    _videoFilterActive = active;
+
+    if (active) {
+      _invalidateTexture();
+    } else {
+      _textureFailed = false;
+    }
+
+    _processPending();
+
+    scheduleFrame();
+  }
+
   void _processFrame(FrameHandle handle, FrameSource source) {
     if (_disposed) {
       source.releaseFrame(handle);
@@ -419,7 +451,9 @@ class DisplayFrameController extends ChangeNotifier
     final height = handle.height;
 
     final wantsTexture =
-        _rendererPreference != RendererPreference.cpu && !_textureFailed;
+        _rendererPreference != RendererPreference.cpu &&
+        !_textureFailed &&
+        !_videoFilterActive;
 
     if (wantsTexture) {
       if (_texture case final currentTexture?
