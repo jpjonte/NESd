@@ -157,6 +157,7 @@ const _$VideoFilterEnumMap = {
 };
 
 const _$EmulatorToolEnumMap = {
+  EmulatorTool.display: 'display',
   EmulatorTool.tileViewer: 'tileViewer',
   EmulatorTool.cartridgeInfo: 'cartridgeInfo',
   EmulatorTool.apuDebug: 'apuDebug',

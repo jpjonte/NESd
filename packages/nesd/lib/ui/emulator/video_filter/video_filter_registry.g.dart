@@ -90,7 +90,7 @@ final class VideoFilterRegistryProvider
 }
 
 String _$videoFilterRegistryHash() =>
-    r'7e1adb99cace02f6d4d064567b0bb62a9f70df14';
+    r'049546ee789f37ab5c589ab27d6a477eb6e60fa8';
 
 abstract class _$VideoFilterRegistry extends $Notifier<VideoFilterShaderState> {
   VideoFilterShaderState build();

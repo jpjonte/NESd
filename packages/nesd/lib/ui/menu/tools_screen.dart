@@ -9,8 +9,8 @@ import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 
 @RoutePage()
-class DebugToolsScreen extends ConsumerWidget {
-  const DebugToolsScreen({super.key});
+class ToolsScreen extends ConsumerWidget {
+  const ToolsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,7 +22,7 @@ class DebugToolsScreen extends ConsumerWidget {
     return NesdScaffold(
       appBar: AppBar(
         title: Text(
-          'Debug Tools',
+          'Tools',
           style: TextStyle(
             color: theme.colorScheme.primary,
             fontVariations: const [FontVariation.weight(700)],
@@ -37,7 +37,7 @@ class DebugToolsScreen extends ConsumerWidget {
                 for (final tool in EmulatorTool.values)
                   FocusOnHover(
                     child: SwitchSettingsTile(
-                      key: Key('debugTool_${tool.name}'),
+                      key: Key('tool_${tool.name}'),
                       title: Text(tool.title),
                       value: openTools.contains(tool),
                       onChanged: (_) => tools.toggle(tool),

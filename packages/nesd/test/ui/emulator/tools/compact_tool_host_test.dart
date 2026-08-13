@@ -4,6 +4,7 @@ import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/compact_tool_host.dart';
+import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/docked_tool_host.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
@@ -27,8 +28,14 @@ void main() {
     WidgetTester tester,
     List<String> openTools, {
     Size size = const Size(360, 800),
+    Brightness? platformBrightness,
   }) async {
     final r = Robot(tester)..initSettings({..._rom, 'openTools': openTools});
+
+    if (platformBrightness != null) {
+      tester.platformDispatcher.platformBrightnessTestValue =
+          platformBrightness;
+    }
 
     await r.pumpApp();
     await r.mainMenu.tapFirstRomTile();
@@ -107,6 +114,17 @@ void main() {
     await quit(r, tester);
   });
 
+  testWidgets('display tool shows as a compact tab with its panel', (
+    tester,
+  ) async {
+    final r = await start(tester, ['display']);
+
+    expect(find.byKey(const Key('compactTab_display')), findsOneWidget);
+    expect(find.byType(DisplayToolWidget), findsOneWidget);
+
+    await quit(r, tester);
+  });
+
   testWidgets('the host swaps at the breakpoint', (tester) async {
     final r = await start(tester, [
       'debugger',
@@ -121,6 +139,54 @@ void main() {
 
     expect(find.byType(DockedToolHost), findsOneWidget);
     expect(find.byType(CompactToolHost), findsNothing);
+
+    await quit(r, tester);
+  });
+
+  testWidgets('compact host background is translucent so the game shows '
+      'through', (tester) async {
+    final r = await start(tester, ['display']);
+
+    final box = tester.widget<ColoredBox>(
+      find
+          .descendant(
+            of: find.byType(CompactToolHost),
+            matching: find.byType(ColoredBox),
+          )
+          .first,
+    );
+
+    expect(box.color, Colors.black.withAlpha(200));
+
+    await quit(r, tester);
+  });
+
+  testWidgets('compact host forces dark theme so text is readable on the '
+      'scrim', (tester) async {
+    final r = await start(tester, ['display']);
+
+    final context = tester.element(find.byType(DisplayToolWidget));
+
+    expect(Theme.of(context).brightness, Brightness.dark);
+
+    await quit(r, tester);
+  });
+
+  testWidgets('compact host title text stays light on a system-light '
+      'OS theme', (tester) async {
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    final r = await start(tester, [
+      'display',
+    ], platformBrightness: Brightness.light);
+
+    final titleText = tester.widget<Text>(find.text('Filter'));
+
+    final style = DefaultTextStyle.of(
+      tester.element(find.text('Filter')),
+    ).style.merge(titleText.style);
+
+    expect(style.color!.computeLuminance(), greaterThan(0.5));
 
     await quit(r, tester);
   });

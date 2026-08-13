@@ -10,6 +10,12 @@ class ToggleTool extends InputAction {
   final EmulatorTool tool;
 }
 
+const toggleDisplay = ToggleTool(
+  tool: EmulatorTool.display,
+  title: 'Toggle Display',
+  code: 'tool.display',
+);
+
 const toggleTileViewer = ToggleTool(
   tool: EmulatorTool.tileViewer,
   title: 'Toggle Tile Viewer',

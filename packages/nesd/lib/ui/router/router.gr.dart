@@ -58,22 +58,6 @@ class CheatsRouteArgs {
 }
 
 /// generated route for
-/// [DebugToolsScreen]
-class DebugToolsRoute extends PageRouteInfo<void> {
-  const DebugToolsRoute({List<PageRouteInfo>? children})
-    : super(DebugToolsRoute.name, initialChildren: children);
-
-  static const String name = 'DebugToolsRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      return const DebugToolsScreen();
-    },
-  );
-}
-
-/// generated route for
 /// [EmulatorScreen]
 class EmulatorRoute extends PageRouteInfo<void> {
   const EmulatorRoute({List<PageRouteInfo>? children})
@@ -272,6 +256,22 @@ class SettingsRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const SettingsScreen();
+    },
+  );
+}
+
+/// generated route for
+/// [ToolsScreen]
+class ToolsRoute extends PageRouteInfo<void> {
+  const ToolsRoute({List<PageRouteInfo>? children})
+    : super(ToolsRoute.name, initialChildren: children);
+
+  static const String name = 'ToolsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ToolsScreen();
     },
   );
 }

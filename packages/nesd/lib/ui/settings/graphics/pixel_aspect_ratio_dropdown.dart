@@ -8,7 +8,9 @@ import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class PixelAspectRatioDropdown extends HookConsumerWidget {
-  const PixelAspectRatioDropdown({super.key});
+  const PixelAspectRatioDropdown({this.expand = false, super.key});
+
+  final bool expand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +28,7 @@ class PixelAspectRatioDropdown extends HookConsumerWidget {
         onTap: () => activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
-          constraints: const BoxConstraints(maxWidth: 300),
+          constraints: expand ? null : const BoxConstraints(maxWidth: 300),
           child: Dropdown<PixelAspectRatio>(
             value: setting,
             onChanged: (value) =>

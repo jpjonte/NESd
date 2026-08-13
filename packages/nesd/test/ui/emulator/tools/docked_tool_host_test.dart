@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
+import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/docked_tool_host.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
@@ -190,6 +191,15 @@ void main() {
       tester.state<ScrollableState>(column).position.maxScrollExtent,
       greaterThan(0),
     );
+
+    await quit(r);
+  });
+
+  testWidgets('display tool renders in the docked column', (tester) async {
+    final r = await start(tester, ['display']);
+
+    expect(find.byType(DockedToolHost), findsOneWidget);
+    expect(find.byType(DisplayToolWidget), findsOneWidget);
 
     await quit(r);
   });

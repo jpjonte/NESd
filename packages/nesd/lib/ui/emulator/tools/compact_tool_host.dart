@@ -6,6 +6,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_widgets.dart';
+import 'package:nesd/ui/theme/dark.dart';
 
 class CompactToolHost extends HookConsumerWidget {
   const CompactToolHost({super.key});
@@ -32,36 +33,43 @@ class CompactToolHost extends HookConsumerWidget {
     );
 
     return ColoredBox(
-      color: Theme.of(context).colorScheme.surface,
-      child: Column(
-        children: [
-          Row(
+      color: Colors.black.withAlpha(200),
+      // force dark theme so text is readable on the black background
+      child: Theme(
+        data: nesdThemeDark,
+        child: Material(
+          type: MaterialType.transparency,
+          child: Column(
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (final tool in ordered)
-                        TextButton(
-                          key: Key('compactTab_${tool.name}'),
-                          onPressed: () => selected.value = tool,
-                          child: Text(tool.title),
-                        ),
-                    ],
+              Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final tool in ordered)
+                            TextButton(
+                              key: Key('compactTab_${tool.name}'),
+                              onPressed: () => selected.value = tool,
+                              child: Text(tool.title),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  IconButton(
+                    key: const Key('compactToolClose'),
+                    icon: const Icon(Icons.close),
+                    tooltip: 'Close ${active.title}',
+                    onPressed: () => tools.close(active),
+                  ),
+                ],
               ),
-              IconButton(
-                key: const Key('compactToolClose'),
-                icon: const Icon(Icons.close),
-                tooltip: 'Close ${active.title}',
-                onPressed: () => tools.close(active),
-              ),
+              Expanded(child: _body(active, cartridgeInfo)),
             ],
           ),
-          Expanded(child: _body(active, cartridgeInfo)),
-        ],
+        ),
       ),
     );
   }
@@ -75,6 +83,7 @@ class CompactToolHost extends HookConsumerWidget {
         Column(children: [Expanded(child: content)]),
       ),
 
+      EmulatorTool.display ||
       EmulatorTool.tileViewer ||
       EmulatorTool.cartridgeInfo ||
       EmulatorTool.apuDebug => _panned(

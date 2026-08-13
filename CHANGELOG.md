@@ -7,10 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- Built in shaders: CRT and smooth
+- Built in graphics filters: CRT and smooth
+- Display tool: adjust filter, scaling, aspect ratio and border while the game is running
 
 ### Changed
-- Debug tools are now opened from the in-game menu under "Debug Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
+- Debug tools are now opened from the in-game menu under "Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
 - The execution log now shares the debug tool column instead of taking a column of its own
 - Gamepad input now uses the upstream gamepads plugin with normalized button and axis names on all platforms. Saved gamepad bindings are translated automatically where possible
 
