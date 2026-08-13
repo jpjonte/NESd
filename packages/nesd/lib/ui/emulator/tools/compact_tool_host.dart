@@ -75,6 +75,7 @@ class CompactToolHost extends HookConsumerWidget {
         Column(children: [Expanded(child: content)]),
       ),
 
+      EmulatorTool.display ||
       EmulatorTool.tileViewer ||
       EmulatorTool.cartridgeInfo ||
       EmulatorTool.apuDebug => _panned(

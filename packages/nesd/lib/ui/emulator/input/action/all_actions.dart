@@ -70,6 +70,7 @@ const saveStateActions = [
 ];
 
 const toolActions = [
+  toggleDisplay,
   toggleTileViewer,
   toggleCartridgeInfo,
   toggleDebugger,

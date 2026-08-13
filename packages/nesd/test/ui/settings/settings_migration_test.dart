@@ -119,4 +119,12 @@ void main() {
 
     expect(gamepad.inputs.single.id, 'button_3');
   });
+
+  test('every emulator tool serializes through settings JSON', () {
+    final settings = Settings(openTools: EmulatorTool.values.toSet());
+
+    final decoded = Settings.fromJson(settings.toJson());
+
+    expect(decoded.openTools, EmulatorTool.values.toSet());
+  });
 }

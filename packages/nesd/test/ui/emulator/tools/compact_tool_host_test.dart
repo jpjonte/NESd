@@ -4,6 +4,7 @@ import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/compact_tool_host.dart';
+import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/docked_tool_host.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
@@ -103,6 +104,17 @@ void main() {
     });
     expect(find.byType(ExecutionLogWidget), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await quit(r, tester);
+  });
+
+  testWidgets('display tool shows as a compact tab with its panel', (
+    tester,
+  ) async {
+    final r = await start(tester, ['display']);
+
+    expect(find.byKey(const Key('compactTab_display')), findsOneWidget);
+    expect(find.byType(DisplayToolWidget), findsOneWidget);
 
     await quit(r, tester);
   });
