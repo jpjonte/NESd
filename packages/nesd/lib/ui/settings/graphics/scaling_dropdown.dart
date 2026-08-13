@@ -9,7 +9,9 @@ import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class ScalingDropdown extends HookConsumerWidget {
-  const ScalingDropdown({super.key});
+  const ScalingDropdown({this.expand = false, super.key});
+
+  final bool expand;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +29,7 @@ class ScalingDropdown extends HookConsumerWidget {
         onTap: () => activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
-          constraints: const BoxConstraints(maxWidth: 300),
+          constraints: expand ? null : const BoxConstraints(maxWidth: 300),
           child: Dropdown<Scaling>(
             value: setting,
             onChanged: (value) =>
