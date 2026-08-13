@@ -5,15 +5,16 @@ import 'package:nesd/ui/common/activate_first_descendant.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
-class PixelAspectRatioDropdown extends HookConsumerWidget {
-  const PixelAspectRatioDropdown({super.key});
+class VideoFilterDropdown extends HookConsumerWidget {
+  const VideoFilterDropdown({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
-      settingsControllerProvider.select((s) => s.pixelAspectRatio),
+      settingsControllerProvider.select((s) => s.videoFilter),
     );
     final controller = ref.read(settingsControllerProvider.notifier);
     final focusNode = useFocusNode(skipTraversal: true);
@@ -21,37 +22,22 @@ class PixelAspectRatioDropdown extends HookConsumerWidget {
     return FocusOnHover(
       focusNode: focusNode,
       child: SettingsTile(
-        title: const Text('Pixel Aspect Ratio'),
+        title: const Text('Filter'),
         adaptive: true,
         onTap: () => activateFirstDescendant(focusNode),
         child: Container(
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(maxWidth: 300),
-          child: Dropdown<PixelAspectRatio>(
+          child: Dropdown<VideoFilter>(
             value: setting,
             onChanged: (value) =>
-                controller.pixelAspectRatio = value ?? PixelAspectRatio.auto,
+                controller.videoFilter = value ?? VideoFilter.none,
             items: const [
+              DropdownMenuItem(value: VideoFilter.none, child: Text('Off')),
+              DropdownMenuItem(value: VideoFilter.crt, child: Text('CRT')),
               DropdownMenuItem(
-                value: PixelAspectRatio.auto,
-                child: Text('Auto'),
-              ),
-              DropdownMenuItem(
-                value: PixelAspectRatio.ntsc,
-                child: Text('NTSC'),
-              ),
-              DropdownMenuItem(value: PixelAspectRatio.pal, child: Text('PAL')),
-              DropdownMenuItem(
-                value: PixelAspectRatio.square,
-                child: Text('Square'),
-              ),
-              DropdownMenuItem(
-                value: PixelAspectRatio.stretch,
-                child: Text('Stretch'),
-              ),
-              DropdownMenuItem(
-                value: PixelAspectRatio.custom,
-                child: Text('Custom'),
+                value: VideoFilter.smooth,
+                child: Text('Smooth'),
               ),
             ],
           ),

@@ -12,6 +12,8 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
+import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_binding_migration.dart';
@@ -78,6 +80,13 @@ FilesystemFile? _lastRomPathFromJson(dynamic json) {
   return null;
 }
 
+Map<String, dynamic> _crtFilterToJson(CrtFilterSettings filter) =>
+    filter.toJson();
+
+CrtFilterSettings _crtFilterFromJson(dynamic json) => json == null
+    ? const CrtFilterSettings()
+    : CrtFilterSettings.fromJson(json as Map<String, dynamic>);
+
 @freezed
 sealed class Settings with _$Settings {
   factory Settings({
@@ -116,6 +125,10 @@ sealed class Settings with _$Settings {
     @Default(true) bool rewind,
     @Default(PixelAspectRatio.auto) PixelAspectRatio pixelAspectRatio,
     @Default(1.0) double customPixelAspectRatio,
+    @Default(VideoFilter.none) VideoFilter videoFilter,
+    @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson)
+    @Default(CrtFilterSettings())
+    CrtFilterSettings crtFilter,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -417,6 +430,18 @@ class SettingsController extends _$SettingsController {
 
   set customPixelAspectRatio(double customPixelAspectRatio) {
     _update(state.copyWith(customPixelAspectRatio: customPixelAspectRatio));
+  }
+
+  VideoFilter get videoFilter => state.videoFilter;
+
+  set videoFilter(VideoFilter videoFilter) {
+    _update(state.copyWith(videoFilter: videoFilter));
+  }
+
+  CrtFilterSettings get crtFilter => state.crtFilter;
+
+  set crtFilter(CrtFilterSettings crtFilter) {
+    _update(state.copyWith(crtFilter: crtFilter));
   }
 
   void _update(Settings settings) {

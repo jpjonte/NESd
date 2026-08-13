@@ -9,6 +9,10 @@ import 'package:nesd/ui/emulator/display_controller.dart';
 import 'package:nesd/ui/emulator/display_position.dart';
 import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
+import 'package:nesd/ui/emulator/video_filter/shader_frame_painter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class FrameBufferStreamBuilder extends HookConsumerWidget {
@@ -87,6 +91,12 @@ class DisplayBuilder extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final nes = ref.watch(nesStateProvider);
 
+    final videoFilter = settings.videoFilter;
+    final shaderState = ref.watch(videoFilterRegistryProvider);
+    final shader = videoFilter == VideoFilter.none
+        ? null
+        : shaderState.shaders[videoFilter];
+
     return LayoutBuilder(
       builder: (_, constraints) {
         final region = settings.region ?? Region.ntsc;
@@ -155,7 +165,12 @@ class DisplayBuilder extends ConsumerWidget {
                 ),
               )
             : CustomPaint(
-                painter: CpuFramePainter(image: image!),
+                painter: frameBasePainter(
+                  image: image!,
+                  filter: videoFilter,
+                  shader: shader,
+                  crtFilter: settings.crtFilter,
+                ),
                 child: const SizedBox.expand(),
               );
 
@@ -273,4 +288,21 @@ class DisplayBuilder extends ConsumerWidget {
       .custom => settings.customPixelAspectRatio,
     };
   }
+}
+
+CustomPainter frameBasePainter({
+  required ui.Image image,
+  required VideoFilter filter,
+  required ui.FragmentShader? shader,
+  required CrtFilterSettings crtFilter,
+}) {
+  if (filter == VideoFilter.none || shader == null) {
+    return CpuFramePainter(image: image);
+  }
+
+  return ShaderFramePainter(
+    image: image,
+    shader: shader,
+    parameters: videoFilterUniforms(filter, crtFilter),
+  );
 }
