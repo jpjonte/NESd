@@ -30,7 +30,7 @@ class MenuScreenRobot extends BaseRobot {
     await goAsync(find.byKey(MenuScreen.settingsKey));
   }
 
-  Future<void> tapDebugTools() async {
-    await goAsync(find.byKey(MenuScreen.debugToolsKey));
+  Future<void> tapTools() async {
+    await goAsync(find.byKey(MenuScreen.toolsKey));
   }
 }

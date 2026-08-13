@@ -6,9 +6,7 @@ import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import '../robot.dart';
 
 void main() {
-  testWidgets('debug tools can be toggled from the in-game menu', (
-    tester,
-  ) async {
+  testWidgets('tools can be toggled from the in-game menu', (tester) async {
     final r = Robot(tester)
       ..initSettings({
         'recentRoms': [
@@ -26,19 +24,19 @@ void main() {
     await r.mainMenu.tapFirstRomTile();
 
     await r.emulator.tapMenu();
-    await r.menuScreen.tapDebugTools();
+    await r.menuScreen.tapTools();
 
-    r.debugTools.expectDebugToolsScreenFound();
+    r.tools.expectToolsScreenFound();
 
     expect(r.container.read(emulatorToolsControllerProvider), isEmpty);
 
-    await r.debugTools.tapTool(EmulatorTool.debugger);
+    await r.tools.tapTool(EmulatorTool.debugger);
 
     expect(r.container.read(emulatorToolsControllerProvider), {
       EmulatorTool.debugger,
     });
 
-    await r.debugTools.tapTool(EmulatorTool.debugger);
+    await r.tools.tapTool(EmulatorTool.debugger);
 
     expect(r.container.read(emulatorToolsControllerProvider), isEmpty);
 

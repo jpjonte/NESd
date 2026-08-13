@@ -21,8 +21,8 @@ import 'base_robot.dart';
 import 'emulator/emulator_robot.dart';
 import 'emulator/main_menu/main_menu_robot.dart';
 import 'file_picker/file_picker_screen_robot.dart';
-import 'menu/debug_tools_screen_robot.dart';
 import 'menu/menu_screen_robot.dart';
+import 'menu/tools_screen_robot.dart';
 import 'mocks.dart';
 import 'save_states/save_states_robot.dart';
 import 'settings/settings_robot.dart';
@@ -35,7 +35,7 @@ class Robot extends BaseRobot {
       menuScreen = MenuScreenRobot(tester),
       saveStates = SaveStatesRobot(tester),
       filePickerScreen = FilePickerScreenRobot(tester),
-      debugTools = DebugToolsScreenRobot(tester) {
+      tools = ToolsScreenRobot(tester) {
     tester.binding.platformDispatcher.platformBrightnessTestValue =
         Brightness.dark;
 
@@ -48,7 +48,7 @@ class Robot extends BaseRobot {
   final MenuScreenRobot menuScreen;
   final SaveStatesRobot saveStates;
   final FilePickerScreenRobot filePickerScreen;
-  final DebugToolsScreenRobot debugTools;
+  final ToolsScreenRobot tools;
 
   ProviderContainer get container =>
       (tester.widget(find.byType(UncontrolledProviderScope))
