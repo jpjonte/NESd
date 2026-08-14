@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Built in graphics filters: CRT and smooth
 - Display tool: adjust filter, scaling, aspect ratio and border while the game is running
+- Support for mapper 45 (GA23C), used by MMC3-based multicart cartridges
 
 ### Changed
 - Debug tools are now opened from the in-game menu under "Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
