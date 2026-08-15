@@ -10,7 +10,7 @@
 
 A NES Emulator written in Dart and Flutter.
 Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
-Coming to the Google Play Store and the web in 2025.  
+Coming to the Google Play Store and the web soon.  
 If you sponsor an iOS device and the Apple developer account fee, I'll publish it to the App Store ;) 
 
 ## Installation

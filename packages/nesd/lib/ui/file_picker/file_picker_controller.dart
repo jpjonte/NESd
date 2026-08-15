@@ -4,6 +4,7 @@ import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
+import 'package:nesd/ui/file_picker/fuzzy_matcher.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -95,33 +96,34 @@ class FilePickerController {
     try {
       final allFiles = await filesystem.list(directory.path);
 
-      final children =
+      final matches =
           allFiles
               .where((file) => !p.basename(file.path).startsWith('.'))
-              .where((file) {
-                if (_filter case final filter?) {
-                  final filename = p.basename(file.path);
+              .map((file) {
+                final score = fuzzyScore(_filter ?? '', p.basename(file.name));
 
-                  return filename.toLowerCase().contains(filter.toLowerCase());
-                }
-
-                return true;
+                return score == null ? null : (file: file, score: score);
               })
+              .nonNulls
               .toList()
             ..sort((a, b) {
-              final aType = a.type;
-              final bType = b.type;
+              final byScore = b.score.compareTo(a.score);
 
-              if (aType == FilesystemFileType.directory &&
-                  bType != FilesystemFileType.directory) {
-                return -1;
-              } else if (aType != FilesystemFileType.directory &&
-                  bType == FilesystemFileType.directory) {
-                return 1;
+              if (byScore != 0) {
+                return byScore;
               }
 
-              return a.path.compareTo(b.path);
+              final aDirectory = a.file.type == FilesystemFileType.directory;
+              final bDirectory = b.file.type == FilesystemFileType.directory;
+
+              if (aDirectory != bDirectory) {
+                return aDirectory ? -1 : 1;
+              }
+
+              return a.file.path.compareTo(b.file.path);
             });
+
+      final children = [for (final match in matches) match.file];
 
       notifier.update(FilePickerData(directory: directory, files: children));
     } on NesdException catch (e) {
