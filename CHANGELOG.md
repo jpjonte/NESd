@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Debug tools are now opened from the in-game menu under "Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
 - The execution log now shares the debug tool column instead of taking a column of its own
 - Gamepad input now uses the upstream gamepads plugin with normalized button and axis names on all platforms. Saved gamepad bindings are translated automatically where possible
+- Upgraded to Flutter 3.47 and Dart 3.13. The minimum supported macOS version is now 12.0 (Monterey)
 
 ### Fixed
 - Fixed control binders on touch screens deactivating right after being tapped, making it impossible to assign a binding by touch
