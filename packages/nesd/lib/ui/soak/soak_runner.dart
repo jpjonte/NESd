@@ -19,7 +19,7 @@ part 'soak_runner.g.dart';
 @riverpod
 SoakConfig? soakConfig(Ref ref) => null;
 
-@Riverpod(keepAlive: true)
+@riverpod
 SoakRunner? soakRunner(Ref ref) {
   final config = ref.watch(soakConfigProvider);
 
@@ -27,9 +27,11 @@ SoakRunner? soakRunner(Ref ref) {
     return null;
   }
 
+  ref.keepAlive();
+
   final runner = SoakRunner(
     config: config,
-    controller: ref.watch(nesControllerProvider),
+    controller: ref.read(nesControllerProvider),
     router: ref.read(routerProvider),
   );
 

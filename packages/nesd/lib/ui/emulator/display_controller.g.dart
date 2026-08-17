@@ -15,11 +15,11 @@ final displayFrameControllerProvider = DisplayFrameControllerProvider._();
 final class DisplayFrameControllerProvider
     extends
         $FunctionalProvider<
-          DisplayFrameController,
-          DisplayFrameController,
-          DisplayFrameController
+          Raw<DisplayFrameController>,
+          Raw<DisplayFrameController>,
+          Raw<DisplayFrameController>
         >
-    with $Provider<DisplayFrameController> {
+    with $Provider<Raw<DisplayFrameController>> {
   DisplayFrameControllerProvider._()
     : super(
         from: null,
@@ -36,23 +36,23 @@ final class DisplayFrameControllerProvider
 
   @$internal
   @override
-  $ProviderElement<DisplayFrameController> $createElement(
+  $ProviderElement<Raw<DisplayFrameController>> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  DisplayFrameController create(Ref ref) {
+  Raw<DisplayFrameController> create(Ref ref) {
     return displayFrameController(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DisplayFrameController value) {
+  Override overrideWithValue(Raw<DisplayFrameController> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<DisplayFrameController>(value),
+      providerOverride: $SyncValueProvider<Raw<DisplayFrameController>>(value),
     );
   }
 }
 
 String _$displayFrameControllerHash() =>
-    r'04ab81146b6a9d1f74ea742adb8a5feca94b973e';
+    r'9c506644dc2427f6fde5d8c9a674a0e16010fb71';

@@ -92,27 +92,30 @@ void main() {
       return null;
     }
 
-    Widget wrap(RomTileData romTileData) => ProviderScope(
-      overrides: [
-        applicationSupportPathProvider.overrideWithValue(tempDir.path),
-      ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: RomTile(romTileData: romTileData, onPressed: () {}),
-        ),
-      ),
-    );
+    Future<void> pumpTile(WidgetTester tester, RomTileData romTileData) =>
+        tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              applicationSupportPathProvider.overrideWithValue(tempDir.path),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: RomTile(romTileData: romTileData, onPressed: () {}),
+              ),
+            ),
+          ),
+        );
 
     testWidgets('loads a stored thumbnail', (tester) async {
       await tester.runAsync(saveThumbnail);
 
-      await tester.pumpWidget(wrap(storedTileData));
+      await pumpTile(tester, storedTileData);
 
       expect(await pumpUntilThumbnail(tester), isNotNull);
     });
 
     testWidgets('shows no image when no thumbnail is stored', (tester) async {
-      await tester.pumpWidget(wrap(storedTileData));
+      await pumpTile(tester, storedTileData);
 
       expect(await pumpUntilThumbnail(tester), isNull);
 
@@ -128,13 +131,12 @@ void main() {
         return await loadStoredThumbnail(thumbnailFile());
       });
 
-      await tester.pumpWidget(
-        wrap(
-          RomTileData(
-            romInfo: romInfo,
-            title: 'test',
-            thumbnail: DecodedThumbnail(image!),
-          ),
+      await pumpTile(
+        tester,
+        RomTileData(
+          romInfo: romInfo,
+          title: 'test',
+          thumbnail: DecodedThumbnail(image!),
         ),
       );
 

@@ -10,7 +10,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'apu_debug_controller.g.dart';
 
 @riverpod
-ApuDebugController? apuDebugController(Ref ref) {
+Raw<ApuDebugController?> apuDebugController(Ref ref) {
   final nes = ref.watch(nesStateProvider);
 
   if (nes == null) {

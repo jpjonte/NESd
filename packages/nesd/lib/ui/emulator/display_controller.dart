@@ -16,7 +16,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'display_controller.g.dart';
 
 @riverpod
-DisplayFrameController displayFrameController(Ref ref) {
+Raw<DisplayFrameController> displayFrameController(Ref ref) {
   final settingsController = ref.read(settingsControllerProvider.notifier);
 
   final controller = DisplayFrameController(

@@ -15,11 +15,11 @@ final apuDebugControllerProvider = ApuDebugControllerProvider._();
 final class ApuDebugControllerProvider
     extends
         $FunctionalProvider<
-          ApuDebugController?,
-          ApuDebugController?,
-          ApuDebugController?
+          Raw<ApuDebugController?>?,
+          Raw<ApuDebugController?>?,
+          Raw<ApuDebugController?>?
         >
-    with $Provider<ApuDebugController?> {
+    with $Provider<Raw<ApuDebugController?>?> {
   ApuDebugControllerProvider._()
     : super(
         from: null,
@@ -36,23 +36,23 @@ final class ApuDebugControllerProvider
 
   @$internal
   @override
-  $ProviderElement<ApuDebugController?> $createElement(
+  $ProviderElement<Raw<ApuDebugController?>?> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  ApuDebugController? create(Ref ref) {
+  Raw<ApuDebugController?>? create(Ref ref) {
     return apuDebugController(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ApuDebugController? value) {
+  Override overrideWithValue(Raw<ApuDebugController?>? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<ApuDebugController?>(value),
+      providerOverride: $SyncValueProvider<Raw<ApuDebugController?>?>(value),
     );
   }
 }
 
 String _$apuDebugControllerHash() =>
-    r'8eb520629e697a843f066f97d9d200b0bffedc03';
+    r'40d9f9231ad5ae1e7481b1b081f0dc40dae89d9a';

@@ -62,7 +62,7 @@ final class SoakRunnerProvider
         argument: null,
         retry: null,
         name: r'soakRunnerProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -89,4 +89,4 @@ final class SoakRunnerProvider
   }
 }
 
-String _$soakRunnerHash() => r'235340d990bfdb242bf80bfd3144cf1590be332e';
+String _$soakRunnerHash() => r'c9a4d7605cd1624751aaf51768928f8dc13ccde7';
