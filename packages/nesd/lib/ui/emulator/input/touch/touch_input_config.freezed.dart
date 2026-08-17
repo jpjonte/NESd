@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'touch_input_config.dart';
@@ -9,6 +9,7 @@ part of 'touch_input_config.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 TouchInputConfig _$TouchInputConfigFromJson(
@@ -254,7 +255,7 @@ return dPad(_that.x,_that.y,_that.bindingType,_that.upAction,_that.downAction,_t
 @JsonSerializable()
 
 class RectangleButtonConfig extends TouchInputConfig {
-  const RectangleButtonConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.action, this.width = 60, this.height = 60, this.label = '', final  String? $type}): $type = $type ?? 'rectangleButton',super._();
+  const RectangleButtonConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.action, this.width = 60, this.height = 60, this.label = '',  String? $type}): $type = $type ?? 'rectangleButton',super._();
   factory RectangleButtonConfig.fromJson(Map<String, dynamic> json) => _$RectangleButtonConfigFromJson(json);
 
 @override final  double x;
@@ -339,7 +340,7 @@ as String,
 @JsonSerializable()
 
 class CircleButtonConfig extends TouchInputConfig {
-  const CircleButtonConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.action, this.size = 75, this.label = '', final  String? $type}): $type = $type ?? 'circleButton',super._();
+  const CircleButtonConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.action, this.size = 75, this.label = '',  String? $type}): $type = $type ?? 'circleButton',super._();
   factory CircleButtonConfig.fromJson(Map<String, dynamic> json) => _$CircleButtonConfigFromJson(json);
 
 @override final  double x;
@@ -422,7 +423,7 @@ as String,
 @JsonSerializable()
 
 class JoyStickConfig extends TouchInputConfig {
-  const JoyStickConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.rightAction, this.size = 150, this.innerSize = 60, this.deadZone = 0.25, final  String? $type}): $type = $type ?? 'joyStick',super._();
+  const JoyStickConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.rightAction, this.size = 150, this.innerSize = 60, this.deadZone = 0.25,  String? $type}): $type = $type ?? 'joyStick',super._();
   factory JoyStickConfig.fromJson(Map<String, dynamic> json) => _$JoyStickConfigFromJson(json);
 
 @override final  double x;
@@ -513,7 +514,7 @@ as double,
 @JsonSerializable()
 
 class DPadConfig extends TouchInputConfig {
-  const DPadConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.rightAction, this.size = 150, this.deadZone = 0.25, final  String? $type}): $type = $type ?? 'dPad',super._();
+  const DPadConfig({required this.x, required this.y, this.bindingType = BindingType.hold, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.upAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.downAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.leftAction, @JsonKey(fromJson: InputAction.fromCode, toJson: InputAction.toJson) this.rightAction, this.size = 150, this.deadZone = 0.25,  String? $type}): $type = $type ?? 'dPad',super._();
   factory DPadConfig.fromJson(Map<String, dynamic> json) => _$DPadConfigFromJson(json);
 
 @override final  double x;

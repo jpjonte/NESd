@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'debug_overlay.dart';
@@ -9,6 +9,7 @@ part of 'debug_overlay.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$DebugOverlayStateCopyWithImpl<$Res>
 /// Create a copy of DebugOverlayState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? frameTime = null,Object? fps = null,Object? sleepTime = null,Object? frame = null,Object? rewindSize = null,Object? frameDelivery = null,Object? underruns = null,Object? fillMin = null,}) {
-  return _then(_self.copyWith(
+  return _then(DebugOverlayState(
 frameTime: null == frameTime ? _self.frameTime : frameTime // ignore: cast_nullable_to_non_nullable
 as double,fps: null == fps ? _self.fps : fps // ignore: cast_nullable_to_non_nullable
 as double,sleepTime: null == sleepTime ? _self.sleepTime : sleepTime // ignore: cast_nullable_to_non_nullable

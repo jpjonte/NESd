@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:file_picker/src/platform/file_picker_method_channel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -21,50 +21,73 @@ import 'package:nesd/ui/toast/toaster.dart';
 import '../mocks.dart';
 import '../robot.dart';
 
+base class FakePlatformFile extends PlatformFile {
+  FakePlatformFile({required this.name, required this.path, this.size = 0});
+
+  @override
+  final String name;
+
+  @override
+  final String path;
+
+  final int size;
+
+  @override
+  Future<int> length() async => size;
+
+  @override
+  Stream<Uint8List> readAsByteStream() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> readAsBytes() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Uri get uri => Uri.parse(path);
+
+  @override
+  XFile get xFile => throw UnimplementedError();
+}
+
 class FakeFilePickerPlatform extends FilePickerPlatform {
   FakeFilePickerPlatform(this.path);
 
   final String path;
 
   @override
-  Future<FilePickerResult?> pickFiles({
+  Future<PlatformFile?> pickFile({
     String? dialogTitle,
     String? initialDirectory,
     FileType type = FileType.any,
     List<String>? allowedExtensions,
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
-    bool allowMultiple = false,
-    bool withData = false,
-    bool withReadStream = false,
-    bool lockParentWindow = false,
-    bool readSequential = false,
-    bool cancelUploadOnWindowBlur = true,
-    Object? androidSafOptions,
+    AndroidOptions androidOptions = const AndroidOptions(),
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
   }) async {
-    return FilePickerResult([
-      PlatformFile(path: path, name: 'nestest.nes', size: 0),
-    ]);
+    return FakePlatformFile(path: path, name: 'nestest.nes');
   }
 }
 
 /// A file picker that reports the user cancelled the dialog.
 class CancellingFilePickerPlatform extends FilePickerPlatform {
   @override
-  Future<FilePickerResult?> pickFiles({
+  Future<PlatformFile?> pickFile({
     String? dialogTitle,
     String? initialDirectory,
     FileType type = FileType.any,
     List<String>? allowedExtensions,
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
-    bool allowMultiple = false,
-    bool withData = false,
-    bool withReadStream = false,
-    bool lockParentWindow = false,
-    bool readSequential = false,
-    bool cancelUploadOnWindowBlur = true,
-    Object? androidSafOptions,
+    AndroidOptions androidOptions = const AndroidOptions(),
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
   }) async {
     return null;
   }
