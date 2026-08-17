@@ -1,6 +1,5 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -39,8 +38,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
+    buildFeatures {
+        resValues = true
     }
 
     sourceSets {
@@ -56,7 +55,7 @@ android {
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
 
-        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
     }
 
     signingConfigs {
@@ -96,6 +95,12 @@ android {
     }
 
     namespace "dev.jpj.nesd"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
 }
 
 flutter {

@@ -2,16 +2,13 @@ group = "dev.jpj.nesd_texture"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "2.3.0"
-
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.13.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        classpath("com.android.tools.build:gradle:9.0.1")
     }
 }
 
@@ -23,7 +20,6 @@ allprojects {
 }
 
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
@@ -54,10 +50,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
-    }
-
     sourceSets {
         main.java.srcDirs += "src/main/kotlin"
         test.java.srcDirs += "src/test/kotlin"
@@ -70,7 +62,7 @@ android {
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
 
-        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
     }
 
     externalNativeBuild {
@@ -94,5 +86,11 @@ android {
                showStandardStreams = true
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
