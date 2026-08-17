@@ -5,7 +5,7 @@
 import FlutterMacOS
 import Foundation
 
-import file_picker
+import file_picker_darwin
 import gamepads_darwin
 import nesd_texture
 import package_info_plus

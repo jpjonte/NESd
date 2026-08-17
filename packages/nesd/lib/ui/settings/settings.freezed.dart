@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'settings.dart';
@@ -9,6 +9,7 @@ part of 'settings.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SettingsCopyWithImpl<$Res>
 /// Create a copy of Settings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? volume = null,Object? stretch = null,Object? showBorder = null,Object? showDebugOverlay = null,Object? openTools = null,Object? scaling = null,Object? autoSave = null,Object? autoSaveInterval = freezed,Object? autoLoad = null,Object? bindings = null,Object? bindingsVersion = null,Object? lastRomPath = freezed,Object? recentRomPaths = null,Object? recentRoms = null,Object? showTouchControls = null,Object? narrowTouchInputConfig = null,Object? wideTouchInputConfig = null,Object? breakpoints = null,Object? cheats = null,Object? region = freezed,Object? themeMode = null,Object? renderer = null,Object? rewind = null,Object? pixelAspectRatio = null,Object? customPixelAspectRatio = null,Object? videoFilter = null,Object? crtFilter = null,}) {
-  return _then(_self.copyWith(
+  return _then(Settings(
 volume: null == volume ? _self.volume : volume // ignore: cast_nullable_to_non_nullable
 as double,stretch: null == stretch ? _self.stretch : stretch // ignore: cast_nullable_to_non_nullable
 as bool,showBorder: null == showBorder ? _self.showBorder : showBorder // ignore: cast_nullable_to_non_nullable
@@ -238,7 +239,7 @@ return $default(_that.volume,_that.stretch,_that.showBorder,_that.showDebugOverl
 @JsonSerializable()
 
 class _Settings implements Settings {
-   _Settings({this.volume = 1.0, this.stretch = true, this.showBorder = false, this.showDebugOverlay = false, @JsonKey(fromJson: openToolsFromJson) final  Set<EmulatorTool> openTools = const <EmulatorTool>{}, this.scaling = Scaling.autoInteger, this.autoSave = true, this.autoSaveInterval = 1, this.autoLoad = false, @JsonKey(fromJson: bindingsFromJson) final  List<Binding> bindings = const [], this.bindingsVersion = 2, @JsonKey(fromJson: _lastRomPathFromJson) this.lastRomPath = null, final  List<String> recentRomPaths = const [], @JsonKey(fromJson: _recentRomsFromJson) final  List<RomInfo> recentRoms = const [], this.showTouchControls = false, @JsonKey(fromJson: narrowTouchInputConfigsFromJson) final  List<TouchInputConfig> narrowTouchInputConfig = const [], @JsonKey(fromJson: wideTouchInputConfigsFromJson) final  List<TouchInputConfig> wideTouchInputConfig = const [], final  Map<String, List<Breakpoint>> breakpoints = const {}, final  Map<String, List<Cheat>> cheats = const {}, this.region = null, this.themeMode = ThemeMode.system, this.renderer = RendererPreference.auto, this.rewind = true, this.pixelAspectRatio = PixelAspectRatio.auto, this.customPixelAspectRatio = 1.0, this.videoFilter = VideoFilter.none, @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson) this.crtFilter = const CrtFilterSettings()}): _openTools = openTools,_bindings = bindings,_recentRomPaths = recentRomPaths,_recentRoms = recentRoms,_narrowTouchInputConfig = narrowTouchInputConfig,_wideTouchInputConfig = wideTouchInputConfig,_breakpoints = breakpoints,_cheats = cheats;
+   _Settings({this.volume = 1.0, this.stretch = true, this.showBorder = false, this.showDebugOverlay = false, @JsonKey(fromJson: openToolsFromJson)  Set<EmulatorTool> openTools = const <EmulatorTool>{}, this.scaling = Scaling.autoInteger, this.autoSave = true, this.autoSaveInterval = 1, this.autoLoad = false, @JsonKey(fromJson: bindingsFromJson)  List<Binding> bindings = const [], this.bindingsVersion = 2, @JsonKey(fromJson: _lastRomPathFromJson) this.lastRomPath = null,  List<String> recentRomPaths = const [], @JsonKey(fromJson: _recentRomsFromJson)  List<RomInfo> recentRoms = const [], this.showTouchControls = false, @JsonKey(fromJson: narrowTouchInputConfigsFromJson)  List<TouchInputConfig> narrowTouchInputConfig = const [], @JsonKey(fromJson: wideTouchInputConfigsFromJson)  List<TouchInputConfig> wideTouchInputConfig = const [],  Map<String, List<Breakpoint>> breakpoints = const {},  Map<String, List<Cheat>> cheats = const {}, this.region = null, this.themeMode = ThemeMode.system, this.renderer = RendererPreference.auto, this.rewind = true, this.pixelAspectRatio = PixelAspectRatio.auto, this.customPixelAspectRatio = 1.0, this.videoFilter = VideoFilter.none, @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson) this.crtFilter = const CrtFilterSettings()}): _openTools = openTools,_bindings = bindings,_recentRomPaths = recentRomPaths,_recentRoms = recentRoms,_narrowTouchInputConfig = narrowTouchInputConfig,_wideTouchInputConfig = wideTouchInputConfig,_breakpoints = breakpoints,_cheats = cheats;
   factory _Settings.fromJson(Map<String, dynamic> json) => _$SettingsFromJson(json);
 
 @override@JsonKey() final  double volume;

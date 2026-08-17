@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'debugger_state.dart';
@@ -9,6 +9,7 @@ part of 'debugger_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$DebuggerStateCopyWithImpl<$Res>
 /// Create a copy of DebuggerState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? enabled = null,Object? disassembly = null,Object? PC = null,Object? A = null,Object? X = null,Object? Y = null,Object? SP = null,Object? P = null,Object? C = null,Object? Z = null,Object? I = null,Object? D = null,Object? B = null,Object? V = null,Object? N = null,Object? irq = null,Object? nmi = null,Object? stack = null,Object? breakpoints = null,Object? canStepOut = null,Object? scanline = null,Object? cycle = null,Object? v = null,Object? t = null,Object? x = null,Object? spriteOverflow = null,Object? sprite0Hit = null,Object? vBlank = null,Object? showStack = null,Object? selectedAddress = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DebuggerState(
 enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,disassembly: null == disassembly ? _self.disassembly : disassembly // ignore: cast_nullable_to_non_nullable
 as Disassembly,PC: null == PC ? _self.PC : PC // ignore: cast_nullable_to_non_nullable
@@ -229,7 +230,7 @@ return $default(_that.enabled,_that.disassembly,_that.PC,_that.A,_that.X,_that.Y
 
 
 class _DebuggerState implements DebuggerState {
-  const _DebuggerState({this.enabled = false, final  Disassembly disassembly = const [], this.PC = 0, this.A = 0, this.X = 0, this.Y = 0, this.SP = 0, this.P = 0, this.C = false, this.Z = false, this.I = false, this.D = false, this.B = false, this.V = false, this.N = false, this.irq = 0, this.nmi = false, final  List<int> stack = const [], final  List<Breakpoint> breakpoints = const [], this.canStepOut = false, this.scanline = 0, this.cycle = 0, this.v = 0, this.t = 0, this.x = 0, this.spriteOverflow = false, this.sprite0Hit = false, this.vBlank = false, this.showStack = false, this.selectedAddress = null}): _disassembly = disassembly,_stack = stack,_breakpoints = breakpoints;
+  const _DebuggerState({this.enabled = false,  Disassembly disassembly = const [], this.PC = 0, this.A = 0, this.X = 0, this.Y = 0, this.SP = 0, this.P = 0, this.C = false, this.Z = false, this.I = false, this.D = false, this.B = false, this.V = false, this.N = false, this.irq = 0, this.nmi = false,  List<int> stack = const [],  List<Breakpoint> breakpoints = const [], this.canStepOut = false, this.scanline = 0, this.cycle = 0, this.v = 0, this.t = 0, this.x = 0, this.spriteOverflow = false, this.sprite0Hit = false, this.vBlank = false, this.showStack = false, this.selectedAddress = null}): _disassembly = disassembly,_stack = stack,_breakpoints = breakpoints;
   
 
 @override@JsonKey() final  bool enabled;

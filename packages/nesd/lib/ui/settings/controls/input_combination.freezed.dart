@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'input_combination.dart';
@@ -9,6 +9,7 @@ part of 'input_combination.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 InputCombination _$InputCombinationFromJson(
@@ -194,7 +195,7 @@ return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);case _:
 @JsonSerializable()
 
 class KeyboardInputCombination extends InputCombination {
-  const KeyboardInputCombination(@JsonKey(fromJson: keysFromJson, toJson: keysToJson) final  Set<LogicalKeyboardKey> keys, {final  String? $type}): _keys = keys,$type = $type ?? 'keyboard',super._();
+  const KeyboardInputCombination(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys, { String? $type}): _keys = keys,$type = $type ?? 'keyboard',super._();
   factory KeyboardInputCombination.fromJson(Map<String, dynamic> json) => _$KeyboardInputCombinationFromJson(json);
 
  final  Set<LogicalKeyboardKey> _keys;
@@ -273,7 +274,7 @@ as Set<LogicalKeyboardKey>,
 @JsonSerializable()
 
 class GamepadInputCombination extends InputCombination {
-  const GamepadInputCombination({required this.gamepadId, required final  Set<GamepadInput> inputs, this.gamepadName = 'Unknown', final  String? $type}): _inputs = inputs,$type = $type ?? 'gamepad',super._();
+  const GamepadInputCombination({required this.gamepadId, required  Set<GamepadInput> inputs, this.gamepadName = 'Unknown',  String? $type}): _inputs = inputs,$type = $type ?? 'gamepad',super._();
   factory GamepadInputCombination.fromJson(Map<String, dynamic> json) => _$GamepadInputCombinationFromJson(json);
 
  final  String gamepadId;
