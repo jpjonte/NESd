@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
                        DESC
   s.homepage         = 'https://github.com/jpjonte/NESd'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'jpjonte' => 'john@make-better.de' }
+  s.author           = { 'jpjonte' => 'nesd@jpj.dev' }
 
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'

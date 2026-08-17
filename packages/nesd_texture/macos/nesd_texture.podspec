@@ -5,26 +5,22 @@
 Pod::Spec.new do |s|
   s.name             = 'nesd_texture'
   s.version          = '0.0.1'
-  s.summary          = 'A new Flutter plugin project.'
+  s.summary          = "NESd's GPU frame presentation plugin"
   s.description      = <<-DESC
-A new Flutter plugin project.
+  Registers a platform texture that the emulator renders PPU frames into,
+  so frames reach the GPU without a per-frame bitmap copy.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/jpjonte/NESd'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'jpjonte' => 'nesd@jpj.dev' }
 
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
-
-  # If your plugin requires a privacy manifest, for example if it collects user
-  # data, update the PrivacyInfo.xcprivacy file to describe your plugin's
-  # privacy impact, and then uncomment this line. For more information,
-  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'nesd_texture_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  s.source_files = 'nesd_texture/Sources/nesd_texture/**/*.swift'
+  s.resource_bundles = {'nesd_texture_privacy' => ['nesd_texture/Sources/nesd_texture/Resources/PrivacyInfo.xcprivacy']}
 
   s.dependency 'FlutterMacOS'
 
-  s.platform = :osx, '10.11'
+  s.platform = :osx, '10.15'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
 end

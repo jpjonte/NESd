@@ -1,5 +1,5 @@
 name: nesd_texture
-description: "A new Flutter plugin project."
+description: NESd's GPU texture plugin for presenting PPU frames.
 version: 0.0.1
 
 environment:

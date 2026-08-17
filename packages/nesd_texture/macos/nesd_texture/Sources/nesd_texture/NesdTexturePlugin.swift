@@ -6,6 +6,7 @@ private enum NesdTextureError: Error {
   case pixelBufferCreation
   case pixelBufferLock
   case invalidDimensions
+  case pixelBufferTooSmall
 }
 
 private final class NesdPixelBufferTexture: NSObject, FlutterTexture {
@@ -22,8 +23,32 @@ private final class NesdPixelBufferTexture: NSObject, FlutterTexture {
   }
 
   func update(width: Int, height: Int, pixels: Data) throws {
+    try pixels.withUnsafeBytes { rawBuffer in
+      guard let source = rawBuffer.bindMemory(to: UInt8.self).baseAddress else {
+        throw NesdTextureError.pixelBufferLock
+      }
+
+      try update(
+        width: width,
+        height: height,
+        source: source,
+        length: rawBuffer.count
+      )
+    }
+  }
+
+  func update(
+    width: Int,
+    height: Int,
+    source: UnsafePointer<UInt8>,
+    length: Int
+  ) throws {
     guard width == self.width, height == self.height else {
       throw NesdTextureError.invalidDimensions
+    }
+
+    guard length >= width * height * 4 else {
+      throw NesdTextureError.pixelBufferTooSmall
     }
 
     try syncQueue.sync {
@@ -55,28 +80,24 @@ private final class NesdPixelBufferTexture: NSObject, FlutterTexture {
       }
 
       let destination = baseAddress.assumingMemoryBound(to: UInt8.self)
+      let pixelCount = width * height
 
-      pixels.withUnsafeBytes { srcRawBuffer in
-        let source = srcRawBuffer.bindMemory(to: UInt8.self).baseAddress!
-        let pixelCount = width * height
+      var srcIndex = 0
+      var dstIndex = 0
 
-        var srcIndex = 0
-        var dstIndex = 0
+      for _ in 0..<pixelCount {
+        let r = source[srcIndex + 0]
+        let g = source[srcIndex + 1]
+        let b = source[srcIndex + 2]
+        let a = source[srcIndex + 3]
 
-        for _ in 0..<pixelCount {
-          let r = source[srcIndex + 0]
-          let g = source[srcIndex + 1]
-          let b = source[srcIndex + 2]
-          let a = source[srcIndex + 3]
+        destination[dstIndex + 0] = b
+        destination[dstIndex + 1] = g
+        destination[dstIndex + 2] = r
+        destination[dstIndex + 3] = a
 
-          destination[dstIndex + 0] = b
-          destination[dstIndex + 1] = g
-          destination[dstIndex + 2] = r
-          destination[dstIndex + 3] = a
-
-          srcIndex += 4
-          dstIndex += 4
-        }
+        srcIndex += 4
+        dstIndex += 4
       }
 
       pixelBuffer = buffer
@@ -185,18 +206,51 @@ public class NesdTexturePlugin: NSObject, FlutterPlugin {
       let textureId = args["textureId"] as? Int,
       let width = args["width"] as? Int,
       let height = args["height"] as? Int,
-      let pixels = args["pixels"] as? FlutterStandardTypedData,
       let texture = managedTextures[Int64(textureId)]
     else {
       result(FlutterError(code: "invalid-argument",
-                          message: "updateTexture expects textureId, width, height, pixels",
+                          message: "updateTexture expects textureId, width, height",
+                          details: nil))
+      return
+    }
+
+    let pixels = args["pixels"] as? FlutterStandardTypedData
+    let pixelPointer = args["pixelPointer"] as? Int
+    let length = (args["length"] as? Int) ?? pixels?.data.count
+
+    guard let length else {
+      result(FlutterError(code: "invalid-argument",
+                          message: "updateTexture missing length",
+                          details: nil))
+      return
+    }
+
+    let source: UnsafePointer<UInt8>?
+
+    if let pixelPointer, pixelPointer != 0 {
+      source = UnsafePointer<UInt8>(bitPattern: UInt(bitPattern: pixelPointer))
+    } else {
+      source = nil
+    }
+
+    guard source != nil || pixels != nil else {
+      result(FlutterError(code: "invalid-argument",
+                          message: "updateTexture missing pixels",
                           details: nil))
       return
     }
 
     responseQueue.async { [weak self] in
       do {
-        try texture.update(width: width, height: height, pixels: pixels.data)
+        if let source {
+          try texture.update(width: width,
+                             height: height,
+                             source: source,
+                             length: length)
+        } else if let pixels {
+          try texture.update(width: width, height: height, pixels: pixels.data)
+        }
+
         DispatchQueue.main.async {
           self?.textures.textureFrameAvailable(Int64(textureId))
           result(nil)
