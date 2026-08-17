@@ -93,7 +93,7 @@ abstract class _$BinderStateNotifier extends $Notifier<BinderState> {
   BinderState build(InputAction action);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<BinderState, BinderState>;
     final element =
         ref.element
@@ -103,6 +103,6 @@ abstract class _$BinderStateNotifier extends $Notifier<BinderState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

@@ -8,27 +8,12 @@ part of 'emulator_tools_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Which debug tools are currently open.
-///
-/// A facade over [SettingsController]: the open set lives in the settings
-/// so it persists, and this is the single seam every host — docked,
-/// compact, and the windowed one in #244 — talks to.
 
 @ProviderFor(EmulatorToolsController)
 final emulatorToolsControllerProvider = EmulatorToolsControllerProvider._();
 
-/// Which debug tools are currently open.
-///
-/// A facade over [SettingsController]: the open set lives in the settings
-/// so it persists, and this is the single seam every host — docked,
-/// compact, and the windowed one in #244 — talks to.
 final class EmulatorToolsControllerProvider
     extends $NotifierProvider<EmulatorToolsController, Set<EmulatorTool>> {
-  /// Which debug tools are currently open.
-  ///
-  /// A facade over [SettingsController]: the open set lives in the settings
-  /// so it persists, and this is the single seam every host — docked,
-  /// compact, and the windowed one in #244 — talks to.
   EmulatorToolsControllerProvider._()
     : super(
         from: null,
@@ -59,17 +44,11 @@ final class EmulatorToolsControllerProvider
 String _$emulatorToolsControllerHash() =>
     r'9aac0a4aba81347a8d179762adfd9b0358816fea';
 
-/// Which debug tools are currently open.
-///
-/// A facade over [SettingsController]: the open set lives in the settings
-/// so it persists, and this is the single seam every host — docked,
-/// compact, and the windowed one in #244 — talks to.
-
 abstract class _$EmulatorToolsController extends $Notifier<Set<EmulatorTool>> {
   Set<EmulatorTool> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Set<EmulatorTool>, Set<EmulatorTool>>;
     final element =
         ref.element
@@ -79,6 +58,6 @@ abstract class _$EmulatorToolsController extends $Notifier<Set<EmulatorTool>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

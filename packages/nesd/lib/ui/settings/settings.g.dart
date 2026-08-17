@@ -211,7 +211,7 @@ abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Settings, Settings>;
     final element =
         ref.element
@@ -221,6 +221,6 @@ abstract class _$SettingsController extends $Notifier<Settings> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

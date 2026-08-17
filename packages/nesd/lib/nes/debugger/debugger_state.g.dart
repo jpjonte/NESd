@@ -48,7 +48,7 @@ abstract class _$DebuggerStateNotifier extends $Notifier<DebuggerState> {
   DebuggerState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<DebuggerState, DebuggerState>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$DebuggerStateNotifier extends $Notifier<DebuggerState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

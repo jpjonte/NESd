@@ -8,20 +8,9 @@ part of 'apu_debug_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Drives [ApuDebugController] off the shared [nesStateProvider], mirroring
-/// `debugger` (see `lib/nes/debugger/debugger.dart`): Riverpod runs the old
-/// provider state's `ref.onDispose` callbacks before the rebuilt provider
-/// body runs, so swapping ROMs on a reused worker isolate always disables
-/// the old controller before enabling the new one.
 
 @ProviderFor(apuDebugController)
 final apuDebugControllerProvider = ApuDebugControllerProvider._();
-
-/// Drives [ApuDebugController] off the shared [nesStateProvider], mirroring
-/// `debugger` (see `lib/nes/debugger/debugger.dart`): Riverpod runs the old
-/// provider state's `ref.onDispose` callbacks before the rebuilt provider
-/// body runs, so swapping ROMs on a reused worker isolate always disables
-/// the old controller before enabling the new one.
 
 final class ApuDebugControllerProvider
     extends
@@ -31,11 +20,6 @@ final class ApuDebugControllerProvider
           ApuDebugController?
         >
     with $Provider<ApuDebugController?> {
-  /// Drives [ApuDebugController] off the shared [nesStateProvider], mirroring
-  /// `debugger` (see `lib/nes/debugger/debugger.dart`): Riverpod runs the old
-  /// provider state's `ref.onDispose` callbacks before the rebuilt provider
-  /// body runs, so swapping ROMs on a reused worker isolate always disables
-  /// the old controller before enabling the new one.
   ApuDebugControllerProvider._()
     : super(
         from: null,
