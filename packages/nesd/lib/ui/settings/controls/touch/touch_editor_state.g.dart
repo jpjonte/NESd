@@ -48,7 +48,7 @@ abstract class _$TouchEditorStateNotifier extends $Notifier<TouchEditorState> {
   TouchEditorState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TouchEditorState, TouchEditorState>;
     final element =
         ref.element
@@ -58,7 +58,7 @@ abstract class _$TouchEditorStateNotifier extends $Notifier<TouchEditorState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -101,7 +101,7 @@ abstract class _$TouchEditorMoveIndex extends $Notifier<int?> {
   int? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int?, int?>;
     final element =
         ref.element
@@ -111,6 +111,6 @@ abstract class _$TouchEditorMoveIndex extends $Notifier<int?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

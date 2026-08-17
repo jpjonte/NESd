@@ -49,7 +49,7 @@ abstract class _$DebugOverlayStateNotifier
   DebugOverlayState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<DebugOverlayState, DebugOverlayState>;
     final element =
         ref.element
@@ -59,7 +59,7 @@ abstract class _$DebugOverlayStateNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

@@ -96,7 +96,7 @@ abstract class _$VideoFilterRegistry extends $Notifier<VideoFilterShaderState> {
   VideoFilterShaderState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<VideoFilterShaderState, VideoFilterShaderState>;
     final element =
@@ -107,7 +107,7 @@ abstract class _$VideoFilterRegistry extends $Notifier<VideoFilterShaderState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

@@ -48,7 +48,7 @@ abstract class _$FilePickerStateNotifier extends $Notifier<FilePickerState> {
   FilePickerState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<FilePickerState, FilePickerState>;
     final element =
         ref.element
@@ -58,7 +58,7 @@ abstract class _$FilePickerStateNotifier extends $Notifier<FilePickerState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

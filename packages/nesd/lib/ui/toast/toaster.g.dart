@@ -82,13 +82,13 @@ final class ToastStateProvider
   }
 }
 
-String _$toastStateHash() => r'88d1781167cc6aeef3d9c286fba818397aed6103';
+String _$toastStateHash() => r'fb141503ab6dac2560add77d79e5a3edd1c36895';
 
 abstract class _$ToastState extends $Notifier<List<Toast>> {
   List<Toast> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<List<Toast>, List<Toast>>;
     final element =
         ref.element
@@ -98,6 +98,6 @@ abstract class _$ToastState extends $Notifier<List<Toast>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
