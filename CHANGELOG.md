@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Debug tools are now opened from the in-game menu under "Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
 - The execution log now shares the debug tool column instead of taking a column of its own
 - Gamepad input now uses the upstream gamepads plugin with normalized button and axis names on all platforms. Saved gamepad bindings are translated automatically where possible
+- Upgraded to Flutter 3.47 and Dart 3.13. The minimum supported macOS version is now 12.0 (Monterey)
 
 ### Fixed
 - Fixed control binders on touch screens deactivating right after being tapped, making it impossible to assign a binding by touch
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed opening a debug tool in a narrow window squeezing the game display down to nothing
 - Fixed the debug tools overlapping each other when several are open at once
 - Fixed the arm64 deb and flatpak missing from release pages because the x64 files overwrote them
+- Fixed rewind on macOS being unavailable on Intel Macs and on macOS older than 26.4, because the bundled LZ4 library was built only for Apple Silicon. It is now a universal binary that runs on macOS 12.0 and later
 
 ## [0.16.0] - 2026-08-07
 
