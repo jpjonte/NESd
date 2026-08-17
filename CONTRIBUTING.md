@@ -44,7 +44,7 @@ Save states live in `nes/serialization/` (binarize), rewind in `nes/rewind/`.
 Settings use Freezed/json_serializable. Rerun codegen after editing them:
 
 ```bash
-pushd packages/nesd && fvm dart run build_runner build -d && popd
+pushd packages/nesd && fvm dart run build_runner build && popd
 ```
 
 ## Code style
