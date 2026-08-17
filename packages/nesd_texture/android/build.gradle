@@ -2,7 +2,7 @@ group = "dev.jpj.nesd_texture"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "2.3.0"
+    ext.kotlin_version = "2.3.20"
 
     repositories {
         google()
@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.13.2")
+        classpath("com.android.tools.build:gradle:9.0.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
@@ -70,7 +70,7 @@ android {
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
 
-        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
     }
 
     externalNativeBuild {
