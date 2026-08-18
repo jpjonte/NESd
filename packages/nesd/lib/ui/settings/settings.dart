@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/region.dart';
@@ -94,6 +95,7 @@ sealed class Settings with _$Settings {
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
     @Default(false) bool showDebugOverlay,
+    @Default(LogLevel.info) LogLevel logLevel,
     @JsonKey(fromJson: openToolsFromJson)
     @Default(<EmulatorTool>{})
     Set<EmulatorTool> openTools,
@@ -143,7 +145,11 @@ class SettingsController extends _$SettingsController {
   Settings build() {
     _prefs = ref.watch(sharedPreferencesProvider);
 
-    return state = _load();
+    final settings = _load();
+
+    NesdLog.instance.minimumLevel = settings.logLevel;
+
+    return state = settings;
   }
 
   late SharedPreferences _prefs;
@@ -170,6 +176,14 @@ class SettingsController extends _$SettingsController {
 
   set showDebugOverlay(bool showDebugOverlay) {
     _update(state.copyWith(showDebugOverlay: showDebugOverlay));
+  }
+
+  LogLevel get logLevel => state.logLevel;
+
+  set logLevel(LogLevel logLevel) {
+    NesdLog.instance.minimumLevel = logLevel;
+
+    _update(state.copyWith(logLevel: logLevel));
   }
 
   Set<EmulatorTool> get openTools => state.openTools;

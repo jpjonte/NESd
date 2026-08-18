@@ -114,6 +114,13 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(rewindSubscription.close);
 
+  final logLevelSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.logLevel),
+    (_, level) => controller._isolate?.send(SetLogLevelCommand(level: level)),
+  );
+
+  ref.onDispose(logLevelSubscription.close);
+
   final routeSubscription = ref.listen(
     emulatorActiveProvider,
     (_, active) => controller.emulatorActive = active,
@@ -455,6 +462,8 @@ class NesController {
     _isolate = isolate;
 
     _eventSubscription = isolate.events.listen(_handleIsolateEvent);
+
+    isolate.send(SetLogLevelCommand(level: settingsController.logLevel));
 
     return isolate;
   }

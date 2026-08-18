@@ -57,6 +57,7 @@ class _Harness {
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);
+    when(() => settings.logLevel).thenReturn(LogLevel.info);
 
     final romManager = _MockRomManager();
 
