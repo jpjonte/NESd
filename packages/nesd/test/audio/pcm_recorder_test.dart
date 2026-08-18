@@ -1,9 +1,19 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
+
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
+}
 
 void main() {
   late Directory dir;
@@ -55,23 +65,22 @@ void main() {
       ..add(Float32List.fromList([1.0, 2.0]))
       ..close();
 
-    final logged = <String>[];
+    final logged = <LogRecord>[];
 
-    runZoned(
-      () {
-        // The file handle is closed: the next chunk flush fails
-        // internally. Neither add() may throw.
-        recorder
-          ..add(Float32List.fromList([3.0, 4.0]))
-          ..add(Float32List.fromList([5.0, 6.0]));
-      },
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) => logged.add(line),
-      ),
-    );
+    NesdLog.install(NesdLog(sinks: [_RecordingSink(logged)]));
+
+    addTearDown(() async {
+      await NesdLog.instance.close();
+
+      NesdLog.install(NesdLog());
+    });
+
+    recorder
+      ..add(Float32List.fromList([3.0, 4.0]))
+      ..add(Float32List.fromList([5.0, 6.0]));
 
     expect(logged, hasLength(1));
-    expect(logged.single, startsWith('NESD_PCM_ERROR'));
+    expect(logged.single.message, startsWith('NESD_PCM_ERROR'));
 
     // Only the pre-close chunk made it to disk; the recorder is dead.
     expect(File(path).lengthSync(), 8);

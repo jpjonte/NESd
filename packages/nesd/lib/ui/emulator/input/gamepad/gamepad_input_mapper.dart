@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -147,7 +148,7 @@ class GamepadInputMapper {
     try {
       _names.addAll(await _namesLookup());
     } on Exception catch (e) {
-      debugPrint('Failed to look up gamepad names: $e');
+      log.input.warning('Failed to look up gamepad names', error: e);
     } finally {
       _refreshingNames = false;
     }

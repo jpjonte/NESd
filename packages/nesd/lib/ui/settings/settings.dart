@@ -480,7 +480,7 @@ class SettingsController extends _$SettingsController {
   }
 
   void _reportSaveFailure(Object reason) {
-    debugPrint('Failed to save settings: $reason');
+    log.settings.error('Failed to save settings', error: reason);
 
     ref
         .read(toasterProvider)

@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -9,13 +10,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockSharedPreferences extends Mock implements SharedPreferences {}
 
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _MockSharedPreferences prefs;
   late ProviderContainer container;
   late SettingsController controller;
-  late List<String> printed;
+  late List<LogRecord> logged;
 
   setUp(() {
     prefs = _MockSharedPreferences();
@@ -31,13 +41,17 @@ void main() {
 
     controller = container.read(settingsControllerProvider.notifier);
 
-    printed = [];
+    logged = [];
 
-    final originalDebugPrint = debugPrint;
+    NesdLog.install(
+      NesdLog(sinks: [_RecordingSink(logged)], minimumLevel: LogLevel.debug),
+    );
 
-    debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+    addTearDown(() async {
+      await NesdLog.instance.close();
 
-    addTearDown(() => debugPrint = originalDebugPrint);
+      NesdLog.install(NesdLog());
+    });
   });
 
   tearDown(() => container.dispose());
@@ -76,6 +90,8 @@ void main() {
     expect(toasts.single.type, ToastType.warning);
     expect(toasts.single.message, contains('Failed to save settings'));
 
-    expect(printed.join('\n'), contains('disk full'));
+    expect(logged, hasLength(1));
+    expect(logged.single.message, 'Failed to save settings');
+    expect(logged.single.error, contains('disk full'));
   });
 }

@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart' hide reset;
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -22,12 +23,21 @@ class _MockSettingsController extends Mock implements SettingsController {}
 class _MockEmulatorToolsController extends Mock
     implements EmulatorToolsController {}
 
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ActionHandler handler;
   late _MockEmulatorToolsController toolsController;
-  late List<String> logs;
+  late List<LogRecord> logged;
 
   setUp(() {
     toolsController = _MockEmulatorToolsController();
@@ -42,15 +52,18 @@ void main() {
       actionStream: const Stream.empty(),
     );
 
-    logs = [];
+    logged = [];
 
-    final original = debugPrint;
+    NesdLog.install(
+      NesdLog(sinks: [_RecordingSink(logged)], minimumLevel: LogLevel.debug),
+    );
 
-    debugPrint = (message, {wrapWidth}) => logs.add(message ?? '');
-
-    addTearDown(() {
-      debugPrint = original;
+    addTearDown(() async {
       handler.dispose();
+
+      await NesdLog.instance.close();
+
+      NesdLog.install(NesdLog());
     });
   });
 
@@ -65,10 +78,10 @@ void main() {
     // `_inGame`.
     handler.handleAction(press(controller1A));
 
-    expect(logs, hasLength(1));
-    expect(logs.single, contains('dropped in-game action'));
-    expect(logs.single, contains('controller1.a'));
-    expect(logs.single, contains('not the active screen'));
+    expect(logged, hasLength(1));
+    expect(logged.single.message, contains('dropped in-game action'));
+    expect(logged.single.message, contains('controller1.a'));
+    expect(logged.single.message, contains('not the active screen'));
   });
 
   test('logs every in-game action type dropped outside the emulator', () {
@@ -76,7 +89,7 @@ void main() {
       handler.handleAction(press(action));
     }
 
-    expect(logs, hasLength(4));
+    expect(logged, hasLength(4));
   });
 
   test('a tool bound as a toggle-type binding still toggles, once per '
@@ -99,6 +112,6 @@ void main() {
       );
 
     verify(() => toolsController.toggle(EmulatorTool.debugger)).called(1);
-    expect(logs, isEmpty);
+    expect(logged, isEmpty);
   });
 }

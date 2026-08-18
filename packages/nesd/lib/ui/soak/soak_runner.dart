@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart' hide Router;
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/soak/soak_stats.dart';
@@ -150,15 +151,13 @@ class SoakRunner {
       samples: _samples,
     );
 
-    // ignore: avoid_print - logcat is the transport for soak results
-    print(summary.logLine);
+    log.telemetry.emit(summary.logLine);
 
     exitApp(0);
   }
 
   void _fail(String message) {
-    // ignore: avoid_print - logcat is the transport for soak results
-    print('NESD_SOAK_FAILED $message');
+    log.telemetry.emit('NESD_SOAK_FAILED $message');
 
     exitApp(1);
   }
