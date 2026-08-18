@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
@@ -180,6 +181,8 @@ class NesWorker {
         _nes?.bus.zapperPull();
       case ZapperReleaseCommand():
         _nes?.bus.zapperRelease();
+      case SetLogLevelCommand():
+        NesdLog.instance.minimumLevel = command.level;
     }
   }
 
@@ -446,14 +449,15 @@ class NesWorker {
 
     send(event);
 
-    // ignore: avoid_print - logcat is the transport for audio stats
-    print(event.logLine);
+    log.telemetry.emit(event.logLine);
   }
 
   void _startPcmDump(String path) {
     final audio = _audioOutput;
 
     if (audio == null) {
+      log.audio.error('PCM dump requires a loaded ROM');
+
       send(const ErrorEvent(message: 'PCM dump requires a loaded ROM'));
 
       return;

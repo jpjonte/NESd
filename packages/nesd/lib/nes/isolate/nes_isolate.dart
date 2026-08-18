@@ -3,6 +3,9 @@ import 'dart:isolate';
 
 import 'package:es_compression/lz4.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/sink/isolate_sink.dart';
+import 'package:nesd/log/sink/telemetry_sink.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_config.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -20,6 +23,17 @@ void nesIsolateMain(NesIsolateConfig config) {
   if (config.audioLibraryPath case final path?) {
     NesdAudio.libraryPath = path;
   }
+
+  NesdLog.install(
+    NesdLog(
+      isolate: 'emulator',
+      minimumLevel: config.logLevel,
+      sinks: [
+        IsolateSink(send: config.hostPort.send),
+        TelemetrySink(),
+      ],
+    ),
+  );
 
   final commandPort = ReceivePort();
   final worker = NesWorker(
@@ -42,6 +56,12 @@ void nesIsolateMain(NesIsolateConfig config) {
       try {
         await worker.handleCommand(command);
       } on Object catch (error, stackTrace) {
+        log.emulator.error(
+          'Command failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+
         config.hostPort.send(ErrorEvent.from(error, stackTrace));
       }
     });
@@ -92,6 +112,7 @@ class NesIsolate implements NesIsolateHandle {
     String? lz4LibraryPath,
     String? audioLibraryPath,
     bool disableAudio = false,
+    LogLevel logLevel = LogLevel.info,
   }) async {
     final receivePort = ReceivePort();
     final errorPort = ReceivePort();
@@ -120,6 +141,7 @@ class NesIsolate implements NesIsolateHandle {
         lz4LibraryPath: lz4LibraryPath,
         audioLibraryPath: audioLibraryPath,
         disableAudio: disableAudio,
+        logLevel: logLevel,
       ),
       errorsAreFatal: false,
       onError: errorPort.sendPort,

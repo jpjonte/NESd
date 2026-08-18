@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -462,6 +463,8 @@ class NesController {
     switch (event) {
       case ErrorEvent(:final message):
         toaster.send(Toast.error(message));
+      case LogEvent(:final record):
+        NesdLog.instance.ingest(record);
       case BreakpointsEvent(:final fileHash, :final breakpoints):
         settingsController.setBreakpoints(fileHash, breakpoints);
       default:

@@ -1,6 +1,7 @@
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
+import 'package:nesd/log/log_record.dart';
 import 'package:nesd/nes/apu/apu_channel_samples.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
@@ -339,4 +340,10 @@ class TileDebugResponse extends NesIsolateEvent {
 
 class StoppedEvent extends NesIsolateEvent {
   const StoppedEvent();
+}
+
+class LogEvent extends NesIsolateEvent {
+  const LogEvent({required this.record});
+
+  final LogRecord record;
 }
