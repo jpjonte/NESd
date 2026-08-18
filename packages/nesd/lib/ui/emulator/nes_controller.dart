@@ -471,6 +471,8 @@ class NesController {
   void _handleIsolateEvent(NesIsolateEvent event) {
     switch (event) {
       case ErrorEvent(:final message):
+        log.emulator.error(message);
+
         toaster.send(Toast.error(message));
       case LogEvent(:final record):
         NesdLog.instance.ingest(record);

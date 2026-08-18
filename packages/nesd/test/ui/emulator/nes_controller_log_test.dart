@@ -118,12 +118,12 @@ void main() {
   test(
     'a forwarded LogEvent is ingested, not re-emitted to origin-only sinks',
     () async {
+      final harness = await _Harness.load();
+
       final originOnly = _SpySink(emitsAtOriginOnly: true);
       final ordinary = _SpySink();
 
       NesdLog.install(NesdLog(sinks: [originOnly, ordinary]));
-
-      final harness = await _Harness.load();
 
       final record = LogRecord(
         time: DateTime.now(),
@@ -138,13 +138,13 @@ void main() {
       await pumpEventQueue();
 
       expect(
-        originOnly.received,
+        originOnly.received.where((r) => identical(r, record)),
         isEmpty,
         reason:
             'ingest() must skip sinks flagged emitsAtOriginOnly, or '
             'telemetry lines would be double-emitted host-side',
       );
-      expect(ordinary.received, [record]);
+      expect(ordinary.received, contains(record));
     },
   );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:nesd/exception/file_not_found.dart';
 import 'package:nesd/exception/filesystem_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
@@ -24,6 +25,8 @@ class AndroidFilesystem extends Filesystem {
         type: FilesystemFileType.directory,
       );
     } on PlatformException catch (e, s) {
+      log.storage.warning('chooseDirectory failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -37,6 +40,8 @@ class AndroidFilesystem extends Filesystem {
 
       return result ?? false;
     } on PlatformException catch (e, s) {
+      log.storage.warning('exists failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -50,6 +55,8 @@ class AndroidFilesystem extends Filesystem {
 
       return result ?? false;
     } on PlatformException catch (e, s) {
+      log.storage.warning('isDirectory failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -63,6 +70,8 @@ class AndroidFilesystem extends Filesystem {
 
       return result ?? false;
     } on PlatformException catch (e, s) {
+      log.storage.warning('isFile failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -84,6 +93,8 @@ class AndroidFilesystem extends Filesystem {
 
       return files;
     } on PlatformException catch (e, s) {
+      log.storage.warning('list failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -101,6 +112,8 @@ class AndroidFilesystem extends Filesystem {
 
       return result;
     } on PlatformException catch (e, s) {
+      log.storage.warning('read failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -114,6 +127,8 @@ class AndroidFilesystem extends Filesystem {
 
       return result ?? false;
     } on PlatformException catch (e, s) {
+      log.storage.warning('hasPermission failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }
@@ -129,6 +144,8 @@ class AndroidFilesystem extends Filesystem {
 
       return FilesystemFile.fromJson(parent.cast<String, Object?>());
     } on PlatformException catch (e, s) {
+      log.storage.warning('parent failed', error: e, stackTrace: s);
+
       Error.throwWithStackTrace(FilesystemException(previous: e), s);
     }
   }

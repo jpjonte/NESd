@@ -178,6 +178,8 @@ class NesWorker {
             ? null
             : Offset(command.x!, command.y!);
       case ZapperPullCommand():
+        log.input.info('Zapper trigger pulled');
+
         _nes?.bus.zapperPull();
       case ZapperReleaseCommand():
         _nes?.bus.zapperRelease();
@@ -257,12 +259,31 @@ class NesWorker {
 
       unawaited(nes.run());
 
+      log.rom.info(
+        'ROM loaded',
+        context: {
+          'name': command.file.name,
+          'mapper': cartridge.mapper.id,
+          'prgRom': cartridge.prgRom.length,
+          'chrRom': cartridge.chrRom.length,
+          'region': nes.region.name,
+          'zapper': command.databaseEntry?.hasZapper ?? false,
+        },
+      );
+
       send(
         RomLoadedEvent(hasZapper: command.databaseEntry?.hasZapper ?? false),
       );
 
       _sendStatus();
-    } on Object catch (e) {
+    } on Object catch (e, s) {
+      log.rom.error(
+        'ROM load failed',
+        context: {'name': command.file.name},
+        error: e,
+        stackTrace: s,
+      );
+
       send(RomLoadFailedEvent(message: e.toString()));
     }
   }
@@ -469,6 +490,8 @@ class NesWorker {
     try {
       audio.pcmRecorder = PcmRecorder(path: path);
     } on FileSystemException catch (e) {
+      log.audio.error('PCM dump failed to open', error: e);
+
       send(ErrorEvent(message: 'PCM dump failed to open: $e'));
     }
   }
@@ -499,6 +522,8 @@ class NesWorker {
     try {
       nes.state = NESState.fromBytes(state.materialize().asUint8List());
     } on Object catch (e) {
+      log.emulator.error('Failed to load state', error: e);
+
       send(ErrorEvent(message: 'Failed to load state: $e'));
     }
   }
@@ -513,6 +538,8 @@ class NesWorker {
     try {
       nes.load(sram.materialize().asUint8List());
     } on Object catch (e) {
+      log.emulator.error('Failed to load SRAM', error: e);
+
       send(ErrorEvent(message: 'Failed to load SRAM: $e'));
     }
   }

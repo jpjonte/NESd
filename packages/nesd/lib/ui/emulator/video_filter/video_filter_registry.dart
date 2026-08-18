@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod/riverpod.dart';
@@ -99,7 +100,9 @@ class VideoFilterRegistry extends _$VideoFilterRegistry {
       }
 
       state = state.withShader(filter, program.fragmentShader());
-    } on Object {
+    } on Object catch (e, s) {
+      log.video.warning('Failed to load video filter', error: e, stackTrace: s);
+
       if (!ref.mounted) {
         return;
       }
