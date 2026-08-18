@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -45,5 +46,24 @@ void main() {
     await robot.settingsScreen.tapDebugTab();
 
     robot.settingsScreen.debug.expectLogLevelDropdownFound();
+  });
+
+  testWidgets('the log level tile fits a narrow layout', (tester) async {
+    final robot = Robot(tester);
+
+    await robot.pumpApp();
+
+    tester.view.physicalSize =
+        const Size(400, 800) * tester.view.devicePixelRatio;
+
+    addTearDown(tester.view.resetPhysicalSize);
+
+    robot.container.read(routerProvider).navigate(const SettingsRoute());
+
+    await tester.pumpAndSettle();
+
+    await robot.settingsScreen.tapDebugTab();
+
+    expect(tester.takeException(), isNull);
   });
 }

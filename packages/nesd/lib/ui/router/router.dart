@@ -7,6 +7,7 @@ import 'package:nesd/ui/emulator/emulator_screen.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/log/log_screen.dart';
 import 'package:nesd/ui/main_menu/main_screen.dart';
 import 'package:nesd/ui/menu/menu_screen.dart';
 import 'package:nesd/ui/menu/tools_screen.dart';
@@ -42,6 +43,7 @@ class Router extends RootStackRouter {
     AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
     AutoRoute(page: CheatsRoute.page, path: '/cheats'),
     AutoRoute(page: ToolsRoute.page, path: '/tools'),
+    AutoRoute(page: LogRoute.page, path: '/logs'),
     CustomRoute(
       page: MenuRoute.page,
       path: '/menu',
