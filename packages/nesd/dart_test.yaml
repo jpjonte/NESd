@@ -1,0 +1,3 @@
+tags:
+  screenshots:
+    skip: "run via bin/update_screenshots.sh"
