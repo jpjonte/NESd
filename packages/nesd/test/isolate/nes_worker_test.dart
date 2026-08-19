@@ -445,4 +445,47 @@ void main() {
 
     expect(worker.nesForTesting!.rewindCaptureInterval, 3);
   });
+
+  test(
+    'ThumbnailRequest captures the last frame sent to the display',
+    () async {
+      await worker.handleCommand(_loadRomCommand());
+      await waitFor<RomLoadedEvent>();
+      await waitForCount<FrameEvent>(3);
+
+      await worker.handleCommand(const SuspendCommand());
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final displayed = events.whereType<FrameEvent>().last;
+      final displayedPixels = Uint8List.fromList(
+        Pointer<Uint8>.fromAddress(
+          displayed.pointerAddress,
+        ).asTypedList(displayed.width * displayed.height * 4),
+      );
+
+      expect(
+        displayedPixels.any((byte) => byte != 0),
+        isTrue,
+        reason: 'the ROM under test never rendered anything',
+      );
+
+      await worker.handleCommand(const ThumbnailRequest(requestId: 11));
+
+      final response = await waitFor<ThumbnailResponse>();
+
+      expect(response.requestId, 11);
+      expect(response.width, displayed.width);
+      expect(response.height, displayed.height);
+
+      final pixels = response.pixels.materialize().asUint8List();
+
+      expect(
+        pixels.any((byte) => byte != 0),
+        isTrue,
+        reason: 'the thumbnail is blank',
+      );
+      expect(pixels, displayedPixels);
+    },
+  );
 }
