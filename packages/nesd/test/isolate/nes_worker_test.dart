@@ -48,6 +48,36 @@ LoadRomCommand _loadRomCommand({
   );
 }
 
+Uint8List _batteryRom() {
+  return Uint8List(16 + 0x4000 + 0x2000)
+    // iNES header: one 16KB PRG bank, one 8KB CHR bank, battery flag set.
+    ..setAll(0, [0x4e, 0x45, 0x53, 0x1a, 1, 1, 0x02, 0])
+    // The idle loop at $c000: jmp $c000.
+    ..setAll(16, [0x4c, 0x00, 0xc0])
+    // NMI, reset and IRQ vectors, all pointing at the idle loop.
+    ..setAll(16 + 0x3ffa, [0x00, 0xc0, 0x00, 0xc0, 0x00, 0xc0]);
+}
+
+LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
+  return LoadRomCommand(
+    rom: TransferableTypedData.fromList([_batteryRom()]),
+    file: const FilesystemFile(
+      path: '/tmp/battery.nes',
+      name: 'battery.nes',
+      type: FilesystemFileType.file,
+    ),
+    databaseEntry: null,
+    region: Region.ntsc,
+    rewindEnabled: false,
+    cheats: const [],
+    breakpoints: const [],
+    initialState: initialState == null
+        ? null
+        : TransferableTypedData.fromList([initialState]),
+    sram: sram == null ? null : TransferableTypedData.fromList([sram]),
+  );
+}
+
 void main() {
   late List<NesIsolateEvent> events;
   late NesWorker worker;
@@ -184,6 +214,50 @@ void main() {
     // (Rewind may later auto-stop when the buffer empties; we assert the
     // immediate acknowledgement, matching the hold-mode press.)
     expect(events.whereType<StatusEvent>().last.rewind, isTrue);
+  });
+
+  test('an initial state wins over the SRAM file loaded with it', () async {
+    // Build a save state whose work RAM is all 0xaa.
+    await worker.handleCommand(
+      _batteryRomCommand(sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0xaa)),
+    );
+
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SaveStateRequest(requestId: 1));
+
+    final response = await waitFor<SaveStateResponse>();
+    final state = response.state!.materialize().asUint8List();
+
+    await worker.handleCommand(
+      _batteryRomCommand(
+        initialState: state,
+        sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+      ),
+    );
+
+    await waitForCount<RomLoadedEvent>(2);
+    await worker.handleCommand(const SaveSramRequest(requestId: 2));
+
+    final sram = (await waitFor<SramResponse>()).sram!
+        .materialize()
+        .asUint8List();
+
+    expect(sram, everyElement(0xaa));
+  });
+
+  test('the SRAM file is loaded when there is no initial state', () async {
+    await worker.handleCommand(
+      _batteryRomCommand(sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0x55)),
+    );
+
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SaveSramRequest(requestId: 1));
+
+    final sram = (await waitFor<SramResponse>()).sram!
+        .materialize()
+        .asUint8List();
+
+    expect(sram, everyElement(0x55));
   });
 
   test('LoadSramCommand with garbage does not crash the worker', () async {

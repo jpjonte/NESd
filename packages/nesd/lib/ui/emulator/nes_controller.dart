@@ -394,7 +394,7 @@ class NesController {
 
       nesState.set(remote);
 
-      if (sram != null) {
+      if (sram != null && initialState == null) {
         toaster.send(Toast.info('SRAM save loaded'));
       }
 

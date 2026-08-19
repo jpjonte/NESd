@@ -232,6 +232,10 @@ class NesWorker {
         audioFillProbe: () => _audioOutput?.bufferStatus,
       )..reset();
 
+      if (command.sram case final sram?) {
+        nes.load(sram.materialize().asUint8List());
+      }
+
       if (command.initialState case final state?) {
         nes.state = NESState.fromBytes(state.materialize().asUint8List());
       }
@@ -242,10 +246,6 @@ class NesWorker {
         ..rewindCaptureInterval = command.rewindCaptureInterval
         ..cheats = command.cheats
         ..breakpoints = command.breakpoints;
-
-      if (command.sram case final sram?) {
-        nes.load(sram.materialize().asUint8List());
-      }
 
       _subscription ??= eventBus.stream.listen(_handleNesEvent);
 
