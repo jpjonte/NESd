@@ -581,12 +581,8 @@ class NesWorker {
     }
 
     final frameBuffer = nes.ppu.frameBuffer;
-    final queued = frameBuffer.takeReadyBuffer();
-    final pixels = Uint8List.fromList(queued ?? frameBuffer.pixels);
 
-    if (queued != null) {
-      frameBuffer.releaseDisplayBuffer(queued);
-    }
+    final pixels = Uint8List.fromList(frameBuffer.presentedPixels);
 
     send(
       ThumbnailResponse(

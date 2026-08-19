@@ -110,4 +110,4 @@ final class RomManagerProvider
   }
 }
 
-String _$romManagerHash() => r'fcd257ebb821ceba2bf526c57ecf36c4689b306a';
+String _$romManagerHash() => r'87aa54eb3b17447cfac39ddf8dfba523ddbdf00b';

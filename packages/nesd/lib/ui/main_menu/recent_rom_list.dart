@@ -38,13 +38,15 @@ class RecentRomList extends HookConsumerWidget {
       );
     }
 
+    final thumbnailRevision = useValueListenable(romManager.thumbnailRevision);
+
     // rebuilding the tile data makes the tiles reload their thumbnails, so
     // returning to the list after playing shows the thumbnail just saved
     final roms = useMemoized(
       () => [
         for (final romInfo in recentRoms) romManager.getRomTileData(romInfo),
       ],
-      [recentRoms, route == MainRoute.name],
+      [recentRoms, route == MainRoute.name, thumbnailRevision],
     );
 
     Future<void> remove(BuildContext context, RomTileData romTileData) async {
