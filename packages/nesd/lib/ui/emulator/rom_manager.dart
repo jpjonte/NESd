@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
@@ -19,8 +19,15 @@ part 'rom_manager.g.dart';
 String applicationSupportPath(Ref ref) => '';
 
 @riverpod
-RomManager romManager(Ref ref) =>
-    RomManager(baseDirectory: ref.watch(applicationSupportPathProvider));
+RomManager romManager(Ref ref) {
+  final romManager = RomManager(
+    baseDirectory: ref.watch(applicationSupportPathProvider),
+  );
+
+  ref.onDispose(romManager.dispose);
+
+  return romManager;
+}
 
 @JsonSerializable()
 @immutable
@@ -69,6 +76,10 @@ class RomManager {
   }
 
   final String baseDirectory;
+
+  final thumbnailRevision = ValueNotifier<int>(0);
+
+  void dispose() => thumbnailRevision.dispose();
 
   Future<void> save(RomInfo romInfo, Uint8List data) async {
     final file = _getSaveFile(romInfo);
@@ -155,6 +166,8 @@ class RomManager {
     await temporaryFile.writeAsBytes(png);
 
     await temporaryFile.rename(file.path);
+
+    thumbnailRevision.value++;
   }
 
   File getThumbnailFile(RomInfo romInfo) {

@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed GPU rendering on macOS silently falling back to the CPU renderer
 - Fixed rewinding showing black frames and flickering
 - Fixed graphics corrupting in battery-backed games when a save state was loaded by starting the game from the main menu
+- Fixed ROM thumbnails staying black on Android
 
 ## [0.16.0] - 2026-08-07
 
