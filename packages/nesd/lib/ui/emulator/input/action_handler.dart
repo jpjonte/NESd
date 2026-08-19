@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart' hide Router;
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
@@ -277,7 +278,7 @@ class ActionHandler {
   void _warnIfInGameAction(InputAction action) {
     assert(() {
       if (_isInGameAction(action)) {
-        debugPrint(
+        log.input.debug(
           'ActionHandler: dropped in-game action "${action.code}" - '
           'the emulator is not the active screen',
         );

@@ -4,6 +4,16 @@ Contributions are very welcome! Feel free to grab an existing issue or file a ne
 
 Open a PR with your proposed changes and I'll check it out as soon as I can.
 
+## Reporting bugs
+
+Please use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.yml) and include the log.
+
+NESd keeps a rolling log you can read in **Settings → Debug → View log**,
+where **Copy all** puts it on the clipboard and **Save to file** writes it
+out. The same records are written continuously to `nesd.log` in the
+application support directory, so they survive a crash. The exact path is logged
+at startup.
+
 ## Setup
 
 NESd uses [FVM](https://fvm.app/) for Flutter version management (see `.fvmrc`).

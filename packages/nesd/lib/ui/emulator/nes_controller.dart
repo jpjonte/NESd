@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -112,6 +113,13 @@ NesController nesController(Ref ref) {
   );
 
   ref.onDispose(rewindSubscription.close);
+
+  final logLevelSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.logLevel),
+    (_, level) => controller._isolate?.send(SetLogLevelCommand(level: level)),
+  );
+
+  ref.onDispose(logLevelSubscription.close);
 
   final routeSubscription = ref.listen(
     emulatorActiveProvider,
@@ -406,8 +414,15 @@ class NesController {
       // the instance that just came up.
       _applyRunState();
     } on PathNotFoundException {
+      log.rom.warning('ROM file not found', context: {'path': file.path});
+
       return false;
     } on TimeoutException {
+      log.emulator.error(
+        'Emulator did not respond. Restarting the isolate',
+        context: {'path': file.path},
+      );
+
       await _teardownIsolate();
 
       toaster.send(Toast.error('Emulator did not respond and was restarted'));
@@ -417,6 +432,12 @@ class NesController {
 
       return false;
     } on Exception catch (e) {
+      log.rom.error(
+        'Failed to load ROM',
+        context: {'path': file.path},
+        error: e,
+      );
+
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       remote?.dispose();
@@ -455,13 +476,19 @@ class NesController {
 
     _eventSubscription = isolate.events.listen(_handleIsolateEvent);
 
+    isolate.send(SetLogLevelCommand(level: settingsController.logLevel));
+
     return isolate;
   }
 
   void _handleIsolateEvent(NesIsolateEvent event) {
     switch (event) {
       case ErrorEvent(:final message):
+        log.emulator.error(message);
+
         toaster.send(Toast.error(message));
+      case LogEvent(:final record):
+        NesdLog.instance.ingest(record);
       case BreakpointsEvent(:final fileHash, :final breakpoints):
         settingsController.setBreakpoints(fileHash, breakpoints);
       default:

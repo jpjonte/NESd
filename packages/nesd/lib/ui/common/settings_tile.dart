@@ -88,12 +88,13 @@ class SettingsTile extends StatelessWidget {
 
           final children = [if (title != null) wrappedTitles, wrappedChild];
 
-          return SizedBox(
-            height: column ? 100.0 : 70.0,
+          return ConstrainedBox(
+            constraints: BoxConstraints(minHeight: column ? 100.0 : 70.0),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: column
                   ? Column(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: children,

@@ -1,10 +1,11 @@
-import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -15,6 +16,15 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import '../ui/mocks.dart';
 
 const _romPath = '../../roms/test/nestest/nestest.nes';
+
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
+}
 
 LoadRomCommand _loadRomCommand({
   bool rewindEnabled = false,
@@ -41,10 +51,15 @@ LoadRomCommand _loadRomCommand({
 void main() {
   late List<NesIsolateEvent> events;
   late NesWorker worker;
+  late List<LogRecord> logged;
 
   setUp(() {
     events = <NesIsolateEvent>[];
     worker = NesWorker(send: events.add, audioFactory: FakeNesdAudio.new);
+
+    logged = [];
+
+    NesdLog.install(NesdLog(sinks: [_RecordingSink(logged)]));
   });
 
   tearDown(() async {
@@ -52,6 +67,10 @@ void main() {
     // live loop would keep stepping in the background after the test
     // ends and hang (or corrupt) later tests.
     await worker.shutdown();
+
+    await NesdLog.instance.close();
+
+    NesdLog.install(NesdLog());
   });
 
   // Polls `events` (populated synchronously by the worker's `send`
@@ -316,49 +335,31 @@ void main() {
 
     final path = '${dir.path}/audio.pcm';
 
-    // A closed-but-still-attached recorder keeps buffering incoming
-    // samples in memory; the write failure (and NESD_PCM_ERROR print)
-    // only surfaces once it is flushed again. A failed write appends no
-    // bytes either way, so file length alone can't observe the defect:
-    // this test forces a flush (via an explicit stop) and captures
-    // stdout to catch the resulting print directly.
-    final prints = <String>[];
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(1);
 
-    await runZoned(
-      () async {
-        await worker.handleCommand(_loadRomCommand());
-        await waitForCount<FrameEvent>(1);
+    await worker.handleCommand(StartPcmDumpCommand(path: path));
 
-        await worker.handleCommand(StartPcmDumpCommand(path: path));
-
-        // A directory that does not exist makes openSync throw.
-        await worker.handleCommand(
-          StartPcmDumpCommand(path: '${dir.path}/missing/audio.pcm'),
-        );
-
-        expect(events.whereType<ErrorEvent>(), isNotEmpty);
-
-        // The first recorder was closed and detached: further frames
-        // must not grow the first file.
-        final sizeAfterFailure = File(path).lengthSync();
-
-        await waitForCount<FrameEvent>(30);
-
-        expect(File(path).lengthSync(), sizeAfterFailure);
-
-        // Force a flush of whatever the recorder buffered since the
-        // failed start. A closed-but-attached recorder throws here and
-        // logs NESD_PCM_ERROR; a properly nulled-out recorder is a
-        // silent no-op.
-        await worker.handleCommand(const StopPcmDumpCommand());
-      },
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) => prints.add(line),
-      ),
+    await worker.handleCommand(
+      StartPcmDumpCommand(path: '${dir.path}/missing/audio.pcm'),
     );
 
+    expect(events.whereType<ErrorEvent>(), isNotEmpty);
+
+    final sizeAfterFailure = File(path).lengthSync();
+
+    await waitForCount<FrameEvent>(30);
+
+    expect(File(path).lengthSync(), sizeAfterFailure);
+
+    await worker.handleCommand(const StopPcmDumpCommand());
+
     expect(
-      prints.where((line) => line.contains('NESD_PCM_ERROR')),
+      logged.where(
+        (r) =>
+            r.channel == LogChannel.telemetry &&
+            r.message.contains('NESD_PCM_ERROR'),
+      ),
       isEmpty,
       reason: 'a closed-but-attached PCM recorder flushed to a closed file',
     );

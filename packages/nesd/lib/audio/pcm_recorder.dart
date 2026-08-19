@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:nesd/log/log.dart';
+
 /// Appends raw float32 (host-endian) PCM to a file in chunked writes.
 ///
 /// The audio path calls [add] once per frame (~800 samples at 48 kHz).
@@ -56,8 +58,7 @@ class PcmRecorder {
     } on FileSystemException catch (e) {
       _failed = true;
 
-      // ignore: avoid_print, logcat is the transport on device
-      print('NESD_PCM_ERROR $e');
+      log.telemetry.emit('NESD_PCM_ERROR $e');
     }
 
     _index = 0;

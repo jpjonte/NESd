@@ -166,6 +166,22 @@ class FilePickerRouteArgs {
 }
 
 /// generated route for
+/// [LogScreen]
+class LogRoute extends PageRouteInfo<void> {
+  const LogRoute({List<PageRouteInfo>? children})
+    : super(LogRoute.name, initialChildren: children);
+
+  static const String name = 'LogRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LogScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [MainScreen]
 class MainRoute extends PageRouteInfo<void> {
   const MainRoute({List<PageRouteInfo>? children})

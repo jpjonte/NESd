@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
@@ -177,9 +179,13 @@ class NesWorker {
             ? null
             : Offset(command.x!, command.y!);
       case ZapperPullCommand():
+        log.input.info('Zapper trigger pulled');
+
         _nes?.bus.zapperPull();
       case ZapperReleaseCommand():
         _nes?.bus.zapperRelease();
+      case SetLogLevelCommand():
+        NesdLog.instance.minimumLevel = command.level;
     }
   }
 
@@ -207,7 +213,14 @@ class NesWorker {
       final cartridge = factory.fromFile(command.file, rom)
         ..databaseEntry = command.databaseEntry;
 
-      _audioOutput ??= AudioOutput(audio: _audioFactory());
+      if (_audioOutput == null) {
+        _audioOutput = AudioOutput(audio: _audioFactory());
+
+        log.audio.info(
+          'Audio device opened',
+          context: {'sampleRate': apuSampleRate},
+        );
+      }
 
       // reset() starts the run loop and synchronously emulates the first
       // frame before _nes/_subscription are set below, so the very first
@@ -254,12 +267,31 @@ class NesWorker {
 
       unawaited(nes.run());
 
+      log.rom.info(
+        'ROM loaded',
+        context: {
+          'name': command.file.name,
+          'mapper': cartridge.mapper.id,
+          'prgRom': cartridge.prgRom.length,
+          'chrRom': cartridge.chrRom.length,
+          'region': nes.region.name,
+          'zapper': command.databaseEntry?.hasZapper ?? false,
+        },
+      );
+
       send(
         RomLoadedEvent(hasZapper: command.databaseEntry?.hasZapper ?? false),
       );
 
       _sendStatus();
-    } on Object catch (e) {
+    } on Object catch (e, s) {
+      log.rom.error(
+        'ROM load failed',
+        context: {'name': command.file.name},
+        error: e,
+        stackTrace: s,
+      );
+
       send(RomLoadFailedEvent(message: e.toString()));
     }
   }
@@ -289,6 +321,8 @@ class NesWorker {
     _apuDebug = null;
     _disassembler = null;
     _nes = null;
+
+    log.emulator.info('Emulator stopped');
 
     send(const StoppedEvent());
   }
@@ -446,14 +480,15 @@ class NesWorker {
 
     send(event);
 
-    // ignore: avoid_print - logcat is the transport for audio stats
-    print(event.logLine);
+    log.telemetry.emit(event.logLine);
   }
 
   void _startPcmDump(String path) {
     final audio = _audioOutput;
 
     if (audio == null) {
+      log.audio.error('PCM dump requires a loaded ROM');
+
       send(const ErrorEvent(message: 'PCM dump requires a loaded ROM'));
 
       return;
@@ -465,6 +500,8 @@ class NesWorker {
     try {
       audio.pcmRecorder = PcmRecorder(path: path);
     } on FileSystemException catch (e) {
+      log.audio.error('PCM dump failed to open', error: e);
+
       send(ErrorEvent(message: 'PCM dump failed to open: $e'));
     }
   }
@@ -476,6 +513,10 @@ class NesWorker {
 
   void _handleSaveState(int requestId) {
     final data = _nes?.state?.serialize();
+
+    if (data != null) {
+      log.emulator.info('State saved', context: {'bytes': data.length});
+    }
 
     send(
       SaveStateResponse(
@@ -493,8 +534,14 @@ class NesWorker {
     }
 
     try {
-      nes.state = NESState.fromBytes(state.materialize().asUint8List());
+      final bytes = state.materialize().asUint8List();
+
+      nes.state = NESState.fromBytes(bytes);
+
+      log.emulator.info('State loaded', context: {'bytes': bytes.length});
     } on Object catch (e) {
+      log.emulator.error('Failed to load state', error: e);
+
       send(ErrorEvent(message: 'Failed to load state: $e'));
     }
   }
@@ -509,6 +556,8 @@ class NesWorker {
     try {
       nes.load(sram.materialize().asUint8List());
     } on Object catch (e) {
+      log.emulator.error('Failed to load SRAM', error: e);
+
       send(ErrorEvent(message: 'Failed to load SRAM: $e'));
     }
   }

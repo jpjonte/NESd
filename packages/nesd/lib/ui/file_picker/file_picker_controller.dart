@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:nesd/exception/nesd_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -127,6 +128,12 @@ class FilePickerController {
 
       notifier.update(FilePickerData(directory: directory, files: children));
     } on NesdException catch (e) {
+      log.storage.warning(
+        'Could not list archive contents',
+        context: {'path': directory.path},
+        error: e,
+      );
+
       notifier.update(FilePickerError(e.message));
 
       if (directory.path == settingsController.lastRomPath?.path) {
@@ -149,6 +156,12 @@ class FilePickerController {
         return;
       }
     } on NesdException catch (e) {
+      log.storage.warning(
+        'Could not open path in the file picker',
+        context: {'path': directory.path},
+        error: e,
+      );
+
       notifier.update(FilePickerError(e.message));
 
       if (directory.path == settingsController.lastRomPath?.path) {

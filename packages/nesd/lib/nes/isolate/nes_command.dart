@@ -1,5 +1,6 @@
 import 'dart:isolate';
 
+import 'package:nesd/log/log_level.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/database/database.dart';
@@ -252,4 +253,10 @@ class ZapperPullCommand extends NesCommand {
 
 class ZapperReleaseCommand extends NesCommand {
   const ZapperReleaseCommand();
+}
+
+class SetLogLevelCommand extends NesCommand {
+  const SetLogLevelCommand({required this.level});
+
+  final LogLevel level;
 }

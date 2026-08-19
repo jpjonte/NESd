@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -317,7 +318,18 @@ class DisplayFrameController extends ChangeNotifier
 
     try {
       _texture = await NesdTexture.create(width: width, height: height);
-    } on Object {
+
+      log.video.info(
+        'GPU renderer active',
+        context: {'width': width, 'height': height},
+      );
+    } on Object catch (e) {
+      log.video.warning(
+        'GPU texture creation failed. Falling back to CPU rendering',
+        context: {'width': width, 'height': height},
+        error: e,
+      );
+
       _textureFailed = true;
 
       if (_rendererPreference == RendererPreference.gpu) {

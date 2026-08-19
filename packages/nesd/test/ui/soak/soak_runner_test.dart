@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -19,6 +21,15 @@ class _MockRemoteNes extends Mock implements RemoteNes {}
 
 class _MockRouter extends Mock implements Router {}
 
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
+}
+
 void main() {
   late _MockNesController controller;
   late _MockRemoteNes nes;
@@ -26,7 +37,7 @@ void main() {
   late StreamController<NesIsolateEvent> events;
   late Directory dir;
   late List<int> exitCodes;
-  late List<String> prints;
+  late List<LogRecord> logged;
 
   setUpAll(() {
     registerFallbackValue(
@@ -48,7 +59,9 @@ void main() {
     events = StreamController<NesIsolateEvent>.broadcast();
     dir = Directory.systemTemp.createTempSync('nesd_soak_runner');
     exitCodes = [];
-    prints = [];
+    logged = [];
+
+    NesdLog.install(NesdLog(sinks: [_RecordingSink(logged)]));
 
     File('${dir.path}/test.nes').writeAsBytesSync(minimalValidRom());
 
@@ -61,9 +74,13 @@ void main() {
     when(() => router.navigate(any())).thenAnswer((_) async {});
   });
 
-  tearDown(() {
+  tearDown(() async {
     dir.deleteSync(recursive: true);
     unawaited(events.close());
+
+    await NesdLog.instance.close();
+
+    NesdLog.install(NesdLog());
   });
 
   SoakRunner runner({int seconds = 1, bool pcm = true}) {
@@ -81,23 +98,14 @@ void main() {
     );
   }
 
-  Future<void> runCapturingPrints(SoakRunner runner) {
-    return runZoned(
-      runner.run,
-      zoneSpecification: ZoneSpecification(
-        print: (self, parent, zone, line) => prints.add(line),
-      ),
-    );
-  }
-
   test('a second runner instance in the same process does not run', () async {
-    await runCapturingPrints(runner(pcm: false));
+    await runner(pcm: false).run();
 
     verify(() => controller.loadRom(any(), data: any(named: 'data'))).called(1);
 
     // Provider recomputation constructs a fresh instance; the launch
     // guard is process-global, so the second run must be a no-op.
-    await runCapturingPrints(runner(pcm: false));
+    await runner(pcm: false).run();
 
     verifyNever(() => controller.loadRom(any(), data: any(named: 'data')));
 
@@ -105,7 +113,7 @@ void main() {
   });
 
   test('happy path: forces conditions, records, summarizes, exits 0', () async {
-    final run = runCapturingPrints(runner());
+    final run = runner().run();
 
     // Give run() time to subscribe, then deliver two stats samples.
     await Future<void>.delayed(const Duration(milliseconds: 200));
@@ -140,7 +148,7 @@ void main() {
 
     expect(exitCodes, [0]);
     expect(
-      prints.last,
+      logged.last.message,
       'NESD_SOAK rom=test.nes seconds=1 exhaust_total=2 '
       'exhaust_episodes=1 full_total=0 fill_min=300',
     );
@@ -152,7 +160,7 @@ void main() {
   });
 
   test('skips the PCM dump when disabled', () async {
-    await runCapturingPrints(runner(pcm: false));
+    await runner(pcm: false).run();
 
     verifyNever(() => nes.startPcmDump(any()));
     verify(() => nes.stopPcmDump()).called(1);
@@ -165,19 +173,19 @@ void main() {
       () => controller.loadRom(any(), data: any(named: 'data')),
     ).thenAnswer((_) async => false);
 
-    await runCapturingPrints(runner());
+    await runner().run();
 
     expect(exitCodes, [1]);
-    expect(prints.last, startsWith('NESD_SOAK_FAILED'));
+    expect(logged.last.message, startsWith('NESD_SOAK_FAILED'));
   });
 
   test('unreadable ROM prints NESD_SOAK_FAILED and exits 1', () async {
     File('${dir.path}/test.nes').deleteSync();
 
-    await runCapturingPrints(runner());
+    await runner().run();
 
     expect(exitCodes, [1]);
-    expect(prints.last, startsWith('NESD_SOAK_FAILED'));
+    expect(logged.last.message, startsWith('NESD_SOAK_FAILED'));
   });
 
   test(
@@ -185,7 +193,7 @@ void main() {
     () async {
       when(() => controller.stop()).thenThrow(Exception('sram boom'));
 
-      final run = runCapturingPrints(runner());
+      final run = runner().run();
 
       // Give run() time to subscribe, then deliver a stats sample so the
       // happy path proceeds all the way to _finish, where stop() throws.
@@ -204,14 +212,14 @@ void main() {
       await run;
 
       expect(exitCodes.last, 1);
-      expect(prints.last, startsWith('NESD_SOAK_FAILED'));
+      expect(logged.last.message, startsWith('NESD_SOAK_FAILED'));
     },
   );
 
   test('run() is idempotent: a second call does not reload the ROM', () async {
     final soakRunner = runner();
 
-    final run = runCapturingPrints(soakRunner);
+    final run = soakRunner.run();
 
     await Future<void>.delayed(const Duration(milliseconds: 200));
 

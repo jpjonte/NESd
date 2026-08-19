@@ -1,3 +1,5 @@
+import 'package:nesd/log/log.dart';
+
 /// Per-stage timing accumulator for the rewind pipeline.
 ///
 /// One line per [windowSize] captures:
@@ -40,8 +42,7 @@ class RewindProfiler {
   void addCompress(int us) => _compressMicros += us;
 
   void _print() {
-    // ignore: avoid_print - logcat is the transport for measurements
-    print(
+    log.telemetry.emit(
       'NESD_REWIND_PROF frames=$_captures cap_us=$_captureMicros '
       'ser_us=$_serializeMicros diff_us=$_diffMicros '
       'comp_us=$_compressMicros',

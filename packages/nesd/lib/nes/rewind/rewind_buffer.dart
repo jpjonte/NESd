@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:nesd/exception/nesd_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
@@ -87,14 +88,21 @@ class RewindBuffer {
       }
 
       return result;
-    } on NesdException {
+    } on NesdException catch (e) {
       // a corrupted chain must not crash the emulator
+      log.emulator.warning('Rewind chain corrupted; buffer cleared', error: e);
+
       clear();
 
       return null;
       // binarize throws RangeError on truncated payloads
       // ignore: avoid_catching_errors
-    } on RangeError {
+    } on RangeError catch (e) {
+      log.emulator.warning(
+        'Rewind payload truncated; buffer cleared',
+        error: e,
+      );
+
       clear();
 
       return null;

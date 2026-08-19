@@ -1,0 +1,96 @@
+name: Bug report
+description: Report a problem with NESd
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug!
+
+        If you can, please attach a log file.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Load ...
+        2. Press ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: NESd version
+      description: Shown in the About dialog.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Android
+    validations:
+      required: true
+
+  - type: input
+    id: game
+    attributes:
+      label: Game and mapper
+      description: >
+        Which ROM this happens with, if it is game-specific. The mapper is
+        shown in the Cartridge Info tool.
+      placeholder: "Super Mario Bros. 3 (mapper 4)"
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        Open **Settings → Debug → View log**, then use **Copy all** and
+        paste here, or **Save to file** and attach it if it is long.
+
+        It includes file paths (and your OS username within them), so
+        please give it a quick look before pasting.
+
+
+        If NESd crashes or you can't reach the settings screen, the log
+        file is written continuously and survives a crash:
+
+        - macOS: `~/Library/Application Support/dev.jpj.nesd/logs/nesd.log`
+        - Linux: `~/.local/share/nesd/logs/nesd.log`
+        - Windows: `%APPDATA%\dev.jpj\nesd\logs\nesd.log`
+        - Android: not reachable without `adb`. Use "Copy all" or "Save to file" instead.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues for a duplicate.
+          required: true

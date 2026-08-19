@@ -11,6 +11,8 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
+  logLevel:
+      $enumDecodeNullable(_$LogLevelEnumMap, json['logLevel']) ?? LogLevel.info,
   openTools: json['openTools'] == null
       ? const <EmulatorTool>{}
       : openToolsFromJson(json['openTools']),
@@ -91,6 +93,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
   'showDebugOverlay': instance.showDebugOverlay,
+  'logLevel': _$LogLevelEnumMap[instance.logLevel]!,
   'openTools': instance.openTools
       .map((e) => _$EmulatorToolEnumMap[e]!)
       .toList(),
@@ -116,6 +119,13 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'customPixelAspectRatio': instance.customPixelAspectRatio,
   'videoFilter': _$VideoFilterEnumMap[instance.videoFilter]!,
   'crtFilter': _crtFilterToJson(instance.crtFilter),
+};
+
+const _$LogLevelEnumMap = {
+  LogLevel.debug: 'debug',
+  LogLevel.info: 'info',
+  LogLevel.warning: 'warning',
+  LogLevel.error: 'error',
 };
 
 const _$ScalingEnumMap = {
@@ -205,7 +215,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'91a7fd6484da7f169f54db3fbc9e7ffe535bea82';
+    r'e9926b36efa6fc5287469c8981b1870590593f7a';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

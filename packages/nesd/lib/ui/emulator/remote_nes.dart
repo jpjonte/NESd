@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
@@ -258,11 +259,21 @@ class RemoteNes {
 
     _pending[requestId] = completer;
 
-    _send(build(requestId));
+    final command = build(requestId);
+
+    _send(command);
 
     try {
       return await completer.future.timeout(requestTimeout) as T;
     } on TimeoutException {
+      log.emulator.warning(
+        'Request to the emulator timed out',
+        context: {
+          'command': command.runtimeType.toString(),
+          'timeoutMs': requestTimeout.inMilliseconds,
+        },
+      );
+
       return null;
     } finally {
       _pending.remove(requestId);
