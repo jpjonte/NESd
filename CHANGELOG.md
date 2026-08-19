@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed the arm64 deb and flatpak missing from release pages because the x64 files overwrote them
 - Fixed rewind on macOS being unavailable on Intel Macs and on macOS older than 26.4, because the bundled LZ4 library was built only for Apple Silicon. It is now a universal binary that runs on macOS 12.0 and later
 - Fixed GPU rendering on macOS silently falling back to the CPU renderer
+- Fixed rewinding showing black frames and flickering
 
 ## [0.16.0] - 2026-08-07
 

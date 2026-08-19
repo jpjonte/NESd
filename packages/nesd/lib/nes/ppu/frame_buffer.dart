@@ -38,7 +38,8 @@ class FrameBuffer {
   final List<Uint8List> _available = <Uint8List>[];
   final Set<Uint8List> _inUse = <Uint8List>{};
 
-  Uint32List? _previousPixels32;
+  Uint8List? _presentedPixels;
+  Uint32List? _presentedPixels32;
 
   static const int _maxAvailable = 2;
   static const int _maxQueued = 2;
@@ -48,12 +49,14 @@ class FrameBuffer {
   static final Finalizer<Pointer<Uint8>> _bufferFinalizer =
       Finalizer<Pointer<Uint8>>((pointer) => calloc.free(pointer));
 
+  Uint8List get presentedPixels => _presentedPixels ?? pixels;
+
   int getPixelBrightness(int x, int y, {bool previousFrame = false}) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return 0;
     }
 
-    final buffer = previousFrame ? _previousPixels32 : pixels32;
+    final buffer = previousFrame ? _presentedPixels32 : pixels32;
 
     if (buffer == null) {
       return 0;
@@ -90,7 +93,7 @@ class FrameBuffer {
       ..set(uint8, 0) // version
       ..set(uint32, width)
       ..set(uint32, height)
-      ..set(uint8List(lengthType: uint32), pixels);
+      ..set(uint8List(lengthType: uint32), presentedPixels);
   }
 
   void swap() {
@@ -104,7 +107,8 @@ class FrameBuffer {
 
     _ready.add(pixels);
 
-    _previousPixels32 = pixels32;
+    _presentedPixels = pixels;
+    _presentedPixels32 = pixels32;
 
     pixels = _available.isNotEmpty
         ? _available.removeLast()
@@ -139,7 +143,8 @@ class FrameBuffer {
     _inUse.clear();
     _available.clear();
 
-    _previousPixels32 = null;
+    _presentedPixels = null;
+    _presentedPixels32 = null;
   }
 
   int? pointerForBuffer(Uint8List buffer) => _bufferPointers[buffer]?.address;

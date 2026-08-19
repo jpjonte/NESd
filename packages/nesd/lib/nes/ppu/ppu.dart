@@ -290,7 +290,7 @@ class PPU {
     oam.setAll(0, state.oam);
     secondaryOam.setAll(0, state.secondaryOam);
     palette.setAll(0, state.palette);
-    frameBuffer.setPixels(state.frameBuffer.pixels);
+    frameBuffer.setPixels(state.frameBuffer.presentedPixels);
     consoleCycles = state.consoleCycles;
     cycles = state.cycles;
     cycle = state.cycle;
