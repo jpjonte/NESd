@@ -1,6 +1,7 @@
 plugins {
     id "com.android.application"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.github.triplet.play"
 }
 
 def localProperties = new Properties()
@@ -94,7 +95,23 @@ android {
         }
     }
 
+    playConfigs {
+        dev {
+            enabled.set(false)
+        }
+    }
+
     namespace "dev.jpj.nesd"
+}
+
+play {
+    track.set(providers.gradleProperty("playTrack").getOrElse("internal"))
+    releaseStatus.set(
+        com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED
+    )
+    defaultToAppBundles.set(true)
+    serviceAccountCredentials.set(file("../play-service-account.json"))
+    commit.set(true)
 }
 
 kotlin {
