@@ -1,0 +1,25 @@
+NESd is a cross-platform Nintendo Entertainment System emulator.
+
+It aims for cycle-accurate emulation of the 6502 CPU, the PPU and the
+APU, so games run and sound the way they did on the original hardware.
+
+NESd does not include any games and does not link to any. Load your own
+ROM files, straight from disk or from inside a ZIP archive.
+
+FEATURES
+• Cycle-accurate CPU, PPU and APU emulation
+• NTSC and PAL support
+• Compatible with 3,070 known games
+• Battery-backed SRAM saves
+• Save states
+• Rewind
+• Customizable on-screen touch controls
+• Gamepad support
+• Fully rebindable controls, with multiple bindings per action
+• Game Genie cheat support
+• Built-in debugging tools: debugger, execution log and debug overlay
+
+NESd also runs on macOS, Windows and Linux.
+
+NESd is free and open source.
+Source, issues and releases: https://github.com/jpjonte/NESd
