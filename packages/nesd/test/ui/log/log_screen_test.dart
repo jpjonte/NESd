@@ -33,8 +33,17 @@ void main() {
 
   tearDown(() => NesdLog.install(NesdLog()));
 
-  Future<void> openLog(Robot robot) async {
+  Future<void> openLog(
+    Robot robot, {
+    List<LogRecord> records = const [],
+  }) async {
     await robot.pumpApp();
+
+    NesdLog.instance.sinkOfType<LogBufferSink>()!.clear();
+
+    for (final record in records) {
+      NesdLog.instance.add(record);
+    }
 
     robot.container.read(routerProvider).navigate(const LogRoute());
 
@@ -52,26 +61,30 @@ void main() {
   });
 
   testWidgets('lists buffered records', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'first message'))
-      ..add(_record(message: 'second message'));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'first message'),
+        _record(message: 'second message'),
+      ],
+    );
 
     expect(find.byType(LogRecordTile), findsNWidgets(2));
     expect(find.textContaining('first message'), findsOneWidget);
   });
 
   testWidgets('filters by minimum level', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'a debug line', level: LogLevel.debug))
-      ..add(_record(message: 'an error line', level: LogLevel.error));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an error line', level: LogLevel.error),
+      ],
+    );
 
     expect(find.byType(LogRecordTile), findsNWidgets(2));
 
@@ -85,13 +98,15 @@ void main() {
   });
 
   testWidgets('"Only" narrows the list to a single channel', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'rom line', channel: LogChannel.rom))
-      ..add(_record(message: 'audio line', channel: LogChannel.audio));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'rom line', channel: LogChannel.rom),
+        _record(message: 'audio line', channel: LogChannel.audio),
+      ],
+    );
 
     await tester.tap(find.byKey(LogScreen.channelFilterKey));
     await tester.pumpAndSettle();
@@ -103,13 +118,15 @@ void main() {
   });
 
   testWidgets('unchecking a channel hides just that channel', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'rom line', channel: LogChannel.rom))
-      ..add(_record(message: 'audio line', channel: LogChannel.audio));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'rom line', channel: LogChannel.rom),
+        _record(message: 'audio line', channel: LogChannel.audio),
+      ],
+    );
 
     await tester.tap(find.byKey(LogScreen.channelFilterKey));
     await tester.pumpAndSettle();
@@ -123,13 +140,15 @@ void main() {
   });
 
   testWidgets('"All" restores every channel after "Only"', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'rom line', channel: LogChannel.rom))
-      ..add(_record(message: 'audio line', channel: LogChannel.audio));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'rom line', channel: LogChannel.rom),
+        _record(message: 'audio line', channel: LogChannel.audio),
+      ],
+    );
 
     await tester.tap(find.byKey(LogScreen.channelFilterKey));
     await tester.pumpAndSettle();
@@ -147,11 +166,12 @@ void main() {
   });
 
   testWidgets('unchecking every channel shows the empty state', (tester) async {
-    NesdLog.instance.add(_record(message: 'rom line', channel: LogChannel.rom));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [_record(message: 'rom line', channel: LogChannel.rom)],
+    );
 
     await tester.tap(find.byKey(LogScreen.channelFilterKey));
     await tester.pumpAndSettle();
@@ -166,13 +186,14 @@ void main() {
   });
 
   testWidgets('expands a row to reveal its context', (tester) async {
-    NesdLog.instance.add(
-      _record(message: 'with context', context: {'mapper': 4}),
-    );
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'with context', context: {'mapper': 4}),
+      ],
+    );
 
     expect(find.textContaining('"mapper"'), findsNothing);
 
@@ -183,11 +204,9 @@ void main() {
   });
 
   testWidgets('rows without details do not expand', (tester) async {
-    NesdLog.instance.add(_record(message: 'plain'));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(robot, records: [_record(message: 'plain')]);
 
     final tile = tester.widget<LogRecordTile>(find.byType(LogRecordTile));
 
@@ -201,13 +220,15 @@ void main() {
   });
 
   testWidgets('renders the newest record at the bottom', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'older line'))
-      ..add(_record(message: 'newer line'));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'older line'),
+        _record(message: 'newer line'),
+      ],
+    );
 
     final olderY = tester.getTopLeft(find.textContaining('older line')).dy;
     final newerY = tester.getTopLeft(find.textContaining('newer line')).dy;
@@ -223,13 +244,14 @@ void main() {
   testWidgets('keeps a row expanded by identity when a new record arrives', (
     tester,
   ) async {
-    NesdLog.instance.add(
-      _record(message: 'expanded one', context: {'mapper': 4}),
-    );
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'expanded one', context: {'mapper': 4}),
+      ],
+    );
 
     await tester.tap(find.byType(LogRecordTile));
     await tester.pumpAndSettle();
@@ -254,13 +276,15 @@ void main() {
   });
 
   testWidgets('only expandable rows show an expand chevron', (tester) async {
-    NesdLog.instance
-      ..add(_record(message: 'plain line'))
-      ..add(_record(message: 'detailed line', context: {'mapper': 4}));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'plain line'),
+        _record(message: 'detailed line', context: {'mapper': 4}),
+      ],
+    );
 
     expect(
       find.byIcon(Icons.chevron_right),
@@ -296,13 +320,15 @@ void main() {
       ),
     );
 
-    NesdLog.instance
-      ..add(_record(message: 'first line'))
-      ..add(_record(message: 'second line'));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'first line'),
+        _record(message: 'second line'),
+      ],
+    );
 
     final secondTile = find.ancestor(
       of: find.textContaining('second line'),
@@ -327,11 +353,9 @@ void main() {
   });
 
   testWidgets('clear empties the buffer', (tester) async {
-    NesdLog.instance.add(_record(message: 'goes away'));
-
     final robot = Robot(tester);
 
-    await openLog(robot);
+    await openLog(robot, records: [_record(message: 'goes away')]);
 
     await tester.tap(find.byKey(LogScreen.clearKey));
     await tester.pumpAndSettle();

@@ -8,6 +8,7 @@ import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
@@ -212,7 +213,14 @@ class NesWorker {
       final cartridge = factory.fromFile(command.file, rom)
         ..databaseEntry = command.databaseEntry;
 
-      _audioOutput ??= AudioOutput(audio: _audioFactory());
+      if (_audioOutput == null) {
+        _audioOutput = AudioOutput(audio: _audioFactory());
+
+        log.audio.info(
+          'Audio device opened',
+          context: {'sampleRate': apuSampleRate},
+        );
+      }
 
       // reset() starts the run loop and synchronously emulates the first
       // frame before _nes/_subscription are set below, so the very first
@@ -313,6 +321,8 @@ class NesWorker {
     _apuDebug = null;
     _disassembler = null;
     _nes = null;
+
+    log.emulator.info('Emulator stopped');
 
     send(const StoppedEvent());
   }
@@ -504,6 +514,10 @@ class NesWorker {
   void _handleSaveState(int requestId) {
     final data = _nes?.state?.serialize();
 
+    if (data != null) {
+      log.emulator.info('State saved', context: {'bytes': data.length});
+    }
+
     send(
       SaveStateResponse(
         requestId: requestId,
@@ -520,7 +534,11 @@ class NesWorker {
     }
 
     try {
-      nes.state = NESState.fromBytes(state.materialize().asUint8List());
+      final bytes = state.materialize().asUint8List();
+
+      nes.state = NESState.fromBytes(bytes);
+
+      log.emulator.info('State loaded', context: {'bytes': bytes.length});
     } on Object catch (e) {
       log.emulator.error('Failed to load state', error: e);
 

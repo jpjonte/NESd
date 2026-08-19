@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -295,6 +297,35 @@ void main() {
       remote.dispose();
     });
 
+    test('a timed-out request is logged rather than vanishing', () async {
+      final logged = <LogRecord>[];
+
+      NesdLog.install(
+        NesdLog(sinks: [_RecordingSink(logged)], minimumLevel: LogLevel.debug),
+      );
+
+      addTearDown(() => NesdLog.install(NesdLog()));
+
+      final remote = build(requestTimeout: const Duration(milliseconds: 10));
+
+      expect(await remote.requestSaveState(), isNull);
+
+      final record = logged.singleWhere(
+        (r) => r.channel == LogChannel.emulator,
+      );
+
+      expect(record.level, LogLevel.warning);
+      expect(
+        record.message,
+        contains('timed out'),
+        reason:
+            'a request that silently resolves to null leaves the user '
+            'with a missing save state and no explanation anywhere',
+      );
+
+      remote.dispose();
+    });
+
     test('a late response after timeout does not throw', () async {
       final remote = build(requestTimeout: const Duration(milliseconds: 10));
 
@@ -573,4 +604,13 @@ void main() {
       },
     );
   });
+}
+
+class _RecordingSink extends LogSink {
+  _RecordingSink(this.records);
+
+  final List<LogRecord> records;
+
+  @override
+  void add(LogRecord record) => records.add(record);
 }

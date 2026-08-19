@@ -48,6 +48,44 @@ void main() {
     expect(contents, contains('before the file existed'));
   });
 
+  test('the startup banner records the app identity', () {
+    final installed = installUiLog(minimumLevel: LogLevel.debug);
+
+    logAppStart(
+      version: '0.16.0',
+      buildNumber: '482',
+      platform: 'macos',
+      flavor: 'prod',
+    );
+
+    final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(
+      (r) => r.channel == LogChannel.app && r.context != null,
+    );
+
+    expect(banner.level, LogLevel.info);
+    expect(banner.context, containsPair('version', '0.16.0'));
+    expect(banner.context, containsPair('build', '482'));
+    expect(banner.context, containsPair('platform', 'macos'));
+    expect(banner.context, containsPair('flavor', 'prod'));
+  });
+
+  test('the startup banner omits an absent flavor', () {
+    final installed = installUiLog(minimumLevel: LogLevel.debug);
+
+    logAppStart(
+      version: '0.16.0',
+      buildNumber: '482',
+      platform: 'linux',
+      flavor: null,
+    );
+
+    final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(
+      (r) => r.channel == LogChannel.app && r.context != null,
+    );
+
+    expect(banner.context, isNot(contains('flavor')));
+  });
+
   test('logs the resolved log file path so it can be quoted to users', () {
     final installed = installUiLog(minimumLevel: LogLevel.debug);
 

@@ -94,4 +94,43 @@ void main() {
     expect(logged.single.message, 'Failed to save settings');
     expect(logged.single.error, contains('disk full'));
   });
+
+  test('a first run is logged as starting from defaults', () {
+    when(() => prefs.getString(any())).thenReturn(null);
+    when(() => prefs.setString(any(), any())).thenAnswer((_) async => true);
+
+    final fresh = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    )..listen(settingsControllerProvider, (_, _) {});
+
+    addTearDown(fresh.dispose);
+
+    fresh.read(settingsControllerProvider.notifier);
+
+    final record = logged.firstWhere((r) => r.channel == LogChannel.settings);
+
+    expect(record.context, containsPair('firstRun', true));
+  });
+
+  test('loading an existing settings file is logged as such', () {
+    when(() => prefs.getString(any())).thenReturn('{}');
+
+    final fresh = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    )..listen(settingsControllerProvider, (_, _) {});
+
+    addTearDown(fresh.dispose);
+
+    fresh.read(settingsControllerProvider.notifier);
+
+    final record = logged.firstWhere((r) => r.channel == LogChannel.settings);
+
+    expect(
+      record.context,
+      containsPair('firstRun', false),
+      reason:
+          'distinguishing a fresh install from a loaded config is the '
+          'first thing to check when settings look wrong',
+    );
+  });
 }

@@ -52,6 +52,13 @@ void main(List<String> arguments) async {
 
   attachLogFile(NesdLog.instance, applicationSupport.path);
 
+  logAppStart(
+    version: packageInfo.version,
+    buildNumber: packageInfo.buildNumber,
+    platform: Platform.operatingSystem,
+    flavor: appFlavor,
+  );
+
   await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
     legacySharedPreferencesInstance: preferences,
     sharedPreferencesAsyncOptions: sharedPreferencesOptions,

@@ -32,6 +32,21 @@ void attachLogFile(NesdLog log, String basePath) {
   log.app.info('Logging to ${sink.path}');
 }
 
+void logAppStart({
+  required String version,
+  required String buildNumber,
+  required String platform,
+  required String? flavor,
+}) => log.app.info(
+  'NESd started',
+  context: {
+    'version': version,
+    'build': buildNumber,
+    'platform': platform,
+    if (flavor != null) 'flavor': flavor,
+  },
+);
+
 void installErrorHooks() {
   FlutterError.onError = (details) {
     log.app.error(

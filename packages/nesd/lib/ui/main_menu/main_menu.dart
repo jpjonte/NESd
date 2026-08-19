@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
@@ -158,7 +159,13 @@ class OpenRomButton extends ConsumerWidget {
 
         return result;
       }
-    } on NesdException {
+    } on NesdException catch (e) {
+      log.storage.warning(
+        'Could not resolve the startup directory. Forgetting the last path',
+        context: {if (lastRomPath != null) 'lastRomPath': lastRomPath.path},
+        error: e,
+      );
+
       settingsController.lastRomPath = null;
 
       return null;

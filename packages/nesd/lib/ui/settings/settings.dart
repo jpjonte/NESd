@@ -497,12 +497,16 @@ class SettingsController extends _$SettingsController {
         wideTouchInputConfig: defaultLandscapeConfig,
       );
 
+      log.settings.info('Settings initialised', context: {'firstRun': true});
+
       unawaited(_persist(settings));
 
       return settings;
     }
 
     final json = jsonDecode(raw) as Map<String, dynamic>;
+
+    log.settings.info('Settings loaded', context: {'firstRun': false});
 
     _migrateOpenTools(json);
 

@@ -414,8 +414,15 @@ class NesController {
       // the instance that just came up.
       _applyRunState();
     } on PathNotFoundException {
+      log.rom.warning('ROM file not found', context: {'path': file.path});
+
       return false;
     } on TimeoutException {
+      log.emulator.error(
+        'Emulator did not respond. Restarting the isolate',
+        context: {'path': file.path},
+      );
+
       await _teardownIsolate();
 
       toaster.send(Toast.error('Emulator did not respond and was restarted'));
@@ -425,6 +432,12 @@ class NesController {
 
       return false;
     } on Exception catch (e) {
+      log.rom.error(
+        'Failed to load ROM',
+        context: {'path': file.path},
+        error: e,
+      );
+
       toaster.send(Toast.error('Failed to load ROM: $e'));
 
       remote?.dispose();

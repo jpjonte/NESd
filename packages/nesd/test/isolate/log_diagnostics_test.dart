@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -116,5 +117,44 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  test('opening the audio device is logged with its sample rate', () async {
+    await worker.handleCommand(_loadRomCommand());
+
+    final opened = sink.records.firstWhere(
+      (r) => r.channel == LogChannel.audio && r.level == LogLevel.info,
+    );
+
+    expect(opened.message, contains('Audio'));
+    expect(opened.context, containsPair('sampleRate', apuSampleRate));
+  });
+
+  test('stopping the emulator is logged', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await worker.handleCommand(const StopCommand());
+
+    expect(
+      sink.records.any(
+        (r) =>
+            r.channel == LogChannel.emulator &&
+            r.message.toLowerCase().contains('stopped'),
+      ),
+      isTrue,
+      reason:
+          'a session that ends should be visible in the log, so a '
+          'later record can be read as belonging to a new ROM',
+    );
+  });
+
+  test('a saved state is logged with its size', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await worker.handleCommand(const SaveStateRequest(requestId: 1));
+
+    final saved = sink.records.firstWhere(
+      (r) => r.channel == LogChannel.emulator && r.message.contains('aved'),
+    );
+
+    expect(saved.context, containsPair('bytes', isA<int>()));
   });
 }
