@@ -13,6 +13,13 @@ Supports macOS, Windows, Android and Linux (tested on Steam Deck).
 Coming to the Google Play Store and the web soon.  
 If you sponsor an iOS device and the Apple developer account fee, I'll publish it to the App Store ;) 
 
+> **Looking for Android testers!**  
+> Google Play requires 12 testers to opt in and
+> actually use the app for 14 days before a new app can be published. If you'd like
+> to help NESd get onto the Play Store,
+> sign up in [Discussions](https://github.com/jpjonte/NESd/discussions/322).  
+> You'll need an Android device and a Google account.
+
 ## Installation
 
 ### macOS, Windows, Linux (deb / rpm), Android

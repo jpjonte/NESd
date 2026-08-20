@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/about/package_info.dart';
@@ -61,7 +63,11 @@ class Robot extends BaseRobot {
   void initSettings(Map<String, Object> values) =>
       SharedPreferences.setMockInitialValues({'settings': jsonEncode(values)});
 
-  Future<void> pumpApp({Map<String, Uint8List> extraFiles = const {}}) async {
+  Future<void> pumpApp({
+    Map<String, Uint8List> extraFiles = const {},
+    Size logicalSize = const Size(1920, 1080),
+    double? devicePixelRatio,
+  }) async {
     final fileSystem = MockFileSystem()
       ..addFile(
         '/test/roms/nestest.nes',
@@ -95,8 +101,11 @@ class Robot extends BaseRobot {
       '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
     ]);
 
-    tester.view.physicalSize =
-        const Size(1920, 1080) * tester.view.devicePixelRatio;
+    final ratio = devicePixelRatio ?? tester.view.devicePixelRatio;
+
+    tester.view
+      ..devicePixelRatio = ratio
+      ..physicalSize = logicalSize * ratio;
 
     final tempDir = _createTempDir();
 
@@ -117,7 +126,7 @@ class Robot extends BaseRobot {
           filesystemProvider.overrideWithValue(fileSystem),
           applicationSupportPathProvider.overrideWithValue(tempDir.path),
         ],
-        child: const NesdApp(),
+        child: const RepaintBoundary(child: NesdApp()),
       ),
     );
     await tester.pumpAndSettle();
@@ -131,11 +140,23 @@ class Robot extends BaseRobot {
     return dir;
   }
 
-  Future<void> screenshot(String filename) async {
+  Future<void> screenshot(String filename, {double pixelRatio = 1.0}) async {
     await tester.runAsync(() async {
-      final image = await captureImage(
-        tester.element(find.byType(ProviderScope)),
+      final element = tester.element(find.byType(ProviderScope));
+
+      var renderObject = element.renderObject!;
+
+      while (!renderObject.isRepaintBoundary) {
+        renderObject = renderObject.parent!;
+      }
+
+      final layer = renderObject.debugLayer! as OffsetLayer;
+
+      final image = await layer.toImage(
+        renderObject.paintBounds,
+        pixelRatio: pixelRatio,
       );
+
       final bytes = await image.toByteData(format: ImageByteFormat.png);
 
       if (bytes != null) {
