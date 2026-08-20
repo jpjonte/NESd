@@ -40,3 +40,4 @@ roms/
 !roms/test/mmc5test_v2/mmc5test.nes
 
 packages/nesd/android/play-service-account.json
+packages/nesd/android/app/src/main/play/release-notes/
