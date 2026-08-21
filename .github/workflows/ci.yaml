@@ -30,8 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: flutter pub get
+      - run: dart pub get
+        working-directory: website
       - run: dart format --set-exit-if-changed .
-      - run: dart analyze packages/nesd packages/nesd_texture packages/nesd_audio
+      - run: dart analyze packages/nesd packages/nesd_texture packages/nesd_audio website
 
   check-play-listing:
     runs-on: ubuntu-22.04
@@ -52,26 +54,61 @@ jobs:
           cd packages/nesd
           flutter test --coverage
       - run: ci/0-test/extract_coverage.sh
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
-          path: './pages'
+          name: coverage-badge
+          path: pages/coverage/main.json
+          if-no-files-found: error
 
-  publish-coverage:
-    if: github.ref == 'refs/heads/main'
+  test-site:
     runs-on: ubuntu-22.04
-    needs: [test]
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    container:
+      image: ghcr.io/jpjonte/flutter:stable-ci
+    needs: [lint]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/configure-pages@v6
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - run: |
+          dart pub get
+          dart test
+        working-directory: website
+
+  publish-pages:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    needs: [test, test-site]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: pages
+        uses: ./.github/actions/pages
+
+  publish-pages-release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-22.04
+    needs: [test, test-site, release]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: pages
+        uses: ./.github/actions/pages
 
   build-macos:
     runs-on: macos-latest
@@ -394,6 +431,7 @@ jobs:
         run: ci/3-release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v8
         with:
+          pattern: '!coverage-badge'
           path: artifacts
           merge-multiple: true
       - id: env
@@ -452,7 +490,7 @@ jobs:
         run: ci/3-release/extract_changelog.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!play-bundle'
+          pattern: '!@(play-bundle|coverage-badge)'
           path: artifacts
           merge-multiple: true
       - id: env
