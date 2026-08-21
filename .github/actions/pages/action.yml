@@ -1,0 +1,36 @@
+name: Build and deploy the website
+description: >-
+  Builds the jaspr site against the latest GitHub release, merges the
+  coverage badge in, and deploys everything to GitHub Pages.
+outputs:
+  page_url:
+    description: URL of the deployed site
+    value: ${{ steps.deployment.outputs.page_url }}
+runs:
+  using: composite
+  steps:
+    - uses: dart-lang/setup-dart@v1
+      with:
+        sdk: stable
+    - uses: actions/download-artifact@v8
+      with:
+        name: coverage-badge
+        path: pages/coverage
+    - name: Fetch the latest release manifest
+      shell: bash
+      run: website/tool/fetch_release.sh
+    - name: Build the site
+      shell: bash
+      working-directory: website
+      run: |
+        dart pub get
+        dart run jaspr_cli:jaspr build --sitemap-domain https://nesd.jpj.dev
+    - name: Stage the site next to the coverage badge
+      shell: bash
+      run: website/tool/stage.sh "$GITHUB_WORKSPACE/pages"
+    - uses: actions/configure-pages@v6
+    - uses: actions/upload-pages-artifact@v5
+      with:
+        path: pages
+    - id: deployment
+      uses: actions/deploy-pages@v5

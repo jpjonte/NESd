@@ -1,0 +1,149 @@
+import 'dart:io';
+
+import 'package:nesd_website/content.dart';
+import 'package:test/test.dart';
+
+const _validRelease = '''
+{
+  "tag_name": "1.2.3",
+  "html_url": "https://github.com/jpjonte/NESd/releases/tag/1.2.3",
+  "assets": [
+    {
+      "name": "nesd.1.2.3.macos-universal.dmg",
+      "browser_download_url": "https://x/nesd.1.2.3.macos-universal.dmg"
+    }
+  ]
+}
+''';
+
+void main() {
+  late Directory root;
+  late Directory website;
+
+  setUp(() {
+    root = Directory.systemTemp.createTempSync('nesd_website_test');
+    website = Directory('${root.path}/website')..createSync();
+    File('${website.path}/pubspec.yaml')
+        .writeAsStringSync('name: nesd_website\n');
+    File('${root.path}/PRIVACY.md')
+        .writeAsStringSync('# NESd Privacy Policy\n');
+    Directory('${website.path}/build').createSync();
+    File('${website.path}/build/release.json').writeAsStringSync(_validRelease);
+  });
+
+  tearDown(() => root.deleteSync(recursive: true));
+
+  group('SiteInputs.fromEnvironment', () {
+    test('defaults to build/release.json and ../PRIVACY.md', () {
+      final inputs = SiteInputs.fromEnvironment(
+        const {},
+        workingDirectory: website.path,
+      );
+
+      expect(inputs.releaseJsonPath, '${website.path}/build/release.json');
+      expect(inputs.privacyPath, '${website.path}/../PRIVACY.md');
+    });
+
+    test('NESD_RELEASE_JSON overrides the release path', () {
+      final inputs = SiteInputs.fromEnvironment(const {
+        'NESD_RELEASE_JSON': '/elsewhere/release.json',
+      }, workingDirectory: website.path);
+
+      expect(inputs.releaseJsonPath, '/elsewhere/release.json');
+    });
+
+    test('rejects a working directory that is not the website package', () {
+      expect(
+        () => SiteInputs.fromEnvironment(const {}, workingDirectory: root.path),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('run from website/'),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('SiteContent.load', () {
+    SiteInputs inputs() =>
+        SiteInputs.fromEnvironment(const {}, workingDirectory: website.path);
+
+    test('loads the release manifest and the privacy markdown', () {
+      final content = SiteContent.load(inputs());
+
+      expect(content.release.version, '1.2.3');
+      expect(content.privacyMarkdown, startsWith('# NESd Privacy Policy'));
+    });
+
+    test('fails with a hint when release.json is missing', () {
+      File('${website.path}/build/release.json').deleteSync();
+
+      expect(
+        () => SiteContent.load(inputs()),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('tool/fetch_release.sh'),
+          ),
+        ),
+      );
+    });
+
+    test('fails when release.json is not valid json', () {
+      File('${website.path}/build/release.json').writeAsStringSync('nope');
+
+      expect(
+        () => SiteContent.load(inputs()),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('tool/fetch_release.sh'),
+          ),
+        ),
+      );
+    });
+
+    test('fails when release.json matches no assets', () {
+      File('${website.path}/build/release.json').writeAsStringSync('''
+{"tag_name": "1.2.3", "html_url": "https://x", "assets": []}
+''');
+
+      expect(
+        () => SiteContent.load(inputs()),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('no release asset matched'),
+          ),
+        ),
+      );
+    });
+
+    test('fails when PRIVACY.md is missing', () {
+      File('${root.path}/PRIVACY.md').deleteSync();
+
+      expect(
+        () => SiteContent.load(inputs()),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('PRIVACY.md'),
+          ),
+        ),
+      );
+    });
+  });
+
+  test('site constants are filled in', () {
+    expect(siteUrl, 'https://nesd.jpj.dev');
+    expect(supportedGameCount, '3,070');
+    expect(features, hasLength(12));
+    expect(screenshots, hasLength(4));
+  });
+}

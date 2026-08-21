@@ -83,3 +83,21 @@ rest. Beyond that:
 fvm dart format .
 pushd packages/nesd && fvm flutter analyze && fvm flutter test && popd
 ```
+
+## Website
+
+`website/` is a standalone Dart package that builds https://nesd.jpj.dev with [jaspr](https://jaspr.site) in static mode.
+CI builds and deploys it to GitHub Pages on every push to `main` and after each release.
+All commands run from `website/`:
+
+```bash
+fvm dart pub get
+tool/fetch_release.sh              # latest release → build/release.json (needs gh CLI)
+fvm dart run jaspr_cli:jaspr serve # check http://localhost:8080
+fvm dart run jaspr_cli:jaspr build --sitemap-domain https://nesd.jpj.dev
+                                   # -> build/jaspr/, then tool/stage.sh → build/site/
+fvm dart test
+```
+
+Download links are generated from the release manifest, and the privacy page from `PRIVACY.md`.
+The feature list, screenshots and supported-game count are defined in `website/lib/content.dart`.
