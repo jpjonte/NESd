@@ -6,7 +6,7 @@ env:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       build-relevant: ${{ steps.filter.outputs.build-relevant }}
     steps:
@@ -24,7 +24,7 @@ jobs:
               - 'android/**'
 
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -36,13 +36,13 @@ jobs:
       - run: dart analyze packages/nesd packages/nesd_texture packages/nesd_audio website
 
   check-play-listing:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - run: ci/check/android/play_listing.sh
 
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     needs: [lint]
@@ -61,7 +61,7 @@ jobs:
           if-no-files-found: error
 
   test-site:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     needs: [lint]
@@ -74,7 +74,7 @@ jobs:
 
   publish-pages:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test, test-site]
     permissions:
       contents: read
@@ -93,7 +93,7 @@ jobs:
 
   publish-pages-release:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test, test-site, release]
     permissions:
       contents: read
@@ -144,11 +144,22 @@ jobs:
     strategy:
       matrix:
         arch: [ x64, arm64 ]
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     needs: [ test ]
     env:
       ARCH: ${{ matrix.arch }}
+    container:
+      image: ubuntu:22.04
     steps:
+      - name: Bootstrap container
+        run: |
+          apt-get update -y
+          # zstd is required for actions/cache to work correctly
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates curl git jq unzip xz-utils zip zstd
+          curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }}" \
+            -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
       - uses: actions/checkout@v7
       - id: env
         uses: ./.github/actions/env
@@ -184,7 +195,7 @@ jobs:
           if-no-files-found: error
 
   build-android:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     needs: [ test ]
@@ -217,7 +228,7 @@ jobs:
 
   publish-play:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     needs: [ build-android, check-play-listing ]
@@ -255,7 +266,7 @@ jobs:
     strategy:
       matrix:
         arch: [ x64, arm64 ]
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     needs: [ build-linux ]
     env:
       ARCH: ${{ matrix.arch }}
@@ -278,7 +289,7 @@ jobs:
     strategy:
       matrix:
         arch: [ x64, arm64 ]
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     needs: [ build-linux ]
     env:
       ARCH: ${{ matrix.arch }}
@@ -301,12 +312,12 @@ jobs:
     strategy:
       matrix:
         arch: [ x64, arm64 ]
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     needs: [ build-linux ]
     env:
       ARCH: ${{ matrix.arch }}
     container:
-      image: ghcr.io/andyholmes/flatter/freedesktop:24.08
+      image: ghcr.io/andyholmes/flatter/freedesktop:25.08
       options: --privileged
     permissions:
       contents: write
@@ -370,7 +381,7 @@ jobs:
     strategy:
       matrix:
         arch: [ x64, arm64 ]
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     needs: [ build-linux ]
     env:
       ARCH: ${{ matrix.arch }}
@@ -391,7 +402,7 @@ jobs:
 
   release_nightly:
     if: github.ref == 'refs/heads/main' && needs.detect-changes.outputs.build-relevant == 'true'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     concurrency:
       group: flatpak-push
       cancel-in-progress: false
@@ -451,7 +462,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     concurrency:
       group: flatpak-push
       cancel-in-progress: false

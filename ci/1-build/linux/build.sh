@@ -4,8 +4,16 @@ set -eux
 
 repo_root=$(git rev-parse --show-toplevel)
 
-sudo apt-get update -y
-sudo apt-get install -y ninja-build libgtk-3-dev
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update -y
+apt-get install -y --no-install-recommends \
+  binutils \
+  clang \
+  cmake \
+  libgtk-3-dev \
+  ninja-build \
+  pkg-config
 
 pushd "$repo_root/packages/nesd" >/dev/null
 
