@@ -18,6 +18,8 @@ wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download
 chmod +x appimagetool
 mv appimagetool /usr/local/bin/
 
+export APPIMAGE_EXTRACT_AND_RUN=1
+
 mkdir -p nesd.AppDir/{usr/share/icons/hicolor/scalable/apps,usr/share/metainfo,usr/lib}
 
 cp -r "$app_root/build/linux/$ARCH/release/bundle"/* nesd.AppDir
