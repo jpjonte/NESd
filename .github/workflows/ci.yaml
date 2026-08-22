@@ -149,7 +149,7 @@ jobs:
     env:
       ARCH: ${{ matrix.arch }}
     container:
-      image: ubuntu:22.04
+      image: ubuntu:26.04
     steps:
       - name: Bootstrap container
         run: |
