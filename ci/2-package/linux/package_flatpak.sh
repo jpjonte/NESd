@@ -12,5 +12,5 @@ flatpak build-bundle \
   --arch="$full_arch" \
   --gpg-sign="$GPG_KEY_ID" \
   repo \
-  "$ARTIFACT".linux-"$ARCH".flatpak \
-  dev.jpj.NESd
+  "$ARTIFACT_FLAVORED".linux-"$ARCH".flatpak \
+  "$FLATPAK_ID"

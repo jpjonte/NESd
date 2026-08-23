@@ -17,6 +17,7 @@ Google Play requires 12 testers to opt in and actually use the app for 14 days b
 - A log viewer (Settings → Debug → View log) with per-line context, copy and file export, plus a rolling log file
 
 ### Changed
+- Nightly Linux builds are now a separate `dev` flavor. Existing nightly Flatpak installs are migrated automatically
 - Debug tools are now opened from the in-game menu under "Tools" instead of the Debug settings tab, and can be bound to keys or gamepad buttons. Panels you had open are carried over
 - The execution log now shares the debug tool column instead of taking a column of its own
 - Gamepad input now uses the upstream gamepads plugin with normalized button and axis names on all platforms. Saved gamepad bindings are translated automatically where possible

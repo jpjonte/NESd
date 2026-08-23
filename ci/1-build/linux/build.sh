@@ -17,8 +17,8 @@ apt-get install -y --no-install-recommends \
 
 pushd "$repo_root/packages/nesd" >/dev/null
 
-mkdir -p build/linux/"$ARCH"/release/bundle/
+mkdir -p build/linux/"$ARCH"/"$FLAVOR"/release/bundle/
 
-flutter build linux --release --target-platform=linux-"$ARCH"
+flutter build linux --release --flavor "$FLAVOR" --target-platform=linux-"$ARCH"
 
 popd >/dev/null

@@ -25,3 +25,6 @@ outputs:
   flavored_name:
     description: Human-readable flavored app name
     value: ${{ steps.env.outputs.flavored_name }}
+  flatpak_id:
+    description: Flatpak app id (dev.jpj.NESd or dev.jpj.NESd.dev)
+    value: ${{ steps.env.outputs.flatpak_id }}

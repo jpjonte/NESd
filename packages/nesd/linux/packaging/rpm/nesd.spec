@@ -1,5 +1,5 @@
-Name: nesd
-Version: 0.16.0
+Name: %{name_}
+Version: %{version_}
 Release: 1%{?dist}
 Summary: NES emulator
 Group: Games/Emulators
@@ -19,25 +19,13 @@ ExclusiveArch: %{arch_}
 %install
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/%{name}
-mkdir -p %{buildroot}%{_datadir}/applications
-mkdir -p %{buildroot}%{_datadir}/metainfo
-mkdir -p %{buildroot}%{_datadir}/pixmaps
-cp -r %{name}/* %{buildroot}%{_datadir}/%{name}
-ln -s ../share/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
-cp -r %{name}.desktop %{buildroot}%{_datadir}/applications
-cp -r dev.jpj.NESd.svg %{buildroot}%{_datadir}/pixmaps
-cp -r %{name}.metainfo.xml %{buildroot}%{_datadir}/metainfo || :
-update-mime-database %{_datadir}/mime &> /dev/null || :
-
-%postun
-update-mime-database %{_datadir}/mime &> /dev/null || :
+cp -r bundle/* %{buildroot}%{_datadir}/%{name}
+ln -s ../share/%{name}/nesd %{buildroot}%{_bindir}/%{name}
+cp -r share/* %{buildroot}%{_datadir}
 
 %files
 %{_bindir}/%{name}
 %{_datadir}/%{name}
-%{_datadir}/applications
-%{_datadir}/metainfo
-
-
-%defattr(-,root,root)
-%attr(4755, root, root) %{_datadir}/pixmaps/dev.jpj.NESd.svg
+%{_datadir}/applications/*.desktop
+%{_datadir}/metainfo/*.metainfo.xml
+%{_datadir}/icons/hicolor/scalable/apps/*.svg

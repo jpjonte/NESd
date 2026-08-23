@@ -40,11 +40,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "NESd");
+    gtk_header_bar_set_title(header_bar, APPLICATION_NAME);
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "NESd");
+    gtk_window_set_title(window, APPLICATION_NAME);
   }
 
   gtk_window_set_default_size(window, 1280, 720);
@@ -86,6 +86,7 @@ static void my_application_startup(GApplication* application) {
   //MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application startup.
+  gdk_set_program_class(APPLICATION_ID);
 
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
 }

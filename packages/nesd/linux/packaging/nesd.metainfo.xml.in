@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-    <id>dev.jpj.NESd</id>
+    <id>@ID@</id>
 
-    <name>NESd</name>
+    <name>@NAME@</name>
     <summary>NES emulator</summary>
 
     <developer_name>John Paul Jonte</developer_name>
     <url type="homepage">https://github.com/jpjonte/NESd</url>
-    <update_contatt>nesd_AT_jpj.dev</update_contatt>
+    <update_contact>nesd_AT_jpj.dev</update_contact>
 
     <metadata_license>MIT</metadata_license>
     <project_license>MIT</project_license>
@@ -67,7 +67,7 @@
         </p>
     </description>
 
-    <launchable type="desktop-id">dev.jpj.NESd.desktop</launchable>
+    <launchable type="desktop-id">@ID@.desktop</launchable>
     <screenshots>
         <screenshot type="default">
             <image>https://github.com/jpjonte/NESd/raw/main/docs/list.png</image>

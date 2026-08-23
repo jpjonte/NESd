@@ -7,7 +7,10 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "nesd")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
+# The dev flavor gets its own id (and thereby its own data directory and
+# launcher association) below, once FLUTTER_APP_FLAVOR is known.
 set(APPLICATION_ID "dev.jpj.nesd")
+set(APPLICATION_NAME "NESd")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -54,7 +57,15 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
 
-add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
+if(FLUTTER_APP_FLAVOR STREQUAL "dev")
+  set(APPLICATION_ID "dev.jpj.nesd.dev")
+  set(APPLICATION_NAME "NESd dev")
+endif()
+
+add_definitions(
+  -DAPPLICATION_ID="${APPLICATION_ID}"
+  -DAPPLICATION_NAME="${APPLICATION_NAME}"
+)
 
 # Define the application target. To change its name, change BINARY_NAME above,
 # not the value here, or `flutter run` will no longer work.

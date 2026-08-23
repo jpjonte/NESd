@@ -20,22 +20,21 @@ mv appimagetool /usr/local/bin/
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 
-mkdir -p nesd.AppDir/{usr/share/icons/hicolor/scalable/apps,usr/share/metainfo,usr/lib}
+bundle="$app_root/build/linux/$ARCH/$FLAVOR/release/bundle"
+packaging="$app_root/linux/packaging"
 
-cp -r "$app_root/build/linux/$ARCH/release/bundle"/* nesd.AppDir
+mkdir -p nesd.AppDir/usr/lib
 
-cp "$app_root/linux/packaging/dev.jpj.NESd.desktop" nesd.AppDir/nesd.desktop
-cp "$app_root/linux/packaging/dev.jpj.NESd.metainfo.xml" \
-  nesd.AppDir/usr/share/metainfo/nesd.metainfo.xml
+cp -r "$bundle"/* nesd.AppDir
 
-cp "$app_root/linux/packaging/appimage/AppRun" nesd.AppDir/AppRun
+id=$(bash "$packaging/render.sh" "$FLAVOR" nesd nesd.AppDir/usr/share)
 
-cp "$app_root/assets/logo.svg" nesd.AppDir/dev.jpj.NESd.svg
-cp "$app_root/assets/logo.svg" \
-  nesd.AppDir/usr/share/icons/hicolor/scalable/apps/dev.jpj.NESd.svg
+# appimagetool wants the desktop entry and its icon at the AppDir root.
+cp "nesd.AppDir/usr/share/applications/$id.desktop" nesd.AppDir/
+cp "nesd.AppDir/usr/share/icons/hicolor/scalable/apps/$id.svg" nesd.AppDir/
+
+cp "$packaging/appimage/AppRun" nesd.AppDir/AppRun
 
 chmod +x nesd.AppDir/AppRun
 
-appimagetool --no-appstream nesd.AppDir "$ARTIFACT".AppImage
-
-mv ./*.AppImage "$ARTIFACT".linux-"$ARCH".AppImage
+appimagetool --no-appstream nesd.AppDir "$ARTIFACT_FLAVORED".linux-"$ARCH".AppImage
