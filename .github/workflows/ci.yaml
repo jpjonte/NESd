@@ -41,6 +41,12 @@ jobs:
       - uses: actions/checkout@v7
       - run: ci/check/android/play_listing.sh
 
+  check-pages-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: ci/check/website/pages_gate.sh
+
   check-linux-packaging:
     runs-on: ubuntu-24.04
     steps:
@@ -78,10 +84,21 @@ jobs:
           dart test
         working-directory: website
 
-  publish-pages:
+  pages-gate:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    needs: [test, test-site]
+    needs: [check-pages-gate]
+    outputs:
+      deploy: ${{ steps.gate.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: gate
+        run: website/tool/pages_gate.sh
+
+  publish-pages:
+    if: github.ref == 'refs/heads/main' && needs.pages-gate.outputs.deploy == 'true'
+    runs-on: ubuntu-24.04
+    needs: [test, test-site, pages-gate]
     permissions:
       contents: read
       pages: write
