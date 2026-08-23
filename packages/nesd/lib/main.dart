@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/bench/bench_runner.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_setup.dart';
+import 'package:nesd/profile/dev_profile_migration.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -18,6 +19,7 @@ import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/soak/soak_runner.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
@@ -46,9 +48,12 @@ void main(List<String> arguments) async {
 
   const sharedPreferencesOptions = SharedPreferencesOptions();
 
+  final applicationSupport = await getApplicationSupportDirectory();
+
+  await _migrateLinuxDevProfile(applicationSupport);
+
   final preferences = await SharedPreferences.getInstance();
   final packageInfo = await PackageInfo.fromPlatform();
-  final applicationSupport = await getApplicationSupportDirectory();
 
   attachLogFile(NesdLog.instance, applicationSupport.path);
 
@@ -103,4 +108,25 @@ void _addLicenses() {
 
 Future<LicenseEntryWithLineBreaks> _addLicense(String name, String file) async {
   return LicenseEntryWithLineBreaks([name], await rootBundle.loadString(file));
+}
+
+Future<void> _migrateLinuxDevProfile(Directory applicationSupport) async {
+  if (!Platform.isLinux || appFlavor != 'dev') {
+    return;
+  }
+
+  final legacy = Directory(
+    p.join(applicationSupport.parent.path, legacyLinuxApplicationId),
+  );
+
+  final migrated = await migrateDevProfile(
+    target: applicationSupport,
+    legacy: legacy,
+  );
+
+  if (migrated) {
+    log.app.info(
+      'Copied the profile from ${legacy.path} to ${applicationSupport.path}',
+    );
+  }
 }
