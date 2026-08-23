@@ -2,11 +2,11 @@
 Version=1.5
 Type=Application
 
-Name=NESd
+Name=@NAME@
 Comment=NES emulator
 Categories=Game;Emulator;
 
-Icon=dev.jpj.NESd
-Exec=nesd %U
+Icon=@ID@
+Exec=@EXEC@ %U
 Terminal=false
-StartupWMClass=nesd
+StartupWMClass=@APP_ID@

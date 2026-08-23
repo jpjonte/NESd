@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+ln -s /usr/share/@PACKAGE@/nesd /usr/bin/@BIN@
+chmod +x /usr/bin/@BIN@

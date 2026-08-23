@@ -30,6 +30,9 @@ Download NESd from the [latest release](https://github.com/jpjonte/NESd/releases
 
 Add my Flatpak repo (https://jpjonte.github.io/flatpak/jpj.flatpakrepo) and install NESd (`dev.jpj.NESd`) from there.
 
+Nightly builds live in a separate repo (https://jpjonte.github.io/flatpak/jpj-nightly.flatpakrepo).
+They can be installed next to the stable release.
+
 ## Features
 
 - Runs on macOS, Linux, Windows, and Android

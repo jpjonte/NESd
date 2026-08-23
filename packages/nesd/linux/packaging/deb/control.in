@@ -1,0 +1,9 @@
+Package: @PACKAGE@
+Version: @VERSION@
+Architecture: @ARCH@
+Installed-Size: @SIZE@
+Maintainer: John Paul Jonte <nesd@jpj.dev>
+Section: x11
+Priority: optional
+Homepage: https://github.com/jpjonte/NESd
+Description: NES emulator
