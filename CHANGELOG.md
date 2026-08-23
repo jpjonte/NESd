@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+- Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
+
+### Fixed
+- Fixed not all architectures being published to the Flatpak repo
+
 ## [0.17.0] - 2026-08-23
 
 **Looking for Android testers!**  
