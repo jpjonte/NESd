@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.17.0] - 2026-08-23
 
 **Looking for Android testers!**  
 Google Play requires 12 testers to opt in and actually use the app for 14 days before a new app can be published. If you'd like to help NESd get onto the Play Store, sign up in [Discussions](https://github.com/jpjonte/NESd/discussions/322).
