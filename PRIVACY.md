@@ -1,9 +1,9 @@
 # NESd Privacy Policy
 
-Last updated: 2026-08-19
+Last updated: 2026-08-24
 
-NESd is an offline Nintendo Entertainment System emulator. It has no
-backend service and no account system.
+NESd is a Nintendo Entertainment System emulator. It has no backend
+service and no account system.
 
 ## What NESd collects
 
@@ -34,9 +34,17 @@ standard per-app data directory (for example
 running a typical uninstaller, does not reliably delete this
 directory.
 
+On the web version, imported ROM files, SRAM saves, save states, and
+thumbnails are stored in your browser's site storage (IndexedDB) for the
+site you're playing on (nesd.jpj.dev, or a self-hosted instance), on
+your own device. They are never uploaded anywhere. Clearing your
+browser's site data for that site removes all of it.
+
 ## Network access
 
-NESd does not require network access.
+The web version is delivered over the network.
+Beyond that, NESd does not require network access, and your
+ROMs, saves, and other game data never leave your browser.
 
 ## Contact
 

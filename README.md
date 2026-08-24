@@ -9,8 +9,7 @@
 </p>
 
 A NES Emulator written in Dart and Flutter.
-Supports macOS, Windows, Android and Linux (tested on Steam Deck).  
-Coming to the Google Play Store and the web soon.  
+Supports macOS, Windows, Android, Linux (tested on Steam Deck), and the web.  
 If you sponsor an iOS device and the Apple developer account fee, I'll publish it to the App Store ;) 
 
 > **Looking for Android testers!**  
@@ -26,6 +25,10 @@ If you sponsor an iOS device and the Apple developer account fee, I'll publish i
 
 Download NESd from the [latest release](https://github.com/jpjonte/NESd/releases/latest).
 
+### Web
+
+Play at [https://nesd.jpj.dev/play/](https://nesd.jpj.dev/play/). A self-hostable Docker image is also available (see [Self-hosting](#self-hosting) below).
+
 ### Linux (Flatpak)
 
 Add my Flatpak repo (https://jpjonte.github.io/flatpak/jpj.flatpakrepo) and install NESd (`dev.jpj.NESd`) from there.
@@ -34,7 +37,7 @@ Nightly builds (`dev.jpj.NESd.dev`) live in the same repo and can be installed n
 
 ## Features
 
-- Runs on macOS, Linux, Windows, and Android
+- Runs on macOS, Linux, Windows, Android, and the web
 - Cycle accurate CPU emulation
 - PPU and APU emulation
 - Support for NTSC and PAL games
@@ -69,6 +72,46 @@ NESd supports 3.070 games.
 - 118: TxSROM (8 games)
 - 176: 8025 (264 games)
 - 206: Namco 108 (63 games)
+
+## Self-hosting
+
+NESd's web version is a static Flutter web app that can be self-hosted.
+
+### Docker
+
+    docker run -d -p 8080:80 ghcr.io/jpjonte/nesd:latest
+
+Then open http://localhost:8080.
+
+`8080` is an example port, feel free to change it.
+
+| Tags      |                                 | 
+|-----------|---------------------------------|
+| `latest`  | latest release                  |  
+| `x.y.z`   | specific version, e.g. `0.17.0` |  
+| `nightly` | latest `main` build             |
+
+#### Docker Compose
+
+    services:
+      nesd:
+        image: ghcr.io/jpjonte/nesd:latest
+        ports:
+          - "8080:80"
+        restart: unless-stopped
+
+### Static files
+
+Any static file server works.
+
+- Download the web build (`nesd.<version>.web.zip`) from the [latest release](https://github.com/jpjonte/NESd/releases/latest)
+- or `nesd.nightly.web.zip` from the [nightly release](https://github.com/jpjonte/NESd/releases/tag/nightly)
+- or build it from source (`flutter build web --wasm --no-web-resources-cdn` in `packages/nesd`).
+
+Serve the directory as-is.  
+`.mjs` files must be served as JavaScript (`Content-Type: application/javascript`), otherwise browsers reject the WebAssembly runtime's module, and you get a blank page.  
+Serve `index.html` and `flutter_bootstrap.js` uncached.  
+Serve over HTTPS (or localhost): browsers only provide audio worklets in secure contexts, **so on plain HTTP NESd runs without sound.**
 
 ## Acknowledgements
 
