@@ -327,7 +327,7 @@ class ActionHandler {
   }
 
   void _loadState(int slot) {
-    nesController.loadState(slot);
+    unawaited(nesController.loadState(slot));
   }
 
   void _sendIntent(Intent intent) {

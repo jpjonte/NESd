@@ -58,7 +58,7 @@ void main() {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
 
     // MockNesDatabase concretely overrides find() to return null.
     final database = MockNesDatabase();

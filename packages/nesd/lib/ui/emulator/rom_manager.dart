@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -6,10 +6,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 import 'package:nesd/exception/nesd_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/frame_buffer_image.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/toast/toaster.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -22,6 +25,8 @@ String applicationSupportPath(Ref ref) => '';
 RomManager romManager(Ref ref) {
   final romManager = RomManager(
     baseDirectory: ref.watch(applicationSupportPathProvider),
+    storage: ref.watch(storageFilesystemProvider),
+    toaster: ref.watch(toasterProvider),
   );
 
   ref.onDispose(romManager.dispose);
@@ -70,71 +75,93 @@ class RomInfo {
 class RomManager {
   static const directoryName = 'NESd';
 
-  RomManager({required this.baseDirectory}) {
-    _initializeDirectories();
-    _migrateFiles();
+  RomManager({
+    required this.baseDirectory,
+    required this.storage,
+    this.toaster,
+  }) {
+    _initialized = _initialize();
   }
 
   final String baseDirectory;
+
+  final StorageFilesystem storage;
+
+  final Toaster? toaster;
+
+  // Every public storage operation awaits this so nothing can read or
+  // write while the legacy-layout migration is still moving files.
+  late final Future<void> _initialized;
+
+  bool _ready = false;
+
+  Future<void> _ensureInitialized() {
+    if (_ready) {
+      return Future.value();
+    }
+
+    return _initialized;
+  }
+
+  @visibleForTesting
+  Future<void> get initialized => _initialized;
 
   final thumbnailRevision = ValueNotifier<int>(0);
 
   void dispose() => thumbnailRevision.dispose();
 
   Future<void> save(RomInfo romInfo, Uint8List data) async {
-    final file = _getSaveFile(romInfo);
+    await _ensureInitialized();
 
-    await _ensureDirectoryExists(file);
-
-    await file.writeAsBytes(data);
+    await storage.write(_getFilename('saves', romInfo, '.sav'), data);
   }
 
-  Uint8List? load(RomInfo romInfo) {
-    final saveFile = _getSaveFile(romInfo);
+  Future<Uint8List?> load(RomInfo romInfo) async {
+    await _ensureInitialized();
 
-    if (!saveFile.existsSync()) {
-      return null;
-    }
-
-    return saveFile.readAsBytesSync();
+    return storage.read(_getFilename('saves', romInfo, '.sav'));
   }
 
   Future<void> saveState(RomInfo romInfo, int slot, List<int> data) async {
-    final file = _getSaveStateFile(romInfo, slot);
+    await _ensureInitialized();
 
-    await _ensureDirectoryExists(file);
-
-    await file.writeAsBytes(data);
+    await storage.write(
+      _getFilename('states', romInfo, '.$slot.state'),
+      Uint8List.fromList(data),
+    );
   }
 
-  Uint8List? loadState(RomInfo romInfo, int slot) {
-    final saveStateFile = _getSaveStateFile(romInfo, slot);
+  Future<Uint8List?> loadState(RomInfo romInfo, int slot) async {
+    await _ensureInitialized();
 
-    if (!saveStateFile.existsSync()) {
-      return null;
-    }
-
-    return saveStateFile.readAsBytesSync();
+    return storage.read(_getFilename('states', romInfo, '.$slot.state'));
   }
 
-  Uint8List? loadLatestState(RomInfo romInfo) {
-    final files = <File>[];
+  Future<Uint8List?> loadLatestState(RomInfo romInfo) async {
+    await _ensureInitialized();
+
+    String? newestPath;
+    DateTime? newestTime;
 
     for (var slot = 0; slot < 10; slot++) {
-      final stateFile = _getSaveStateFile(romInfo, slot);
+      final path = _getFilename('states', romInfo, '.$slot.state');
+      final modified = await storage.lastModified(path);
 
-      if (stateFile.existsSync()) {
-        files.add(stateFile);
+      if (modified == null) {
+        continue;
+      }
+
+      if (newestTime == null || modified.isAfter(newestTime)) {
+        newestTime = modified;
+        newestPath = path;
       }
     }
 
-    if (files.isEmpty) {
+    if (newestPath == null) {
       return null;
     }
 
-    files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-
-    return files.first.readAsBytesSync();
+    return storage.read(newestPath);
   }
 
   Future<void> saveThumbnail(
@@ -143,6 +170,8 @@ class RomManager {
     required int height,
     required Uint8List pixels,
   }) async {
+    await _ensureInitialized();
+
     final image = img.Image.fromBytes(
       width: width,
       height: height,
@@ -155,25 +184,18 @@ class RomManager {
     // PNG encode stays synchronous: one-shot at stop(), not a hot path
     final png = img.encodePng(image);
 
-    final file = getThumbnailFile(romInfo);
-
-    await _ensureDirectoryExists(file);
-
-    // the ROM list reads thumbnails while this runs, so the new one is
-    // written next to the old one and then renamed into place
-    final temporaryFile = File('${file.path}.tmp');
-
-    await temporaryFile.writeAsBytes(png);
-
-    await temporaryFile.rename(file.path);
+    await storage.write(thumbnailPath(romInfo), Uint8List.fromList(png));
 
     thumbnailRevision.value++;
   }
 
-  File getThumbnailFile(RomInfo romInfo) {
-    final filename = _getFilename('thumbnails', romInfo, '.png');
+  String thumbnailPath(RomInfo romInfo) =>
+      _getFilename('thumbnails', romInfo, '.png');
 
-    return File(filename);
+  Future<Uint8List?> readThumbnail(RomInfo romInfo) async {
+    await _ensureInitialized();
+
+    return storage.read(thumbnailPath(romInfo));
   }
 
   // the tile loads the thumbnail itself, so building the ROM list needs no
@@ -185,18 +207,20 @@ class RomManager {
   );
 
   Future<RomTileData?> getRomTileDataForSlot(RomInfo romInfo, int slot) async {
-    final saveStateFile = _getSaveStateFile(romInfo, slot);
+    await _ensureInitialized();
 
-    if (!saveStateFile.existsSync()) {
+    final path = _getFilename('states', romInfo, '.$slot.state');
+
+    final data = await storage.read(path);
+
+    if (data == null) {
       return null;
     }
-
-    final data = saveStateFile.readAsBytesSync();
 
     try {
       final state = NESState.fromBytes(data);
 
-      final lastModified = saveStateFile.lastModifiedSync();
+      final lastModified = await storage.lastModified(path) ?? DateTime.now();
 
       return RomTileData(
         romInfo: romInfo,
@@ -206,70 +230,78 @@ class RomManager {
         state: state,
         slot: slot,
       );
-    } on NesdException {
+    } on NesdException catch (e) {
+      log.rom.warning(
+        'Skipping save state slot',
+        context: {'slot': slot},
+        error: e,
+      );
+
       return null;
     }
   }
 
   Future<void> deleteSaveState(RomTileData romTileData) async {
+    await _ensureInitialized();
+
     final slot = romTileData.slot;
 
     if (slot == null) {
       return;
     }
 
-    final saveStateFile = _getSaveStateFile(romTileData.romInfo, slot);
+    await storage.delete(
+      _getFilename('states', romTileData.romInfo, '.$slot.state'),
+    );
+  }
 
-    if (saveStateFile.existsSync()) {
-      await saveStateFile.delete();
+  Future<void> _initialize() async {
+    try {
+      await storage.createDirectory(_getDirectory('saves'));
+      await storage.createDirectory(_getDirectory('states'));
+      await storage.createDirectory(_getDirectory('thumbnails'));
+
+      await _migrateFilesToDirectory('.sav', 'saves');
+      await _migrateFilesToDirectory('.state', 'states');
+      await _migrateFilesToDirectory('.png', 'thumbnails');
+    } on Object catch (e, s) {
+      log.rom.error('Storage initialization failed', error: e, stackTrace: s);
+
+      toaster?.send(Toast.error('Storage initialization failed: $e'));
+    } finally {
+      _ready = true;
     }
   }
 
-  Future<void> _ensureDirectoryExists(File file) =>
-      Directory(p.dirname(file.path)).create(recursive: true);
+  Future<void> _migrateFilesToDirectory(
+    String extension,
+    String directory,
+  ) async {
+    final files = await storage.list(_getDirectory(''));
+
+    for (final path in files) {
+      if (p.extension(path) != extension) {
+        continue;
+      }
+
+      final data = await storage.read(path);
+
+      if (data == null) {
+        continue;
+      }
+
+      await storage.write(
+        p.join(_getDirectory(directory), p.basename(path)),
+        data,
+      );
+      await storage.delete(path);
+    }
+  }
 
   Future<ui.Image> _getStateThumbnail(NESState state) async {
     final frameBuffer = state.ppuState.frameBuffer;
 
     return await convertFrameBufferToImage(frameBuffer);
-  }
-
-  void _initializeDirectories() {
-    Directory(_getDirectory('saves')).createSync(recursive: true);
-    Directory(_getDirectory('states')).createSync(recursive: true);
-    Directory(_getDirectory('thumbnails')).createSync(recursive: true);
-  }
-
-  void _migrateFiles() {
-    _migrateFilesToDirectory('sav', 'saves');
-    _migrateFilesToDirectory('state', 'states');
-    _migrateFilesToDirectory('png', 'thumbnails');
-  }
-
-  void _migrateFilesToDirectory(String extension, String directory) {
-    final files = Directory(_getDirectory('')).listSync();
-
-    for (final file in files) {
-      if (file is File && p.extension(file.path) == '.$extension') {
-        final newPath = p.join(_getDirectory(directory), p.basename(file.path));
-
-        file
-          ..copySync(newPath)
-          ..deleteSync();
-      }
-    }
-  }
-
-  File _getSaveFile(RomInfo romInfo) {
-    final filename = _getFilename('saves', romInfo, '.sav');
-
-    return File(filename);
-  }
-
-  File _getSaveStateFile(RomInfo romInfo, int slot) {
-    final filename = _getFilename('states', romInfo, '.$slot.state');
-
-    return File(filename);
   }
 
   String _getDirectory(String component) => p.join(baseDirectory, component);

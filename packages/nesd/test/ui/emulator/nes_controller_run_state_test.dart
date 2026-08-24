@@ -61,7 +61,7 @@ void main() {
 
       final romManager = _MockRomManager();
 
-      when(() => romManager.load(any())).thenReturn(null);
+      when(() => romManager.load(any())).thenAnswer((_) async => null);
       when(() => romManager.save(any(), any())).thenAnswer((_) async {});
       when(
         () => romManager.saveThumbnail(
@@ -149,7 +149,7 @@ void main() {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
     when(() => romManager.save(any(), any())).thenAnswer((_) async {});
     when(
       () => romManager.saveThumbnail(

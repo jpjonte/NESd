@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -14,6 +15,8 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/native_storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -142,11 +145,28 @@ class Robot extends BaseRobot {
           packageInfoProvider.overrideWithValue(packageInfo),
           filesystemProvider.overrideWithValue(fileSystem),
           applicationSupportPathProvider.overrideWithValue(tempDir.path),
+          storageFilesystemProvider.overrideWithValue(
+            NativeStorageFilesystem(),
+          ),
         ],
         child: const RepaintBoundary(child: NesdApp()),
       ),
     );
     await tester.pumpAndSettle();
+
+    // RomManager's directory setup and migration run real IO across
+    // several awaits. Drain them here so storage-touching actions later
+    // settle within a single fixAsync round.
+    var initialized = false;
+
+    unawaited(
+      container
+          .read(romManagerProvider)
+          .initialized
+          .whenComplete(() => initialized = true),
+    );
+
+    await waitUntil(() => initialized);
   }
 
   Directory _createTempDir() {

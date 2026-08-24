@@ -50,7 +50,7 @@ class _Harness {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
 
     final database = MockNesDatabase();
     final toaster = _MockToaster();

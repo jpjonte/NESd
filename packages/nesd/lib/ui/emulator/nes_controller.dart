@@ -226,7 +226,7 @@ class NesController {
   void reset() {
     nes?.reset();
 
-    _loadSram();
+    unawaited(_loadSram());
   }
 
   Future<void> stop() async {
@@ -344,8 +344,8 @@ class NesController {
 
       final isolate = await _ensureIsolate();
 
-      final sram = romManager.load(romInfo);
-      final initialState = stateBytes ?? _autoLoadBytes(romInfo);
+      final sram = await romManager.load(romInfo);
+      final initialState = stateBytes ?? await _autoLoadBytes(romInfo);
       final cheats = settingsController.cheats[_cheatsKey(romInfo)] ?? const [];
       final breakpoints =
           settingsController.breakpoints[cartridge.fileHash] ?? const [];
@@ -514,9 +514,9 @@ class NesController {
     }
   }
 
-  void loadState(int slot) {
+  Future<void> loadState(int slot) async {
     if (nes case final nes?) {
-      final saveState = romManager.loadState(nes.romInfo, slot);
+      final saveState = await romManager.loadState(nes.romInfo, slot);
 
       if (saveState == null) {
         toaster.send(Toast.warning('No save state found in slot $slot'));
@@ -528,9 +528,9 @@ class NesController {
     }
   }
 
-  void _loadSram() {
+  Future<void> _loadSram() async {
     if (nes case final nes?) {
-      final data = romManager.load(nes.romInfo);
+      final data = await romManager.load(nes.romInfo);
 
       if (data != null) {
         nes.loadSram(data);
@@ -607,7 +607,7 @@ class NesController {
     suspend();
   }
 
-  Uint8List? _autoLoadBytes(RomInfo romInfo) {
+  Future<Uint8List?> _autoLoadBytes(RomInfo romInfo) async {
     if (!settingsController.autoLoad) {
       return null;
     }
