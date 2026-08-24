@@ -11,9 +11,17 @@ class DownloadCards extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return div(classes: 'downloads', [
+      _webCard(),
       for (final platform in DownloadPlatform.values) _card(platform),
     ]);
   }
+
+  Component _webCard() => const div(classes: 'download-card', [
+    h2([.text('Web')]),
+    div(classes: 'download-links', [
+      a(classes: 'dl primary', href: playUrl, [.text('Play in browser')]),
+    ]),
+  ]);
 
   Component _card(DownloadPlatform platform) {
     final assets = release.forPlatform(platform);
