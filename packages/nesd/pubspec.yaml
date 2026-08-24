@@ -28,6 +28,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   gamepads: ^0.1.10+5
   hooks_riverpod: ^3.0.3
+  idb_shim: ^2.6.0
   image: ^4.5.4
   intl: ^0.20.2
   json_annotation: ^4.12.0
