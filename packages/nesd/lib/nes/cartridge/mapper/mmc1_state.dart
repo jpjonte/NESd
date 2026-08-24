@@ -1,6 +1,7 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class MMC1State extends MapperState {
   const MMC1State({
@@ -41,7 +42,7 @@ class MMC1State extends MapperState {
       chrBank0: reader.get(uint8),
       chrBank1: reader.get(uint8),
       prgBank: reader.get(uint8),
-      lastWrite: reader.get(uint64),
+      lastWrite: reader.get(nesdUint64),
     );
   }
 
@@ -67,6 +68,6 @@ class MMC1State extends MapperState {
       ..set(uint8, chrBank0)
       ..set(uint8, chrBank1)
       ..set(uint8, prgBank)
-      ..set(uint64, lastWrite);
+      ..set(nesdUint64, lastWrite);
   }
 }

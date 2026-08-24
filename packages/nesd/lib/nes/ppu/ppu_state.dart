@@ -5,6 +5,7 @@ import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class PPUState {
   PPUState({
@@ -77,7 +78,7 @@ class PPUState {
       palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
       consoleCycles: 0,
-      cycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
       cycle: reader.get(uint8),
       scanline: reader.get(uint8),
       frames: reader.get(uint8),
@@ -118,8 +119,8 @@ class PPUState {
       secondaryOam: reader.get(uint8List(lengthType: uint32)),
       palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
-      consoleCycles: reader.get(uint64),
-      cycles: reader.get(uint64),
+      consoleCycles: reader.get(nesdUint64),
+      cycles: reader.get(nesdUint64),
       cycle: reader.get(uint8),
       scanline: reader.get(uint8),
       frames: reader.get(uint8),
@@ -160,8 +161,8 @@ class PPUState {
       secondaryOam: reader.get(uint8List(lengthType: uint32)),
       palette: reader.get(uint8List(lengthType: uint32)),
       frameBuffer: FrameBuffer.deserialize(reader),
-      consoleCycles: reader.get(uint64),
-      cycles: reader.get(uint64),
+      consoleCycles: reader.get(nesdUint64),
+      cycles: reader.get(nesdUint64),
       cycle: reader.get(uint16),
       scanline: reader.get(uint16),
       frames: reader.get(uint32),
@@ -258,8 +259,8 @@ class PPUState {
     frameBuffer.serialize(writer);
 
     writer
-      ..set(uint64, consoleCycles)
-      ..set(uint64, cycles)
+      ..set(nesdUint64, consoleCycles)
+      ..set(nesdUint64, cycles)
       ..set(uint16, cycle)
       ..set(uint16, scanline)
       ..set(uint32, frames)

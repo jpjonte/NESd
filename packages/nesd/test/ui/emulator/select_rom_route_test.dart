@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,9 +15,11 @@ import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/web_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/web_storage_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
@@ -119,9 +122,6 @@ class _MockToaster extends Mock implements Toaster {}
 
 class _MockRomManager extends Mock implements RomManager {}
 
-/// A [StorageFilesystem] whose [write] always fails, simulating a browser
-/// storage error (quota exceeded, blocked transaction, etc.) so tests can
-/// exercise `selectRom`'s recovery from a failed web import.
 class _FailingWriteStorage implements StorageFilesystem {
   @override
   Future<Uint8List?> read(String path) => throw UnimplementedError();
@@ -288,7 +288,7 @@ void main() {
             filesystem: filesystem,
             database: database,
             cartridgeFactory: CartridgeFactory(database: database),
-            storage: MockStorageFilesystem(),
+            romImporter: NativeRomImporter(),
           )
           // A game is loaded and running.
           ..emulatorActive = true;
@@ -370,15 +370,89 @@ void main() {
       filesystem: MockFileSystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
-      storage: storage,
-      webPicker: true,
-      pickFile: ({required type, allowedExtensions}) async =>
-          FakePlatformFile(name: 'game.nes', path: '', bytes: romBytes),
+      romImporter: WebRomImporter(
+        storage: storage,
+        pickFile: ({required type, allowedExtensions}) async =>
+            FakePlatformFile(name: 'game.nes', path: '', bytes: romBytes),
+      ),
     );
 
     await controller.selectRom();
 
     expect(await storage.read('$webRomsDirectory/game.nes'), romBytes);
+  });
+
+  test('selectRom imports a zip on web and starts the contained ROM', () async {
+    final container = ProviderContainer();
+
+    addTearDown(container.dispose);
+
+    container.listen(nesStateProvider, (_, _) {});
+
+    final settings = _MockSettingsController();
+
+    when(() => settings.cheats).thenReturn(const {});
+    when(() => settings.breakpoints).thenReturn(const {});
+    when(() => settings.region).thenReturn(null);
+    when(() => settings.rewind).thenReturn(false);
+    when(() => settings.volume).thenReturn(1.0);
+    when(() => settings.autoSave).thenReturn(false);
+    when(() => settings.autoSaveInterval).thenReturn(5);
+    when(() => settings.autoLoad).thenReturn(false);
+    when(() => settings.logLevel).thenReturn(LogLevel.info);
+    when(() => settings.addRecentRom(any())).thenAnswer((_) {});
+
+    final romManager = _MockRomManager();
+
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
+    when(() => romManager.save(any(), any())).thenAnswer((_) async {});
+    when(
+      () => romManager.saveThumbnail(
+        any(),
+        width: any(named: 'width'),
+        height: any(named: 'height'),
+        pixels: any(named: 'pixels'),
+      ),
+    ).thenAnswer((_) async {});
+
+    final database = MockNesDatabase();
+    final handle = FakeNesIsolateHandle();
+
+    addTearDown(handle.dispose);
+
+    final storage = await WebStorageFilesystem.open(newIdbFactoryMemory());
+
+    final romBytes = File(
+      '../../roms/test/nestest/nestest.nes',
+    ).readAsBytesSync();
+    final archive = Archive()
+      ..addFile(ArchiveFile('nestest.nes', romBytes.length, romBytes));
+    final zipBytes = Uint8List.fromList(ZipEncoder().encode(archive));
+
+    final controller = NesController(
+      nesState: container.read(nesStateProvider.notifier),
+      spawner: () async => handle,
+      router: Router(),
+      settingsController: settings,
+      toaster: _MockToaster(),
+      romManager: romManager,
+      // Reads go through browser storage, like production web.
+      filesystem: WebFilesystem(storage: storage),
+      database: database,
+      cartridgeFactory: CartridgeFactory(database: database),
+      romImporter: WebRomImporter(
+        storage: storage,
+        pickFile: ({required type, allowedExtensions}) async =>
+            FakePlatformFile(name: 'game.zip', path: '', bytes: zipBytes),
+      ),
+    );
+
+    await controller.selectRom();
+
+    expect(await storage.read('$webRomsDirectory/game.zip'), zipBytes);
+    expect(container.read(nesStateProvider), isNotNull);
+
+    await controller.stop();
   });
 
   test('a failed web storage write is reported and does not wedge the '
@@ -427,27 +501,26 @@ void main() {
 
     final toaster = _MockToaster();
 
-    final controller =
-        NesController(
-            nesState: container.read(nesStateProvider.notifier),
-            spawner: () async => handle,
-            router: Router(),
-            settingsController: settings,
-            toaster: toaster,
-            romManager: romManager,
-            filesystem: filesystem,
-            database: database,
-            cartridgeFactory: CartridgeFactory(database: database),
-            storage: _FailingWriteStorage(),
-            webPicker: true,
-            pickFile: ({required type, allowedExtensions}) async =>
-                FakePlatformFile(
-                  name: 'game.nes',
-                  path: '',
-                  bytes: Uint8List.fromList([1, 2, 3, 4]),
-                ),
-          )
-          ..emulatorActive = true;
+    final controller = NesController(
+      nesState: container.read(nesStateProvider.notifier),
+      spawner: () async => handle,
+      router: Router(),
+      settingsController: settings,
+      toaster: toaster,
+      romManager: romManager,
+      filesystem: filesystem,
+      database: database,
+      cartridgeFactory: CartridgeFactory(database: database),
+      romImporter: WebRomImporter(
+        storage: _FailingWriteStorage(),
+        pickFile: ({required type, allowedExtensions}) async =>
+            FakePlatformFile(
+              name: 'game.nes',
+              path: '',
+              bytes: Uint8List.fromList([1, 2, 3, 4]),
+            ),
+      ),
+    )..emulatorActive = true;
 
     final loaded = await controller.loadRom(
       const FilesystemFile(

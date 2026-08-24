@@ -1,6 +1,7 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class MMC3State extends MapperState {
   const MMC3State({
@@ -51,7 +52,7 @@ class MMC3State extends MapperState {
       irqLatch: reader.get(uint8),
       irqReload: reader.get(boolean),
       irqEnabled: reader.get(boolean),
-      a12LowStart: reader.get(uint64),
+      a12LowStart: reader.get(nesdUint64),
     );
   }
 
@@ -101,6 +102,6 @@ class MMC3State extends MapperState {
       ..set(uint8, irqLatch)
       ..set(boolean, irqReload)
       ..set(boolean, irqEnabled)
-      ..set(uint64, a12LowStart);
+      ..set(nesdUint64, a12LowStart);
   }
 }

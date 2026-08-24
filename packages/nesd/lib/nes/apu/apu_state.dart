@@ -7,6 +7,7 @@ import 'package:nesd/nes/apu/channel/noise_channel_state.dart';
 import 'package:nesd/nes/apu/channel/pulse_channel_state.dart';
 import 'package:nesd/nes/apu/channel/triangle_channel_state.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class APUState {
   const APUState({
@@ -40,15 +41,15 @@ class APUState {
 
   factory APUState._version0(PayloadReader reader) {
     return APUState(
-      cycles: reader.get(uint64),
-      sampleIndex: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
+      sampleIndex: reader.get(nesdUint64),
       sampleBuffer: Float32List.fromList(reader.get(list(float32))),
-      pulse1Samples: reader.get(uint64),
-      pulse2Samples: reader.get(uint64),
-      triangleSamples: reader.get(uint64),
-      dmcSamples: reader.get(uint64),
+      pulse1Samples: reader.get(nesdUint64),
+      pulse2Samples: reader.get(nesdUint64),
+      triangleSamples: reader.get(nesdUint64),
+      dmcSamples: reader.get(nesdUint64),
       expansionSamples: 0,
-      sampleStart: reader.get(uint64),
+      sampleStart: reader.get(nesdUint64),
       frameCounterState: FrameCounterState.deserialize(reader),
       pulse1State: PulseChannelState.deserialize(reader),
       pulse2State: PulseChannelState.deserialize(reader),
@@ -60,15 +61,15 @@ class APUState {
 
   factory APUState._version1(PayloadReader reader) {
     return APUState(
-      cycles: reader.get(uint64),
-      sampleIndex: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
+      sampleIndex: reader.get(nesdUint64),
       sampleBuffer: reader.get(float32List(lengthType: uint32)),
-      pulse1Samples: reader.get(uint64),
-      pulse2Samples: reader.get(uint64),
-      triangleSamples: reader.get(uint64),
-      dmcSamples: reader.get(uint64),
+      pulse1Samples: reader.get(nesdUint64),
+      pulse2Samples: reader.get(nesdUint64),
+      triangleSamples: reader.get(nesdUint64),
+      dmcSamples: reader.get(nesdUint64),
       expansionSamples: 0,
-      sampleStart: reader.get(uint64),
+      sampleStart: reader.get(nesdUint64),
       frameCounterState: FrameCounterState.deserialize(reader),
       pulse1State: PulseChannelState.deserialize(reader),
       pulse2State: PulseChannelState.deserialize(reader),
@@ -80,15 +81,15 @@ class APUState {
 
   factory APUState._version2(PayloadReader reader) {
     return APUState(
-      cycles: reader.get(uint64),
-      sampleIndex: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
+      sampleIndex: reader.get(nesdUint64),
       sampleBuffer: reader.get(float32List(lengthType: uint32)),
-      pulse1Samples: reader.get(uint64),
-      pulse2Samples: reader.get(uint64),
-      triangleSamples: reader.get(uint64),
-      dmcSamples: reader.get(uint64),
+      pulse1Samples: reader.get(nesdUint64),
+      pulse2Samples: reader.get(nesdUint64),
+      triangleSamples: reader.get(nesdUint64),
+      dmcSamples: reader.get(nesdUint64),
       expansionSamples: reader.get(float64),
-      sampleStart: reader.get(uint64),
+      sampleStart: reader.get(nesdUint64),
       frameCounterState: FrameCounterState.deserialize(reader),
       pulse1State: PulseChannelState.deserialize(reader),
       pulse2State: PulseChannelState.deserialize(reader),
@@ -125,15 +126,15 @@ class APUState {
   void serialize(PayloadWriter writer) {
     writer
       ..set(uint8, 2) // version
-      ..set(uint64, cycles)
-      ..set(uint64, sampleIndex)
+      ..set(nesdUint64, cycles)
+      ..set(nesdUint64, sampleIndex)
       ..set(float32List(lengthType: uint32), sampleBuffer)
-      ..set(uint64, pulse1Samples)
-      ..set(uint64, pulse2Samples)
-      ..set(uint64, triangleSamples)
-      ..set(uint64, dmcSamples)
+      ..set(nesdUint64, pulse1Samples)
+      ..set(nesdUint64, pulse2Samples)
+      ..set(nesdUint64, triangleSamples)
+      ..set(nesdUint64, dmcSamples)
       ..set(float64, expansionSamples)
-      ..set(uint64, sampleStart);
+      ..set(nesdUint64, sampleStart);
 
     frameCounterState.serialize(writer);
     pulse1State.serialize(writer);
