@@ -1,16 +1,15 @@
 import 'dart:collection';
-import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:binarize/binarize.dart';
-import 'package:ffi/ffi.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/nes/ppu/frame_buffer_memory.dart';
 
 class FrameBuffer {
   FrameBuffer({required this.width, required this.height})
     : size = width * height * 4 {
     pixels = _allocateBuffer();
-    pixels32 = _bufferUint32[pixels]!;
+    pixels32 = FrameBufferMemory.words(pixels);
   }
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
@@ -43,11 +42,6 @@ class FrameBuffer {
 
   static const int _maxAvailable = 2;
   static const int _maxQueued = 2;
-  static final Expando<Pointer<Uint8>> _bufferPointers =
-      Expando<Pointer<Uint8>>();
-  static final Expando<Uint32List> _bufferUint32 = Expando<Uint32List>();
-  static final Finalizer<Pointer<Uint8>> _bufferFinalizer =
-      Finalizer<Pointer<Uint8>>((pointer) => calloc.free(pointer));
 
   Uint8List get presentedPixels => _presentedPixels ?? pixels;
 
@@ -113,7 +107,7 @@ class FrameBuffer {
     pixels = _available.isNotEmpty
         ? _available.removeLast()
         : _allocateBuffer();
-    pixels32 = _bufferUint32[pixels]!;
+    pixels32 = FrameBufferMemory.words(pixels);
   }
 
   Uint8List? takeReadyBuffer() {
@@ -147,25 +141,11 @@ class FrameBuffer {
     _presentedPixels32 = null;
   }
 
-  int? pointerForBuffer(Uint8List buffer) => _bufferPointers[buffer]?.address;
+  int? pointerForBuffer(Uint8List buffer) =>
+      FrameBufferMemory.pointerAddress(buffer);
 
-  Uint8List _allocateBuffer() {
-    // calloc, not malloc: the PPU legitimately skips pixels while
-    // rendering is disabled (forced blank), so unwritten framebuffer
-    // bytes keep their initial value and are observable — on screen
-    // and by the framebuffer golden hashes. A recycled malloc block
-    // full of garbage caused rare golden flakes when parallel test
-    // isolates shared one process's native heap.
-    final pointer = calloc<Uint8>(size);
-    final buffer = pointer.asTypedList(size);
-    final buffer32 = pointer.cast<Uint32>().asTypedList(width * height);
-
-    _bufferPointers[buffer] = pointer;
-    _bufferUint32[buffer] = buffer32;
-    _bufferFinalizer.attach(buffer, pointer);
-
-    return buffer;
-  }
+  Uint8List _allocateBuffer() =>
+      FrameBufferMemory.allocate(wordCount: width * height);
 
   static int _packColor(int rgb) {
     final red = (rgb >> 16) & 0xff;
