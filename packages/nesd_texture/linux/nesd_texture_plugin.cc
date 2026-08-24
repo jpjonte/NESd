@@ -6,8 +6,6 @@
 
 #include <cstring>
 
-#include "nesd_texture_plugin_private.h"
-
 #define NESD_TEXTURE_PLUGIN(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST((obj), nesd_texture_plugin_get_type(), \
                               NesdTexturePlugin))
