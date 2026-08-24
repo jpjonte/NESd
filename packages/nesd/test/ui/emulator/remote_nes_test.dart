@@ -16,9 +16,10 @@ import 'package:nesd/ui/emulator/remote_nes.dart';
 
 import 'remote_nes_fixtures.dart';
 
-FrameEvent _frameEvent(int pointerAddress, {int width = 2, int height = 2}) =>
+FrameEvent _frameEvent(int address, {int width = 2, int height = 2}) =>
     FrameEvent(
-      pointerAddress: pointerAddress,
+      frameHandle: address,
+      pixels: PointerFramePixels(address: address),
       width: width,
       height: height,
       frameTimeMicroseconds: 0,
@@ -63,8 +64,8 @@ void main() {
 
       expect(commands, [
         isA<ReleaseFrameCommand>().having(
-          (c) => c.pointerAddress,
-          'pointerAddress',
+          (c) => c.frameHandle,
+          'frameHandle',
           a.address,
         ),
       ]);
@@ -72,7 +73,7 @@ void main() {
       final handle = source.takeFrame();
 
       expect(handle, isNotNull);
-      expect(handle!.pointerAddress, b.address);
+      expect(handle!.id, b.address);
       expect(notifications, 2);
     });
 
@@ -93,8 +94,8 @@ void main() {
 
       expect(commands, [
         isA<ReleaseFrameCommand>().having(
-          (c) => c.pointerAddress,
-          'pointerAddress',
+          (c) => c.frameHandle,
+          'frameHandle',
           a.address,
         ),
       ]);
@@ -112,8 +113,8 @@ void main() {
 
       expect(commands, [
         isA<ReleaseFrameCommand>().having(
-          (c) => c.pointerAddress,
-          'pointerAddress',
+          (c) => c.frameHandle,
+          'frameHandle',
           a.address,
         ),
       ]);
@@ -236,7 +237,8 @@ void main() {
       final frame = remote.frameSource.takeFrame();
 
       expect(frame, isNotNull);
-      expect(frame!.pointerAddress, pointer.address);
+      expect(frame!.id, pointer.address);
+      expect(frame.pixelPointer, pointer.address);
 
       remote.dispose();
     });
@@ -260,8 +262,8 @@ void main() {
         handle.commands,
         contains(
           isA<ReleaseFrameCommand>().having(
-            (c) => c.pointerAddress,
-            'pointerAddress',
+            (c) => c.frameHandle,
+            'frameHandle',
             pointer.address,
           ),
         ),

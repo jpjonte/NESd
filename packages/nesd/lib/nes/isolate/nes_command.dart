@@ -234,9 +234,10 @@ class TileDebugRequest extends NesCommand {
 }
 
 class ReleaseFrameCommand extends NesCommand {
-  const ReleaseFrameCommand({required this.pointerAddress});
+  const ReleaseFrameCommand({required this.frameHandle});
 
-  final int pointerAddress;
+  /// The `FrameEvent.frameHandle` of the frame to return to the pool.
+  final int frameHandle;
 }
 
 class SetZapperPositionCommand extends NesCommand {

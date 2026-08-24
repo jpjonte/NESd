@@ -83,6 +83,8 @@ class NesWorker {
   final Map<int, ({FrameBuffer frameBuffer, Uint8List buffer})>
   _framesInFlight = {};
 
+  int _nextFrameHandle = 1;
+
   Future<void> handleCommand(NesCommand command) async {
     switch (command) {
       case LoadRomCommand():
@@ -173,7 +175,7 @@ class NesWorker {
       case TileDebugRequest():
         _handleTileDebug(command.requestId);
       case ReleaseFrameCommand():
-        _releaseFrame(command.pointerAddress);
+        _releaseFrame(command.frameHandle);
       case SetZapperPositionCommand():
         _nes?.bus.zapperPosition = command.x == null
             ? null
@@ -364,18 +366,16 @@ class NesWorker {
     }
 
     final address = frameBuffer.pointerForBuffer(buffer);
+    final handle = address ?? _nextFrameHandle++;
 
-    if (address == null) {
-      frameBuffer.releaseDisplayBuffer(buffer);
-
-      return;
-    }
-
-    _framesInFlight[address] = (frameBuffer: frameBuffer, buffer: buffer);
+    _framesInFlight[handle] = (frameBuffer: frameBuffer, buffer: buffer);
 
     send(
       FrameEvent(
-        pointerAddress: address,
+        frameHandle: handle,
+        pixels: address == null
+            ? InlineFramePixels(bytes: buffer)
+            : PointerFramePixels(address: address),
         width: frameBuffer.width,
         height: frameBuffer.height,
         frameTimeMicroseconds: event?.frameTime.inMicroseconds ?? 0,
@@ -391,8 +391,8 @@ class NesWorker {
   // attaches a GC Finalizer); dropping them while the UI still reads a pointer
   // view would be a use-after-free. Entries leave the map only via
   // ReleaseFrameCommand.
-  void _releaseFrame(int pointerAddress) {
-    final entry = _framesInFlight.remove(pointerAddress);
+  void _releaseFrame(int frameHandle) {
+    final entry = _framesInFlight.remove(frameHandle);
 
     entry?.frameBuffer.releaseDisplayBuffer(entry.buffer);
   }

@@ -31,9 +31,27 @@ class RomLoadFailedEvent extends NesIsolateEvent {
   final String message;
 }
 
+sealed class FramePixels {
+  const FramePixels();
+}
+
+/// The frame lives at [address] in the worker's native memory.
+class PointerFramePixels extends FramePixels {
+  const PointerFramePixels({required this.address});
+
+  final int address;
+}
+
+class InlineFramePixels extends FramePixels {
+  const InlineFramePixels({required this.bytes});
+
+  final Uint8List bytes;
+}
+
 class FrameEvent extends NesIsolateEvent {
   const FrameEvent({
-    required this.pointerAddress,
+    required this.frameHandle,
+    required this.pixels,
     required this.width,
     required this.height,
     required this.frameTimeMicroseconds,
@@ -42,7 +60,10 @@ class FrameEvent extends NesIsolateEvent {
     required this.rewindSize,
   });
 
-  final int pointerAddress;
+  final int frameHandle;
+
+  final FramePixels pixels;
+
   final int width;
   final int height;
   final int frameTimeMicroseconds;

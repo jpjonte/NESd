@@ -67,7 +67,7 @@ void main() {
       const SetRegionCommand(region: Region.pal),
       const SetFastForwardCommand(enabled: true),
       const SetRewindCommand(enabled: false),
-      const ReleaseFrameCommand(pointerAddress: 0xdeadbeef),
+      const ReleaseFrameCommand(frameHandle: 0xdeadbeef),
       const SetZapperPositionCommand(x: 12, y: 34),
       AddBreakpointCommand(breakpoint: Breakpoint(0x8000)),
     ];
@@ -81,7 +81,8 @@ void main() {
 
   test('FrameEvent and StatusEvent round-trip', () async {
     const frame = FrameEvent(
-      pointerAddress: 1234,
+      frameHandle: 1234,
+      pixels: PointerFramePixels(address: 1234),
       width: 256,
       height: 240,
       frameTimeMicroseconds: 16600,
@@ -93,7 +94,7 @@ void main() {
     final result = await _roundTrip(frame);
 
     expect(result, isA<FrameEvent>());
-    expect((result! as FrameEvent).pointerAddress, 1234);
+    expect((result! as FrameEvent).frameHandle, 1234);
 
     const status = StatusEvent(
       running: true,

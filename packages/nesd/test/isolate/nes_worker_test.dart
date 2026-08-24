@@ -147,7 +147,8 @@ void main() {
 
     expect(frame.width, 256);
     expect(frame.height, 240);
-    expect(frame.pointerAddress, isNot(0));
+    expect(frame.frameHandle, isNot(0));
+    expect(frame.pixels, isA<PointerFramePixels>());
   });
 
   test('ReleaseFrameCommand returns buffers to the pool', () async {
@@ -158,7 +159,7 @@ void main() {
 
     for (final frame in frames) {
       await worker.handleCommand(
-        ReleaseFrameCommand(pointerAddress: frame.pointerAddress),
+        ReleaseFrameCommand(frameHandle: frame.frameHandle),
       );
     }
 
@@ -323,7 +324,8 @@ void main() {
     // #2: the in-flight map is never bulk-cleared on stop). Read it back
     // directly through its raw pointer address.
     final size = frame.width * frame.height * 4;
-    final pointer = Pointer<Uint8>.fromAddress(frame.pointerAddress);
+    final address = (frame.pixels as PointerFramePixels).address;
+    final pointer = Pointer<Uint8>.fromAddress(address);
     final view = pointer.asTypedList(size);
 
     expect(view.length, size);
@@ -332,7 +334,7 @@ void main() {
     expect(view.fold<int>(0, (sum, b) => sum + b), isNonNegative);
 
     await worker.handleCommand(
-      ReleaseFrameCommand(pointerAddress: frame.pointerAddress),
+      ReleaseFrameCommand(frameHandle: frame.frameHandle),
     );
   });
 
@@ -460,7 +462,7 @@ void main() {
       final displayed = events.whereType<FrameEvent>().last;
       final displayedPixels = Uint8List.fromList(
         Pointer<Uint8>.fromAddress(
-          displayed.pointerAddress,
+          (displayed.pixels as PointerFramePixels).address,
         ).asTypedList(displayed.width * displayed.height * 4),
       );
 

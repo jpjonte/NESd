@@ -6,19 +6,14 @@ import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 
 void main() {
   test('spawn, load rom, receive frames, release, dispose', () async {
-    final lz4LibraryPath = Platform.isMacOS
-        ? 'macos/eslz4-mac64.dylib'
-        : Platform.isLinux
-        ? 'linux/eslz4-linux-x64.so'
-        : 'windows/eslz4-win64.dll';
-
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: lz4LibraryPath,
+      lz4LibraryPath: rewindCodecLibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -53,11 +48,11 @@ void main() {
         .timeout(const Duration(seconds: 10));
 
     for (final frame in frames) {
-      expect(frame.pointerAddress, isNonZero);
+      expect(frame.frameHandle, isNonZero);
       expect(frame.width, 256);
       expect(frame.height, 240);
 
-      isolate.send(ReleaseFrameCommand(pointerAddress: frame.pointerAddress));
+      isolate.send(ReleaseFrameCommand(frameHandle: frame.frameHandle));
     }
 
     await isolate.dispose();
@@ -105,14 +100,8 @@ void main() {
   });
 
   test('garbage LoadSramCommand keeps the isolate alive and framing', () async {
-    final lz4LibraryPath = Platform.isMacOS
-        ? 'macos/eslz4-mac64.dylib'
-        : Platform.isLinux
-        ? 'linux/eslz4-linux-x64.so'
-        : 'windows/eslz4-win64.dll';
-
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: lz4LibraryPath,
+      lz4LibraryPath: rewindCodecLibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -154,7 +143,7 @@ void main() {
         .timeout(const Duration(seconds: 10));
 
     for (final frame in frames) {
-      isolate.send(ReleaseFrameCommand(pointerAddress: frame.pointerAddress));
+      isolate.send(ReleaseFrameCommand(frameHandle: frame.frameHandle));
     }
 
     expect(frames, hasLength(3));
@@ -163,14 +152,8 @@ void main() {
   test(
     'events buffers messages emitted during a zero-listener window',
     () async {
-      final lz4LibraryPath = Platform.isMacOS
-          ? 'macos/eslz4-mac64.dylib'
-          : Platform.isLinux
-          ? 'linux/eslz4-linux-x64.so'
-          : 'windows/eslz4-win64.dll';
-
       final isolate = await NesIsolate.spawn(
-        lz4LibraryPath: lz4LibraryPath,
+        lz4LibraryPath: rewindCodecLibraryPath,
         audioLibraryPath: NesdAudio.libraryPath,
         disableAudio: true, // null device: no audio hardware in tests
       );
