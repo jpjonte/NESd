@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
@@ -11,6 +11,7 @@ import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
+import 'package:nesd/nes/isolate/local_nes_handle.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
@@ -39,7 +40,8 @@ const mobileRewindCaptureInterval = 4;
 typedef NesIsolateSpawner = Future<NesIsolateHandle> Function();
 
 @riverpod
-NesIsolateSpawner nesIsolateSpawner(Ref ref) => NesIsolate.spawn;
+NesIsolateSpawner nesIsolateSpawner(Ref ref) =>
+    kIsWeb ? LocalNesHandle.spawn : NesIsolate.spawn;
 
 @riverpod
 class NesState extends _$NesState {
@@ -363,7 +365,7 @@ class NesController {
           databaseEntry: databaseEntry,
           region: settingsController.region,
           rewindEnabled: settingsController.rewind,
-          rewindCaptureInterval: Platform.isAndroid
+          rewindCaptureInterval: defaultTargetPlatform == TargetPlatform.android
               ? mobileRewindCaptureInterval
               : 1,
           cheats: cheats,
