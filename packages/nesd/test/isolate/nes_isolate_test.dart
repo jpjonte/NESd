@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:es_compression/lz4.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
@@ -12,8 +11,14 @@ import 'package:nesd_audio/nesd_audio.dart';
 
 void main() {
   test('spawn, load rom, receive frames, release, dispose', () async {
+    final lz4LibraryPath = Platform.isMacOS
+        ? 'macos/eslz4-mac64.dylib'
+        : Platform.isLinux
+        ? 'linux/eslz4-linux-x64.so'
+        : 'windows/eslz4-win64.dll';
+
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: Lz4Codec.libraryPath,
+      lz4LibraryPath: lz4LibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -100,8 +105,14 @@ void main() {
   });
 
   test('garbage LoadSramCommand keeps the isolate alive and framing', () async {
+    final lz4LibraryPath = Platform.isMacOS
+        ? 'macos/eslz4-mac64.dylib'
+        : Platform.isLinux
+        ? 'linux/eslz4-linux-x64.so'
+        : 'windows/eslz4-win64.dll';
+
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: Lz4Codec.libraryPath,
+      lz4LibraryPath: lz4LibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -154,8 +165,14 @@ void main() {
   test(
     'events buffers messages emitted during a zero-listener window',
     () async {
+      final lz4LibraryPath = Platform.isMacOS
+          ? 'macos/eslz4-mac64.dylib'
+          : Platform.isLinux
+          ? 'linux/eslz4-linux-x64.so'
+          : 'windows/eslz4-win64.dll';
+
       final isolate = await NesIsolate.spawn(
-        lz4LibraryPath: Lz4Codec.libraryPath,
+        lz4LibraryPath: lz4LibraryPath,
         audioLibraryPath: NesdAudio.libraryPath,
         disableAudio: true, // null device: no audio hardware in tests
       );

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:es_compression/lz4.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/sink/isolate_sink.dart';
@@ -10,6 +9,7 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_config.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 
 /// Entry point run inside the spawned isolate. Wires a [NesWorker] to a
@@ -17,7 +17,7 @@ import 'package:nesd_audio/nesd_audio.dart';
 /// [IsolateReadyEvent].
 void nesIsolateMain(NesIsolateConfig config) {
   if (config.lz4LibraryPath case final path?) {
-    Lz4Codec.libraryPath = path;
+    setRewindCodecLibraryPath(path);
   }
 
   if (config.audioLibraryPath case final path?) {

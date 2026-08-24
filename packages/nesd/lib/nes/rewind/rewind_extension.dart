@@ -1,12 +1,12 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:es_compression/lz4.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 
 extension Uint8ListRewindExtension on Uint8List {
-  Uint8List compress() => _asUint8List(nesdLz4.encode(this));
+  Uint8List compress() => rewindCompress(this);
 
-  Uint8List decompress() => _asUint8List(nesdLz4.decode(this));
+  Uint8List decompress() => rewindDecompress(this);
 
   /// XORs this list with [other] over their common prefix, in place.
   ///
@@ -46,8 +46,3 @@ extension Uint8ListRewindExtension on Uint8List {
     }
   }
 }
-
-Uint8List _asUint8List(List<int> list) =>
-    list is Uint8List ? list : Uint8List.fromList(list);
-
-final nesdLz4 = Lz4Codec(level: -1);

@@ -1,15 +1,15 @@
-import 'package:es_compression/lz4.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 
 void main() {
   test('worker records reach the host as LogEvents', () async {
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: Lz4Codec.libraryPath,
+      lz4LibraryPath: rewindCodecLibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true,
       logLevel: LogLevel.debug,
