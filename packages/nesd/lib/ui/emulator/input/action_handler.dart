@@ -247,13 +247,33 @@ class ActionHandler {
       case PreviousInput():
         _sendIntent(const PreviousFocusIntent());
       case InputUp():
-        _sendIntent(const DirectionalFocusIntent(TraversalDirection.up));
+        _sendIntent(
+          const DirectionalFocusIntent(
+            TraversalDirection.up,
+            ignoreTextFields: false,
+          ),
+        );
       case InputDown():
-        _sendIntent(const DirectionalFocusIntent(TraversalDirection.down));
+        _sendIntent(
+          const DirectionalFocusIntent(
+            TraversalDirection.down,
+            ignoreTextFields: false,
+          ),
+        );
       case InputLeft():
-        _sendIntent(const DirectionalFocusIntent(TraversalDirection.left));
+        _sendIntent(
+          const DirectionalFocusIntent(
+            TraversalDirection.left,
+            ignoreTextFields: false,
+          ),
+        );
       case InputRight():
-        _sendIntent(const DirectionalFocusIntent(TraversalDirection.right));
+        _sendIntent(
+          const DirectionalFocusIntent(
+            TraversalDirection.right,
+            ignoreTextFields: false,
+          ),
+        );
       case Confirm():
         _sendIntent(const ActivateIntent());
       case SecondaryAction():
