@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Fixed not all architectures being published to the Flatpak repo
 - Fixed MMC1 games (e.g. The Legend of Zelda) freezing after rewinding
+- Fixed controller focus getting stuck in the file picker's search bar
 
 ## [0.17.0] - 2026-08-23
 

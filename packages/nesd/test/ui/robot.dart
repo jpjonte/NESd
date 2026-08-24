@@ -9,10 +9,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/nesd_app.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -62,6 +65,20 @@ class Robot extends BaseRobot {
 
   void initSettings(Map<String, Object> values) =>
       SharedPreferences.setMockInitialValues({'settings': jsonEncode(values)});
+
+  /// Emits a press of the button bound to [action], as the gamepad input
+  /// handler would.
+  void sendInputAction(InputAction action) {
+    container
+        .read(actionStreamProvider)
+        .add(
+          InputActionEvent(
+            action: action,
+            value: 1,
+            bindingType: BindingType.hold,
+          ),
+        );
+  }
 
   Future<void> pumpApp({
     Map<String, Uint8List> extraFiles = const {},
