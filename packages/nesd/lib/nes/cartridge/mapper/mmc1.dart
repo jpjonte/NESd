@@ -39,6 +39,7 @@ class MMC1 extends Mapper {
     chrBank0: _chrBank0,
     chrBank1: _chrBank1,
     prgBank: _prgBank,
+    lastWrite: _lastWrite,
   );
 
   @override
@@ -48,6 +49,7 @@ class MMC1 extends Mapper {
     _chrBank0 = state.chrBank0;
     _chrBank1 = state.chrBank1;
     _prgBank = state.prgBank;
+    _lastWrite = state.lastWrite;
 
     _updateState();
   }
