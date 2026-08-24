@@ -22,6 +22,7 @@ jobs:
               - 'linux/**'
               - 'windows/**'
               - 'android/**'
+              - 'ci/1-build/web/**'
 
   lint:
     runs-on: ubuntu-24.04
@@ -71,6 +72,23 @@ jobs:
           name: coverage-badge
           path: pages/coverage/main.json
           if-no-files-found: error
+
+  # Runs the browser-compatible suites under Chrome — the only place the
+  # js_interop implementations and kIsWeb branches actually execute.
+  # Plain runner (not the CI container): it ships Chrome preinstalled.
+  test-web:
+    runs-on: ubuntu-24.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v7
+      - id: env
+        uses: ./.github/actions/env
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: ci/0-test/web_test.sh
 
   test-site:
     runs-on: ubuntu-24.04
@@ -247,6 +265,22 @@ jobs:
             packages/nesd/android/gradlew
             packages/nesd/android/gradle/wrapper/gradle-wrapper.jar
             packages/nesd/android/local.properties
+          if-no-files-found: error
+
+  build-web:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/jpjonte/flutter:stable-ci
+    needs: [test, test-web]
+    steps:
+      - uses: actions/checkout@v7
+      - run: git config --global --add safe.directory "$(pwd)"
+      - run: flutter pub get
+      - run: ci/1-build/web/build.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-build
+          path: packages/nesd/build/web
           if-no-files-found: error
 
   publish-play:
@@ -468,12 +502,17 @@ jobs:
         run: ci/3-release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!@(coverage-badge|flatpak-repo-*)'
+          pattern: '!@(coverage-badge|flatpak-repo-*|web-build)'
           path: artifacts
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-build
+          path: web-build
       - id: env
         uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
+      - run: ci/3-release/zip_web_artifact.sh
       - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
         with:
@@ -542,12 +581,17 @@ jobs:
         run: ci/3-release/extract_changelog.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!@(play-bundle|coverage-badge|flatpak-repo-*)'
+          pattern: '!@(play-bundle|coverage-badge|flatpak-repo-*|web-build)'
           path: artifacts
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-build
+          path: web-build
       - id: env
         uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
+      - run: ci/3-release/zip_web_artifact.sh
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*
