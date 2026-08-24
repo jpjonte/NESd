@@ -361,26 +361,12 @@ jobs:
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - if: startsWith(github.ref, 'refs/tags/')
-        run: ln -s flatpak/stable repo
-      - if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
-        run: ln -s flatpak/nightly repo
-      - id: gpg-key
-        run: ci/2-package/linux/select_gpg_key.sh
-        env:
-          FLATPAK_STABLE_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
-          FLATPAK_STABLE_GPG_PASSPHRASE: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
-          FLATPAK_NIGHTLY_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_NIGHTLY_GPG_PRIVATE_KEY }}
-          FLATPAK_NIGHTLY_GPG_PASSPHRASE: ${{ secrets.FLATPAK_NIGHTLY_GPG_PASSPHRASE }}
+      - run: ln -s flatpak/stable repo
       - id: gpg
         uses: crazy-max/ghaction-import-gpg@v7
         with:
-          gpg_private_key: ${{ steps.gpg-key.outputs.gpg_private_key }}
-          passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
-      - if: env.FLAVOR == 'dev'
-        run: ci/2-package/linux/retire_flatpak_ref.sh
-        env:
-          GPG_KEY_ID: ${{ steps.gpg.outputs.fingerprint }}
+          gpg_private_key: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
       - uses: andyholmes/flatter@main
         with:
           files: packages/nesd/linux/packaging/flatpak/${{ env.FLATPAK_ID }}.json
@@ -395,14 +381,12 @@ jobs:
           name: ${{ env.ARTIFACT_FLAVORED }}.linux-${{ matrix.arch }}.flatpak
           path: '*.flatpak'
           if-no-files-found: error
-      - uses: actions/cache/save@v6
+      - run: ci/2-package/linux/export_flatpak_refs.sh
+      - uses: actions/upload-artifact@v7
         with:
-          path: flatpak/stable
-          key: flatpak-stable-${{ github.sha }}-${{ matrix.arch }}
-      - uses: actions/cache/save@v6
-        with:
-          path: flatpak/nightly
-          key: flatpak-nightly-${{ github.sha }}-${{ matrix.arch }}
+          name: flatpak-repo-${{ matrix.arch }}
+          path: flatpak-export
+          if-no-files-found: error
 
   package-linux-appimage:
     strategy:
@@ -452,32 +436,23 @@ jobs:
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v6
+      - uses: actions/download-artifact@v8
         with:
-          path: flatpak/nightly
-          key: flatpak-nightly-${{ github.sha }}-x64
-          fail-on-cache-miss: true
-      - uses: actions/cache/restore@v6
+          name: flatpak-repo-x64
+          path: flatpak-export/x64
+      - uses: actions/download-artifact@v8
         with:
-          path: flatpak/nightly
-          key: flatpak-nightly-${{ github.sha }}-arm64
-          fail-on-cache-miss: true
+          name: flatpak-repo-arm64
+          path: flatpak-export/arm64
       - run: |
           sudo apt-get update -y
-          sudo apt-get install -y --no-install-recommends flatpak
-      - id: gpg-key
-        run: ci/2-package/linux/select_gpg_key.sh
-        env:
-          FLATPAK_STABLE_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
-          FLATPAK_STABLE_GPG_PASSPHRASE: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
-          FLATPAK_NIGHTLY_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_NIGHTLY_GPG_PRIVATE_KEY }}
-          FLATPAK_NIGHTLY_GPG_PASSPHRASE: ${{ secrets.FLATPAK_NIGHTLY_GPG_PASSPHRASE }}
+          sudo apt-get install -y --no-install-recommends flatpak ostree
       - id: gpg
         uses: crazy-max/ghaction-import-gpg@v7
         with:
-          gpg_private_key: ${{ steps.gpg-key.outputs.gpg_private_key }}
-          passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
-      - run: ci/3-release/update_flatpak_repo.sh flatpak/nightly
+          gpg_private_key: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
+      - run: ci/3-release/merge_flatpak_repo.sh flatpak/stable flatpak-export/x64 flatpak-export/arm64
         env:
           GPG_KEY_ID: ${{ steps.gpg.outputs.fingerprint }}
       - uses: stefanzweifel/git-auto-commit-action@v7
@@ -493,7 +468,7 @@ jobs:
         run: ci/3-release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!coverage-badge'
+          pattern: '!@(coverage-badge|flatpak-repo-*)'
           path: artifacts
           merge-multiple: true
       - id: env
@@ -535,32 +510,23 @@ jobs:
           ssh-key: ${{ secrets.FLATPAK_PRIVATE_KEY }}
           ref: main
           path: flatpak
-      - uses: actions/cache/restore@v6
+      - uses: actions/download-artifact@v8
         with:
-          path: flatpak/stable
-          key: flatpak-stable-${{ github.sha }}-x64
-          fail-on-cache-miss: true
-      - uses: actions/cache/restore@v6
+          name: flatpak-repo-x64
+          path: flatpak-export/x64
+      - uses: actions/download-artifact@v8
         with:
-          path: flatpak/stable
-          key: flatpak-stable-${{ github.sha }}-arm64
-          fail-on-cache-miss: true
+          name: flatpak-repo-arm64
+          path: flatpak-export/arm64
       - run: |
           sudo apt-get update -y
-          sudo apt-get install -y --no-install-recommends flatpak
-      - id: gpg-key
-        run: ci/2-package/linux/select_gpg_key.sh
-        env:
-          FLATPAK_STABLE_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
-          FLATPAK_STABLE_GPG_PASSPHRASE: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
-          FLATPAK_NIGHTLY_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_NIGHTLY_GPG_PRIVATE_KEY }}
-          FLATPAK_NIGHTLY_GPG_PASSPHRASE: ${{ secrets.FLATPAK_NIGHTLY_GPG_PASSPHRASE }}
+          sudo apt-get install -y --no-install-recommends flatpak ostree
       - id: gpg
         uses: crazy-max/ghaction-import-gpg@v7
         with:
-          gpg_private_key: ${{ steps.gpg-key.outputs.gpg_private_key }}
-          passphrase: ${{ steps.gpg-key.outputs.gpg_passphrase }}
-      - run: ci/3-release/update_flatpak_repo.sh flatpak/stable
+          gpg_private_key: ${{ secrets.FLATPAK_STABLE_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.FLATPAK_STABLE_GPG_PASSPHRASE }}
+      - run: ci/3-release/merge_flatpak_repo.sh flatpak/stable flatpak-export/x64 flatpak-export/arm64
         env:
           GPG_KEY_ID: ${{ steps.gpg.outputs.fingerprint }}
       - uses: stefanzweifel/git-auto-commit-action@v7
@@ -576,7 +542,7 @@ jobs:
         run: ci/3-release/extract_changelog.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!@(play-bundle|coverage-badge)'
+          pattern: '!@(play-bundle|coverage-badge|flatpak-repo-*)'
           path: artifacts
           merge-multiple: true
       - id: env
