@@ -11,6 +11,7 @@ class _FakeNesdAudio implements NesdAudio {
   int underrunsValue = 0;
   int overrunsValue = 0;
   int closeCount = 0;
+  int resetCount = 0;
   int resetStatsCount = 0;
 
   final List<Float32List> pushed = [];
@@ -39,6 +40,11 @@ class _FakeNesdAudio implements NesdAudio {
     pushed.add(Float32List.fromList(samples));
 
     return samples.length;
+  }
+
+  @override
+  void reset() {
+    resetCount++;
   }
 
   @override
@@ -124,9 +130,10 @@ void main() {
     expect(audio.pushed.single, [1.0, -1.0, 0.5]);
   });
 
-  test('reset does not tear down the audio device', () {
+  test('reset flushes the backend without tearing it down', () {
     output.reset();
 
+    expect(audio.resetCount, 1);
     expect(audio.closeCount, 0);
   });
 

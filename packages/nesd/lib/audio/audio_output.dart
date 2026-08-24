@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/pacing_governor.dart';
@@ -17,13 +17,16 @@ typedef AudioStats = ({
 /// Native ring capacity: 50 ms at the APU sample rate.
 const audioBufferSamples = 2400;
 
+/// Web ring capacity: 100 ms to prevent underruns from JavaScript GC.
+const webAudioBufferSamples = 4800;
+
 /// Underrun recovery threshold: 20 ms.
 const audioRecoverSamples = 960;
 
 NesdAudio defaultNesdAudio({bool nullDevice = false}) => NesdAudio.open(
   sampleRate: apuSampleRate,
   channels: 1,
-  bufferSamples: audioBufferSamples,
+  bufferSamples: kIsWeb ? webAudioBufferSamples : audioBufferSamples,
   recoverSamples: audioRecoverSamples,
   nullDevice: nullDevice,
 );
@@ -57,6 +60,7 @@ class AudioOutput {
 
   void reset() {
     _audioBuffer.clear();
+    audio.reset();
   }
 
   void dispose() {
