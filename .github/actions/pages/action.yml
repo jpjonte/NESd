@@ -1,7 +1,8 @@
 name: Build and deploy the website
 description: >-
-  Builds the jaspr site against the latest GitHub release, merges the
-  coverage badge in, and deploys everything to GitHub Pages.
+  Builds the jaspr site against the latest GitHub release, merges in the
+  coverage badge and the web app (under /play), and deploys everything
+  to GitHub Pages.
 outputs:
   page_url:
     description: URL of the deployed site
@@ -16,6 +17,16 @@ runs:
       with:
         name: coverage-badge
         path: pages/coverage
+    - uses: actions/download-artifact@v8
+      with:
+        name: web-build
+        path: pages/play
+    - name: Point the web app at its subpath
+      shell: bash
+      # the grep ensures index.html always contains the correct base
+      run: |
+        grep -q '<base href="/">' pages/play/index.html
+        sed -i 's|<base href="/">|<base href="/play/">|' pages/play/index.html
     - name: Fetch the latest release manifest
       shell: bash
       run: website/tool/fetch_release.sh
