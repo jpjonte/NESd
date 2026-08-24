@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
@@ -8,6 +7,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
@@ -280,7 +280,7 @@ void main() {
       handle.emit(
         SaveStateResponse(
           requestId: request.requestId,
-          state: TransferableTypedData.fromList([bytes]),
+          state: NesBytes.fromList([bytes]),
         ),
       );
 
@@ -336,7 +336,7 @@ void main() {
       handle.emit(
         SaveStateResponse(
           requestId: request.requestId,
-          state: TransferableTypedData.fromList([Uint8List(0)]),
+          state: NesBytes.fromList([Uint8List(0)]),
         ),
       );
 
@@ -358,7 +358,7 @@ void main() {
       handle.emit(
         SramResponse(
           requestId: request.requestId,
-          sram: TransferableTypedData.fromList([bytes]),
+          sram: NesBytes.fromList([bytes]),
         ),
       );
 
@@ -377,7 +377,7 @@ void main() {
       handle.emit(
         ThumbnailResponse(
           requestId: request.requestId,
-          pixels: TransferableTypedData.fromList([pixels]),
+          pixels: NesBytes.fromList([pixels]),
           width: 1,
           height: 1,
         ),
@@ -402,7 +402,7 @@ void main() {
       handle.emit(
         TileDebugResponse(
           requestId: request.requestId,
-          ppuMemory: TransferableTypedData.fromList([Uint8List(0x4000)]),
+          ppuMemory: NesBytes.fromList([Uint8List(0x4000)]),
           ppuCtrl: 1,
           v: 2,
           t: 3,

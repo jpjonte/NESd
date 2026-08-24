@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -27,7 +27,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -80,7 +80,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -123,7 +123,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -144,9 +144,7 @@ void main() {
     // Feed obviously-wrong SRAM. nestest has no battery so cartridge.load
     // is a no-op (the guard's ErrorEvent branch is unreachable here), but
     // the command must not wedge the serialized queue or kill the loop.
-    isolate.send(
-      LoadSramCommand(sram: TransferableTypedData.fromList([Uint8List(3)])),
-    );
+    isolate.send(LoadSramCommand(sram: NesBytes.fromList([Uint8List(3)])));
 
     final frames = await isolate.events
         .where((e) => e is FrameEvent)
@@ -184,7 +182,7 @@ void main() {
       // zero listeners here.
       isolate.send(
         LoadRomCommand(
-          rom: TransferableTypedData.fromList([Uint8List(16)]),
+          rom: NesBytes.fromList([Uint8List(16)]),
           file: const FilesystemFile(
             path: 'invalid.nes',
             name: 'invalid.nes',

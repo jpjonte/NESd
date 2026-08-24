@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
@@ -36,7 +37,7 @@ Future<Object?> _roundTrip(Object message) async {
 void main() {
   test('LoadRomCommand round-trips through an isolate', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([
+      rom: NesBytes.fromList([
         Uint8List.fromList([1, 2, 3]),
       ]),
       file: const FilesystemFile(
@@ -107,7 +108,7 @@ void main() {
   test('DebuggerEvent with DebuggerState round-trips', () async {
     final event = DebuggerEvent(
       state: const DebuggerState(),
-      cpuMemory: TransferableTypedData.fromList([Uint8List(0x10000)]),
+      cpuMemory: NesBytes.fromList([Uint8List(0x10000)]),
     );
 
     final result = await _roundTrip(event);
@@ -155,7 +156,7 @@ void main() {
 
   test('LoadRomCommand carries the rewind capture interval', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([
+      rom: NesBytes.fromList([
         Uint8List.fromList([1, 2, 3]),
       ]),
       file: const FilesystemFile(

@@ -1,10 +1,10 @@
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_controller.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_widget.dart';
@@ -38,10 +38,10 @@ ApuDebugEvent _event({bool mmc5 = false}) {
   final laneCount = 5 + (mmc5 ? 3 : 0);
 
   return ApuDebugEvent(
-    channelSamples: TransferableTypedData.fromList([
+    channelSamples: NesBytes.fromList([
       Uint8List.fromList(List.generate(laneCount * _count, (i) => i % 16)),
     ]),
-    mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
+    mixSamples: NesBytes.fromList([Float32List(_count)]),
     sampleCount: _count,
     pulse1: pulse1,
     pulse2: pulse2,
@@ -87,8 +87,8 @@ ApuDebugEvent _n163Event({int enabledChannels = 8}) {
   }
 
   return ApuDebugEvent(
-    channelSamples: TransferableTypedData.fromList([packed]),
-    mixSamples: TransferableTypedData.fromList([Float32List(_count)]),
+    channelSamples: NesBytes.fromList([packed]),
+    mixSamples: NesBytes.fromList([Float32List(_count)]),
     sampleCount: _count,
     pulse1: const PulseDebugState(
       enabled: false,

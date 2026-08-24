@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -18,6 +17,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_backend.dart';
 import 'package:nesd/nes/isolate/debugger_backend.dart';
 import 'package:nesd/nes/isolate/execution_log_backend.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/nes.dart';
@@ -521,12 +521,12 @@ class NesWorker {
     send(
       SaveStateResponse(
         requestId: requestId,
-        state: data == null ? null : TransferableTypedData.fromList([data]),
+        state: data == null ? null : NesBytes.fromList([data]),
       ),
     );
   }
 
-  void _handleLoadState(TransferableTypedData state) {
+  void _handleLoadState(NesBytes state) {
     final nes = _nes;
 
     if (nes == null) {
@@ -546,7 +546,7 @@ class NesWorker {
     }
   }
 
-  void _handleLoadSram(TransferableTypedData sram) {
+  void _handleLoadSram(NesBytes sram) {
     final nes = _nes;
 
     if (nes == null) {
@@ -568,7 +568,7 @@ class NesWorker {
     send(
       SramResponse(
         requestId: requestId,
-        sram: data == null ? null : TransferableTypedData.fromList([data]),
+        sram: data == null ? null : NesBytes.fromList([data]),
       ),
     );
   }
@@ -587,7 +587,7 @@ class NesWorker {
     send(
       ThumbnailResponse(
         requestId: requestId,
-        pixels: TransferableTypedData.fromList([pixels]),
+        pixels: NesBytes.fromList([pixels]),
         width: frameBuffer.width,
         height: frameBuffer.height,
       ),
@@ -610,7 +610,7 @@ class NesWorker {
     send(
       TileDebugResponse(
         requestId: requestId,
-        ppuMemory: TransferableTypedData.fromList([memory]),
+        ppuMemory: NesBytes.fromList([memory]),
         ppuCtrl: nes.ppu.PPUCTRL,
         v: nes.ppu.v,
         t: nes.ppu.t,
@@ -661,10 +661,7 @@ class NesWorker {
         eventBus: eventBus,
         disassembler: _disassembler!,
         onState: (state, memory) => send(
-          DebuggerEvent(
-            state: state,
-            cpuMemory: TransferableTypedData.fromList([memory]),
-          ),
+          DebuggerEvent(state: state, cpuMemory: NesBytes.fromList([memory])),
         ),
         onBreakpoints: (hash, breakpoints) =>
             send(BreakpointsEvent(fileHash: hash, breakpoints: breakpoints)),

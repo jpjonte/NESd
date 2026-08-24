@@ -1,11 +1,11 @@
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -33,7 +33,7 @@ LoadRomCommand _loadRomCommand({
   final bytes = File(_romPath).readAsBytesSync();
 
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([bytes]),
+    rom: NesBytes.fromList([bytes]),
     file: const FilesystemFile(
       path: _romPath,
       name: 'nestest.nes',
@@ -60,7 +60,7 @@ Uint8List _batteryRom() {
 
 LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([_batteryRom()]),
+    rom: NesBytes.fromList([_batteryRom()]),
     file: const FilesystemFile(
       path: '/tmp/battery.nes',
       name: 'battery.nes',
@@ -73,8 +73,8 @@ LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
     breakpoints: const [],
     initialState: initialState == null
         ? null
-        : TransferableTypedData.fromList([initialState]),
-    sram: sram == null ? null : TransferableTypedData.fromList([sram]),
+        : NesBytes.fromList([initialState]),
+    sram: sram == null ? null : NesBytes.fromList([sram]),
   );
 }
 
@@ -265,7 +265,7 @@ void main() {
     await waitFor<RomLoadedEvent>();
 
     await worker.handleCommand(
-      LoadSramCommand(sram: TransferableTypedData.fromList([Uint8List(3)])),
+      LoadSramCommand(sram: NesBytes.fromList([Uint8List(3)])),
     );
 
     // nestest has no battery, so cartridge.load is a no-op and cannot
@@ -278,7 +278,7 @@ void main() {
 
   test('invalid rom emits RomLoadFailedEvent', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([Uint8List(16)]),
+      rom: NesBytes.fromList([Uint8List(16)]),
       file: const FilesystemFile(
         path: '/tmp/bad.nes',
         name: 'bad.nes',

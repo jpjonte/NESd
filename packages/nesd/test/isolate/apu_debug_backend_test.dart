@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/apu/expansion/namco163_audio.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -25,7 +25,7 @@ LoadRomCommand _loadRomCommand({
   final bytes = File(romPath).readAsBytesSync();
 
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([bytes]),
+    rom: NesBytes.fromList([bytes]),
     file: FilesystemFile(
       path: romPath,
       name: p.basename(romPath),
@@ -41,7 +41,7 @@ LoadRomCommand _loadRomCommand({
 
 LoadRomCommand _loadSyntheticRomCommand(Uint8List bytes, String name) =>
     LoadRomCommand(
-      rom: TransferableTypedData.fromList([bytes]),
+      rom: NesBytes.fromList([bytes]),
       file: FilesystemFile(
         path: name,
         name: name,

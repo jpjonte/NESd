@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
@@ -12,6 +11,7 @@ import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -358,7 +358,7 @@ class NesController {
 
       isolate.send(
         LoadRomCommand(
-          rom: TransferableTypedData.fromList([rom]),
+          rom: NesBytes.fromList([rom]),
           file: file,
           databaseEntry: databaseEntry,
           region: settingsController.region,
@@ -370,8 +370,8 @@ class NesController {
           breakpoints: breakpoints,
           initialState: initialState == null
               ? null
-              : TransferableTypedData.fromList([initialState]),
-          sram: sram == null ? null : TransferableTypedData.fromList([sram]),
+              : NesBytes.fromList([initialState]),
+          sram: sram == null ? null : NesBytes.fromList([sram]),
         ),
       );
 

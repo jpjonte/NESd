@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -27,7 +27,7 @@ LoadRomCommand _loadRomCommand({Uint8List? rom}) {
   final bytes = rom ?? File(_romPath).readAsBytesSync();
 
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([bytes]),
+    rom: NesBytes.fromList([bytes]),
     file: const FilesystemFile(
       path: _romPath,
       name: 'nestest.nes',

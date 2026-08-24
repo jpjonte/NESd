@@ -7,6 +7,7 @@ import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/debugger/execution_log_state.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 
 sealed class NesIsolateEvent {
   const NesIsolateEvent();
@@ -101,7 +102,7 @@ class DebuggerEvent extends NesIsolateEvent {
   const DebuggerEvent({required this.state, required this.cpuMemory});
 
   final DebuggerState state;
-  final TransferableTypedData cpuMemory;
+  final NesBytes cpuMemory;
 }
 
 class ExecutionLogEvent extends NesIsolateEvent {
@@ -190,8 +191,8 @@ class ApuDebugEvent extends NesIsolateEvent {
     }
 
     return ApuDebugEvent(
-      channelSamples: TransferableTypedData.fromList([packed]),
-      mixSamples: TransferableTypedData.fromList([mix]),
+      channelSamples: NesBytes.fromList([packed]),
+      mixSamples: NesBytes.fromList([mix]),
       sampleCount: sampleCount,
       pulse1: pulse1,
       pulse2: pulse2,
@@ -261,12 +262,12 @@ class ApuDebugEvent extends NesIsolateEvent {
 
   /// [channelCount] `sampleCount`-byte lanes packed back to back; see
   /// [ApuDebugEvent.pack] for the order.
-  final TransferableTypedData channelSamples;
+  final NesBytes channelSamples;
 
   /// The frame's mixed samples as float32 bytes, pre-volume. Exactly
   /// [sampleCount] floats, unlike [channelSamples] the receiver has no
   /// separate length to slice against.
-  final TransferableTypedData mixSamples;
+  final NesBytes mixSamples;
 
   final int sampleCount;
 
@@ -296,14 +297,14 @@ class SaveStateResponse extends NesIsolateEvent {
   const SaveStateResponse({required this.requestId, required this.state});
 
   final int requestId;
-  final TransferableTypedData? state;
+  final NesBytes? state;
 }
 
 class SramResponse extends NesIsolateEvent {
   const SramResponse({required this.requestId, required this.sram});
 
   final int requestId;
-  final TransferableTypedData? sram;
+  final NesBytes? sram;
 }
 
 class ThumbnailResponse extends NesIsolateEvent {
@@ -315,7 +316,7 @@ class ThumbnailResponse extends NesIsolateEvent {
   });
 
   final int requestId;
-  final TransferableTypedData pixels;
+  final NesBytes pixels;
   final int width;
   final int height;
 }
@@ -331,7 +332,7 @@ class TileDebugResponse extends NesIsolateEvent {
   });
 
   final int requestId;
-  final TransferableTypedData ppuMemory;
+  final NesBytes ppuMemory;
   final int ppuCtrl;
   final int v;
   final int t;

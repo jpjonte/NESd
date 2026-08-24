@@ -1,8 +1,8 @@
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_data.dart';
 
@@ -42,8 +42,8 @@ ApuDebugEvent _event({bool mmc5 = false}) {
   final mix = Float32List.fromList([0.1, 0.2, 0.3, 0.4]);
 
   return ApuDebugEvent(
-    channelSamples: TransferableTypedData.fromList([packed]),
-    mixSamples: TransferableTypedData.fromList([mix]),
+    channelSamples: NesBytes.fromList([packed]),
+    mixSamples: NesBytes.fromList([mix]),
     sampleCount: count,
     pulse1: _pulse,
     pulse2: _pulse,
@@ -68,8 +68,8 @@ ApuDebugEvent _eventWith({
   final mix = Float32List(mixLength);
 
   return ApuDebugEvent(
-    channelSamples: TransferableTypedData.fromList([packed]),
-    mixSamples: TransferableTypedData.fromList([mix]),
+    channelSamples: NesBytes.fromList([packed]),
+    mixSamples: NesBytes.fromList([mix]),
     sampleCount: sampleCount,
     pulse1: _pulse,
     pulse2: _pulse,
