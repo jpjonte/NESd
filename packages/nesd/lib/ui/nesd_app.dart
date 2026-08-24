@@ -12,12 +12,32 @@ import 'package:nesd/ui/theme/dark.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
+/// Set by main.dart when startup degraded (e.g. persistent storage is
+/// unavailable). Shown as a toast once the UI is up.
+final startupWarningProvider = Provider<String?>((ref) => null);
+
 /// Holds the long-lived services alive for the whole app lifetime.
-class NesdApp extends ConsumerWidget {
+class NesdApp extends ConsumerStatefulWidget {
   const NesdApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NesdApp> createState() => _NesdAppState();
+}
+
+class _NesdAppState extends ConsumerState<NesdApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(startupWarningProvider) case final warning?) {
+        ref.read(toasterProvider).send(Toast.warning(warning));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref
       ..watch(soakRunnerProvider)
       ..watch(actionHandlerProvider)

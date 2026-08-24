@@ -27,6 +27,15 @@ enum EmulatorTool {
   final double contentWidth;
 
   final double minHeight;
+
+  bool get requiresDebugger => switch (this) {
+    EmulatorTool.debugger ||
+    EmulatorTool.apuDebug ||
+    EmulatorTool.executionLog => true,
+    EmulatorTool.display ||
+    EmulatorTool.tileViewer ||
+    EmulatorTool.cartridgeInfo => false,
+  };
 }
 
 const _standardToolWidth = 512.0;

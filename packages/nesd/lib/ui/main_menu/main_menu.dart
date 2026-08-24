@@ -80,7 +80,6 @@ class MainMenu extends HookConsumerWidget {
                 SettingsButton(key: settingsKey),
                 NesdVerticalDivider(),
                 AboutButton(key: aboutKey),
-                NesdVerticalDivider(),
                 QuitButton(key: quitKey),
               ],
             ),
@@ -219,11 +218,21 @@ class QuitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: NesdButton(
-        onPressed: () => quit(),
-        child: const Text('Quit NESd'),
-      ),
+    // Can't quit on web, and Android apps background instead of quitting.
+    if (defaultTargetPlatform == TargetPlatform.android || kIsWeb) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        const NesdVerticalDivider(),
+        Center(
+          child: NesdButton(
+            onPressed: () => quit(),
+            child: const Text('Quit NESd'),
+          ),
+        ),
+      ],
     );
   }
 }

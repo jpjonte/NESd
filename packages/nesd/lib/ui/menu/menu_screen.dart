@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/dividers.dart';
@@ -126,16 +127,21 @@ class MenuScreen extends ConsumerWidget {
                     child: const Text('Settings'),
                   ),
                 ),
-                const NesdVerticalDivider(),
-                Center(
-                  child: NesdButton(
-                    onPressed: () {
-                      unawaited(ref.read(nesControllerProvider).stop());
-                      quit();
-                    },
-                    child: const Text('Quit NESd'),
+                // Can't quit on web, and Android apps background instead of
+                // quitting
+                if (!kIsWeb &&
+                    defaultTargetPlatform != TargetPlatform.android) ...[
+                  const NesdVerticalDivider(),
+                  Center(
+                    child: NesdButton(
+                      onPressed: () {
+                        unawaited(ref.read(nesControllerProvider).stop());
+                        quit();
+                      },
+                      child: const Text('Quit NESd'),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

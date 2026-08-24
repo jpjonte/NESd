@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/controls/reset_bindings_button.dart';
@@ -30,12 +32,19 @@ class ControlsSettings extends StatelessWidget {
             const ShowTouchControlsSwitch(),
             const TouchEditorButton(),
             const ProfileSelectionHeader(),
-            for (final action in allActions) BindingTile(action: action),
+            for (final action in allActions)
+              if (_isBindable(action)) BindingTile(action: action),
           ],
         ),
       ),
     );
   }
+
+  static bool _isBindable(InputAction action) => switch (action) {
+    ToggleTool(:final tool) => Features.debugger || !tool.requiresDebugger,
+    Rewind() => Features.rewind,
+    _ => true,
+  };
 }
 
 @riverpod

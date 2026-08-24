@@ -22,4 +22,20 @@ void main() {
   test('the execution log is the tool the column width comes from', () {
     expect(EmulatorTool.executionLog.contentWidth, executionLogWidth);
   });
+
+  test('only the debugger toolset requires Features.debugger', () {
+    const debuggerTools = {
+      EmulatorTool.debugger,
+      EmulatorTool.apuDebug,
+      EmulatorTool.executionLog,
+    };
+
+    for (final tool in EmulatorTool.values) {
+      expect(
+        tool.requiresDebugger,
+        debuggerTools.contains(tool),
+        reason: '$tool',
+      );
+    }
+  });
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
@@ -51,12 +52,15 @@ class NesWorker {
     required this.send,
     NesdAudio Function()? audioFactory,
     this.audioStatsInterval = const Duration(seconds: 1),
+    this.rewindSupported = Features.rewind,
   }) : _audioFactory = audioFactory ?? defaultNesdAudio;
 
   final void Function(NesIsolateEvent event) send;
   final NesdAudio Function() _audioFactory;
 
   final Duration audioStatsInterval;
+
+  final bool rewindSupported;
 
   final Stopwatch _audioStatsTimer = Stopwatch();
 
@@ -131,7 +135,7 @@ class NesWorker {
         _nes?.rewind = command.enabled;
         _sendStatus();
       case SetRewindEnabledCommand():
-        _nes?.rewindEnabled = command.enabled;
+        _nes?.rewindEnabled = rewindSupported && command.enabled;
       case SetRegionCommand():
         _applyRegion(command.region);
       case SetCheatsCommand():
@@ -216,11 +220,16 @@ class NesWorker {
         ..databaseEntry = command.databaseEntry;
 
       if (_audioOutput == null) {
-        _audioOutput = AudioOutput(audio: _audioFactory());
+        final audioOutput = AudioOutput(audio: _audioFactory());
+
+        _audioOutput = audioOutput;
 
         log.audio.info(
           'Audio device opened',
-          context: {'sampleRate': apuSampleRate},
+          context: {
+            'sampleRate': apuSampleRate,
+            'state': audioOutput.audio.state.name,
+          },
         );
       }
 
@@ -244,7 +253,7 @@ class NesWorker {
 
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
-        ..rewindEnabled = command.rewindEnabled
+        ..rewindEnabled = rewindSupported && command.rewindEnabled
         ..rewindCaptureInterval = command.rewindCaptureInterval
         ..cheats = command.cheats
         ..breakpoints = command.breakpoints;

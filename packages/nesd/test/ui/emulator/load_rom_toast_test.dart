@@ -75,7 +75,7 @@ class _Harness {
       filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
-      storage: MockStorageFilesystem(),
+      romImporter: FakeRomImporter(),
     );
 
     return _Harness._(

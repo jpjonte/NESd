@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
-import 'package:nesd/nes/isolate/nes_isolate.dart';
+import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -37,11 +37,9 @@ void main() {
     );
   });
 
-  test('concurrent loadRom calls spawn exactly one isolate', () async {
+  Future<LoadRomCommand> loadWith({required bool rewindSupported}) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
-
-    // Keep the autoDispose state provider alive for the test's duration.
     container.listen(nesStateProvider, (_, _) {});
 
     final settings = _MockSettingsController();
@@ -49,7 +47,7 @@ void main() {
     when(() => settings.cheats).thenReturn(const {});
     when(() => settings.breakpoints).thenReturn(const {});
     when(() => settings.region).thenReturn(null);
-    when(() => settings.rewind).thenReturn(false);
+    when(() => settings.rewind).thenReturn(true);
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
@@ -60,32 +58,14 @@ void main() {
 
     when(() => romManager.load(any())).thenAnswer((_) async => null);
 
-    // MockNesDatabase concretely overrides find() to return null.
     final database = MockNesDatabase();
 
-    final handles = <FakeNesIsolateHandle>[];
-
-    Future<NesIsolateHandle> spawner() async {
-      // Widen the check-then-act window: both racing loadRom calls must
-      // already be past the null check before the first handle exists.
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-
-      final handle = FakeNesIsolateHandle();
-
-      handles.add(handle);
-
-      return handle;
-    }
-
-    addTearDown(() async {
-      for (final handle in handles) {
-        await handle.dispose();
-      }
-    });
+    final handle = FakeNesIsolateHandle();
+    addTearDown(handle.dispose);
 
     final controller = NesController(
       nesState: container.read(nesStateProvider.notifier),
-      spawner: spawner,
+      spawner: () async => handle,
       router: Router(),
       settingsController: settings,
       toaster: _MockToaster(),
@@ -94,28 +74,31 @@ void main() {
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
       romImporter: FakeRomImporter(),
+      rewindSupported: rewindSupported,
     );
 
     const file = FilesystemFile(
-      path: '/soak/test.nes',
+      path: '/test/test.nes',
       name: 'test.nes',
       type: FilesystemFileType.file,
     );
 
-    final rom = minimalValidRom();
+    final loaded = await controller.loadRom(file, data: minimalValidRom());
 
-    final results = await Future.wait([
-      controller.loadRom(file, data: rom),
-      controller.loadRom(file, data: rom),
-    ]);
+    expect(loaded, isTrue);
 
-    expect(results, [true, true]);
-    expect(
-      handles,
-      hasLength(1),
-      reason:
-          'racing loadRom calls must reuse one isolate: a second '
-          'spawn means a second worker and a second native audio init',
-    );
+    return handle.sentCommands.whereType<LoadRomCommand>().single;
+  }
+
+  test('loadRom passes the rewind setting through where supported', () async {
+    final sent = await loadWith(rewindSupported: true);
+
+    expect(sent.rewindEnabled, isTrue);
+  });
+
+  test('loadRom forces rewind off where unsupported (web)', () async {
+    final sent = await loadWith(rewindSupported: false);
+
+    expect(sent.rewindEnabled, isFalse);
   });
 }

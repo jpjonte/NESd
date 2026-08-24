@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/border_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
@@ -29,18 +30,20 @@ class GraphicsSettings extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const RendererSelector(),
+            if (Features.gpuRenderer) const RendererSelector(),
             const BorderSwitch(),
             const ScalingDropdown(),
             const PixelAspectRatioDropdown(),
             PixelAspectRatioSlider(
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
-            const VideoFilterDropdown(),
-            if (videoFilter == VideoFilter.crt) ...[
-              const ScanlineIntensitySlider(),
-              const MaskStrengthSlider(),
-              const CurvatureSlider(),
+            if (Features.videoFilters) ...[
+              const VideoFilterDropdown(),
+              if (videoFilter == VideoFilter.crt) ...[
+                const ScanlineIntensitySlider(),
+                const MaskStrengthSlider(),
+                const CurvatureSlider(),
+              ],
             ],
           ],
         ),

@@ -151,6 +151,24 @@ void main() {
     expect(frame.pixels, isA<PointerFramePixels>());
   });
 
+  test('the worker forces rewind off where unsupported (web)', () async {
+    // Replace the setUp worker; it had no ROM loaded, so nothing leaks.
+    worker = NesWorker(
+      send: events.add,
+      audioFactory: FakeNesdAudio.new,
+      rewindSupported: false,
+    );
+
+    await worker.handleCommand(_loadRomCommand(rewindEnabled: true));
+    await waitFor<RomLoadedEvent>();
+
+    expect(worker.nesForTesting!.rewindEnabled, isFalse);
+
+    await worker.handleCommand(const SetRewindEnabledCommand(enabled: true));
+
+    expect(worker.nesForTesting!.rewindEnabled, isFalse);
+  });
+
   test('ReleaseFrameCommand returns buffers to the pool', () async {
     await worker.handleCommand(_loadRomCommand());
     await waitFor<RomLoadedEvent>();
