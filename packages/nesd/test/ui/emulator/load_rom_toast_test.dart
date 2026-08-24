@@ -75,6 +75,7 @@ class _Harness {
       filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
+      storage: MockStorageFilesystem(),
     );
 
     return _Harness._(

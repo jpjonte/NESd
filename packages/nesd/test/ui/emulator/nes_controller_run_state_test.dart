@@ -95,6 +95,7 @@ void main() {
               filesystem: filesystem,
               database: database,
               cartridgeFactory: CartridgeFactory(database: database),
+              storage: MockStorageFilesystem(),
             )
             // The emulator screen is not on top. E.g. the ROM is still loading
             // while the user is looking at the file picker.
@@ -183,6 +184,7 @@ void main() {
             filesystem: filesystem,
             database: database,
             cartridgeFactory: CartridgeFactory(database: database),
+            storage: MockStorageFilesystem(),
           )
           // The emulator screen is on top. E.g. the ROM was picked from
           // "File -> Open..." while the emulator route was already active.

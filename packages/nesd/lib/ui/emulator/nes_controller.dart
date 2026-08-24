@@ -22,6 +22,7 @@ import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -34,10 +35,18 @@ part 'nes_controller.g.dart';
 
 const mobileRewindCaptureInterval = 4;
 
+const webRomsDirectory = '/nesd/roms';
+
 /// Builds a [NesIsolateHandle]. Production spawns a real [NesIsolate];
 /// tests override [nesIsolateSpawnerProvider] with an in-process fake so
 /// widget tests never spawn a real isolate (or touch real audio).
 typedef NesIsolateSpawner = Future<NesIsolateHandle> Function();
+
+typedef PickFile =
+    Future<PlatformFile?> Function({
+      required FileType type,
+      List<String>? allowedExtensions,
+    });
 
 @riverpod
 NesIsolateSpawner nesIsolateSpawner(Ref ref) =>
@@ -77,6 +86,7 @@ NesController nesController(Ref ref) {
     filesystem: ref.read(filesystemProvider),
     database: ref.watch(databaseProvider),
     cartridgeFactory: ref.watch(cartridgeFactoryProvider),
+    storage: ref.watch(storageFilesystemProvider),
   );
 
   ref.onDispose(controller._dispose);
@@ -145,7 +155,10 @@ class NesController {
     required this.filesystem,
     required this.database,
     required this.cartridgeFactory,
+    required this.storage,
     this.romLoadTimeout = const Duration(seconds: 10),
+    this.pickFile = FilePicker.pickFile,
+    this.webPicker = kIsWeb,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -173,7 +186,13 @@ class NesController {
 
   final NesIsolateSpawner spawner;
 
+  final StorageFilesystem storage;
+
   final Duration romLoadTimeout;
+
+  final PickFile pickFile;
+
+  final bool webPicker;
 
   RemoteNes? get nes => nesState.nes;
 
@@ -259,30 +278,72 @@ class NesController {
   Future<void> selectRom() async {
     suspend();
 
-    final result = await FilePicker.pickFile(
+    final result = await pickFile(
       type: FileType.custom,
       allowedExtensions: ['nes', 'zip'],
     );
 
-    final path = result?.path;
+    final FilesystemFile? file;
 
-    if (path == null) {
+    try {
+      file = await _pickedFile(result);
+    } on Exception catch (e) {
+      log.rom.error(
+        'Failed to import picked ROM',
+        context: {if (result != null) 'name': result.name},
+        error: e,
+      );
+
+      toaster.send(Toast.error('Failed to import ROM: $e'));
+
       _applyRunState();
 
       return;
     }
 
-    final started = await startRom(
-      FilesystemFile(
-        path: path,
-        name: p.basename(path),
-        type: FilesystemFileType.file,
-      ),
-    );
+    if (file == null) {
+      _applyRunState();
+
+      return;
+    }
+
+    final started = await startRom(file);
 
     if (!started) {
       _applyRunState();
     }
+  }
+
+  Future<FilesystemFile?> _pickedFile(PlatformFile? result) async {
+    if (result == null) {
+      return null;
+    }
+
+    if (webPicker) {
+      final bytes = await result.readAsBytes();
+
+      final path = '$webRomsDirectory/${result.name}';
+
+      await storage.write(path, bytes);
+
+      return FilesystemFile(
+        path: path,
+        name: result.name,
+        type: FilesystemFileType.file,
+      );
+    }
+
+    final path = result.path;
+
+    if (path == null) {
+      return null;
+    }
+
+    return FilesystemFile(
+      path: path,
+      name: p.basename(path),
+      type: FilesystemFileType.file,
+    );
   }
 
   /// Loads [file] and, if it loaded, switches to the emulator.

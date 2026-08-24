@@ -117,6 +117,7 @@ void main() {
       filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
+      storage: MockStorageFilesystem(),
       romLoadTimeout: const Duration(milliseconds: 200),
     );
 

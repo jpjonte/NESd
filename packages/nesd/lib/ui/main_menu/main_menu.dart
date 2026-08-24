@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
@@ -102,6 +103,12 @@ class OpenRomButton extends ConsumerWidget {
     return Center(
       child: NesdButton(
         onPressed: () async {
+          if (kIsWeb) {
+            await controller.selectRom();
+
+            return;
+          }
+
           final directory = await _getRomPath(filesystem, settingsController);
 
           if (directory == null) {
