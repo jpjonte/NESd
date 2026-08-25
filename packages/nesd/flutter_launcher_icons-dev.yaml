@@ -4,6 +4,8 @@ flutter_launcher_icons:
     generate: true
   windows:
     generate: true
+  # No web section here: there is only one (prod) web build, and the
+  # dev logo would replace the existing favicon.png and icons/.
   android: true
   adaptive_icon_background: "#091f33"
   adaptive_icon_foreground: "assets/logo-dev-adaptive.png"

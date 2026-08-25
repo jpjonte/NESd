@@ -8,9 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/file_picker/file_system/native_storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 
 void main() {
   late Directory tempDir;
+  late StorageFilesystem storage;
   late RomManager manager;
 
   const romInfo = RomInfo(
@@ -23,12 +26,16 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('nesd_rom_tile');
-    manager = RomManager(baseDirectory: tempDir.path);
+    storage = NativeStorageFilesystem();
+    manager = RomManager(baseDirectory: tempDir.path, storage: storage);
   });
 
-  tearDown(() => tempDir.delete(recursive: true));
+  tearDown(() async {
+    manager.dispose();
+    await tempDir.delete(recursive: true);
+  });
 
-  File thumbnailFile() => manager.getThumbnailFile(romInfo);
+  Future<Uint8List?> thumbnailBytes() => manager.readThumbnail(romInfo);
 
   Future<void> saveThumbnail() => manager.saveThumbnail(
     romInfo,
@@ -39,13 +46,13 @@ void main() {
 
   group('loadStoredThumbnail', () {
     test('returns null when the file does not exist', () async {
-      expect(await loadStoredThumbnail(thumbnailFile()), isNull);
+      expect(await loadStoredThumbnail(await thumbnailBytes()), isNull);
     });
 
     test('decodes a stored thumbnail', () async {
       await saveThumbnail();
 
-      final thumbnail = await loadStoredThumbnail(thumbnailFile());
+      final thumbnail = await loadStoredThumbnail(await thumbnailBytes());
 
       expect(thumbnail, isNotNull);
       expect(thumbnail!.width, 2);
@@ -53,9 +60,12 @@ void main() {
     });
 
     test('returns null for a file that cannot be decoded', () async {
-      await thumbnailFile().writeAsBytes([0, 1, 2, 3]);
+      await storage.write(
+        manager.thumbnailPath(romInfo),
+        Uint8List.fromList([0, 1, 2, 3]),
+      );
 
-      expect(await loadStoredThumbnail(thumbnailFile()), isNull);
+      expect(await loadStoredThumbnail(await thumbnailBytes()), isNull);
     });
   });
 
@@ -97,6 +107,7 @@ void main() {
           ProviderScope(
             overrides: [
               applicationSupportPathProvider.overrideWithValue(tempDir.path),
+              storageFilesystemProvider.overrideWithValue(storage),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -128,7 +139,7 @@ void main() {
       final image = await tester.runAsync(() async {
         await saveThumbnail();
 
-        return await loadStoredThumbnail(thumbnailFile());
+        return await loadStoredThumbnail(await thumbnailBytes());
       });
 
       await pumpTile(

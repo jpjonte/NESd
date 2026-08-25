@@ -82,4 +82,50 @@ void main() {
       EmulatorTool.tileViewer,
     });
   });
+
+  group('the debugger gate (isToolAvailable / availableTools)', () {
+    test('refuses debugger-toolset tools when the gate is off', () {
+      for (final tool in [
+        EmulatorTool.debugger,
+        EmulatorTool.apuDebug,
+        EmulatorTool.executionLog,
+      ]) {
+        expect(
+          isToolAvailable(tool, debuggerEnabled: false),
+          isFalse,
+          reason: '$tool',
+        );
+      }
+    });
+
+    test('allows non-debugger tools regardless of the gate', () {
+      for (final tool in [
+        EmulatorTool.display,
+        EmulatorTool.tileViewer,
+        EmulatorTool.cartridgeInfo,
+      ]) {
+        expect(isToolAvailable(tool, debuggerEnabled: false), isTrue);
+        expect(isToolAvailable(tool, debuggerEnabled: true), isTrue);
+      }
+    });
+
+    test('allows every tool when the gate is on', () {
+      for (final tool in EmulatorTool.values) {
+        expect(isToolAvailable(tool, debuggerEnabled: true), isTrue);
+      }
+    });
+
+    test('availableTools strips only the debugger toolset when off', () {
+      final filtered = availableTools(
+        EmulatorTool.values.toSet(),
+        debuggerEnabled: false,
+      );
+
+      expect(filtered, {
+        EmulatorTool.display,
+        EmulatorTool.tileViewer,
+        EmulatorTool.cartridgeInfo,
+      });
+    });
+  });
 }

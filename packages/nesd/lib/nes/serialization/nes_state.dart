@@ -6,6 +6,7 @@ import 'package:nesd/nes/apu/apu_state.dart';
 import 'package:nesd/nes/cartridge/cartridge_state.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class NESState {
   static const headerBytes = [0x4e, 0x45, 0x53, 0x64]; // "NESd"
@@ -56,7 +57,7 @@ class NESState {
       ppuState: PPUState.deserialize(reader),
       apuState: APUState.deserialize(reader),
       cartridgeState: CartridgeState.deserialize(reader),
-      cycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
     );
   }
 
@@ -81,7 +82,7 @@ class NESState {
     apuState.serialize(writer);
     cartridgeState.serialize(writer);
 
-    writer.set(uint64, 0); // cycles, unused
+    writer.set(nesdUint64, 0); // cycles, unused
 
     return binarize(writer);
   }

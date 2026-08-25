@@ -1,23 +1,25 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:typed_data';
 
-import 'package:archive/archive_io.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
+import 'package:nesd/nes/isolate/local_nes_handle.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
+import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -33,13 +35,11 @@ part 'nes_controller.g.dart';
 
 const mobileRewindCaptureInterval = 4;
 
-/// Builds a [NesIsolateHandle]. Production spawns a real [NesIsolate];
-/// tests override [nesIsolateSpawnerProvider] with an in-process fake so
-/// widget tests never spawn a real isolate (or touch real audio).
 typedef NesIsolateSpawner = Future<NesIsolateHandle> Function();
 
 @riverpod
-NesIsolateSpawner nesIsolateSpawner(Ref ref) => NesIsolate.spawn;
+NesIsolateSpawner nesIsolateSpawner(Ref ref) =>
+    kIsWeb ? LocalNesHandle.spawn : NesIsolate.spawn;
 
 @riverpod
 class NesState extends _$NesState {
@@ -75,6 +75,7 @@ NesController nesController(Ref ref) {
     filesystem: ref.read(filesystemProvider),
     database: ref.watch(databaseProvider),
     cartridgeFactory: ref.watch(cartridgeFactoryProvider),
+    romImporter: ref.watch(romImporterProvider),
   );
 
   ref.onDispose(controller._dispose);
@@ -108,7 +109,8 @@ NesController nesController(Ref ref) {
 
   final rewindSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.rewind),
-    (_, rewind) => controller.nes?.rewindEnabled = rewind,
+    (_, rewind) =>
+        controller.nes?.rewindEnabled = controller.rewindSupported && rewind,
     fireImmediately: true,
   );
 
@@ -143,7 +145,9 @@ class NesController {
     required this.filesystem,
     required this.database,
     required this.cartridgeFactory,
+    required this.romImporter,
     this.romLoadTimeout = const Duration(seconds: 10),
+    this.rewindSupported = Features.rewind,
   }) {
     _lifecycleListener = AppLifecycleListener(
       onPause: _appSuspended,
@@ -171,7 +175,11 @@ class NesController {
 
   final NesIsolateSpawner spawner;
 
+  final RomImporter romImporter;
+
   final Duration romLoadTimeout;
+
+  final bool rewindSupported;
 
   RemoteNes? get nes => nesState.nes;
 
@@ -221,31 +229,55 @@ class NesController {
 
   void runUntilFrame() => nes?.runUntilFrame();
 
-  void reset() {
-    nes?.reset();
+  /// Reads the SRAM before issuing the reset so the restore lands right
+  /// behind it in the command queue instead of frames later.
+  Future<void> reset() async {
+    if (nes case final nes?) {
+      Uint8List? data;
 
-    _loadSram();
+      try {
+        data = await romManager.load(nes.romInfo);
+      } on Exception catch (e) {
+        log.rom.error('Failed to load SRAM', error: e);
+
+        toaster.send(Toast.error('Failed to load SRAM: $e'));
+      }
+
+      nes.reset();
+
+      if (data != null) {
+        nes.loadSram(data);
+
+        toaster.send(Toast.info('SRAM save loaded'));
+      }
+    }
   }
 
   Future<void> stop() async {
     if (nes case final nes?) {
-      final sram = await nes.requestSram();
+      try {
+        final sram = await nes.requestSram();
 
-      if (sram != null) {
-        await romManager.save(nes.romInfo, sram);
+        if (sram != null) {
+          await romManager.save(nes.romInfo, sram);
 
-        toaster.send(Toast.info('SRAM saved'));
-      }
+          toaster.send(Toast.info('SRAM saved'));
+        }
 
-      final thumbnail = await nes.requestThumbnail();
+        final thumbnail = await nes.requestThumbnail();
 
-      if (thumbnail != null) {
-        await romManager.saveThumbnail(
-          nes.romInfo,
-          width: thumbnail.width,
-          height: thumbnail.height,
-          pixels: thumbnail.pixels,
-        );
+        if (thumbnail != null) {
+          await romManager.saveThumbnail(
+            nes.romInfo,
+            width: thumbnail.width,
+            height: thumbnail.height,
+            pixels: thumbnail.pixels,
+          );
+        }
+      } on Exception catch (e) {
+        log.rom.error('Failed to save on stop', error: e);
+
+        toaster.send(Toast.error('Failed to save game data: $e'));
       }
 
       await nes.stop();
@@ -257,26 +289,27 @@ class NesController {
   Future<void> selectRom() async {
     suspend();
 
-    final result = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: ['nes', 'zip'],
-    );
+    final FilesystemFile? file;
 
-    final path = result?.path;
+    try {
+      file = await romImporter.pickRom();
+    } on Exception catch (e) {
+      log.rom.error('Failed to import picked ROM', error: e);
 
-    if (path == null) {
+      toaster.send(Toast.error('Failed to import ROM: $e'));
+
       _applyRunState();
 
       return;
     }
 
-    final started = await startRom(
-      FilesystemFile(
-        path: path,
-        name: p.basename(path),
-        type: FilesystemFileType.file,
-      ),
-    );
+    if (file == null) {
+      _applyRunState();
+
+      return;
+    }
+
+    final started = await startRom(file);
 
     if (!started) {
       _applyRunState();
@@ -331,10 +364,16 @@ class NesController {
       final databaseEntry = cartridge.databaseEntry;
 
       if (nes case final oldNes?) {
-        final oldSram = await oldNes.requestSram();
+        try {
+          final oldSram = await oldNes.requestSram();
 
-        if (oldSram != null) {
-          await romManager.save(oldNes.romInfo, oldSram);
+          if (oldSram != null) {
+            await romManager.save(oldNes.romInfo, oldSram);
+          }
+        } on Exception catch (e) {
+          log.rom.error('Failed to save SRAM', error: e);
+
+          toaster.send(Toast.error('Failed to save SRAM: $e'));
         }
       }
 
@@ -342,8 +381,8 @@ class NesController {
 
       final isolate = await _ensureIsolate();
 
-      final sram = romManager.load(romInfo);
-      final initialState = stateBytes ?? _autoLoadBytes(romInfo);
+      final sram = await romManager.load(romInfo);
+      final initialState = stateBytes ?? await _autoLoadBytes(romInfo);
       final cheats = settingsController.cheats[_cheatsKey(romInfo)] ?? const [];
       final breakpoints =
           settingsController.breakpoints[cartridge.fileHash] ?? const [];
@@ -358,20 +397,20 @@ class NesController {
 
       isolate.send(
         LoadRomCommand(
-          rom: TransferableTypedData.fromList([rom]),
+          rom: NesBytes.fromList([rom]),
           file: file,
           databaseEntry: databaseEntry,
           region: settingsController.region,
-          rewindEnabled: settingsController.rewind,
-          rewindCaptureInterval: Platform.isAndroid
+          rewindEnabled: rewindSupported && settingsController.rewind,
+          rewindCaptureInterval: defaultTargetPlatform == TargetPlatform.android
               ? mobileRewindCaptureInterval
               : 1,
           cheats: cheats,
           breakpoints: breakpoints,
           initialState: initialState == null
               ? null
-              : TransferableTypedData.fromList([initialState]),
-          sram: sram == null ? null : TransferableTypedData.fromList([sram]),
+              : NesBytes.fromList([initialState]),
+          sram: sram == null ? null : NesBytes.fromList([sram]),
         ),
       );
 
@@ -506,15 +545,33 @@ class NesController {
         return;
       }
 
-      await romManager.saveState(nes.romInfo, slot, data);
+      try {
+        await romManager.saveState(nes.romInfo, slot, data);
+      } on Exception catch (e) {
+        log.emulator.error('Failed to save state', error: e);
+
+        toaster.send(Toast.error('Failed to save state: $e'));
+
+        return;
+      }
 
       toaster.send(Toast.info('Saved state to slot $slot'));
     }
   }
 
-  void loadState(int slot) {
+  Future<void> loadState(int slot) async {
     if (nes case final nes?) {
-      final saveState = romManager.loadState(nes.romInfo, slot);
+      final Uint8List? saveState;
+
+      try {
+        saveState = await romManager.loadState(nes.romInfo, slot);
+      } on Exception catch (e) {
+        log.emulator.error('Failed to load state', error: e);
+
+        toaster.send(Toast.error('Failed to load state: $e'));
+
+        return;
+      }
 
       if (saveState == null) {
         toaster.send(Toast.warning('No save state found in slot $slot'));
@@ -522,18 +579,6 @@ class NesController {
         nes.loadState(saveState);
 
         toaster.send(Toast.info('State loaded from slot $slot'));
-      }
-    }
-  }
-
-  void _loadSram() {
-    if (nes case final nes?) {
-      final data = romManager.load(nes.romInfo);
-
-      if (data != null) {
-        nes.loadSram(data);
-
-        toaster.send(Toast.info('SRAM save loaded'));
       }
     }
   }
@@ -605,7 +650,7 @@ class NesController {
     suspend();
   }
 
-  Uint8List? _autoLoadBytes(RomInfo romInfo) {
+  Future<Uint8List?> _autoLoadBytes(RomInfo romInfo) async {
     if (!settingsController.autoLoad) {
       return null;
     }
@@ -630,7 +675,15 @@ class NesController {
         return;
       }
 
-      await romManager.saveState(nes.romInfo, 0, data);
+      try {
+        await romManager.saveState(nes.romInfo, 0, data);
+      } on Exception catch (e) {
+        log.emulator.error('Auto-save failed', error: e);
+
+        toaster.send(Toast.error('Auto-save failed: $e'));
+
+        return;
+      }
 
       toaster.send(Toast.info('Saved state to slot 0'));
     }

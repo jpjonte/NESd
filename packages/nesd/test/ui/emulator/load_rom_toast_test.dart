@@ -52,8 +52,8 @@ class _Harness {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
-    when(() => romManager.loadLatestState(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
+    when(() => romManager.loadLatestState(any())).thenAnswer((_) async => null);
     when(() => romManager.save(any(), any())).thenAnswer((_) async {});
 
     final database = MockNesDatabase();
@@ -75,6 +75,7 @@ class _Harness {
       filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
+      romImporter: FakeRomImporter(),
     );
 
     return _Harness._(
@@ -128,8 +129,12 @@ void main() {
     final harness = _Harness();
     final state = await harness.captureState();
 
-    when(() => harness.romManager.load(any())).thenReturn(Uint8List(0x2000));
-    when(() => harness.romManager.loadLatestState(any())).thenReturn(state);
+    when(
+      () => harness.romManager.load(any()),
+    ).thenAnswer((_) async => Uint8List(0x2000));
+    when(
+      () => harness.romManager.loadLatestState(any()),
+    ).thenAnswer((_) async => state);
 
     clearInteractions(harness.toaster);
 
@@ -144,7 +149,9 @@ void main() {
   test('loading SRAM without a state announces the SRAM', () async {
     final harness = _Harness();
 
-    when(() => harness.romManager.load(any())).thenReturn(Uint8List(0x2000));
+    when(
+      () => harness.romManager.load(any()),
+    ).thenAnswer((_) async => Uint8List(0x2000));
 
     await harness.controller.loadRom(_file, data: minimalValidRom());
 

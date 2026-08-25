@@ -69,6 +69,12 @@ rest. Beyond that:
 - Cascades (`..`) for several calls on the same receiver.
 - Blank lines around control-flow blocks and between unrelated statements.
 - Small private helpers (`_name`) kept near their call sites.
+- Comments say what the code can't: contracts (units, ranges,
+  null-vs-throw, ordering, single-use) and the WHY of non-obvious
+  workarounds, naming the concrete constraint in a line or two.
+- Never restate the declaration, the language idiom, or the change
+  rationale (that belongs in the commit message). If nothing is left
+  after that, write no comment.
 
 ## Branches and commits
 
@@ -82,6 +88,35 @@ rest. Beyond that:
 ```bash
 fvm dart format .
 pushd packages/nesd && fvm flutter analyze && fvm flutter test && popd
+FLUTTER="fvm flutter" ci/0-test/web_test.sh  # browser subset, needs Chrome
+```
+
+## Running on the web
+
+Development loop:
+
+```bash
+pushd packages/nesd && fvm flutter run -d chrome
+```
+
+For play-testing, run a release build:
+
+```bash
+pushd packages/nesd && fvm flutter run -d chrome --release
+```
+
+By default `flutter run` uses the JavaScript compiler. Pass `--wasm` to
+run the WebAssembly variant that release builds actually ship:
+
+```bash
+pushd packages/nesd && fvm flutter run -d chrome --wasm --release
+```
+
+Build the WebAssembly release variant (the CDN flag keeps it
+self-contained, matching CI):
+
+```bash
+fvm flutter build web --wasm --no-web-resources-cdn
 ```
 
 ## Website

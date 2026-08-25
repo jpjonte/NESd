@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
@@ -6,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:nesd/exception/file_not_found.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:path/path.dart' as p;
 
 class ZipFilesystem extends Filesystem {
   ZipFilesystem({required this.path, required Uint8List zipData})
@@ -65,7 +65,7 @@ class ZipFilesystem extends Filesystem {
 
   @override
   Future<FilesystemFile?> parent(String path) async {
-    final parentPath = Directory(path).parent.path;
+    final parentPath = p.dirname(path);
 
     return FilesystemFile(
       path: parentPath,

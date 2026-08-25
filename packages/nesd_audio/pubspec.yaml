@@ -12,6 +12,7 @@ dependencies:
   ffi: ^2.1.2
   flutter:
     sdk: flutter
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

@@ -13,7 +13,11 @@ import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/native_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_factory.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/web_filesystem.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -30,37 +34,45 @@ void main(List<String> arguments) async {
   installUiLog();
   installErrorHooks();
 
-  // Headless benchmark mode: activates only when an adb-pushed marker
-  // file exists in the app's own files dir (see bench_runner.dart).
-  final benchResult = await maybeRunBench();
+  SoakConfig? soakConfig;
 
-  if (benchResult != null) {
-    log.telemetry.emit(benchResult.logLine);
+  if (!kIsWeb) {
+    // Headless benchmark mode
+    final benchResult = await maybeRunBench();
 
-    exit(0);
+    if (benchResult != null) {
+      log.telemetry.emit(benchResult.logLine);
+
+      exit(0);
+    }
+
+    // Unattended audio soak mode
+    soakConfig = await maybeReadSoakConfig();
   }
-
-  // Unattended audio soak mode: activates only when an adb-pushed
-  // marker exists in the app's own files dir (see soak_config.dart).
-  final soakConfig = await maybeReadSoakConfig();
 
   _addLicenses();
 
   const sharedPreferencesOptions = SharedPreferencesOptions();
 
-  final applicationSupport = await getApplicationSupportDirectory();
+  final applicationSupportPath = kIsWeb
+      ? webStorageRoot
+      : (await getApplicationSupportDirectory()).path;
 
-  await _migrateLinuxDevProfile(applicationSupport);
+  if (!kIsWeb) {
+    await _migrateLinuxDevProfile(Directory(applicationSupportPath));
+  }
 
   final preferences = await SharedPreferences.getInstance();
   final packageInfo = await PackageInfo.fromPlatform();
 
-  attachLogFile(NesdLog.instance, applicationSupport.path);
+  if (!kIsWeb) {
+    attachLogFile(NesdLog.instance, applicationSupportPath);
+  }
 
   logAppStart(
     version: packageInfo.version,
     buildNumber: packageInfo.buildNumber,
-    platform: Platform.operatingSystem,
+    platform: kIsWeb ? 'web' : Platform.operatingSystem,
     flavor: appFlavor,
   );
 
@@ -70,9 +82,31 @@ void main(List<String> arguments) async {
     migrationCompletedKey: 'migrationCompleted',
   );
 
-  final filesystem = Platform.isAndroid
-      ? AndroidFilesystem()
-      : NativeFilesystem();
+  StorageFilesystem storage;
+  String? startupWarning;
+
+  try {
+    storage = await createStorageFilesystem();
+  } on Exception catch (e, s) {
+    log.app.error(
+      'Persistent storage is unavailable; using in-memory storage',
+      error: e,
+      stackTrace: s,
+    );
+
+    storage = MemoryStorageFilesystem();
+    startupWarning =
+        'Persistent storage is unavailable. '
+        'Imported games and saves will be lost when NESd closes.';
+  }
+
+  final Filesystem filesystem;
+
+  if (kIsWeb) {
+    filesystem = WebFilesystem(storage: storage);
+  } else {
+    filesystem = Platform.isAndroid ? AndroidFilesystem() : NativeFilesystem();
+  }
 
   runApp(
     ProviderScope(
@@ -80,16 +114,19 @@ void main(List<String> arguments) async {
         sharedPreferencesProvider.overrideWithValue(preferences),
         packageInfoProvider.overrideWithValue(packageInfo),
         filesystemProvider.overrideWithValue(filesystem),
+        storageFilesystemProvider.overrideWithValue(storage),
         applicationSupportPathProvider.overrideWithValue(
-          applicationSupport.path,
+          applicationSupportPath,
         ),
         initialRomProvider.overrideWith(
           () => InitialRom(
             initialValue: arguments.isNotEmpty ? arguments.first : null,
           ),
         ),
+        if (startupWarning != null)
+          startupWarningProvider.overrideWithValue(startupWarning),
         if (soakConfig != null)
-          soakConfigProvider.overrideWith((ref) => soakConfig),
+          soakConfigProvider.overrideWith((ref) => soakConfig!),
       ],
       child: const NesdApp(),
     ),

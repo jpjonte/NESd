@@ -29,15 +29,21 @@ void main() {
     expect(html, contains('href="https://github.com/jpjonte/NESd"'));
   });
 
-  test('footer carries license, privacy, changelog and contact', () async {
-    final html = await renderHtml(const PageShell(children: []));
+  test(
+    'footer carries license, privacy, changelog, self-hosting and contact',
+    () async {
+      final html = await renderHtml(const PageShell(children: []));
 
-    expect(html, contains('© Buddy Jonte · MIT License'));
-    expect(html, contains('href="/privacy"'));
-    expect(
-      html,
-      contains('href="https://github.com/jpjonte/NESd/blob/main/CHANGELOG.md"'),
-    );
-    expect(html, contains('href="mailto:nesd@jpj.dev"'));
-  });
+      expect(html, contains('© Buddy Jonte · MIT License'));
+      expect(html, contains('href="/privacy"'));
+      expect(
+        html,
+        contains(
+          'href="https://github.com/jpjonte/NESd/blob/main/CHANGELOG.md"',
+        ),
+      );
+      expect(html, contains('>Self-hosting<'));
+      expect(html, contains('href="mailto:nesd@jpj.dev"'));
+    },
+  );
 }

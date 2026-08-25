@@ -4,6 +4,13 @@ flutter_launcher_icons:
     generate: true
   windows:
     generate: true
+  # Generating icons replaces web/favicon.png with a shrunken full logo.
+  # Always restore the existing favicon after running the tool.
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#1a1a2a"
+    theme_color: "#1a1a2a"
   android: true
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/logo-adaptive.png"

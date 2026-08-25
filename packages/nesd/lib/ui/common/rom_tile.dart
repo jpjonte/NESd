@@ -1,9 +1,10 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/common/custom_button.dart';
@@ -49,20 +50,15 @@ class RomTileData {
   final int? slot;
 }
 
-Future<ui.Image?> loadStoredThumbnail(File file) async {
-  if (!file.existsSync()) {
+Future<ui.Image?> loadStoredThumbnail(Uint8List? bytes) async {
+  if (bytes == null) {
     return null;
   }
 
   try {
-    final bytes = await file.readAsBytes();
-
     final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-
     final descriptor = await ui.ImageDescriptor.encoded(buffer);
-
     final codec = await descriptor.instantiateCodec();
-
     final frameInfo = await codec.getNextFrame();
 
     return frameInfo.image;
@@ -193,8 +189,14 @@ class _StoredThumbnail extends HookConsumerWidget {
     final romManager = ref.watch(romManagerProvider);
 
     final loading = useMemoized(
-      () =>
-          loadStoredThumbnail(romManager.getThumbnailFile(romTileData.romInfo)),
+      () => romManager
+          .readThumbnail(romTileData.romInfo)
+          .then(loadStoredThumbnail)
+          .onError((error, _) {
+            log.rom.warning('Failed to load thumbnail', error: error);
+
+            return null;
+          }),
       [romTileData],
     );
 

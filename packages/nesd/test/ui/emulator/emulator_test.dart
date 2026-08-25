@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/emulator_widget.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 
 import '../robot.dart';
 
@@ -50,12 +54,31 @@ void main() {
     await r.saveStates.tapNewSaveState();
     r.emulator.expectEmulatorWidgetFound();
 
+    final romInfo = r.container.read(nesStateProvider)!.romInfo;
+    final romManager = r.container.read(romManagerProvider);
+
+    Uint8List? savedState;
+
+    for (var attempt = 0; attempt < 40 && savedState == null; attempt++) {
+      await r.fixAsync();
+      savedState = await tester.runAsync<Uint8List?>(
+        () => romManager.loadState(romInfo, 1),
+      );
+    }
+
+    expect(savedState, isNotNull, reason: 'save state slot 1 never landed');
+
     await r.emulator.tapMenu();
     await r.menuScreen.tapSaveStates();
-    await r.fixAsync();
+    r.saveStates.expectSaveStatesScreenFound();
+    await r.waitUntil(() => find.byType(RomTile).evaluate().length == 2);
     r.saveStates.expectSaveStatesFound(2);
 
+    final beforeReload = r.container.read(nesStateProvider);
+
     await r.saveStates.tapExistingSaveState();
+    await r.waitUntil(() => r.container.read(nesStateProvider) != beforeReload);
+    await r.pumpFrames(const Duration(milliseconds: 500));
     r.emulator.expectEmulatorWidgetFound();
 
     await r.emulator.tapMenu();

@@ -1,9 +1,9 @@
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/apu_debug/apu_debug_controller.dart';
@@ -13,8 +13,8 @@ import 'package:nesd/ui/emulator/remote_nes.dart';
 import '../remote_nes_fixtures.dart';
 
 ApuDebugEvent _event() => ApuDebugEvent(
-  channelSamples: TransferableTypedData.fromList([Uint8List(5)]),
-  mixSamples: TransferableTypedData.fromList([Float32List(1)]),
+  channelSamples: NesBytes.fromList([Uint8List(5)]),
+  mixSamples: NesBytes.fromList([Float32List(1)]),
   sampleCount: 1,
   pulse1: const PulseDebugState(
     enabled: true,

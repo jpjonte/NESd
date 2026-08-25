@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
@@ -18,6 +18,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_backend.dart';
 import 'package:nesd/nes/isolate/debugger_backend.dart';
 import 'package:nesd/nes/isolate/execution_log_backend.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/nes.dart';
@@ -51,12 +52,15 @@ class NesWorker {
     required this.send,
     NesdAudio Function()? audioFactory,
     this.audioStatsInterval = const Duration(seconds: 1),
+    this.rewindSupported = Features.rewind,
   }) : _audioFactory = audioFactory ?? defaultNesdAudio;
 
   final void Function(NesIsolateEvent event) send;
   final NesdAudio Function() _audioFactory;
 
   final Duration audioStatsInterval;
+
+  final bool rewindSupported;
 
   final Stopwatch _audioStatsTimer = Stopwatch();
 
@@ -82,6 +86,8 @@ class NesWorker {
 
   final Map<int, ({FrameBuffer frameBuffer, Uint8List buffer})>
   _framesInFlight = {};
+
+  int _nextFrameHandle = 1;
 
   Future<void> handleCommand(NesCommand command) async {
     switch (command) {
@@ -129,7 +135,7 @@ class NesWorker {
         _nes?.rewind = command.enabled;
         _sendStatus();
       case SetRewindEnabledCommand():
-        _nes?.rewindEnabled = command.enabled;
+        _nes?.rewindEnabled = rewindSupported && command.enabled;
       case SetRegionCommand():
         _applyRegion(command.region);
       case SetCheatsCommand():
@@ -173,7 +179,7 @@ class NesWorker {
       case TileDebugRequest():
         _handleTileDebug(command.requestId);
       case ReleaseFrameCommand():
-        _releaseFrame(command.pointerAddress);
+        _releaseFrame(command.frameHandle);
       case SetZapperPositionCommand():
         _nes?.bus.zapperPosition = command.x == null
             ? null
@@ -214,11 +220,16 @@ class NesWorker {
         ..databaseEntry = command.databaseEntry;
 
       if (_audioOutput == null) {
-        _audioOutput = AudioOutput(audio: _audioFactory());
+        final audioOutput = AudioOutput(audio: _audioFactory());
+
+        _audioOutput = audioOutput;
 
         log.audio.info(
           'Audio device opened',
-          context: {'sampleRate': apuSampleRate},
+          context: {
+            'sampleRate': apuSampleRate,
+            'state': audioOutput.audio.state.name,
+          },
         );
       }
 
@@ -242,7 +253,7 @@ class NesWorker {
 
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
-        ..rewindEnabled = command.rewindEnabled
+        ..rewindEnabled = rewindSupported && command.rewindEnabled
         ..rewindCaptureInterval = command.rewindCaptureInterval
         ..cheats = command.cheats
         ..breakpoints = command.breakpoints;
@@ -364,18 +375,16 @@ class NesWorker {
     }
 
     final address = frameBuffer.pointerForBuffer(buffer);
+    final handle = address ?? _nextFrameHandle++;
 
-    if (address == null) {
-      frameBuffer.releaseDisplayBuffer(buffer);
-
-      return;
-    }
-
-    _framesInFlight[address] = (frameBuffer: frameBuffer, buffer: buffer);
+    _framesInFlight[handle] = (frameBuffer: frameBuffer, buffer: buffer);
 
     send(
       FrameEvent(
-        pointerAddress: address,
+        frameHandle: handle,
+        pixels: address == null
+            ? InlineFramePixels(bytes: buffer)
+            : PointerFramePixels(address: address),
         width: frameBuffer.width,
         height: frameBuffer.height,
         frameTimeMicroseconds: event?.frameTime.inMicroseconds ?? 0,
@@ -391,8 +400,8 @@ class NesWorker {
   // attaches a GC Finalizer); dropping them while the UI still reads a pointer
   // view would be a use-after-free. Entries leave the map only via
   // ReleaseFrameCommand.
-  void _releaseFrame(int pointerAddress) {
-    final entry = _framesInFlight.remove(pointerAddress);
+  void _releaseFrame(int frameHandle) {
+    final entry = _framesInFlight.remove(frameHandle);
 
     entry?.frameBuffer.releaseDisplayBuffer(entry.buffer);
   }
@@ -521,12 +530,12 @@ class NesWorker {
     send(
       SaveStateResponse(
         requestId: requestId,
-        state: data == null ? null : TransferableTypedData.fromList([data]),
+        state: data == null ? null : NesBytes.fromList([data]),
       ),
     );
   }
 
-  void _handleLoadState(TransferableTypedData state) {
+  void _handleLoadState(NesBytes state) {
     final nes = _nes;
 
     if (nes == null) {
@@ -546,7 +555,7 @@ class NesWorker {
     }
   }
 
-  void _handleLoadSram(TransferableTypedData sram) {
+  void _handleLoadSram(NesBytes sram) {
     final nes = _nes;
 
     if (nes == null) {
@@ -568,7 +577,7 @@ class NesWorker {
     send(
       SramResponse(
         requestId: requestId,
-        sram: data == null ? null : TransferableTypedData.fromList([data]),
+        sram: data == null ? null : NesBytes.fromList([data]),
       ),
     );
   }
@@ -587,7 +596,7 @@ class NesWorker {
     send(
       ThumbnailResponse(
         requestId: requestId,
-        pixels: TransferableTypedData.fromList([pixels]),
+        pixels: NesBytes.fromList([pixels]),
         width: frameBuffer.width,
         height: frameBuffer.height,
       ),
@@ -610,7 +619,7 @@ class NesWorker {
     send(
       TileDebugResponse(
         requestId: requestId,
-        ppuMemory: TransferableTypedData.fromList([memory]),
+        ppuMemory: NesBytes.fromList([memory]),
         ppuCtrl: nes.ppu.PPUCTRL,
         v: nes.ppu.v,
         t: nes.ppu.t,
@@ -661,10 +670,7 @@ class NesWorker {
         eventBus: eventBus,
         disassembler: _disassembler!,
         onState: (state, memory) => send(
-          DebuggerEvent(
-            state: state,
-            cpuMemory: TransferableTypedData.fromList([memory]),
-          ),
+          DebuggerEvent(state: state, cpuMemory: NesBytes.fromList([memory])),
         ),
         onBreakpoints: (hash, breakpoints) =>
             send(BreakpointsEvent(fileHash: hash, breakpoints: breakpoints)),

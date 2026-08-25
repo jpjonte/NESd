@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 class CPUState {
   const CPUState({
@@ -71,7 +72,7 @@ class CPUState {
       dmcDmaDummy: reader.get(boolean),
       dmcDmaValue: reader.get(uint8),
       oamDmaPage: reader.get(uint8),
-      cycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
       consoleCycles: 0,
       callStack: [],
     );
@@ -101,7 +102,7 @@ class CPUState {
       dmcDmaDummy: reader.get(boolean),
       dmcDmaValue: reader.get(uint8),
       oamDmaPage: reader.get(uint8),
-      cycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
       consoleCycles: 0,
       callStack: reader.get(list(uint16)),
     );
@@ -131,8 +132,8 @@ class CPUState {
       dmcDmaDummy: reader.get(boolean),
       dmcDmaValue: reader.get(uint8),
       oamDmaPage: reader.get(uint8),
-      cycles: reader.get(uint64),
-      consoleCycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
+      consoleCycles: reader.get(nesdUint64),
       callStack: reader.get(list(uint16)),
     );
   }
@@ -161,8 +162,8 @@ class CPUState {
       dmcDmaDummy: reader.get(boolean),
       dmcDmaValue: reader.get(uint8),
       oamDmaPage: reader.get(uint8),
-      cycles: reader.get(uint64),
-      consoleCycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
+      consoleCycles: reader.get(nesdUint64),
       callStack: reader.get(uint16List(lengthType: uint32)),
     );
   }
@@ -225,8 +226,8 @@ class CPUState {
       ..set(boolean, dmcDmaDummy)
       ..set(uint8, dmcDmaValue)
       ..set(uint8, oamDmaPage)
-      ..set(uint64, cycles)
-      ..set(uint64, consoleCycles)
+      ..set(nesdUint64, cycles)
+      ..set(nesdUint64, consoleCycles)
       ..set(uint16List(lengthType: uint32), Uint16List.fromList(callStack));
   }
 }

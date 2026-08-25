@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
@@ -36,7 +37,7 @@ Future<Object?> _roundTrip(Object message) async {
 void main() {
   test('LoadRomCommand round-trips through an isolate', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([
+      rom: NesBytes.fromList([
         Uint8List.fromList([1, 2, 3]),
       ]),
       file: const FilesystemFile(
@@ -66,7 +67,7 @@ void main() {
       const SetRegionCommand(region: Region.pal),
       const SetFastForwardCommand(enabled: true),
       const SetRewindCommand(enabled: false),
-      const ReleaseFrameCommand(pointerAddress: 0xdeadbeef),
+      const ReleaseFrameCommand(frameHandle: 0xdeadbeef),
       const SetZapperPositionCommand(x: 12, y: 34),
       AddBreakpointCommand(breakpoint: Breakpoint(0x8000)),
     ];
@@ -80,7 +81,8 @@ void main() {
 
   test('FrameEvent and StatusEvent round-trip', () async {
     const frame = FrameEvent(
-      pointerAddress: 1234,
+      frameHandle: 1234,
+      pixels: PointerFramePixels(address: 1234),
       width: 256,
       height: 240,
       frameTimeMicroseconds: 16600,
@@ -92,7 +94,7 @@ void main() {
     final result = await _roundTrip(frame);
 
     expect(result, isA<FrameEvent>());
-    expect((result! as FrameEvent).pointerAddress, 1234);
+    expect((result! as FrameEvent).frameHandle, 1234);
 
     const status = StatusEvent(
       running: true,
@@ -107,7 +109,7 @@ void main() {
   test('DebuggerEvent with DebuggerState round-trips', () async {
     final event = DebuggerEvent(
       state: const DebuggerState(),
-      cpuMemory: TransferableTypedData.fromList([Uint8List(0x10000)]),
+      cpuMemory: NesBytes.fromList([Uint8List(0x10000)]),
     );
 
     final result = await _roundTrip(event);
@@ -155,7 +157,7 @@ void main() {
 
   test('LoadRomCommand carries the rewind capture interval', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([
+      rom: NesBytes.fromList([
         Uint8List.fromList([1, 2, 3]),
       ]),
       file: const FilesystemFile(

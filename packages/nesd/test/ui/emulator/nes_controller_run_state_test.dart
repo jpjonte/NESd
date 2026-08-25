@@ -61,7 +61,7 @@ void main() {
 
       final romManager = _MockRomManager();
 
-      when(() => romManager.load(any())).thenReturn(null);
+      when(() => romManager.load(any())).thenAnswer((_) async => null);
       when(() => romManager.save(any(), any())).thenAnswer((_) async {});
       when(
         () => romManager.saveThumbnail(
@@ -95,6 +95,7 @@ void main() {
               filesystem: filesystem,
               database: database,
               cartridgeFactory: CartridgeFactory(database: database),
+              romImporter: FakeRomImporter(),
             )
             // The emulator screen is not on top. E.g. the ROM is still loading
             // while the user is looking at the file picker.
@@ -149,7 +150,7 @@ void main() {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
     when(() => romManager.save(any(), any())).thenAnswer((_) async {});
     when(
       () => romManager.saveThumbnail(
@@ -183,6 +184,7 @@ void main() {
             filesystem: filesystem,
             database: database,
             cartridgeFactory: CartridgeFactory(database: database),
+            romImporter: FakeRomImporter(),
           )
           // The emulator screen is on top. E.g. the ROM was picked from
           // "File -> Open..." while the emulator route was already active.

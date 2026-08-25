@@ -22,6 +22,7 @@ jobs:
               - 'linux/**'
               - 'windows/**'
               - 'android/**'
+              - 'ci/1-build/web/**'
 
   lint:
     runs-on: ubuntu-24.04
@@ -72,6 +73,21 @@ jobs:
           path: pages/coverage/main.json
           if-no-files-found: error
 
+  test-web:
+    # run the web tests directly on the runner (Chrome is preinstalled)
+    runs-on: ubuntu-24.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v7
+      - id: env
+        uses: ./.github/actions/env
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: ci/0-test/web_test.sh
+
   test-site:
     runs-on: ubuntu-24.04
     container:
@@ -98,7 +114,7 @@ jobs:
   publish-pages:
     if: github.ref == 'refs/heads/main' && needs.pages-gate.outputs.deploy == 'true'
     runs-on: ubuntu-24.04
-    needs: [test, test-site, pages-gate]
+    needs: [test, test-site, pages-gate, build-web]
     permissions:
       contents: read
       pages: write
@@ -117,7 +133,7 @@ jobs:
   publish-pages-release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [test, test-site, release]
+    needs: [test, test-site, release, build-web]
     permissions:
       contents: read
       pages: write
@@ -249,6 +265,22 @@ jobs:
             packages/nesd/android/local.properties
           if-no-files-found: error
 
+  build-web:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/jpjonte/flutter:stable-ci
+    needs: [test, test-web]
+    steps:
+      - uses: actions/checkout@v7
+      - run: git config --global --add safe.directory "$(pwd)"
+      - run: flutter pub get
+      - run: ci/1-build/web/build.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-build
+          path: packages/nesd/build/web
+          if-no-files-found: error
+
   publish-play:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
@@ -284,6 +316,52 @@ jobs:
             | base64 --decode \
             > packages/nesd/android/play-service-account.json
       - run: ci/3-release/publish_play.sh
+
+  publish-docker:
+    if: >-
+      (github.ref == 'refs/heads/main' &&
+       needs.detect-changes.outputs.build-relevant == 'true') ||
+      startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    needs: [detect-changes, build-web]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - id: env
+        uses: ./.github/actions/env
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-build
+          path: ci/2-package/web/web
+      - id: tags
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tags=ghcr.io/jpjonte/nesd:$VERSION,ghcr.io/jpjonte/nesd:latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=ghcr.io/jpjonte/nesd:nightly" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build a host-arch image for verification
+        uses: docker/build-push-action@v6
+        with:
+          context: ci/2-package/web
+          load: true
+          tags: nesd-web:verify
+      - run: ci/2-package/web/verify.sh nesd-web:verify
+      - uses: docker/build-push-action@v6
+        with:
+          context: ci/2-package/web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
 
   package-linux-deb:
     strategy:
@@ -468,12 +546,17 @@ jobs:
         run: ci/3-release/extract_changelog_nightly.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!@(coverage-badge|flatpak-repo-*)'
+          pattern: '!@(coverage-badge|flatpak-repo-*|web-build)'
           path: artifacts
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-build
+          path: web-build
       - id: env
         uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
+      - run: ci/3-release/zip_web_artifact.sh
       - run: gh release delete nightly --cleanup-tag -y
       - uses: ncipollo/release-action@v1
         with:
@@ -542,12 +625,17 @@ jobs:
         run: ci/3-release/extract_changelog.sh
       - uses: actions/download-artifact@v8
         with:
-          pattern: '!@(play-bundle|coverage-badge|flatpak-repo-*)'
+          pattern: '!@(play-bundle|coverage-badge|flatpak-repo-*|web-build)'
           path: artifacts
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-build
+          path: web-build
       - id: env
         uses: ./.github/actions/env
       - run: ci/3-release/zip_windows_artifacts.sh
+      - run: ci/3-release/zip_web_artifact.sh
       - uses: ncipollo/release-action@v1
         with:
           artifacts: artifacts/*

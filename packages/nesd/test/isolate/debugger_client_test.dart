@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +7,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/debugger/debugger.dart';
 import 'package:nesd/nes/debugger/debugger_state.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -72,7 +72,7 @@ DebuggerEvent _debuggerEvent({
   Uint8List? cpuMemory,
 }) => DebuggerEvent(
   state: state,
-  cpuMemory: TransferableTypedData.fromList([cpuMemory ?? Uint8List(0x10000)]),
+  cpuMemory: NesBytes.fromList([cpuMemory ?? Uint8List(0x10000)]),
 );
 
 void main() {

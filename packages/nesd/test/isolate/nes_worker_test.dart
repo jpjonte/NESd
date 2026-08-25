@@ -1,11 +1,11 @@
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
@@ -33,7 +33,7 @@ LoadRomCommand _loadRomCommand({
   final bytes = File(_romPath).readAsBytesSync();
 
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([bytes]),
+    rom: NesBytes.fromList([bytes]),
     file: const FilesystemFile(
       path: _romPath,
       name: 'nestest.nes',
@@ -60,7 +60,7 @@ Uint8List _batteryRom() {
 
 LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
   return LoadRomCommand(
-    rom: TransferableTypedData.fromList([_batteryRom()]),
+    rom: NesBytes.fromList([_batteryRom()]),
     file: const FilesystemFile(
       path: '/tmp/battery.nes',
       name: 'battery.nes',
@@ -73,8 +73,8 @@ LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
     breakpoints: const [],
     initialState: initialState == null
         ? null
-        : TransferableTypedData.fromList([initialState]),
-    sram: sram == null ? null : TransferableTypedData.fromList([sram]),
+        : NesBytes.fromList([initialState]),
+    sram: sram == null ? null : NesBytes.fromList([sram]),
   );
 }
 
@@ -147,7 +147,26 @@ void main() {
 
     expect(frame.width, 256);
     expect(frame.height, 240);
-    expect(frame.pointerAddress, isNot(0));
+    expect(frame.frameHandle, isNot(0));
+    expect(frame.pixels, isA<PointerFramePixels>());
+  });
+
+  test('the worker forces rewind off where unsupported (web)', () async {
+    // Replace the setUp worker; it had no ROM loaded, so nothing leaks.
+    worker = NesWorker(
+      send: events.add,
+      audioFactory: FakeNesdAudio.new,
+      rewindSupported: false,
+    );
+
+    await worker.handleCommand(_loadRomCommand(rewindEnabled: true));
+    await waitFor<RomLoadedEvent>();
+
+    expect(worker.nesForTesting!.rewindEnabled, isFalse);
+
+    await worker.handleCommand(const SetRewindEnabledCommand(enabled: true));
+
+    expect(worker.nesForTesting!.rewindEnabled, isFalse);
   });
 
   test('ReleaseFrameCommand returns buffers to the pool', () async {
@@ -158,7 +177,7 @@ void main() {
 
     for (final frame in frames) {
       await worker.handleCommand(
-        ReleaseFrameCommand(pointerAddress: frame.pointerAddress),
+        ReleaseFrameCommand(frameHandle: frame.frameHandle),
       );
     }
 
@@ -265,7 +284,7 @@ void main() {
     await waitFor<RomLoadedEvent>();
 
     await worker.handleCommand(
-      LoadSramCommand(sram: TransferableTypedData.fromList([Uint8List(3)])),
+      LoadSramCommand(sram: NesBytes.fromList([Uint8List(3)])),
     );
 
     // nestest has no battery, so cartridge.load is a no-op and cannot
@@ -278,7 +297,7 @@ void main() {
 
   test('invalid rom emits RomLoadFailedEvent', () async {
     final command = LoadRomCommand(
-      rom: TransferableTypedData.fromList([Uint8List(16)]),
+      rom: NesBytes.fromList([Uint8List(16)]),
       file: const FilesystemFile(
         path: '/tmp/bad.nes',
         name: 'bad.nes',
@@ -323,7 +342,8 @@ void main() {
     // #2: the in-flight map is never bulk-cleared on stop). Read it back
     // directly through its raw pointer address.
     final size = frame.width * frame.height * 4;
-    final pointer = Pointer<Uint8>.fromAddress(frame.pointerAddress);
+    final address = (frame.pixels as PointerFramePixels).address;
+    final pointer = Pointer<Uint8>.fromAddress(address);
     final view = pointer.asTypedList(size);
 
     expect(view.length, size);
@@ -332,7 +352,7 @@ void main() {
     expect(view.fold<int>(0, (sum, b) => sum + b), isNonNegative);
 
     await worker.handleCommand(
-      ReleaseFrameCommand(pointerAddress: frame.pointerAddress),
+      ReleaseFrameCommand(frameHandle: frame.frameHandle),
     );
   });
 
@@ -460,7 +480,7 @@ void main() {
       final displayed = events.whereType<FrameEvent>().last;
       final displayedPixels = Uint8List.fromList(
         Pointer<Uint8>.fromAddress(
-          displayed.pointerAddress,
+          (displayed.pixels as PointerFramePixels).address,
         ).asTypedList(displayed.width * displayed.height * 4),
       );
 

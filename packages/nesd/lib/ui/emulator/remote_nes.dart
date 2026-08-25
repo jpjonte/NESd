@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +6,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -100,6 +100,8 @@ class RemoteNes {
   static int _nextRequestId = 0;
   final Map<int, Completer<NesIsolateEvent>> _pending = {};
 
+  bool _disposed = false;
+
   Stream<NesIsolateEvent> get events => _isolate.events;
 
   void _send(NesCommand command) => _isolate.send(command);
@@ -191,10 +193,10 @@ class RemoteNes {
   void zapperRelease() => _send(const ZapperReleaseCommand());
 
   void loadState(Uint8List bytes) =>
-      _send(LoadStateCommand(state: TransferableTypedData.fromList([bytes])));
+      _send(LoadStateCommand(state: NesBytes.fromList([bytes])));
 
   void loadSram(Uint8List bytes) =>
-      _send(LoadSramCommand(sram: TransferableTypedData.fromList([bytes])));
+      _send(LoadSramCommand(sram: NesBytes.fromList([bytes])));
 
   Future<Uint8List?> requestSaveState() async {
     final response = await _request<SaveStateResponse>(
@@ -244,9 +246,20 @@ class RemoteNes {
   }
 
   void dispose() {
+    _disposed = true;
+
     // Release any frame still held by the source so the worker doesn't pin
     // its native buffer when we're torn down without a preceding stop().
     frameSource.clear();
+
+    // clear outstanding requests and stop their timeout timers
+    for (final completer in _pending.values) {
+      if (!completer.isCompleted) {
+        completer.completeError(_DisposedException());
+      }
+    }
+
+    _pending.clear();
 
     unawaited(_subscription.cancel());
   }
@@ -254,6 +267,10 @@ class RemoteNes {
   Future<T?> _request<T extends NesIsolateEvent>(
     NesCommand Function(int requestId) build,
   ) async {
+    if (_disposed) {
+      return null;
+    }
+
     final requestId = _nextRequestId++;
     final completer = Completer<NesIsolateEvent>();
 
@@ -274,6 +291,8 @@ class RemoteNes {
         },
       );
 
+      return null;
+    } on _DisposedException {
       return null;
     } finally {
       _pending.remove(requestId);
@@ -308,3 +327,5 @@ class RemoteNes {
     _pending.remove(requestId)?.complete(event);
   }
 }
+
+class _DisposedException implements Exception {}

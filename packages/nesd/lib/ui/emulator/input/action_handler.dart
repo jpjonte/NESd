@@ -219,7 +219,7 @@ class ActionHandler {
           nes?.unpause();
         }
       case ResetAction():
-        nesController.reset();
+        unawaited(nesController.reset());
       case StopAction():
         unawaited(nesController.stop());
         router.navigate(const MainRoute());
@@ -327,7 +327,7 @@ class ActionHandler {
   }
 
   void _loadState(int slot) {
-    nesController.loadState(slot);
+    unawaited(nesController.loadState(slot));
   }
 
   void _sendIntent(Intent intent) {

@@ -19,7 +19,7 @@ class Hero extends StatelessComponent {
           const p(classes: 'tagline', [
             .text(
               'Free and open source. Plays $supportedGameCount games on '
-              'macOS, Windows, Linux and Android.',
+              'macOS, Windows, Linux, Android and the web.',
             ),
           ]),
           DownloadCards(release: release),

@@ -54,7 +54,7 @@ final class NesIsolateSpawnerProvider
   }
 }
 
-String _$nesIsolateSpawnerHash() => r'05d6026f149b0d3d04c08764dcc4d5cacc0133bb';
+String _$nesIsolateSpawnerHash() => r'14e82c869e7417c0f515cc51b71328e264cffb66';
 
 @ProviderFor(NesState)
 final nesStateProvider = NesStateProvider._();
@@ -146,4 +146,4 @@ final class NesControllerProvider
   }
 }
 
-String _$nesControllerHash() => r'2f8d4ff704c708160bbe072e76967d7f6fe1bdd8';
+String _$nesControllerHash() => r'a7c0f95f5e26d70f8bb65a687f8dea381b337b62';

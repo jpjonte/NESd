@@ -83,7 +83,7 @@ void main() {
 
     final romManager = _MockRomManager();
 
-    when(() => romManager.load(any())).thenReturn(null);
+    when(() => romManager.load(any())).thenAnswer((_) async => null);
 
     final database = MockNesDatabase();
 
@@ -117,6 +117,7 @@ void main() {
       filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
+      romImporter: FakeRomImporter(),
       romLoadTimeout: const Duration(milliseconds: 200),
     );
 

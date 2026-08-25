@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
@@ -312,6 +313,12 @@ class DisplayFrameController extends ChangeNotifier
   }
 
   Future<void> _ensureTexture(int width, int height) async {
+    if (!Features.gpuRenderer) {
+      _textureFailed = true;
+
+      return;
+    }
+
     if (_texture != null || _textureFailed || _disposed) {
       return;
     }
@@ -515,7 +522,7 @@ class DisplayFrameController extends ChangeNotifier
     final height = handle.height;
 
     texture
-        .update(buffer, pixelPointer: handle.pointerAddress)
+        .update(buffer, pixelPointer: handle.pixelPointer)
         .whenComplete(() => source.releaseFrame(handle))
         .then<void>((_) {
           if (_disposed) {

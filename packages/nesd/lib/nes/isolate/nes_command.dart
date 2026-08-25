@@ -1,10 +1,9 @@
-import 'dart:isolate';
-
 import 'package:nesd/log/log_level.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
@@ -26,7 +25,7 @@ class LoadRomCommand extends NesCommand {
     this.sram,
   });
 
-  final TransferableTypedData rom;
+  final NesBytes rom;
   final FilesystemFile file;
   final NesDatabaseEntry? databaseEntry;
   final Region? region;
@@ -34,8 +33,8 @@ class LoadRomCommand extends NesCommand {
   final List<Cheat> cheats;
   final List<Breakpoint> breakpoints;
   final int rewindCaptureInterval;
-  final TransferableTypedData? initialState;
-  final TransferableTypedData? sram;
+  final NesBytes? initialState;
+  final NesBytes? sram;
 }
 
 class ResetCommand extends NesCommand {
@@ -207,7 +206,7 @@ class SaveStateRequest extends NesCommand {
 class LoadStateCommand extends NesCommand {
   const LoadStateCommand({required this.state});
 
-  final TransferableTypedData state;
+  final NesBytes state;
 }
 
 class SaveSramRequest extends NesCommand {
@@ -219,7 +218,7 @@ class SaveSramRequest extends NesCommand {
 class LoadSramCommand extends NesCommand {
   const LoadSramCommand({required this.sram});
 
-  final TransferableTypedData sram;
+  final NesBytes sram;
 }
 
 class ThumbnailRequest extends NesCommand {
@@ -235,9 +234,10 @@ class TileDebugRequest extends NesCommand {
 }
 
 class ReleaseFrameCommand extends NesCommand {
-  const ReleaseFrameCommand({required this.pointerAddress});
+  const ReleaseFrameCommand({required this.frameHandle});
 
-  final int pointerAddress;
+  /// The `FrameEvent.frameHandle` of the frame to return to the pool.
+  final int frameHandle;
 }
 
 class SetZapperPositionCommand extends NesCommand {

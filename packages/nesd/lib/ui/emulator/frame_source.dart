@@ -1,21 +1,26 @@
-import 'dart:ffi';
-
 import 'package:flutter/foundation.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/emulator/frame_view.dart';
 
+/// A frame taken from a [FrameSource], to be released exactly once.
 class FrameHandle {
   const FrameHandle({
     required this.bytes,
     required this.width,
     required this.height,
-    required this.pointerAddress,
+    required this.id,
+    this.pixelPointer,
   });
 
   final Uint8List bytes;
   final int width;
   final int height;
-  final int pointerAddress;
+
+  final int id;
+
+  /// Native frame memory address for the GPU texture path. `null` on web.
+  final int? pixelPointer;
 }
 
 abstract class FrameSource extends ChangeNotifier {
@@ -24,9 +29,8 @@ abstract class FrameSource extends ChangeNotifier {
   void releaseFrame(FrameHandle handle);
 }
 
-/// [FrameSource] backed by frames delivered from the emulator isolate as
-/// [FrameEvent]s. Frame memory lives in the worker's native heap; ownership
-/// transfers via [ReleaseFrameCommand] round trips through [sendCommand].
+/// Holds at most the latest frame from the worker. A superseded frame is
+/// released back to the worker's pool before the new one is stored.
 class RemoteFrameSource extends FrameSource {
   RemoteFrameSource({required this.sendCommand});
 
@@ -36,17 +40,24 @@ class RemoteFrameSource extends FrameSource {
 
   void addFrame(FrameEvent event) {
     if (_latest case final previous?) {
-      sendCommand(ReleaseFrameCommand(pointerAddress: previous.pointerAddress));
+      sendCommand(ReleaseFrameCommand(frameHandle: previous.id));
     }
 
-    _latest = FrameHandle(
-      bytes: Pointer<Uint8>.fromAddress(
-        event.pointerAddress,
-      ).asTypedList(event.width * event.height * 4),
-      width: event.width,
-      height: event.height,
-      pointerAddress: event.pointerAddress,
-    );
+    _latest = switch (event.pixels) {
+      InlineFramePixels(:final bytes) => FrameHandle(
+        bytes: bytes,
+        width: event.width,
+        height: event.height,
+        id: event.frameHandle,
+      ),
+      PointerFramePixels(:final address) => FrameHandle(
+        bytes: frameBytesFromAddress(address, event.width * event.height * 4),
+        width: event.width,
+        height: event.height,
+        id: event.frameHandle,
+        pixelPointer: address,
+      ),
+    };
 
     notifyListeners();
   }
@@ -62,7 +73,7 @@ class RemoteFrameSource extends FrameSource {
 
   @override
   void releaseFrame(FrameHandle handle) {
-    sendCommand(ReleaseFrameCommand(pointerAddress: handle.pointerAddress));
+    sendCommand(ReleaseFrameCommand(frameHandle: handle.id));
   }
 
   void clear() {

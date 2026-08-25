@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:es_compression/lz4.dart';
 import 'package:nesd/audio/audio_output.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/sink/isolate_sink.dart';
 import 'package:nesd/log/sink/telemetry_sink.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
+import 'package:nesd/nes/isolate/nes_command_queue.dart';
 import 'package:nesd/nes/isolate/nes_isolate_config.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 
 /// Entry point run inside the spawned isolate. Wires a [NesWorker] to a
@@ -17,7 +18,7 @@ import 'package:nesd_audio/nesd_audio.dart';
 /// [IsolateReadyEvent].
 void nesIsolateMain(NesIsolateConfig config) {
   if (config.lz4LibraryPath case final path?) {
-    Lz4Codec.libraryPath = path;
+    setRewindCodecLibraryPath(path);
   }
 
   if (config.audioLibraryPath case final path?) {
@@ -43,37 +44,21 @@ void nesIsolateMain(NesIsolateConfig config) {
         : null,
   );
 
-  // Serialize command handling: chaining onto a single future prevents two
-  // async handlers (e.g. _loadRom and _stop) from interleaving. The
-  // try/catch lives INSIDE the chain so one failing command surfaces as an
-  // ErrorEvent without breaking the chain for later commands.
-  var queue = Future<void>.value();
+  final queue = NesCommandQueue(
+    handle: worker.handleCommand,
+    onError: config.hostPort.send,
+  );
 
-  commandPort.listen((message) {
-    final command = message as NesCommand;
-
-    queue = queue.then((_) async {
-      try {
-        await worker.handleCommand(command);
-      } on Object catch (error, stackTrace) {
-        log.emulator.error(
-          'Command failed',
-          error: error,
-          stackTrace: stackTrace,
-        );
-
-        config.hostPort.send(ErrorEvent.from(error, stackTrace));
-      }
-    });
-  });
+  commandPort.listen((message) => queue.add(message as NesCommand));
 
   config.hostPort.send(IsolateReadyEvent(commandPort: commandPort.sendPort));
 }
 
-/// Testability seam for [NesIsolate]: the subset of its API that
-/// `RemoteNes` depends on. Production code always constructs a real
-/// [NesIsolate]; tests can inject a fake implementation without spawning an
-/// isolate.
+/// Handle to a running emulator worker.
+///
+/// [events] is a broadcast stream that buffers while no listener is attached.
+/// Commands are handled strictly in [send] order and a failing command
+/// surfaces as an `ErrorEvent`. [send] after [dispose] is a silent no-op.
 abstract class NesIsolateHandle {
   Stream<NesIsolateEvent> get events;
 

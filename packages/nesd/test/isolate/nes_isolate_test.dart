@@ -1,19 +1,19 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:es_compression/lz4.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 
 void main() {
   test('spawn, load rom, receive frames, release, dispose', () async {
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: Lz4Codec.libraryPath,
+      lz4LibraryPath: rewindCodecLibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -22,7 +22,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -48,11 +48,11 @@ void main() {
         .timeout(const Duration(seconds: 10));
 
     for (final frame in frames) {
-      expect(frame.pointerAddress, isNonZero);
+      expect(frame.frameHandle, isNonZero);
       expect(frame.width, 256);
       expect(frame.height, 240);
 
-      isolate.send(ReleaseFrameCommand(pointerAddress: frame.pointerAddress));
+      isolate.send(ReleaseFrameCommand(frameHandle: frame.frameHandle));
     }
 
     await isolate.dispose();
@@ -75,7 +75,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -101,7 +101,7 @@ void main() {
 
   test('garbage LoadSramCommand keeps the isolate alive and framing', () async {
     final isolate = await NesIsolate.spawn(
-      lz4LibraryPath: Lz4Codec.libraryPath,
+      lz4LibraryPath: rewindCodecLibraryPath,
       audioLibraryPath: NesdAudio.libraryPath,
       disableAudio: true, // null device: no audio hardware in tests
     );
@@ -112,7 +112,7 @@ void main() {
 
     isolate.send(
       LoadRomCommand(
-        rom: TransferableTypedData.fromList([rom]),
+        rom: NesBytes.fromList([rom]),
         file: const FilesystemFile(
           path: 'nestest.nes',
           name: 'nestest.nes',
@@ -133,9 +133,7 @@ void main() {
     // Feed obviously-wrong SRAM. nestest has no battery so cartridge.load
     // is a no-op (the guard's ErrorEvent branch is unreachable here), but
     // the command must not wedge the serialized queue or kill the loop.
-    isolate.send(
-      LoadSramCommand(sram: TransferableTypedData.fromList([Uint8List(3)])),
-    );
+    isolate.send(LoadSramCommand(sram: NesBytes.fromList([Uint8List(3)])));
 
     final frames = await isolate.events
         .where((e) => e is FrameEvent)
@@ -145,7 +143,7 @@ void main() {
         .timeout(const Duration(seconds: 10));
 
     for (final frame in frames) {
-      isolate.send(ReleaseFrameCommand(pointerAddress: frame.pointerAddress));
+      isolate.send(ReleaseFrameCommand(frameHandle: frame.frameHandle));
     }
 
     expect(frames, hasLength(3));
@@ -155,7 +153,7 @@ void main() {
     'events buffers messages emitted during a zero-listener window',
     () async {
       final isolate = await NesIsolate.spawn(
-        lz4LibraryPath: Lz4Codec.libraryPath,
+        lz4LibraryPath: rewindCodecLibraryPath,
         audioLibraryPath: NesdAudio.libraryPath,
         disableAudio: true, // null device: no audio hardware in tests
       );
@@ -167,7 +165,7 @@ void main() {
       // zero listeners here.
       isolate.send(
         LoadRomCommand(
-          rom: TransferableTypedData.fromList([Uint8List(16)]),
+          rom: NesBytes.fromList([Uint8List(16)]),
           file: const FilesystemFile(
             path: 'invalid.nes',
             name: 'invalid.nes',

@@ -41,6 +41,9 @@ class PageShell extends StatelessComponent {
               a(href: changelogUrl, [.text('Changelog')]),
             ]),
             li([
+              a(href: selfHostingUrl, [.text('Self-hosting')]),
+            ]),
+            li([
               a(href: repoUrl, [.text('GitHub')]),
             ]),
             li([

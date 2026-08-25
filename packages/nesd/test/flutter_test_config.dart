@@ -1,17 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:es_compression/lz4.dart';
+import 'package:flutter/foundation.dart';
+import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 import 'package:path/path.dart' as path;
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
+  if (kIsWeb) {
+    return testMain();
+  }
+
   if (Platform.isMacOS) {
-    Lz4Codec.libraryPath = 'macos/eslz4-mac64.dylib';
+    setRewindCodecLibraryPath('macos/eslz4-mac64.dylib');
   } else if (Platform.isLinux) {
-    Lz4Codec.libraryPath = 'linux/eslz4-linux-x64.so';
+    setRewindCodecLibraryPath('linux/eslz4-linux-x64.so');
   } else if (Platform.isWindows) {
-    Lz4Codec.libraryPath = 'windows/eslz4-win64.dll';
+    setRewindCodecLibraryPath('windows/eslz4-win64.dll');
   } else {
     throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
   }

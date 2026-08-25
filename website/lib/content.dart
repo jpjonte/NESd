@@ -7,14 +7,17 @@ import 'package:nesd_website/release.dart';
 const siteUrl = 'https://nesd.jpj.dev';
 const siteTitle = 'NESd: A cycle-accurate NES emulator';
 const siteDescription =
-    'NESd is a free and open-source NES emulator for macOS, Windows, Linux '
-    'and Android, with save states, rewind, gamepad and touch controls.';
+    'NESd is a free and open-source NES emulator for macOS, Windows, Linux, '
+    'Android and the web, with save states, rewind, gamepad and touch '
+    'controls.';
 
 const repoUrl = 'https://github.com/jpjonte/NESd';
 const releasesUrl = '$repoUrl/releases';
 const nightlyUrl = '$repoUrl/releases/tag/nightly';
 const changelogUrl = '$repoUrl/blob/main/CHANGELOG.md';
 const flatpakRepoUrl = 'https://jpjonte.github.io/flatpak/jpj.flatpakrepo';
+const playUrl = '$siteUrl/play/';
+const selfHostingUrl = '$repoUrl#self-hosting';
 const contactEmail = 'nesd@jpj.dev';
 
 /// keep in sync with README.md
@@ -22,6 +25,7 @@ const supportedGameCount = '3,070';
 
 const features = [
   'Cycle-accurate CPU, PPU, APU',
+  'Play in your browser',
   'NTSC and PAL',
   'Save states',
   'Rewind',

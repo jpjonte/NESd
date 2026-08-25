@@ -7,9 +7,11 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/isolate/nes_worker.dart';
+import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,6 +42,9 @@ class FakeNesdAudio implements NesdAudio {
 
   @override
   int push(Float32List samples) => samples.length;
+
+  @override
+  void reset() {}
 
   @override
   void resetStats() {
@@ -94,6 +99,13 @@ class MockFileSystem extends Mock implements Filesystem {
 class MockNesDatabase extends Mock implements NesDatabase {
   @override
   NesDatabaseEntry? find(RomInfo info) => null;
+}
+
+class MockStorageFilesystem extends Mock implements StorageFilesystem {}
+
+class FakeRomImporter implements RomImporter {
+  @override
+  Future<FilesystemFile?> pickRom() async => null;
 }
 
 /// A [FilesystemFile.path] that, when passed to [FakeNesIsolateHandle.send]

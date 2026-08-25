@@ -3,6 +3,7 @@ import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/apu/unit/envelope_unit_state.dart';
 import 'package:nesd/nes/apu/unit/length_counter_unit_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 /// One MMC5 pulse channel's state. Unlike `PulseChannelState` there is
 /// no sweep unit: the MMC5 has none.
@@ -123,7 +124,7 @@ class Mmc5AudioState {
     return Mmc5AudioState(
       pulse1State: Mmc5PulseState.deserialize(reader),
       pulse2State: Mmc5PulseState.deserialize(reader),
-      cycles: reader.get(uint64),
+      cycles: reader.get(nesdUint64),
       sequencerTimer: reader.get(uint16),
       pcmLevel: reader.get(uint8),
       pcmReadMode: reader.get(boolean),
@@ -150,7 +151,7 @@ class Mmc5AudioState {
     pulse2State.serialize(writer);
 
     writer
-      ..set(uint64, cycles)
+      ..set(nesdUint64, cycles)
       ..set(uint16, sequencerTimer)
       ..set(uint8, pcmLevel)
       ..set(boolean, pcmReadMode)

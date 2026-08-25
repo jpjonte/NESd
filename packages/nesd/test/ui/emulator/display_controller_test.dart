@@ -82,7 +82,7 @@ FrameHandle _handle({int width = 2, int height = 2}) => FrameHandle(
   bytes: Uint8List(width * height * 4),
   width: width,
   height: height,
-  pointerAddress: 0,
+  id: 0,
 );
 
 StatusEvent _status({required bool running}) => StatusEvent(

@@ -143,7 +143,11 @@ void main() {
   test('site constants are filled in', () {
     expect(siteUrl, 'https://nesd.jpj.dev');
     expect(supportedGameCount, '3,070');
-    expect(features, hasLength(12));
+    expect(features, hasLength(13));
     expect(screenshots, hasLength(4));
+    expect(playUrl, isNotEmpty);
+    expect(playUrl, startsWith('https://'));
+    expect(selfHostingUrl, isNotEmpty);
+    expect(selfHostingUrl, startsWith('https://'));
   });
 }
