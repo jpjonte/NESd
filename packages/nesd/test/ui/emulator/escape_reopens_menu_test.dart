@@ -1,5 +1,8 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/emulator_widget.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/main_menu/main_screen.dart';
 import 'package:nesd/ui/menu/menu_screen.dart';
@@ -52,6 +55,57 @@ void main() {
     r.emulator.expectEmulatorWidgetFound();
 
     // Escape must reopen the in-game menu, not quit to the main menu.
+    await pressKey(r, LogicalKeyboardKey.escape);
+    expect(find.byType(MainScreen), findsNothing);
+    r.menuScreen.expectMenuScreenFound();
+
+    // Quit the game so the emulator's timers are gone before teardown.
+    await quitGame(r);
+  });
+
+  testWidgets('Unbound Escape does nothing in game', (tester) async {
+    final r = Robot(tester)..initSettings(settingsWithRecentRom());
+
+    await r.pumpApp();
+    await r.mainMenu.tapFirstRomTile();
+    r.emulator.expectEmulatorWidgetFound();
+
+    r.settings.bindings = r.settings.bindings
+        .where((binding) => binding.action != openMenu)
+        .toList();
+    await r.pumpFrames(const Duration(milliseconds: 50));
+
+    // Escape must be swallowed, not fall through to the default
+    // DismissIntent shortcut that would pop back to the main menu.
+    await pressKey(r, LogicalKeyboardKey.escape);
+    expect(find.byType(MainScreen), findsNothing);
+    expect(find.byType(MenuScreen), findsNothing);
+    r.emulator.expectEmulatorWidgetFound();
+
+    // Quit the game so the emulator's timers are gone before teardown.
+    await r.emulator.tapMenu();
+    await quitGame(r);
+  });
+
+  testWidgets('Escape opens the menu while the menu button has focus', (
+    tester,
+  ) async {
+    final r = Robot(tester)..initSettings(settingsWithRecentRom());
+
+    await r.pumpApp();
+    await r.mainMenu.tapFirstRomTile();
+    r.emulator.expectEmulatorWidgetFound();
+
+    final icon = tester.element(
+      find.descendant(
+        of: find.byKey(EmulatorWidget.menuKey),
+        matching: find.byType(Icon),
+      ),
+    );
+
+    Focus.of(icon).requestFocus();
+    await r.pumpFrames(const Duration(milliseconds: 50));
+
     await pressKey(r, LogicalKeyboardKey.escape);
     expect(find.byType(MainScreen), findsNothing);
     r.menuScreen.expectMenuScreenFound();
