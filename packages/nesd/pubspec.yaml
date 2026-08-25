@@ -43,6 +43,7 @@ dependencies:
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.2
+  web: ^1.1.0
   xml: ^7.0.1
 
 dev_dependencies:
