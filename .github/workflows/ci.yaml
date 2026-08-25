@@ -327,6 +327,10 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      # *.dockerbuild record artifacts break the release jobs' bulk
+      # download-artifact steps (docker/build-push-action#1255)
+      DOCKER_BUILD_RECORD_UPLOAD: false
     steps:
       - uses: actions/checkout@v7
       - id: env
