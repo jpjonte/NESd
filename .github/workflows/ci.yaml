@@ -350,13 +350,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build a host-arch image for verification
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ci/2-package/web
           load: true
           tags: nesd-web:verify
       - run: ci/2-package/web/verify.sh nesd-web:verify
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ci/2-package/web
           platforms: linux/amd64,linux/arm64
