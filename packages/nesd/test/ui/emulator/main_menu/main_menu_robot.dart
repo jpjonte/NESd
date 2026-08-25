@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
@@ -22,16 +21,12 @@ class MainMenuRobot extends BaseRobot {
     expectOne(find.byType(PaginatedGrid));
   }
 
-  void expectAboutDialogFound() {
-    expectOne(find.byType(AboutDialog));
+  void expectNoAboutButton() {
+    expect(find.text('About'), findsNothing);
   }
 
   Future<void> tapOpenRomButton() async {
     await go(find.byKey(MainMenu.openRomKey));
-  }
-
-  Future<void> tapAboutButton() async {
-    await go(find.byKey(MainMenu.aboutKey));
   }
 
   Future<void> tapSettingsButton() async {

@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide AboutDialog;
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
-import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
@@ -42,7 +41,6 @@ class MainMenu extends HookConsumerWidget {
 
   static const openRomKey = Key('openRom');
   static const settingsKey = Key('settings');
-  static const aboutKey = Key('about');
   static const quitKey = Key('quit');
 
   @override
@@ -78,8 +76,6 @@ class MainMenu extends HookConsumerWidget {
                 OpenRomButton(key: openRomKey),
                 NesdVerticalDivider(),
                 SettingsButton(key: settingsKey),
-                NesdVerticalDivider(),
-                AboutButton(key: aboutKey),
                 QuitButton(key: quitKey),
               ],
             ),
@@ -191,23 +187,6 @@ class SettingsButton extends ConsumerWidget {
         onPressed: () =>
             ref.read(routerProvider).navigate(const SettingsRoute()),
         child: const Text('Settings'),
-      ),
-    );
-  }
-}
-
-class AboutButton extends StatelessWidget {
-  const AboutButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: NesdButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (context) => const AboutDialog(),
-        ),
-        child: const Text('About'),
       ),
     );
   }

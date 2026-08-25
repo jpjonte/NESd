@@ -10,10 +10,12 @@ void main() {
 
     r.mainMenu.expectMainMenuFound();
     r.mainMenu.expectLogoFound();
+    r.mainMenu.expectNoAboutButton();
   });
 
-  testWidgets('App starts with main menu, has a list of recent games, '
-      'and about dialog can be opened', (tester) async {
+  testWidgets('App starts with main menu and has a list of recent games', (
+    tester,
+  ) async {
     final r = Robot(tester)
       ..initSettings({
         'recentRoms': [
@@ -30,8 +32,5 @@ void main() {
     await r.pumpApp();
     r.mainMenu.expectMainMenuFound();
     r.mainMenu.expectPaginatedGridFound();
-
-    await r.mainMenu.tapAboutButton();
-    r.mainMenu.expectAboutDialogFound();
   });
 }

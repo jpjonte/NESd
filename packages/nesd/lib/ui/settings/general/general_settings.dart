@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nesd/features.dart';
+import 'package:nesd/ui/settings/general/about_button.dart';
 import 'package:nesd/ui/settings/general/auto_load_switch.dart';
 import 'package:nesd/ui/settings/general/auto_save_interval.dart';
 import 'package:nesd/ui/settings/general/auto_save_switch.dart';
@@ -24,6 +25,7 @@ class GeneralSettings extends StatelessWidget {
             RegionSelector(),
             if (Features.rewind) RewindSwitch(),
             ThemeModeSelector(),
+            AboutButton(),
           ],
         ),
       ),

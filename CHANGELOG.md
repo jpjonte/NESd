@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
 - The Quit button is no longer shown on Android, where apps background instead of quitting
+- The About button moved from the main menu to the General settings tab
 
 ### Fixed
 - Fixed not all architectures being published to the Flatpak repo
