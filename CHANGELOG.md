@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Unreleased
 
+### Added
+- Implemented GPU rendering on Linux and Windows
+
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
 
