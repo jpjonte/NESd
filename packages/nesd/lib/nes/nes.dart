@@ -53,6 +53,8 @@ class NES {
   bool running = false;
   bool paused = false;
   bool stopAfterNextFrame = false;
+  bool suspendAfterNextFrame = false;
+
   bool _inLoop = false;
 
   bool get inLoop => _inLoop;
@@ -428,6 +430,12 @@ class NES {
       stopAfterNextFrame = false;
 
       pause();
+    }
+
+    if (suspendAfterNextFrame) {
+      suspendAfterNextFrame = false;
+
+      suspend();
     }
 
     apu.sampleIndex = 0;

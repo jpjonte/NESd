@@ -325,8 +325,14 @@ class NesController {
     FilesystemFile file, {
     Uint8List? stateBytes,
     Uint8List? data,
+    bool suspended = false,
   }) async {
-    final loaded = await loadRom(file, stateBytes: stateBytes, data: data);
+    final loaded = await loadRom(
+      file,
+      stateBytes: stateBytes,
+      data: data,
+      suspended: suspended,
+    );
 
     if (!loaded) {
       return false;
@@ -341,6 +347,7 @@ class NesController {
     FilesystemFile file, {
     Uint8List? stateBytes,
     Uint8List? data,
+    bool suspended = false,
   }) async {
     nes?.suspend();
 
@@ -411,6 +418,7 @@ class NesController {
               ? null
               : NesBytes.fromList([initialState]),
           sram: sram == null ? null : NesBytes.fromList([sram]),
+          suspended: suspended,
         ),
       );
 

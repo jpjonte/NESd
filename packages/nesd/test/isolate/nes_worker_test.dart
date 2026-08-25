@@ -29,6 +29,7 @@ class _RecordingSink extends LogSink {
 LoadRomCommand _loadRomCommand({
   bool rewindEnabled = false,
   int rewindCaptureInterval = 1,
+  bool suspended = false,
 }) {
   final bytes = File(_romPath).readAsBytesSync();
 
@@ -45,6 +46,7 @@ LoadRomCommand _loadRomCommand({
     rewindCaptureInterval: rewindCaptureInterval,
     cheats: const [],
     breakpoints: const [],
+    suspended: suspended,
   );
 }
 
@@ -149,6 +151,27 @@ void main() {
     expect(frame.height, 240);
     expect(frame.frameHandle, isNot(0));
     expect(frame.pixels, isA<PointerFramePixels>());
+  });
+
+  test('a suspended load halts after its first frame without '
+      'pausing', () async {
+    await worker.handleCommand(_loadRomCommand(suspended: true));
+    await waitFor<RomLoadedEvent>();
+    await waitFor<FrameEvent>();
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.running, isFalse);
+    expect(nes.paused, isFalse);
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(events.whereType<FrameEvent>(), hasLength(1));
+
+    final status = events.whereType<StatusEvent>().last;
+
+    expect(status.running, isFalse);
+    expect(status.paused, isFalse);
   });
 
   test('the worker forces rewind off where unsupported (web)', () async {

@@ -316,6 +316,8 @@ class DisplayFrameController extends ChangeNotifier
     if (!Features.gpuRenderer) {
       _textureFailed = true;
 
+      _processPending();
+
       return;
     }
 
@@ -342,6 +344,8 @@ class DisplayFrameController extends ChangeNotifier
       if (_rendererPreference == RendererPreference.gpu) {
         _revertForcedRenderer();
       }
+
+      _processPending();
 
       return;
     }

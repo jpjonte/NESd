@@ -83,6 +83,24 @@ void main() {
     expect(events.every((event) => event.rewindSize == 0), isTrue);
   });
 
+  test('suspendAfterNextFrame halts after the next frame without '
+      'pausing', () async {
+    final robot = RomRobot('../../roms/test/nestest/nestest.nes');
+    final nes = robot.nes..suspendAfterNextFrame = true;
+
+    await nes.eventBus.stream
+        .firstWhere((event) => event is FrameNesEvent)
+        .timeout(const Duration(seconds: 60));
+
+    expect(nes.running, isFalse);
+    expect(nes.paused, isFalse);
+    expect(nes.suspendAfterNextFrame, isFalse);
+
+    nes.stop();
+
+    await Future<void>.delayed(Duration.zero);
+  });
+
   test('run loop clears inLoop when an unexpected error escapes', () async {
     final rom = Uint8List(16 + 0x4000 + 0x2000)
       ..setAll(0, const [0x4e, 0x45, 0x53, 0x1a, 1, 1, 0, 0]);

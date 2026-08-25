@@ -23,6 +23,7 @@ class LoadRomCommand extends NesCommand {
     this.rewindCaptureInterval = 1,
     this.initialState,
     this.sram,
+    this.suspended = false,
   });
 
   final NesBytes rom;
@@ -35,6 +36,7 @@ class LoadRomCommand extends NesCommand {
   final int rewindCaptureInterval;
   final NesBytes? initialState;
   final NesBytes? sram;
+  final bool suspended;
 }
 
 class ResetCommand extends NesCommand {
