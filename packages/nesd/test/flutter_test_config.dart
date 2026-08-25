@@ -6,6 +6,8 @@ import 'package:nesd/nes/rewind/rewind_codec.dart';
 import 'package:nesd_audio/nesd_audio.dart';
 import 'package:path/path.dart' as path;
 
+import 'helpers/host_arch.dart';
+
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   if (kIsWeb) {
     return testMain();
@@ -14,7 +16,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   if (Platform.isMacOS) {
     setRewindCodecLibraryPath('macos/eslz4-mac64.dylib');
   } else if (Platform.isLinux) {
-    setRewindCodecLibraryPath('linux/eslz4-linux-x64.so');
+    setRewindCodecLibraryPath('linux/eslz4-linux-${hostArch()}.so');
   } else if (Platform.isWindows) {
     setRewindCodecLibraryPath('windows/eslz4-win64.dll');
   } else {
