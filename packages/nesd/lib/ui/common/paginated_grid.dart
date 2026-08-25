@@ -12,13 +12,11 @@ class PaginatedGrid extends HookConsumerWidget {
   const PaginatedGrid({
     this.tileWidth = gameTileWidth,
     this.tileHeight = gameTileHeight,
-    this.skipRows = 0,
     this.children = const [],
     super.key,
   });
 
   final List<Widget> children;
-  final int skipRows;
 
   final double tileWidth;
   final double tileHeight;
@@ -35,7 +33,7 @@ class PaginatedGrid extends HookConsumerWidget {
         final height = min(mediaQuery.size.height, constraints.maxHeight);
 
         final columnCount = max(1, (available - 2 * _gutterWidth) ~/ tileWidth);
-        final rowCount = max(1, height ~/ tileHeight - skipRows);
+        final rowCount = max(1, height ~/ tileHeight);
 
         final gutter = min(
           _gutterWidth,
@@ -53,12 +51,14 @@ class PaginatedGrid extends HookConsumerWidget {
             .take(count)
             .toList();
 
+        final visibleRows = romPaths.slices(columnCount).toList();
+
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
               width: gutter,
-              height: rowCount * tileHeight,
+              height: visibleRows.length * tileHeight,
               child: currentPage > 0
                   ? InkWell(
                       onTap: () => page.value = currentPage - 1,
@@ -67,9 +67,9 @@ class PaginatedGrid extends HookConsumerWidget {
                   : const SizedBox(),
             ),
             Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                for (final row in romPaths.slices(columnCount))
+                for (final row in visibleRows)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: row,
@@ -78,7 +78,7 @@ class PaginatedGrid extends HookConsumerWidget {
             ),
             SizedBox(
               width: gutter,
-              height: rowCount * tileHeight,
+              height: visibleRows.length * tileHeight,
               child: currentPage < pages - 1
                   ? InkWell(
                       onTap: () => page.value = currentPage + 1,

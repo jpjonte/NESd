@@ -21,6 +21,35 @@ class MainMenuRobot extends BaseRobot {
     expectOne(find.byType(PaginatedGrid));
   }
 
+  void expectRomTileCount(int count) {
+    expect(find.byType(RomTile), findsNWidgets(count));
+  }
+
+  void expectMenuButtonsOnOneRow() {
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey));
+    final settingsTop = tester.getTopLeft(find.byKey(MainMenu.settingsKey));
+
+    expect(openRomTop.dy, settingsTop.dy);
+  }
+
+  void expectMenuButtonsDirectlyBelowGrid() {
+    final tileBottom = tester.getBottomLeft(find.byType(RomTile).first).dy;
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey)).dy;
+
+    expect(openRomTop - tileBottom, 16);
+  }
+
+  void expectMenuButtonsInOneColumn() {
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey));
+    final settingsTop = tester.getTopLeft(find.byKey(MainMenu.settingsKey));
+    final quitTop = tester.getTopLeft(find.byKey(MainMenu.quitKey));
+
+    expect(settingsTop.dx, openRomTop.dx);
+    expect(quitTop.dx, openRomTop.dx);
+    expect(settingsTop.dy, greaterThan(openRomTop.dy));
+    expect(quitTop.dy, greaterThan(settingsTop.dy));
+  }
+
   void expectNoAboutButton() {
     expect(find.text('About'), findsNothing);
   }
