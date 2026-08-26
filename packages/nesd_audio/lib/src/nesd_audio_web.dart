@@ -157,6 +157,10 @@ class NesdAudio implements NesdAudioBackend {
   @override
   int get overruns => _queue.overruns;
 
+  // the worklet consumes fixed 128-frame chunks, ignore
+  @override
+  int get popMax => 0;
+
   @override
   int get restarts => 0;
 

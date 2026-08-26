@@ -124,6 +124,7 @@ void main() {
       fullDelta: 1,
       fillMin: 240,
       fillMax: 2000,
+      popMax: 1700,
     );
 
     final result = await _roundTrip(event);
@@ -135,7 +136,8 @@ void main() {
     expect(typed.exhaustDelta, 2);
     expect(
       typed.logLine,
-      'NESD_AUDIO ts=1234 exhaust=2 full=1 fill_min=240 fill_max=2000',
+      'NESD_AUDIO ts=1234 exhaust=2 full=1 fill_min=240 fill_max=2000 '
+      'pop_max=1700',
     );
   });
 

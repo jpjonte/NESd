@@ -126,6 +126,7 @@ void main() {
           fullDelta: 0,
           fillMin: 300,
           fillMax: 2000,
+          popMax: 0,
         ),
       )
       ..add(
@@ -135,6 +136,7 @@ void main() {
           fullDelta: 0,
           fillMin: 1100,
           fillMax: 2200,
+          popMax: 0,
         ),
       );
 
@@ -206,6 +208,7 @@ void main() {
           fullDelta: 0,
           fillMin: 300,
           fillMax: 2000,
+          popMax: 0,
         ),
       );
 
@@ -230,6 +233,7 @@ void main() {
         fullDelta: 0,
         fillMin: 300,
         fillMax: 2000,
+        popMax: 0,
       ),
     );
 

@@ -9,6 +9,7 @@ AudioStatsEvent _sample({int exhaust = 0, int full = 0, int fillMin = 1200}) {
     fullDelta: full,
     fillMin: fillMin,
     fillMax: 2400,
+    popMax: 0,
   );
 }
 

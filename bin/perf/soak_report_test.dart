@@ -10,7 +10,8 @@ void main() {
   test('parses NESD_AUDIO lines and ignores noise', () {
     final samples = parseStatsLines([
       'some unrelated logcat line',
-      'NESD_AUDIO ts=100 exhaust=2 full=0 fill_min=240 fill_max=2000',
+      'NESD_AUDIO ts=100 exhaust=2 full=0 fill_min=240 fill_max=2000 '
+          'pop_max=1700',
       'NESD_AUDIO ts=1100 exhaust=0 full=1 fill_min=900 fill_max=2200',
     ]);
 

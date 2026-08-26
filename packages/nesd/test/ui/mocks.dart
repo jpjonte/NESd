@@ -35,6 +35,9 @@ class FakeNesdAudio implements NesdAudio {
   int get overruns => 0;
 
   @override
+  int get popMax => 0;
+
+  @override
   int get restarts => 0;
 
   @override

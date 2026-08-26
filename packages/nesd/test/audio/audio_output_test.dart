@@ -10,6 +10,7 @@ class _FakeNesdAudio implements NesdAudio {
   int filledValue = 0;
   int underrunsValue = 0;
   int overrunsValue = 0;
+  int popMaxValue = 0;
   int closeCount = 0;
   int resetCount = 0;
   int resetStatsCount = 0;
@@ -27,6 +28,9 @@ class _FakeNesdAudio implements NesdAudio {
 
   @override
   int get overruns => overrunsValue;
+
+  @override
+  int get popMax => popMaxValue;
 
   @override
   int get restarts => 0;
@@ -52,6 +56,7 @@ class _FakeNesdAudio implements NesdAudio {
     resetStatsCount++;
     underrunsValue = 0;
     overrunsValue = 0;
+    popMaxValue = 0;
   }
 
   @override
@@ -174,12 +179,14 @@ void main() {
   test('takeStats returns native counters and resets them', () {
     audio
       ..underrunsValue = 3
-      ..overrunsValue = 1;
+      ..overrunsValue = 1
+      ..popMaxValue = 1700;
 
     final stats = output.takeStats();
 
     expect(stats.exhaustDelta, 3);
     expect(stats.fullDelta, 1);
+    expect(stats.popMax, 1700);
     expect(audio.resetStatsCount, 1);
   });
 

@@ -194,6 +194,25 @@ static void test_recovery_target_clamps_to_capacity() {
     nesd_audio_close(stream);
 }
 
+static void test_pop_max_tracks_stats_window() {
+    nesd_audio_t *stream = open_stream();
+    std::vector<float> out(1700);
+
+    push_seq(stream, 1.0f, 2400);
+
+    render(stream, out.data(), 480);
+    render(stream, out.data(), 1700);
+    CHECK(nesd_audio_pop_max(stream) == 1700);
+
+    nesd_audio_reset_stats(stream);
+    CHECK(nesd_audio_pop_max(stream) == 0);
+
+    render(stream, out.data(), 100);
+    CHECK(nesd_audio_pop_max(stream) == 100);
+
+    nesd_audio_close(stream);
+}
+
 static void test_reset_stats_keeps_recovery_watermark() {
     nesd_audio_t *stream = open_stream();
     std::vector<float> out(1700);
@@ -219,6 +238,7 @@ int main() {
     test_recovery_holds_silence_until_pop_plus_runway();
     test_recovery_adapts_to_large_pops();
     test_recovery_target_clamps_to_capacity();
+    test_pop_max_tracks_stats_window();
     test_reset_stats_keeps_recovery_watermark();
 
     if (g_failures > 0) {

@@ -96,6 +96,7 @@ class AudioStatsEvent extends NesIsolateEvent {
     required this.fullDelta,
     required this.fillMin,
     required this.fillMax,
+    required this.popMax,
   });
 
   final int timestampMilliseconds;
@@ -103,10 +104,12 @@ class AudioStatsEvent extends NesIsolateEvent {
   final int fullDelta;
   final int fillMin;
   final int fillMax;
+  final int popMax;
 
   String get logLine =>
       'NESD_AUDIO ts=$timestampMilliseconds exhaust=$exhaustDelta '
-      'full=$fullDelta fill_min=$fillMin fill_max=$fillMax';
+      'full=$fullDelta fill_min=$fillMin fill_max=$fillMax '
+      'pop_max=$popMax';
 }
 
 class ErrorEvent extends NesIsolateEvent {

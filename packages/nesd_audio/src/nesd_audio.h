@@ -58,6 +58,9 @@ NESD_AUDIO_EXPORT int32_t nesd_audio_state(nesd_audio_t *stream);
 NESD_AUDIO_EXPORT uint32_t nesd_audio_underruns(nesd_audio_t *stream);
 NESD_AUDIO_EXPORT uint32_t nesd_audio_overruns(nesd_audio_t *stream);
 
+// Largest single device read since the last nesd_audio_reset_stats.
+NESD_AUDIO_EXPORT uint32_t nesd_audio_pop_max(nesd_audio_t *stream);
+
 // Lifetime count of device restarts after OS-initiated stops (device
 // disconnect / route change). Not affected by nesd_audio_reset_stats.
 NESD_AUDIO_EXPORT uint32_t nesd_audio_restarts(nesd_audio_t *stream);

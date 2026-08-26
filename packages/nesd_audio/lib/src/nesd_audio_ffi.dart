@@ -84,6 +84,9 @@ class NesdAudio implements NesdAudioBackend {
   int get overruns => _bindings.overruns(_handle);
 
   @override
+  int get popMax => _bindings.popMax(_handle);
+
+  @override
   int get restarts => _bindings.restarts(_handle);
 
   @override
@@ -171,6 +174,9 @@ class _Bindings {
       overruns = library
           .lookup<NativeFunction<_Uint32FnNative>>('nesd_audio_overruns')
           .asFunction(),
+      popMax = library
+          .lookup<NativeFunction<_Uint32FnNative>>('nesd_audio_pop_max')
+          .asFunction(),
       restarts = library
           .lookup<NativeFunction<_Uint32FnNative>>('nesd_audio_restarts')
           .asFunction(),
@@ -186,6 +192,7 @@ class _Bindings {
   final _Int32Fn state;
   final _Int32Fn underruns;
   final _Int32Fn overruns;
+  final _Int32Fn popMax;
   final _Int32Fn restarts;
   final _VoidFn resetStats;
 }

@@ -14,6 +14,7 @@ typedef AudioStats = ({
   int fullDelta,
   int fillMin,
   int fillMax,
+  int popMax,
 });
 
 /// Native ring capacity: 50 ms at the APU sample rate.
@@ -128,6 +129,7 @@ class AudioOutput {
       fullDelta: audio.overruns,
       fillMin: _fillMin ?? fill,
       fillMax: _fillMax ?? fill,
+      popMax: audio.popMax,
     );
 
     audio.resetStats();

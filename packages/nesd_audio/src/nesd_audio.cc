@@ -17,6 +17,7 @@ struct nesd_audio {
 
     std::atomic<uint32_t> underruns;
     std::atomic<uint32_t> overruns;
+    std::atomic<uint32_t> pop_max;
 
     uint32_t restarts;  // producer-thread mirror of the backend count
 
@@ -33,6 +34,12 @@ static void render(void *user, float *out, int32_t samples) {
 
     if ((uint32_t)samples > stream->pop_watermark) {
         stream->pop_watermark = (uint32_t)samples;
+    }
+
+    if ((uint32_t)samples >
+        stream->pop_max.load(std::memory_order_relaxed)) {
+        stream->pop_max.store((uint32_t)samples,
+                              std::memory_order_relaxed);
     }
 
     int32_t recover =
@@ -78,6 +85,7 @@ nesd_audio_t *nesd_audio_open(int32_t sample_rate, int32_t channels,
     stream->pop_watermark = 0;
     stream->underruns.store(0, std::memory_order_relaxed);
     stream->overruns.store(0, std::memory_order_relaxed);
+    stream->pop_max.store(0, std::memory_order_relaxed);
     stream->restarts = 0;
 
     const bool want_null =
@@ -156,6 +164,10 @@ uint32_t nesd_audio_overruns(nesd_audio_t *stream) {
     return stream->overruns.load(std::memory_order_relaxed);
 }
 
+uint32_t nesd_audio_pop_max(nesd_audio_t *stream) {
+    return stream->pop_max.load(std::memory_order_relaxed);
+}
+
 uint32_t nesd_audio_restarts(nesd_audio_t *stream) {
     return stream->restarts;
 }
@@ -163,4 +175,5 @@ uint32_t nesd_audio_restarts(nesd_audio_t *stream) {
 void nesd_audio_reset_stats(nesd_audio_t *stream) {
     stream->underruns.store(0, std::memory_order_relaxed);
     stream->overruns.store(0, std::memory_order_relaxed);
+    stream->pop_max.store(0, std::memory_order_relaxed);
 }
