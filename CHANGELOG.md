@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The Quit button is no longer shown on Android, where apps background instead of quitting
 - The About button moved from the main menu to the General settings tab
 - The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
+- Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
 
 ### Fixed
 - Fixed not all architectures being published to the Flatpak repo
