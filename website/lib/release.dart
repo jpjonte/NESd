@@ -38,16 +38,16 @@ class _AssetRule {
 const _rules = [
   _AssetRule('.macos-universal.dmg', DownloadPlatform.macos, '.dmg'),
   _AssetRule('.windows-x64.zip', DownloadPlatform.windows, '.zip'),
-  _AssetRule('.linux-x64.deb', DownloadPlatform.linux, '.deb (x64)'),
-  _AssetRule('.linux-arm64.deb', DownloadPlatform.linux, '.deb (arm64)'),
-  _AssetRule('.linux-x64.rpm', DownloadPlatform.linux, '.rpm (x64)'),
-  _AssetRule('.linux-arm64.rpm', DownloadPlatform.linux, '.rpm (arm64)'),
   _AssetRule('.linux-x64.AppImage', DownloadPlatform.linux, 'AppImage (x64)'),
   _AssetRule(
     '.linux-arm64.AppImage',
     DownloadPlatform.linux,
     'AppImage (arm64)',
   ),
+  _AssetRule('.linux-x64.deb', DownloadPlatform.linux, '.deb (x64)'),
+  _AssetRule('.linux-arm64.deb', DownloadPlatform.linux, '.deb (arm64)'),
+  _AssetRule('.linux-x64.rpm', DownloadPlatform.linux, '.rpm (x64)'),
+  _AssetRule('.linux-arm64.rpm', DownloadPlatform.linux, '.rpm (arm64)'),
   _AssetRule('.linux-x64.flatpak', DownloadPlatform.linux, '.flatpak (x64)'),
   _AssetRule(
     '.linux-arm64.flatpak',

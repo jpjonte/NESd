@@ -192,6 +192,25 @@ ul {
   background: var(--accent);
 }
 
+.download-more {
+  margin-top: 0.5rem;
+}
+
+.download-more summary {
+  width: fit-content;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.download-more summary:hover {
+  color: var(--text);
+}
+
+.download-more .download-links {
+  margin-top: 0.5rem;
+}
+
 .release-meta {
   margin-top: 1rem;
   color: var(--text-dim);
@@ -394,7 +413,8 @@ ul {
   }
 }
 
-a:focus-visible {
+a:focus-visible,
+summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
