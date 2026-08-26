@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/event/event_bus.dart';
@@ -10,6 +11,41 @@ import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../ui/mocks.dart';
+
+/// Manual clock: time passes only when the test advances it.
+class _FakeClock implements Stopwatch {
+  int _micros = 0;
+  bool _running = false;
+
+  void advance(Duration duration) => _micros += duration.inMicroseconds;
+
+  @override
+  int get elapsedMicroseconds => _micros;
+
+  @override
+  Duration get elapsed => Duration(microseconds: _micros);
+
+  @override
+  int get elapsedMilliseconds => _micros ~/ 1000;
+
+  @override
+  int get elapsedTicks => _micros;
+
+  @override
+  int get frequency => Duration.microsecondsPerSecond;
+
+  @override
+  bool get isRunning => _running;
+
+  @override
+  void reset() => _micros = 0;
+
+  @override
+  void start() => _running = true;
+
+  @override
+  void stop() => _running = false;
+}
 
 Cartridge loadNestest() {
   const path = '../../roms/test/nestest/nestest.nes';
@@ -51,6 +87,49 @@ void main() {
       expect(event.sleepTime, const Duration(microseconds: 25000));
     },
   );
+
+  test('sleep overshoot is charged to the next frame', () async {
+    final eventBus = EventBus();
+    final clock = _FakeClock();
+    const overshoot = Duration(milliseconds: 5);
+
+    // The clock advances only while sleeping, so emulation work is
+    // free and every sleep overshoots by a fixed amount.
+    Future<void> sleep(Duration duration) async {
+      clock.advance(duration + overshoot);
+
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    final nes = NES(
+      cartridge: loadNestest(),
+      eventBus: eventBus,
+      clock: clock,
+      sleep: sleep,
+    );
+
+    final secondFrame = eventBus.stream
+        .where((event) => event is FrameNesEvent)
+        .cast<FrameNesEvent>()
+        .take(2)
+        .last;
+
+    nes.reset();
+
+    final second = await secondFrame.timeout(const Duration(seconds: 30));
+
+    nes.stop();
+
+    // Frame 2's measured work time must be exactly frame 1's sleep
+    // overshoot, shortening its sleep by the same amount.
+    final targetMicros =
+        second.samples.length * Duration.microsecondsPerSecond / apuSampleRate;
+
+    expect(
+      second.sleepTime,
+      Duration(microseconds: targetMicros.round()) - overshoot,
+    );
+  });
 
   test('fastForward at a finite speed emits decimated samples and '
       'governor-driven sleep', () async {
