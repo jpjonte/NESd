@@ -76,7 +76,6 @@ void main() {
       for (final route in [
         const EmulatorRoute(),
         const MenuRoute(),
-        SaveStatesRoute(romInfo: _romInfo),
         const ToolsRoute(),
         CheatsRoute(romInfo: _romInfo),
       ]) {

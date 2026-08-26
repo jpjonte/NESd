@@ -65,4 +65,13 @@ class MainMenuRobot extends BaseRobot {
   Future<void> tapFirstRomTile() async {
     await goAsync(find.byType(RomTile).first);
   }
+
+  Future<void> openFirstRomTileContextMenu() async {
+    await tester.longPress(find.byType(RomTile).first);
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSaveStatesContextMenuEntry() async {
+    await go(find.text('Save states'));
+  }
 }

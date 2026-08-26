@@ -106,10 +106,6 @@ class Router extends RootStackRouter {
         );
       },
     ),
-    AutoRoute(
-      page: SaveStatesRoute.page,
-      path: '/save_states',
-      guards: [_nesRunningGuard],
-    ),
+    AutoRoute(page: SaveStatesRoute.page, path: '/save_states'),
   ];
 }

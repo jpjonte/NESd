@@ -35,6 +35,27 @@ void main() {
     r.mainMenu.expectPaginatedGridFound();
   });
 
+  testWidgets('Save states can be opened from a recent ROM context menu '
+      'without a running game', (tester) async {
+    final r = Robot(tester)
+      ..initSettings({
+        'recentRoms': [
+          {
+            'file': {
+              'path': '/test/roms/nestest.nes',
+              'name': '/test/roms/nestest.nes',
+              'type': 'file',
+            },
+          },
+        ],
+      });
+
+    await r.pumpApp();
+    await r.mainMenu.openFirstRomTileContextMenu();
+    await r.mainMenu.tapSaveStatesContextMenuEntry();
+    r.saveStates.expectSaveStatesScreenFound();
+  });
+
   testWidgets('Main menu buttons share one row on wide screens', (
     tester,
   ) async {
