@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed Escape quitting to the main menu instead of opening the in-game menu after resuming the game with Enter
 - The Android status and navigation bars are now hidden by default
 - Keys that are not bound to anything no longer trigger UI shortcuts while in game (e.g. Escape quitting to the main menu when "Open Menu" is bound to another key)
+- Fixed constant audio crackling on some Android devices. Audio is now consumed at the device's own pace, and underrun recovery fills the buffer further than before
 
 ## [0.17.0] - 2026-08-23
 

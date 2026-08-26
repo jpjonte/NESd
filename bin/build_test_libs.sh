@@ -2,7 +2,7 @@
 #
 # Builds the host copy of the nesd_audio library that `flutter test`
 # loads (see packages/nesd/test/flutter_test_config.dart) and runs the
-# native spsc_ring stress test.
+# native nesd_audio tests.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -14,8 +14,10 @@ cmake -S "$src" -B "$out" -DCMAKE_BUILD_TYPE=Release \
   -DNESD_AUDIO_BUILD_TESTS=ON
 cmake --build "$out" --config Release
 
-if [[ -x "$out/spsc_ring_test" ]]; then
-  "$out/spsc_ring_test"
-else
-  "$out/Release/spsc_ring_test.exe"
-fi
+for test in spsc_ring_test nesd_audio_core_test; do
+  if [[ -x "$out/$test" ]]; then
+    "$out/$test"
+  else
+    "$out/Release/$test.exe"
+  fi
+done

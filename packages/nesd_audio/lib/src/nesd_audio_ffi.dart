@@ -30,7 +30,8 @@ class NesdAudio implements NesdAudioBackend {
   /// Opens a playback stream of f32 samples.
   ///
   /// [bufferSamples] is the ring capacity. After an underrun the stream
-  /// emits silence until the ring refills to [recoverSamples].
+  /// emits silence until the ring refills to the largest device read
+  /// seen plus [recoverSamples] of margin (capped at capacity).
   /// [nullDevice] selects a timer-driven fake device that consumes
   /// samples in real time without touching audio hardware.
   factory NesdAudio.open({
