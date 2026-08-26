@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
@@ -22,16 +21,41 @@ class MainMenuRobot extends BaseRobot {
     expectOne(find.byType(PaginatedGrid));
   }
 
-  void expectAboutDialogFound() {
-    expectOne(find.byType(AboutDialog));
+  void expectRomTileCount(int count) {
+    expect(find.byType(RomTile), findsNWidgets(count));
+  }
+
+  void expectMenuButtonsOnOneRow() {
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey));
+    final settingsTop = tester.getTopLeft(find.byKey(MainMenu.settingsKey));
+
+    expect(openRomTop.dy, settingsTop.dy);
+  }
+
+  void expectMenuButtonsDirectlyBelowGrid() {
+    final tileBottom = tester.getBottomLeft(find.byType(RomTile).first).dy;
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey)).dy;
+
+    expect(openRomTop - tileBottom, 16);
+  }
+
+  void expectMenuButtonsInOneColumn() {
+    final openRomTop = tester.getTopLeft(find.byKey(MainMenu.openRomKey));
+    final settingsTop = tester.getTopLeft(find.byKey(MainMenu.settingsKey));
+    final quitTop = tester.getTopLeft(find.byKey(MainMenu.quitKey));
+
+    expect(settingsTop.dx, openRomTop.dx);
+    expect(quitTop.dx, openRomTop.dx);
+    expect(settingsTop.dy, greaterThan(openRomTop.dy));
+    expect(quitTop.dy, greaterThan(settingsTop.dy));
+  }
+
+  void expectNoAboutButton() {
+    expect(find.text('About'), findsNothing);
   }
 
   Future<void> tapOpenRomButton() async {
     await go(find.byKey(MainMenu.openRomKey));
-  }
-
-  Future<void> tapAboutButton() async {
-    await go(find.byKey(MainMenu.aboutKey));
   }
 
   Future<void> tapSettingsButton() async {
@@ -40,5 +64,14 @@ class MainMenuRobot extends BaseRobot {
 
   Future<void> tapFirstRomTile() async {
     await goAsync(find.byType(RomTile).first);
+  }
+
+  Future<void> openFirstRomTileContextMenu() async {
+    await tester.longPress(find.byType(RomTile).first);
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSaveStatesContextMenuEntry() async {
+    await go(find.text('Save states'));
   }
 }

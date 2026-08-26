@@ -276,6 +276,10 @@ class NesWorker {
 
       _rebuildBackends();
 
+      if (command.suspended) {
+        nes.suspendAfterNextFrame = true;
+      }
+
       unawaited(nes.run());
 
       log.rom.info(

@@ -127,16 +127,16 @@ Thank you to the following projects and people for their amazing work:
 ## Screenshots
 
 ### Android
-<img src="docs/android_kirby.png" style="width: 100%;" />
+<img src="docs/android_wide.png" style="width: 100%;" />
 <p>
-  <img src="docs/android_smb.png" style="width: 49%" />
+  <img src="docs/android_tall.png" style="width: 49%" />
   <img src="docs/android_menu.png" style="width: 49%" />
 </p>
 
-### macOS
+### Desktop
 
-<img src="docs/smb.png" style="width: 49%" /> <img src="docs/zelda.png" style="width: 49%" />
-<img src="docs/kirby.png" style="width: 49%" /> <img src="docs/punch_out.png" style="width: 49%" />
+<img src="docs/Super%20Mario%20Bros.png" style="width: 49%" /> <img src="docs/The%20Legend%20Of%20Zelda.png" style="width: 49%" />
+<img src="docs/Kirby's%20Adventure.png" style="width: 49%" /> <img src="docs/Mike%20Tyson's%20Punch-Out!!.png" style="width: 49%" />
 <img src="docs/list.png" style="width: 100%;" />
 <img src="docs/save_states.png" style="width: 100%;" />
 <img src="docs/debugging.png" style="width: 100%;" />

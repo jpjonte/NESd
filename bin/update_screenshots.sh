@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# Regenerate the Play listing screenshots inside the same Linux container
-# CI uses.
+# Regenerate the Play listing and README screenshots inside the same
+# Linux container CI uses.
 #
-# Usage (from anywhere in the repo):
+# The README screenshots boot real games from save states
+# (test/screenshots/states/). You must supply your own copies in roms/readme/
+# (gitignored) under the names the states use.
+# Shots whose ROM is missing are skipped.
+#
+# Usage:
 #   bin/update_screenshots.sh                    # every screenshot
 #   bin/update_screenshots.sh --plain-name 04_   # a subset
 

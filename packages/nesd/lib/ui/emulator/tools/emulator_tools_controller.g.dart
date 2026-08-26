@@ -42,7 +42,7 @@ final class EmulatorToolsControllerProvider
 }
 
 String _$emulatorToolsControllerHash() =>
-    r'9aac0a4aba81347a8d179762adfd9b0358816fea';
+    r'f02bb9c395c93bd1229e2a14bec5f97c5d917eac';
 
 abstract class _$EmulatorToolsController extends $Notifier<Set<EmulatorTool>> {
   Set<EmulatorTool> build();

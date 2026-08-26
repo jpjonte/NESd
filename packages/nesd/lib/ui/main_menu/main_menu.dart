@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide AboutDialog;
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
-import 'package:nesd/ui/about/about_dialog.dart';
-import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/quit.dart';
@@ -42,7 +40,6 @@ class MainMenu extends HookConsumerWidget {
 
   static const openRomKey = Key('openRom');
   static const settingsKey = Key('settings');
-  static const aboutKey = Key('about');
   static const quitKey = Key('quit');
 
   @override
@@ -66,24 +63,29 @@ class MainMenu extends HookConsumerWidget {
       }
     });
 
-    return const FocusChild(
+    return FocusChild(
       autofocus: true,
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: SingleChildScrollView(
-            child: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Flexible(child: RecentRomList()),
+            OverflowBar(
+              alignment: MainAxisAlignment.center,
+              overflowAlignment: OverflowBarAlignment.center,
+              spacing: 16,
+              overflowSpacing: 16,
               children: [
-                RecentRomList(),
-                OpenRomButton(key: openRomKey),
-                NesdVerticalDivider(),
-                SettingsButton(key: settingsKey),
-                NesdVerticalDivider(),
-                AboutButton(key: aboutKey),
-                QuitButton(key: quitKey),
+                const OpenRomButton(key: openRomKey),
+                const SettingsButton(key: settingsKey),
+                // Can't quit on web, and Android apps background instead of
+                // quitting.
+                if (!kIsWeb && defaultTargetPlatform != TargetPlatform.android)
+                  const QuitButton(key: quitKey),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -99,42 +101,40 @@ class OpenRomButton extends ConsumerWidget {
     final settingsController = ref.read(settingsControllerProvider.notifier);
     final filesystem = ref.watch(filesystemProvider);
 
-    return Center(
-      child: NesdButton(
-        onPressed: () async {
-          if (kIsWeb) {
-            await controller.selectRom();
+    return NesdButton(
+      onPressed: () async {
+        if (kIsWeb) {
+          await controller.selectRom();
 
-            return;
-          }
+          return;
+        }
 
-          final directory = await _getRomPath(filesystem, settingsController);
+        final directory = await _getRomPath(filesystem, settingsController);
 
-          if (directory == null) {
-            return;
-          }
+        if (directory == null) {
+          return;
+        }
 
-          if (!context.mounted) {
-            return;
-          }
+        if (!context.mounted) {
+          return;
+        }
 
-          final file = await AutoRouter.of(context).push<FilesystemFile?>(
-            FilePickerRoute(
-              title: 'Select a ROM',
-              initialDirectory: directory,
-              type: FilePickerType.file,
-              allowedExtensions: const ['.nes', '.zip'],
-              onChangeDirectory: (directory) =>
-                  settingsController.lastRomPath = directory,
-            ),
-          );
+        final file = await AutoRouter.of(context).push<FilesystemFile?>(
+          FilePickerRoute(
+            title: 'Select a ROM',
+            initialDirectory: directory,
+            type: FilePickerType.file,
+            allowedExtensions: const ['.nes', '.zip'],
+            onChangeDirectory: (directory) =>
+                settingsController.lastRomPath = directory,
+          ),
+        );
 
-          if (file != null) {
-            await controller.startRom(file);
-          }
-        },
-        child: const Text('Open ROM'),
-      ),
+        if (file != null) {
+          await controller.startRom(file);
+        }
+      },
+      child: const Text('Open ROM'),
     );
   }
 
@@ -186,29 +186,9 @@ class SettingsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: NesdButton(
-        onPressed: () =>
-            ref.read(routerProvider).navigate(const SettingsRoute()),
-        child: const Text('Settings'),
-      ),
-    );
-  }
-}
-
-class AboutButton extends StatelessWidget {
-  const AboutButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: NesdButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (context) => const AboutDialog(),
-        ),
-        child: const Text('About'),
-      ),
+    return NesdButton(
+      onPressed: () => ref.read(routerProvider).navigate(const SettingsRoute()),
+      child: const Text('Settings'),
     );
   }
 }
@@ -218,21 +198,6 @@ class QuitButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Can't quit on web, and Android apps background instead of quitting.
-    if (defaultTargetPlatform == TargetPlatform.android || kIsWeb) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: [
-        const NesdVerticalDivider(),
-        Center(
-          child: NesdButton(
-            onPressed: () => quit(),
-            child: const Text('Quit NESd'),
-          ),
-        ),
-      ],
-    );
+    return NesdButton(onPressed: () => quit(), child: const Text('Quit NESd'));
   }
 }

@@ -99,10 +99,10 @@ sealed class Settings with _$Settings {
     @JsonKey(fromJson: openToolsFromJson)
     @Default(<EmulatorTool>{})
     Set<EmulatorTool> openTools,
-    @Default(Scaling.autoInteger) Scaling scaling,
+    @Default(Scaling.autoSmooth) Scaling scaling,
     @Default(true) bool autoSave,
     @Default(1) int? autoSaveInterval,
-    @Default(false) bool autoLoad,
+    @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
     @Default(2) int bindingsVersion,
     @JsonKey(fromJson: _lastRomPathFromJson)

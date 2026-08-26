@@ -28,7 +28,8 @@ class RecentRomList extends HookConsumerWidget {
     final route = ref.watch(currentRouteProvider);
 
     if (recentRoms.isEmpty) {
-      return Center(
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
         child: SizedBox(
           key: logoKey,
           width: 256,
@@ -66,7 +67,6 @@ class RecentRomList extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: PaginatedGrid(
-        skipRows: 1, // skip 1 row to leave room for menu
         children: [
           for (final romTileData in roms)
             RomTile(

@@ -18,10 +18,10 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       : openToolsFromJson(json['openTools']),
   scaling:
       $enumDecodeNullable(_$ScalingEnumMap, json['scaling']) ??
-      Scaling.autoInteger,
+      Scaling.autoSmooth,
   autoSave: json['autoSave'] as bool? ?? true,
   autoSaveInterval: (json['autoSaveInterval'] as num?)?.toInt() ?? 1,
-  autoLoad: json['autoLoad'] as bool? ?? false,
+  autoLoad: json['autoLoad'] as bool? ?? true,
   bindings: json['bindings'] == null
       ? const []
       : bindingsFromJson(json['bindings']),
@@ -215,7 +215,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'e9926b36efa6fc5287469c8981b1870590593f7a';
+    r'ca49f3b967c4bc468067c1df4b4ffd9ee3ecd6fa';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

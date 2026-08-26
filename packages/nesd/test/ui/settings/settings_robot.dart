@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 
 import '../base_robot.dart';
@@ -39,6 +40,14 @@ class SettingsScreenRobot extends BaseRobot {
 
   void expectControlsTabFound() {
     expect(find.byKey(SettingsScreen.controlsKey), findsOneWidget);
+  }
+
+  void expectAboutDialogFound() {
+    expectOne(find.byType(AboutDialog));
+  }
+
+  Future<void> tapAboutButton() async {
+    await go(find.text('About NESd'));
   }
 
   Future<void> tapGraphicsTab() async {

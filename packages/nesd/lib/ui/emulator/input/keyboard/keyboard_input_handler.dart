@@ -34,22 +34,20 @@ class KeyboardInputHandler {
 
   late final KeyMap _bindings;
 
-  final _pressedKeys = <LogicalKeyboardKey>{};
-
   bool handleKeyEvent(KeyEvent event) {
     if (event is KeyRepeatEvent) {
       return true;
     }
 
-    // get actions that match the previously pressed keys
-    final previousActions = _getActions();
+    final key = event.logicalKey;
 
-    _updatePressedKeys(event);
-
-    // get actions that match the currently pressed keys
-    final currentActions = _getActions();
+    // let Flutter track the pressed keys so we don't miss anything
+    final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
 
     if (event is KeyDownEvent) {
+      final previousActions = _getActions(pressedKeys.difference({key}));
+      final currentActions = _getActions(pressedKeys);
+
       // handle all actions that are new
       // until we reach an action with lower priority
       return _addActions(
@@ -59,6 +57,9 @@ class KeyboardInputHandler {
         highesPriorityOnly: true,
       );
     } else if (event is KeyUpEvent) {
+      final previousActions = _getActions({...pressedKeys, key});
+      final currentActions = _getActions(pressedKeys);
+
       // handle all actions that are no longer active
       return _addActions(0.0, previousActions, currentActions);
     }
@@ -68,11 +69,15 @@ class KeyboardInputHandler {
 
   // get actions that match the pressed keys, sorted by highest priority first
   // priority = number of keys pressed
-  List<BoundAction> _getActions() {
+  List<BoundAction> _getActions(Set<LogicalKeyboardKey> pressedKeys) {
+    final expandedKeys = {
+      for (final key in pressedKeys) ...[key, ...key.synonyms],
+    };
+
     final actions = <BoundAction>[];
 
     for (final MapEntry(key: input, value: binding) in _bindings.entries) {
-      if (_pressedKeys.containsAll(input)) {
+      if (expandedKeys.containsAll(input)) {
         actions.add(
           BoundAction(
             priority: input.length,
@@ -86,16 +91,6 @@ class KeyboardInputHandler {
     actions.sort((a, b) => b.priority.compareTo(a.priority));
 
     return actions;
-  }
-
-  void _updatePressedKeys(KeyEvent event) {
-    final key = event.logicalKey;
-
-    if (event is KeyDownEvent) {
-      _pressedKeys.addAll([key, ...key.synonyms]);
-    } else if (event is KeyUpEvent) {
-      _pressedKeys.removeAll([key, ...key.synonyms]);
-    }
   }
 
   bool _addActions(

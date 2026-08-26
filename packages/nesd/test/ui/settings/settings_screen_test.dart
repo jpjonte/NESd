@@ -18,6 +18,17 @@ void main() {
     r.settingsScreen.expectGeneralTabFound();
   });
 
+  testWidgets('About dialog can be opened from the General settings tab', (
+    tester,
+  ) async {
+    final r = Robot(tester);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.tapAboutButton();
+    r.settingsScreen.expectAboutDialogFound();
+  });
+
   testWidgets('Test Graphics settings tab', (tester) async {
     final r = Robot(tester);
 

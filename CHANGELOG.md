@@ -13,11 +13,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
 - The Quit button is no longer shown on Android, where apps background instead of quitting
+- The About button moved from the main menu to the General settings tab
+- The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
+- Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
 
 ### Fixed
+- Fixed the "Save states" entry in the recent ROM context menu doing nothing when no game is running
 - Fixed not all architectures being published to the Flatpak repo
 - Fixed MMC1 games (e.g. The Legend of Zelda) freezing after rewinding
 - Fixed controller focus getting stuck in the file picker's search bar
+- Fixed Escape quitting to the main menu instead of opening the in-game menu after resuming the game with Enter
+- Keys that are not bound to anything no longer trigger UI shortcuts while in game (e.g. Escape quitting to the main menu when "Open Menu" is bound to another key)
 
 ## [0.17.0] - 2026-08-23
 

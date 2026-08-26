@@ -35,6 +35,25 @@ class _FakeNesdTexturePlatform extends NesdTexturePlatform {
   Future<void> disposeTexture({required int textureId}) async {}
 }
 
+class _ThrowingNesdTexturePlatform extends NesdTexturePlatform {
+  @override
+  Future<int> createTexture({required int width, required int height}) =>
+      Future.error(UnsupportedError('texture creation unavailable'));
+
+  @override
+  Future<void> updateTexture({
+    required int textureId,
+    required int width,
+    required int height,
+    required int length,
+    Uint8List? pixels,
+    int? pixelPointer,
+  }) async {}
+
+  @override
+  Future<void> disposeTexture({required int textureId}) async {}
+}
+
 /// Hands out parked frames and records takes/releases. [produceFrame] parks
 /// a frame and notifies listeners, like [RemoteFrameSource.addFrame].
 /// Completes [released] on the first release so tests can await the
@@ -278,6 +297,30 @@ void main() {
     await pumpEventQueue();
 
     expect(notifications, 1);
+  });
+
+  test('a single frame still presents via CPU decode when texture creation '
+      'fails', () async {
+    final platform = _ThrowingNesdTexturePlatform();
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+    );
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource(_handle());
+
+    controller.updateFrameSource(source);
+
+    await source.released.timeout(const Duration(seconds: 5));
+
+    expect(controller.value, isA<ImageDisplayFrameState>());
   });
 
   test('an active video filter forces CPU decode on the GPU path', () async {
