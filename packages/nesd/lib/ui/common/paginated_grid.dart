@@ -42,7 +42,8 @@ class PaginatedGrid extends HookConsumerWidget {
 
         final count = columnCount * rowCount;
 
-        final pages = count > 0 ? (children.length / count).ceil() : 1;
+        // at least one page, even with no children
+        final pages = count > 0 ? max(1, (children.length / count).ceil()) : 1;
 
         final currentPage = page.value.clamp(0, pages - 1);
 
