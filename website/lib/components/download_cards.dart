@@ -26,22 +26,29 @@ class DownloadCards extends StatelessComponent {
   Component _card(DownloadPlatform platform) {
     final assets = release.forPlatform(platform);
 
+    final primary = assets.isEmpty
+        ? a(classes: 'dl primary', href: release.releaseUrl.toString(), const [
+            .text('Release page'),
+          ])
+        : a(classes: 'dl primary', href: assets.first.url.toString(), [
+            .text(assets.first.label),
+          ]);
+
+    final more = [
+      for (final asset in assets.skip(1))
+        a(classes: 'dl', href: asset.url.toString(), [.text(asset.label)]),
+      if (platform == DownloadPlatform.linux)
+        const a(classes: 'dl', href: flatpakRepoUrl, [.text('Flatpak repo')]),
+    ];
+
     return div(classes: 'download-card', [
       h2([.text(platform.label)]),
-      div(classes: 'download-links', [
-        if (assets.isEmpty)
-          a(classes: 'dl primary', href: release.releaseUrl.toString(), const [
-            .text('Release page'),
-          ]),
-        for (final (index, asset) in assets.indexed)
-          a(
-            classes: index == 0 ? 'dl primary' : 'dl',
-            href: asset.url.toString(),
-            [.text(asset.label)],
-          ),
-        if (platform == DownloadPlatform.linux)
-          const a(classes: 'dl', href: flatpakRepoUrl, [.text('Flatpak repo')]),
-      ]),
+      div(classes: 'download-links', [primary]),
+      if (more.isNotEmpty)
+        details(classes: 'download-more', [
+          const summary([.text('All formats')]),
+          div(classes: 'download-links', more),
+        ]),
     ]);
   }
 }

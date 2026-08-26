@@ -45,10 +45,10 @@ void main() {
       expect(labels(DownloadPlatform.macos), ['.dmg']);
       expect(labels(DownloadPlatform.windows), ['.zip']);
       expect(labels(DownloadPlatform.linux), [
-        '.rpm (x64)',
-        '.rpm (arm64)',
         'AppImage (x64)',
         'AppImage (arm64)',
+        '.rpm (x64)',
+        '.rpm (arm64)',
       ]);
       expect(labels(DownloadPlatform.android), ['.apk']);
     });
@@ -77,7 +77,7 @@ void main() {
       expect(names, isNot(contains(endsWith('dev.jpj.NESd.flatpak'))));
     });
 
-    test('orders linux assets deb, rpm, AppImage, flatpak; x64 first', () {
+    test('orders linux assets AppImage, deb, rpm, flatpak; x64 first', () {
       final manifest = ReleaseManifest.fromJson(
         _manifestWith([
           'nesd.1.0.0.linux-arm64.flatpak',
@@ -92,10 +92,10 @@ void main() {
       expect(
         [for (final a in manifest.forPlatform(DownloadPlatform.linux)) a.label],
         [
+          'AppImage (x64)',
           '.deb (x64)',
           '.deb (arm64)',
           '.rpm (x64)',
-          'AppImage (x64)',
           '.flatpak (x64)',
           '.flatpak (arm64)',
         ],
