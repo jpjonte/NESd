@@ -53,7 +53,12 @@ adb logcat -c
 adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 
 echo "soaking for $DURATION seconds (plus load/teardown)..."
-LINE=$(adb logcat -v raw -e "NESD_SOAK" -m 1 2>/dev/null | grep "NESD_SOAK" | head -1)
+LINE=""
+while [ -z "$LINE" ]; do
+  sleep 10
+  LINE=$(adb logcat -d -v raw -e "NESD_SOAK" 2>/dev/null \
+    | grep "^NESD_SOAK" | head -1 || true)
+done
 echo "$LINE"
 
 if echo "$LINE" | grep -q "NESD_SOAK_FAILED"; then
