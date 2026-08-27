@@ -32,7 +32,7 @@ void main() {
 
   vec3 color = texture(uSource, warped).rgb;
 
-  float scanWeight = 0.5 + 0.5 * cos(6.2831853 * fract(warped.y));
+  float scanWeight = 0.5 + 0.5 * cos(6.2831853 * warped.y * uSourceSize.y);
   color *= 1.0 - uScanlineIntensity * scanWeight;
 
   float column = mod(FlutterFragCoord().x, 3.0);

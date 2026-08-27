@@ -89,6 +89,7 @@ class Robot extends BaseRobot {
     Size logicalSize = const Size(1920, 1080),
     double? devicePixelRatio,
     List<Override> overrides = const [],
+    bool settle = true,
   }) async {
     final fileSystem = MockFileSystem()
       ..addFile(
@@ -155,7 +156,12 @@ class Robot extends BaseRobot {
         child: const RepaintBoundary(child: NesdApp()),
       ),
     );
-    await tester.pumpAndSettle();
+
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await fixAsync();
+    }
 
     // RomManager's directory setup and migration run real IO across
     // several awaits. Drain them here so storage-touching actions later

@@ -96,6 +96,35 @@ void main() {
     });
   });
 
+  testWidgets('crt scanlines repeat per source row, '
+      'darkening every row boundary', (tester) async {
+    await tester.runAsync(() async {
+      final image = await _patternImage(
+        8,
+        4,
+        [255, 255, 255, 255],
+        [255, 255, 255, 255],
+      ); // uniform white
+
+      final pixels = await _paint(
+        'shaders/crt.frag',
+        [1.0, 0.0, 0.0], // full scanline intensity, no mask, no curvature
+        image,
+        const ui.Size(64, 32),
+      );
+
+      final boundaryPixel = _getPixel(pixels, 32, 16, 64);
+      final centerPixel = _getPixel(pixels, 32, 20, 64);
+
+      final boundaryBrightness =
+          boundaryPixel[0] + boundaryPixel[1] + boundaryPixel[2];
+      final centerBrightness = centerPixel[0] + centerPixel[1] + centerPixel[2];
+
+      expect(boundaryBrightness, lessThan(300));
+      expect(centerBrightness, greaterThan(boundaryBrightness + 300));
+    });
+  });
+
   testWidgets('smooth shader upscales left/right regions preserving seam '
       '(discriminates source/output width uniform swaps)', (tester) async {
     await tester.runAsync(() async {
