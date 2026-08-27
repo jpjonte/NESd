@@ -18,6 +18,7 @@ import 'package:nesd/ui/file_picker/file_system/native_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_factory.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/web_filesystem.dart';
+import 'package:nesd/ui/immersive_mode.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/nesd_app.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -30,6 +31,8 @@ import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
 
 void main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  enableImmersiveMode();
 
   installUiLog();
   installErrorHooks();
