@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/bench/bench_runner.dart';
+import 'package:nesd/build_id.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_setup.dart';
 import 'package:nesd/profile/dev_profile_migration.dart';
@@ -77,6 +78,7 @@ void main(List<String> arguments) async {
     buildNumber: packageInfo.buildNumber,
     platform: kIsWeb ? 'web' : Platform.operatingSystem,
     flavor: appFlavor,
+    buildId: buildId,
   );
 
   await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(

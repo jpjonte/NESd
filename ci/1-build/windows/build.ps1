@@ -11,7 +11,7 @@ $nesdDirectory = Join-Path -Path $repoDirectory -ChildPath ".\packages\nesd"
 
 Set-Location $nesdDirectory
 
-flutter build windows --release
+flutter build windows --release --dart-define=NESD_BUILD_ID="$env:NESD_BUILD_ID"
 
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

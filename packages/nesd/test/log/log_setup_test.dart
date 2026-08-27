@@ -56,6 +56,7 @@ void main() {
       buildNumber: '482',
       platform: 'macos',
       flavor: 'prod',
+      buildId: '',
     );
 
     final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(
@@ -69,6 +70,45 @@ void main() {
     expect(banner.context, containsPair('flavor', 'prod'));
   });
 
+  test('the startup banner records the CI build id', () {
+    final installed = installUiLog(minimumLevel: LogLevel.debug);
+
+    logAppStart(
+      version: '0.17.0',
+      buildNumber: '1',
+      platform: 'macos',
+      flavor: 'dev',
+      buildId: 'nightly-20260827-2ab301a8',
+    );
+
+    final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(
+      (r) => r.channel == LogChannel.app && r.context != null,
+    );
+
+    expect(
+      banner.context,
+      containsPair('buildId', 'nightly-20260827-2ab301a8'),
+    );
+  });
+
+  test('the startup banner omits an empty build id', () {
+    final installed = installUiLog(minimumLevel: LogLevel.debug);
+
+    logAppStart(
+      version: '0.17.0',
+      buildNumber: '1',
+      platform: 'macos',
+      flavor: 'prod',
+      buildId: '',
+    );
+
+    final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(
+      (r) => r.channel == LogChannel.app && r.context != null,
+    );
+
+    expect(banner.context, isNot(contains('buildId')));
+  });
+
   test('the startup banner omits an absent flavor', () {
     final installed = installUiLog(minimumLevel: LogLevel.debug);
 
@@ -77,6 +117,7 @@ void main() {
       buildNumber: '482',
       platform: 'linux',
       flavor: null,
+      buildId: '',
     );
 
     final banner = installed.sinkOfType<LogBufferSink>()!.records.firstWhere(

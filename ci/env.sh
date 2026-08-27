@@ -28,6 +28,8 @@ fi
 artifact="nesd.$release_name"
 artifact_flavored="$flavored_id.$release_name"
 
+build_id=$(ci/build_id.sh)
+
 {
   echo "flutter_version=$flutter_version"
   echo "version=$version"
@@ -48,4 +50,5 @@ artifact_flavored="$flavored_id.$release_name"
   echo "FLAVORED_ID=$flavored_id"
   echo "FLAVORED_NAME=\"$flavored_name\""
   echo "FLATPAK_ID=$flatpak_id"
+  echo "NESD_BUILD_ID=$build_id"
 } >> "$GITHUB_ENV"

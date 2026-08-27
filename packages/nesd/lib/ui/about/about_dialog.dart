@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' as material show AboutDialog;
 import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/build_id.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/theme/base.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,12 +12,15 @@ class AboutDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final packageInfo = ref.watch(packageInfoProvider);
+    final buildId = ref.watch(buildIdProvider);
     final theme = Theme.of(context);
 
     return Theme(
       data: theme.copyWith(textTheme: _updateTextTheme(theme)),
       child: material.AboutDialog(
-        applicationVersion: packageInfo.version,
+        applicationVersion: buildId.isEmpty
+            ? packageInfo.version
+            : '${packageInfo.version} ($buildId)',
         applicationLegalese: '© 2024-2026 John Paul Jonte',
         applicationIcon: Image.asset(
           'assets/logo.png',
