@@ -8,7 +8,7 @@ import 'package:nesd/log/log_format.dart';
 import 'package:nesd/ui/common/context_menu.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/log/log_actions.dart';
-import 'package:nesd/ui/theme/base.dart';
+import 'package:nesd/ui/log/log_colors.dart';
 
 const _chevronSlot = 18.0;
 
@@ -24,12 +24,7 @@ class LogRecordTile extends HookConsumerWidget {
     final expanded = useState(false);
     final actions = ref.watch(logActionsProvider);
 
-    final color = switch (record.level) {
-      LogLevel.debug => Colors.white54,
-      LogLevel.info => Colors.white,
-      LogLevel.warning => Colors.orange,
-      LogLevel.error => nesdRed[300],
-    };
+    final color = logLevelColor(record.level);
 
     return ContextMenu(
       contextMenuBuilder: (context, close) => [
@@ -76,9 +71,34 @@ class LogRecordTile extends HookConsumerWidget {
                                 : null,
                           ),
                           Expanded(
-                            child: Text(
-                              formatRecordForViewer(record),
-                              style: monoStyle.copyWith(color: color),
+                            child: Text.rich(
+                              TextSpan(
+                                style: monoStyle,
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        '${formatRecordTimeForViewer(record)}'
+                                        ' ',
+                                    style: const TextStyle(
+                                      color: logTimestampColor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: '${record.level.tag} ',
+                                    style: TextStyle(color: color),
+                                  ),
+                                  TextSpan(
+                                    text: '${record.channel.name} ',
+                                    style: TextStyle(
+                                      color: logChannelColor(record.channel),
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: record.message,
+                                    style: TextStyle(color: color),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

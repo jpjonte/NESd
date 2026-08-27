@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Implemented GPU rendering on Linux and Windows
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
+- The log viewer now colors log levels and channels and supports text search
 
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
