@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/shader_frame_painter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 
 Future<ui.Image> _patternImage(
   int width,
@@ -67,6 +69,43 @@ Future<Uint8List> _paint(
 List<int> _getPixel(Uint8List pixels, int x, int y, int width) {
   final idx = (y * width + x) * 4;
   return [pixels[idx], pixels[idx + 1], pixels[idx + 2], pixels[idx + 3]];
+}
+
+Future<Uint8List> _paintFilterMode(
+  String asset, {
+  required VideoFilter filter,
+  required CrtFilterSettings crtFilter,
+  required ui.Image image,
+  required ui.Size sourceSize,
+  required ui.Size outputSize,
+}) async {
+  final program = await ui.FragmentProgram.fromAsset(asset);
+  final shader = program.fragmentShader()
+    ..setFloat(0, outputSize.width)
+    ..setFloat(1, outputSize.height)
+    ..setImageSampler(0, image);
+
+  configureVideoFilterShader(
+    shader,
+    filter: filter,
+    sourceWidth: sourceSize.width,
+    sourceHeight: sourceSize.height,
+    crtFilter: crtFilter,
+  );
+
+  final recorder = ui.PictureRecorder();
+
+  ui.Canvas(
+    recorder,
+  ).drawRect(ui.Offset.zero & outputSize, ui.Paint()..shader = shader);
+
+  final output = await recorder.endRecording().toImage(
+    outputSize.width.toInt(),
+    outputSize.height.toInt(),
+  );
+  final data = await output.toByteData();
+
+  return data!.buffer.asUint8List();
 }
 
 void main() {
@@ -139,6 +178,77 @@ void main() {
         const [],
         image,
         const ui.Size(64, 32),
+      );
+
+      final leftPixel = _getPixel(pixels, 8, 16, 64);
+      expect(leftPixel[0], greaterThan(200));
+      expect(leftPixel[1], lessThan(50));
+
+      final rightPixel = _getPixel(pixels, 56, 16, 64);
+      expect(rightPixel[0], lessThan(50));
+      expect(rightPixel[1], greaterThan(200));
+
+      final seam1Pixel = _getPixel(pixels, 28, 16, 64);
+      expect(seam1Pixel[0], greaterThan(100));
+
+      final seam2Pixel = _getPixel(pixels, 32, 16, 64);
+      expect(seam2Pixel[1], greaterThan(100));
+    });
+  });
+
+  testWidgets('crt shader in image-filter mode reads the engine-written '
+      'input size and repeats scanlines per source row', (tester) async {
+    await tester.runAsync(() async {
+      final image = await _patternImage(
+        64,
+        32,
+        [255, 255, 255, 255],
+        [255, 255, 255, 255],
+      ); // uniform white, already at output resolution
+
+      final pixels = await _paintFilterMode(
+        'shaders/crt.frag',
+        filter: VideoFilter.crt,
+        crtFilter: const CrtFilterSettings(
+          scanlineIntensity: 1,
+          maskStrength: 0,
+        ),
+        image: image,
+        sourceSize: const ui.Size(8, 4),
+        outputSize: const ui.Size(64, 32),
+      );
+
+      final boundaryPixel = _getPixel(pixels, 32, 16, 64);
+      final centerPixel = _getPixel(pixels, 32, 20, 64);
+
+      final boundaryBrightness =
+          boundaryPixel[0] + boundaryPixel[1] + boundaryPixel[2];
+      final centerBrightness = centerPixel[0] + centerPixel[1] + centerPixel[2];
+
+      expect(boundaryBrightness, lessThan(300));
+      expect(centerBrightness, greaterThan(boundaryBrightness + 300));
+    });
+  });
+
+  testWidgets('smooth shader in image-filter mode samples the upscaled '
+      'input at source-texel centers, preserving regions and seam', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final image = await _patternImage(
+        64,
+        32,
+        [255, 0, 0, 255],
+        [0, 255, 0, 255],
+      );
+
+      final pixels = await _paintFilterMode(
+        'shaders/smooth.frag',
+        filter: VideoFilter.smooth,
+        crtFilter: const CrtFilterSettings(),
+        image: image,
+        sourceSize: const ui.Size(4, 2),
+        outputSize: const ui.Size(64, 32),
       );
 
       final leftPixel = _getPixel(pixels, 8, 16, 64);

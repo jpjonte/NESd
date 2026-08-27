@@ -94,9 +94,15 @@ class ImageDisplayFrameState extends DisplayFrameState {
 
 class DisplayFrameController extends ChangeNotifier
     implements ValueListenable<DisplayFrameState> {
-  DisplayFrameController({required this.settingsController});
+  DisplayFrameController({
+    required this.settingsController,
+    bool? shaderFilterSupported,
+  }) : _shaderFilterSupported =
+           shaderFilterSupported ?? ui.ImageFilter.isShaderFilterSupported;
 
   final SettingsController settingsController;
+
+  final bool _shaderFilterSupported;
 
   FrameSource? _frameSource;
   RendererPreference _rendererPreference = RendererPreference.auto;
@@ -452,6 +458,10 @@ class DisplayFrameController extends ChangeNotifier
 
     _videoFilterActive = active;
 
+    if (_shaderFilterSupported) {
+      return;
+    }
+
     if (active) {
       _invalidateTexture();
     } else {
@@ -476,7 +486,7 @@ class DisplayFrameController extends ChangeNotifier
     final wantsTexture =
         _rendererPreference != RendererPreference.cpu &&
         !_textureFailed &&
-        !_videoFilterActive;
+        (!_videoFilterActive || _shaderFilterSupported);
 
     if (wantsTexture) {
       if (_texture case final currentTexture?

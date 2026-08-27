@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 
@@ -63,4 +65,22 @@ List<double> videoFilterUniforms(VideoFilter filter, CrtFilterSettings crt) {
     VideoFilter.none || VideoFilter.smooth => const [],
     VideoFilter.crt => [crt.scanlineIntensity, crt.maskStrength, crt.curvature],
   };
+}
+
+void configureVideoFilterShader(
+  ui.FragmentShader shader, {
+  required VideoFilter filter,
+  required double sourceWidth,
+  required double sourceHeight,
+  required CrtFilterSettings crtFilter,
+}) {
+  shader
+    ..setFloat(2, sourceWidth)
+    ..setFloat(3, sourceHeight);
+
+  final parameters = videoFilterUniforms(filter, crtFilter);
+
+  for (var i = 0; i < parameters.length; i++) {
+    shader.setFloat(4 + i, parameters[i]);
+  }
 }

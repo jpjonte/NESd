@@ -1,0 +1,15 @@
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+plugins:
+  riverpod_lint:
+    version: ^3.1.4
+    diagnostics:
+      # disable this rule for now until I find a good way to fix the issues
+      avoid_public_notifier_properties: false

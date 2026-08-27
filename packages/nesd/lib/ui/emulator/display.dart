@@ -158,11 +158,15 @@ class DisplayBuilder extends ConsumerWidget {
         );
 
         final baseLayer = textureId != null
-            ? SizedBox.expand(
-                child: Texture(
-                  textureId: textureId!,
-                  filterQuality: FilterQuality.none,
-                ),
+            ? frameTextureLayer(
+                textureId: textureId!,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight,
+                filter: videoFilter,
+                shader: shader,
+                crtFilter: settings.crtFilter,
+                shaderFilterSupported: ui.ImageFilter.isShaderFilterSupported,
+                imageFilterFactory: ui.ImageFilter.shader,
               )
             : CustomPaint(
                 painter: frameBasePainter(
@@ -288,6 +292,39 @@ class DisplayBuilder extends ConsumerWidget {
       .custom => settings.customPixelAspectRatio,
     };
   }
+}
+
+Widget frameTextureLayer({
+  required int textureId,
+  required int imageWidth,
+  required int imageHeight,
+  required VideoFilter filter,
+  required ui.FragmentShader? shader,
+  required CrtFilterSettings crtFilter,
+  required bool shaderFilterSupported,
+  required ui.ImageFilter Function(ui.FragmentShader shader) imageFilterFactory,
+}) {
+  final texture = SizedBox.expand(
+    child: Texture(textureId: textureId, filterQuality: FilterQuality.none),
+  );
+
+  if (filter == VideoFilter.none || shader == null || !shaderFilterSupported) {
+    return texture;
+  }
+
+  configureVideoFilterShader(
+    shader,
+    filter: filter,
+    sourceWidth: imageWidth.toDouble(),
+    sourceHeight: imageHeight.toDouble(),
+    crtFilter: crtFilter,
+  );
+
+  return ImageFiltered(
+    key: ValueKey((filter, crtFilter, imageWidth, imageHeight)),
+    imageFilter: imageFilterFactory(shader),
+    child: texture,
+  );
 }
 
 CustomPainter frameBasePainter({

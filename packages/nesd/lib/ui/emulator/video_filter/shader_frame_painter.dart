@@ -23,10 +23,10 @@ class ShaderFramePainter extends CustomPainter {
 
     shader
       ..setImageSampler(0, image)
-      ..setFloat(0, image.width.toDouble())
-      ..setFloat(1, image.height.toDouble())
-      ..setFloat(2, size.width)
-      ..setFloat(3, size.height);
+      ..setFloat(0, size.width)
+      ..setFloat(1, size.height)
+      ..setFloat(2, image.width.toDouble())
+      ..setFloat(3, image.height.toDouble());
 
     for (var i = 0; i < parameters.length; i++) {
       shader.setFloat(4 + i, parameters[i]);
