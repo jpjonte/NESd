@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
 - Added a Low Pass Filter toggle to the Audio settings
 - The log viewer now colors log levels and channels and supports text search
+- Nightly and branch builds now show a build id in the About dialog and the startup log
 
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo

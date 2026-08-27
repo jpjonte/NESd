@@ -37,11 +37,13 @@ void logAppStart({
   required String buildNumber,
   required String platform,
   required String? flavor,
+  required String buildId,
 }) => log.app.info(
   'NESd started',
   context: {
     'version': version,
     'build': buildNumber,
+    if (buildId.isNotEmpty) 'buildId': buildId,
     'platform': platform,
     if (flavor != null) 'flavor': flavor,
   },

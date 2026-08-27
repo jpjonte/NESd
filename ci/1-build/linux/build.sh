@@ -19,6 +19,8 @@ pushd "$repo_root/packages/nesd" >/dev/null
 
 mkdir -p build/linux/"$ARCH"/"$FLAVOR"/release/bundle/
 
-flutter build linux --release --flavor "$FLAVOR" --target-platform=linux-"$ARCH"
+flutter build linux --release --flavor "$FLAVOR" \
+  --target-platform=linux-"$ARCH" \
+  --dart-define=NESD_BUILD_ID="${NESD_BUILD_ID:-}"
 
 popd >/dev/null

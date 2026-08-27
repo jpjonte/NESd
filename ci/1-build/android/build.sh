@@ -4,7 +4,7 @@ set -eux
 
 repo_root=$(git rev-parse --show-toplevel)
 
-version_args=()
+version_args=(--dart-define=NESD_BUILD_ID="${NESD_BUILD_ID:-}")
 
 if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
   if [ "${GITHUB_REF_NAME:-}" != "$VERSION" ]; then
@@ -15,7 +15,7 @@ if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
 
   version_code=$("$repo_root/ci/1-build/android/version_code.sh" "$VERSION")
 
-  version_args=(--build-number="$version_code" --build-name="$VERSION")
+  version_args+=(--build-number="$version_code" --build-name="$VERSION")
 fi
 
 pushd "$repo_root/packages/nesd" >/dev/null
