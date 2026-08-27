@@ -92,6 +92,7 @@ CrtFilterSettings _crtFilterFromJson(dynamic json) => json == null
 sealed class Settings with _$Settings {
   factory Settings({
     @Default(1.0) double volume,
+    @Default(false) bool lowPassFilter,
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
     @Default(false) bool showDebugOverlay,
@@ -158,6 +159,12 @@ class SettingsController extends _$SettingsController {
 
   set volume(double volume) {
     _update(state.copyWith(volume: volume.clamp(0.0, 1.0)));
+  }
+
+  bool get lowPassFilter => state.lowPassFilter;
+
+  set lowPassFilter(bool lowPassFilter) {
+    _update(state.copyWith(lowPassFilter: lowPassFilter));
   }
 
   bool get showBorder => state.showBorder;

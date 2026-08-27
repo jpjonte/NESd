@@ -130,6 +130,34 @@ void main() {
     expect(audio.pushed.single, [1.0, -1.0, 0.5]);
   });
 
+  test('low pass filter is off by default', () {
+    expect(output.lowPassFilter, isFalse);
+  });
+
+  test('attenuates high frequencies while the low pass filter is on', () {
+    output.lowPassFilter = true;
+
+    final samples = Float32List(64);
+
+    for (var i = 0; i < samples.length; i++) {
+      samples[i] = i.isEven ? 1.0 : -1.0;
+    }
+
+    output.processSamples(samples);
+
+    expect(samples.last.abs(), lessThan(0.05));
+  });
+
+  test('passes low frequencies through while the low pass filter is on', () {
+    output.lowPassFilter = true;
+
+    final samples = Float32List(64)..fillRange(0, 64, 0.5);
+
+    output.processSamples(samples);
+
+    expect(samples.last, closeTo(0.5, 0.05));
+  });
+
   test('reset flushes the backend without tearing it down', () {
     output.reset();
 

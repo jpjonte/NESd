@@ -99,6 +99,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(volumeSubscription.close);
 
+  final lowPassFilterSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.lowPassFilter),
+    (_, enabled) => controller.nes?.lowPassFilter = enabled,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(lowPassFilterSubscription.close);
+
   final regionSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.region),
     (_, region) => controller.nes?.region = region,
@@ -437,7 +445,9 @@ class NesController {
         return false;
       }
 
-      remote.volume = settingsController.volume;
+      remote
+        ..volume = settingsController.volume
+        ..lowPassFilter = settingsController.lowPassFilter;
 
       nesState.set(remote);
 

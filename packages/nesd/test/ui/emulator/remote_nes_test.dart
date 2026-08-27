@@ -444,6 +444,7 @@ void main() {
         ..region = Region.pal
         ..cheats = const []
         ..volume = 0.5
+        ..lowPassFilter = true
         ..breakpoints = const []
         ..addBreakpoint(Breakpoint(0x8000))
         ..removeBreakpoint(0x8000)
@@ -477,6 +478,7 @@ void main() {
         isA<SetRegionCommand>(),
         isA<SetCheatsCommand>(),
         isA<SetVolumeCommand>(),
+        isA<SetLowPassFilterCommand>(),
         isA<SetBreakpointsCommand>(),
         isA<AddBreakpointCommand>(),
         isA<RemoveBreakpointCommand>(),

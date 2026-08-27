@@ -142,6 +142,8 @@ class NesWorker {
         _nes?.cheats = command.cheats;
       case SetVolumeCommand():
         _audioOutput?.volume = command.volume;
+      case SetLowPassFilterCommand():
+        _audioOutput?.lowPassFilter = command.enabled;
       case StartPcmDumpCommand():
         _startPcmDump(command.path);
       case StopPcmDumpCommand():

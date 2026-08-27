@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/nes/apu/apu.dart';
+import 'package:nesd/nes/apu/filter/filter.dart';
+import 'package:nesd/nes/apu/filter/filter_chain.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/util/ring_buffer.dart';
 import 'package:nesd_audio/nesd_audio.dart';
@@ -22,6 +24,8 @@ const webAudioBufferSamples = 4800;
 
 /// Underrun recovery threshold: 20 ms.
 const audioRecoverSamples = 960;
+
+const lowPassCutoff = 14000.0;
 
 NesdAudio defaultNesdAudio({bool nullDevice = false}) => NesdAudio.open(
   sampleRate: apuSampleRate,
@@ -44,6 +48,10 @@ class AudioOutput {
 
   double _volume = 1.0;
 
+  final _lowPassFilter = FilterChain([
+    Filter.lowPass(apuSampleRate.toDouble(), lowPassCutoff),
+  ])..enabled = false;
+
   PcmRecorder? pcmRecorder;
 
   int? _fillMin;
@@ -53,6 +61,12 @@ class AudioOutput {
 
   set volume(double value) {
     _volume = value.clamp(0.0, 1.0);
+  }
+
+  bool get lowPassFilter => _lowPassFilter.enabled;
+
+  set lowPassFilter(bool value) {
+    _lowPassFilter.enabled = value;
   }
 
   AudioBufferStatus get bufferStatus =>
@@ -75,6 +89,12 @@ class AudioOutput {
     if (_volume != 1.0) {
       for (var i = 0; i < samples.length; i++) {
         samples[i] *= _volume;
+      }
+    }
+
+    if (_lowPassFilter.enabled) {
+      for (var i = 0; i < samples.length; i++) {
+        samples[i] = _lowPassFilter.apply(samples[i]);
       }
     }
 

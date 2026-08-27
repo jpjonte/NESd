@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
+import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_settings.dart';
 
@@ -46,7 +47,10 @@ void main() {
     await r.mainMenu.tapSettingsButton();
     await r.settingsScreen.tapAudioTab();
 
-    // TODO
+    await r.expectSwitch(
+      find.byType(LowPassFilterSwitch),
+      getValue: () => r.settings.lowPassFilter,
+    );
   });
 
   testWidgets('Test Controls settings tab', (tester) async {

@@ -137,6 +137,12 @@ class SetVolumeCommand extends NesCommand {
   final double volume;
 }
 
+class SetLowPassFilterCommand extends NesCommand {
+  const SetLowPassFilterCommand({required this.enabled});
+
+  final bool enabled;
+}
+
 class StartPcmDumpCommand extends NesCommand {
   const StartPcmDumpCommand({required this.path});
 
