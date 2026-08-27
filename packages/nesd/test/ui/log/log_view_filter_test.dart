@@ -6,11 +6,13 @@ LogRecord _record({
   required String message,
   LogLevel level = LogLevel.info,
   LogChannel channel = LogChannel.app,
+  String? error,
 }) => LogRecord(
   time: DateTime(2026, 8, 18, 14, 3, 22, 145),
   level: level,
   channel: channel,
   message: message,
+  error: error,
 );
 
 void main() {
@@ -83,6 +85,46 @@ void main() {
           'the viewer renders this list into a reverse: true ListView, '
           'so newest-first here is what puts the newest row at the bottom',
     );
+  });
+
+  test('search keeps only records whose message contains the text', () {
+    final filtered = filterLogRecords(
+      [
+        _record(message: 'Audio device opened'),
+        _record(message: 'frame dropped'),
+      ],
+      level: LogLevel.debug,
+      channels: everyChannel,
+      search: 'AUDIO',
+    );
+
+    expect(filtered.map((r) => r.message), [
+      'Audio device opened',
+    ], reason: 'the match must be case-insensitive');
+  });
+
+  test('search also matches against the error text', () {
+    final filtered = filterLogRecords(
+      [
+        _record(message: 'load failed', error: 'FileSystemException: gone'),
+        _record(message: 'load succeeded'),
+      ],
+      level: LogLevel.debug,
+      channels: everyChannel,
+      search: 'filesystem',
+    );
+
+    expect(filtered.map((r) => r.message), ['load failed']);
+  });
+
+  test('records pass when no search is given', () {
+    final filtered = filterLogRecords(
+      [_record(message: 'anything')],
+      level: LogLevel.debug,
+      channels: everyChannel,
+    );
+
+    expect(filtered.map((r) => r.message), ['anything']);
   });
 
   test('selecting no channels yields nothing', () {

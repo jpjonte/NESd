@@ -148,7 +148,7 @@ class TelemetryLog {
   void emit(String line) => _log.add(
     LogRecord(
       time: DateTime.now(),
-      level: LogLevel.info,
+      level: LogLevel.debug,
       channel: LogChannel.telemetry,
       message: line,
       isolate: _log.isolate,

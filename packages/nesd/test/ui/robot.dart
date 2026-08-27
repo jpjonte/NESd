@@ -23,6 +23,7 @@ import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
+import 'package:riverpod/misc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'base_robot.dart';
@@ -87,6 +88,7 @@ class Robot extends BaseRobot {
     Map<String, Uint8List> extraFiles = const {},
     Size logicalSize = const Size(1920, 1080),
     double? devicePixelRatio,
+    List<Override> overrides = const [],
   }) async {
     final fileSystem = MockFileSystem()
       ..addFile(
@@ -148,6 +150,7 @@ class Robot extends BaseRobot {
           storageFilesystemProvider.overrideWithValue(
             NativeStorageFilesystem(),
           ),
+          ...overrides,
         ],
         child: const RepaintBoundary(child: NesdApp()),
       ),

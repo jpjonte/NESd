@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
@@ -14,14 +13,17 @@ import 'package:nesd/ui/log/log_buffer_provider.dart';
 import 'package:nesd/ui/log/log_channel_filter.dart';
 import 'package:nesd/ui/log/log_export_dialog.dart';
 import 'package:nesd/ui/log/log_record_tile.dart';
+import 'package:nesd/ui/log/log_search_field.dart';
 import 'package:nesd/ui/log/log_view_filter.dart';
 
 @RoutePage()
-class LogScreen extends HookConsumerWidget {
+class LogScreen extends ConsumerWidget {
   const LogScreen({super.key});
 
   static const levelFilterKey = Key('logLevelFilter');
   static const channelFilterKey = Key('logChannelFilter');
+  static const searchFieldKey = Key('logSearchField');
+  static const counterKey = Key('logCounter');
   static const copyAllKey = Key('logCopyAll');
   static const exportKey = Key('logExport');
   static const clearKey = Key('logClear');
@@ -30,13 +32,14 @@ class LogScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buffer = ref.watch(logBufferProvider);
-    final level = useState(LogLevel.debug);
-    final channels = useState(LogChannel.values.toSet());
+    final filter = ref.watch(logViewFilterProvider);
+    final filterNotifier = ref.watch(logViewFilterProvider.notifier);
 
     final records = filterLogRecords(
       buffer.records,
-      level: level.value,
-      channels: channels.value,
+      level: filter.level,
+      channels: filter.channels,
+      search: filter.search,
     );
 
     final actions = ref.watch(logActionsProvider);
@@ -56,7 +59,7 @@ class LogScreen extends HookConsumerWidget {
           IconButton(
             key: copyAllKey,
             onPressed: () => unawaited(
-              actions.copyRecords(records.reversed, includeContext: true),
+              actions.copyRecords(buffer.records, includeContext: true),
             ),
             icon: const Icon(Icons.copy),
             tooltip: 'Copy all',
@@ -71,7 +74,7 @@ class LogScreen extends HookConsumerWidget {
               }
 
               await actions.exportRecords(
-                records.reversed,
+                buffer.records,
                 includeContext: includeContext,
               );
             },
@@ -90,12 +93,22 @@ class LogScreen extends HookConsumerWidget {
         child: NesdMenuWrapper(
           child: Column(
             children: [
-              _FilterRow(level: level, channels: channels),
+              _FilterRow(filter: filter, notifier: filterNotifier),
+              _SearchRow(
+                filter: filter,
+                notifier: filterNotifier,
+                shown: records.length,
+                total: buffer.records.length,
+              ),
               Expanded(
                 child: records.isEmpty
-                    ? const Center(
+                    ? Center(
                         key: emptyKey,
-                        child: Text('Nothing logged yet'),
+                        child: Text(
+                          buffer.records.isEmpty
+                              ? 'Nothing logged yet'
+                              : 'No matching records',
+                        ),
                       )
                     : ListView.builder(
                         reverse: true,
@@ -129,11 +142,51 @@ class LogScreen extends HookConsumerWidget {
   }
 }
 
-class _FilterRow extends StatelessWidget {
-  const _FilterRow({required this.level, required this.channels});
+class _SearchRow extends StatelessWidget {
+  const _SearchRow({
+    required this.filter,
+    required this.notifier,
+    required this.shown,
+    required this.total,
+  });
 
-  final ValueNotifier<LogLevel> level;
-  final ValueNotifier<Set<LogChannel>> channels;
+  final LogViewFilterState filter;
+  final LogViewFilter notifier;
+  final int shown;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: FocusOnHover(
+              child: LogSearchField(
+                key: LogScreen.searchFieldKey,
+                value: filter.search,
+                onChanged: (value) => notifier.search = value,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$shown of $total',
+            key: LogScreen.counterKey,
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterRow extends StatelessWidget {
+  const _FilterRow({required this.filter, required this.notifier});
+
+  final LogViewFilterState filter;
+  final LogViewFilter notifier;
 
   @override
   Widget build(BuildContext context) {
@@ -145,8 +198,8 @@ class _FilterRow extends StatelessWidget {
             child: FocusOnHover(
               child: Dropdown<LogLevel>(
                 key: LogScreen.levelFilterKey,
-                value: level.value,
-                onChanged: (value) => level.value = value ?? LogLevel.debug,
+                value: filter.level,
+                onChanged: (value) => notifier.level = value ?? LogLevel.info,
                 items: [
                   for (final value in LogLevel.values)
                     DropdownMenuItem(value: value, child: Text(value.label)),
@@ -159,8 +212,8 @@ class _FilterRow extends StatelessWidget {
             child: FocusOnHover(
               child: LogChannelFilter(
                 key: LogScreen.channelFilterKey,
-                selected: channels.value,
-                onChanged: (value) => channels.value = value,
+                selected: filter.channels,
+                onChanged: (value) => notifier.channels = value,
               ),
             ),
           ),

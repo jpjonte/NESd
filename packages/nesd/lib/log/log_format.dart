@@ -51,13 +51,16 @@ String formatRecordsForExport(
     .map((r) => formatRecordForFile(r, includeContext: includeContext))
     .join('\n');
 
+String formatRecordTimeForViewer(LogRecord record) =>
+    _consoleTime.format(record.time);
+
 /// Renders [record] as one row in the log viewer: local wall-clock time,
 /// level tag, channel and message.
 ///
 /// Deliberately carries no error, context or stack trace — those live in
 /// the row's expandable detail section, rendered by [formatRecordDetails].
 String formatRecordForViewer(LogRecord record) =>
-    '${_consoleTime.format(record.time)} ${record.level.tag} '
+    '${formatRecordTimeForViewer(record)} ${record.level.tag} '
     '${record.channel.name} ${record.message}';
 
 /// Renders the expandable detail section for [record]: its error, its

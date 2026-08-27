@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/ui/log/log_colors.dart';
 
 class LogChannelFilter extends HookWidget {
   const LogChannelFilter({
@@ -16,6 +17,8 @@ class LogChannelFilter extends HookWidget {
 
   static Key onlyKey(LogChannel channel) =>
       Key('logChannelOnly_${channel.name}');
+
+  static Key dotKey(LogChannel channel) => Key('logChannelDot_${channel.name}');
 
   final Set<LogChannel> selected;
   final ValueChanged<Set<LogChannel>> onChanged;
@@ -127,6 +130,16 @@ class _ChannelRow extends StatelessWidget {
             key: LogChannelFilter.checkboxKey(channel),
             value: checked,
             onChanged: (_) => onToggle(),
+          ),
+          Container(
+            key: LogChannelFilter.dotKey(channel),
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: logChannelColor(channel),
+              shape: BoxShape.circle,
+            ),
           ),
           SizedBox(width: 110, child: Text(channel.title)),
           TextButton(

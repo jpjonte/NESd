@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/log/log_format.dart';
 import 'package:nesd/log/sink/log_buffer_sink.dart';
+import 'package:nesd/ui/log/log_actions.dart';
 import 'package:nesd/ui/log/log_channel_filter.dart';
+import 'package:nesd/ui/log/log_colors.dart';
+import 'package:nesd/ui/log/log_export_dialog.dart';
 import 'package:nesd/ui/log/log_record_tile.dart';
 import 'package:nesd/ui/log/log_screen.dart';
+import 'package:nesd/ui/log/log_search_field.dart';
+import 'package:nesd/ui/log/log_view_filter.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/debug/view_log_button.dart';
+import 'package:riverpod/misc.dart';
 
 import '../robot.dart';
 
@@ -24,6 +31,20 @@ LogRecord _record({
   context: context,
 );
 
+class _RecordingLogActions extends LogActions {
+  List<LogRecord>? exported;
+
+  @override
+  Future<Uri?> exportRecords(
+    Iterable<LogRecord> records, {
+    required bool includeContext,
+  }) async {
+    exported = records.toList();
+
+    return null;
+  }
+}
+
 void main() {
   setUp(() {
     NesdLog.install(
@@ -36,8 +57,9 @@ void main() {
   Future<void> openLog(
     Robot robot, {
     List<LogRecord> records = const [],
+    List<Override> overrides = const [],
   }) async {
-    await robot.pumpApp();
+    await robot.pumpApp(overrides: overrides);
 
     NesdLog.instance.sinkOfType<LogBufferSink>()!.clear();
 
@@ -75,6 +97,27 @@ void main() {
     expect(find.textContaining('first message'), findsOneWidget);
   });
 
+  testWidgets('debug records are hidden by the default level filter', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+    );
+
+    expect(find.textContaining('an info line'), findsOneWidget);
+    expect(
+      find.textContaining('a debug line'),
+      findsNothing,
+      reason: 'the default level is info, keeping telemetry noise out',
+    );
+  });
+
   testWidgets('filters by minimum level', (tester) async {
     final robot = Robot(tester);
 
@@ -86,7 +129,16 @@ void main() {
       ],
     );
 
-    expect(find.byType(LogRecordTile), findsNWidgets(2));
+    await tester.tap(find.byKey(LogScreen.levelFilterKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Debug').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(LogRecordTile),
+      findsNWidgets(2),
+      reason: 'lowering the level below the info default reveals debug rows',
+    );
 
     await tester.tap(find.byKey(LogScreen.levelFilterKey));
     await tester.pumpAndSettle();
@@ -183,6 +235,306 @@ void main() {
 
     expect(find.byType(LogRecordTile), findsNothing);
     expect(find.byKey(LogScreen.emptyKey), findsOneWidget);
+  });
+
+  testWidgets('filters persist across leaving and reopening the screen', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        // Info, not debug: a filter wrongly reset to the info default
+        // would still hide a debug record and mask the regression.
+        _record(message: 'an info line'),
+        _record(message: 'an error line', level: LogLevel.error),
+      ],
+    );
+
+    await tester.tap(find.byKey(LogScreen.levelFilterKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Error').last);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsOneWidget);
+
+    await robot.container.read(routerProvider).maybePop();
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(LogScreen),
+      findsNothing,
+      reason: 'popping must dispose the screen for this test to mean anything',
+    );
+
+    robot.container.read(routerProvider).navigate(const LogRoute());
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(LogRecordTile),
+      findsOneWidget,
+      reason: 'the level filter should survive leaving the screen',
+    );
+    expect(find.textContaining('an error line'), findsOneWidget);
+  });
+
+  testWidgets('the search field narrows the list to matching rows', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'audio buffer underrun'),
+        _record(message: 'mapper switched bank'),
+      ],
+    );
+
+    await tester.enterText(find.byKey(LogScreen.searchFieldKey), 'AUDIO');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsOneWidget);
+    expect(find.textContaining('audio buffer underrun'), findsOneWidget);
+  });
+
+  testWidgets('an all-excluding search says so instead of "nothing logged"', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(robot, records: [_record(message: 'a line')]);
+
+    await tester.enterText(
+      find.byKey(LogScreen.searchFieldKey),
+      'matches nothing',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(LogScreen.emptyKey), findsOneWidget);
+    expect(find.text('No matching records'), findsOneWidget);
+    expect(find.text('Nothing logged yet'), findsNothing);
+  });
+
+  testWidgets('counts how many records the filters kept', (tester) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'an info line'),
+        _record(message: 'an error line', level: LogLevel.error),
+      ],
+    );
+
+    expect(
+      tester.widget<Text>(find.byKey(LogScreen.counterKey)).data,
+      '2 of 2',
+    );
+
+    await tester.tap(find.byKey(LogScreen.levelFilterKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Error').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Text>(find.byKey(LogScreen.counterKey)).data,
+      '1 of 2',
+    );
+  });
+
+  testWidgets('the clear button empties the search and restores the list', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'audio buffer underrun'),
+        _record(message: 'mapper switched bank'),
+      ],
+    );
+
+    await tester.enterText(find.byKey(LogScreen.searchFieldKey), 'audio');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsOneWidget);
+
+    await tester.tap(find.byKey(LogSearchField.clearKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsNWidgets(2));
+
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(LogScreen.searchFieldKey),
+        matching: find.byType(TextField),
+      ),
+    );
+
+    expect(field.controller!.text, isEmpty);
+  });
+
+  testWidgets('externally clearing the search also empties the field', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'audio buffer underrun'),
+        _record(message: 'mapper switched bank'),
+      ],
+    );
+
+    await tester.enterText(find.byKey(LogScreen.searchFieldKey), 'audio');
+    await tester.pumpAndSettle();
+
+    robot.container.read(logViewFilterProvider.notifier).search = '';
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsNWidgets(2));
+
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(LogScreen.searchFieldKey),
+        matching: find.byType(TextField),
+      ),
+    );
+
+    expect(
+      field.controller!.text,
+      isEmpty,
+      reason: 'the field must follow the filter state, not just seed from it',
+    );
+  });
+
+  testWidgets('the search text survives leaving and reopening the screen', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'audio buffer underrun'),
+        _record(message: 'mapper switched bank'),
+      ],
+    );
+
+    await tester.enterText(find.byKey(LogScreen.searchFieldKey), 'audio');
+    await tester.pumpAndSettle();
+
+    await robot.container.read(routerProvider).maybePop();
+    await tester.pumpAndSettle();
+
+    robot.container.read(routerProvider).navigate(const LogRoute());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsOneWidget);
+
+    final field = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(LogScreen.searchFieldKey),
+        matching: find.byType(TextField),
+      ),
+    );
+
+    expect(
+      field.controller!.text,
+      'audio',
+      reason: 'the field must show the search that is still being applied',
+    );
+  });
+
+  testWidgets('the channel selection survives leaving and reopening', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'rom line', channel: LogChannel.rom),
+        _record(message: 'audio line', channel: LogChannel.audio),
+      ],
+    );
+
+    await tester.tap(find.byKey(LogScreen.channelFilterKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(LogChannelFilter.onlyKey(LogChannel.rom)));
+    await tester.pumpAndSettle();
+
+    await robot.container.read(routerProvider).maybePop();
+    await tester.pumpAndSettle();
+
+    robot.container.read(routerProvider).navigate(const LogRoute());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LogRecordTile), findsOneWidget);
+    expect(find.textContaining('rom line'), findsOneWidget);
+  });
+
+  testWidgets(
+    'rows color the timestamp, level tag, channel, and message independently',
+    (tester) async {
+      final robot = Robot(tester);
+
+      final record = _record(
+        message: 'buffer underrun',
+        level: LogLevel.warning,
+        channel: LogChannel.audio,
+      );
+
+      await openLog(robot, records: [record]);
+
+      final text = tester.widget<Text>(
+        find.descendant(
+          of: find.byType(LogRecordTile),
+          matching: find.byType(Text),
+        ),
+      );
+
+      final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
+
+      expect(
+        text.textSpan!.toPlainText(),
+        formatRecordForViewer(record),
+        reason: 'coloring must not change the rendered text itself',
+      );
+      expect(spans[0].style!.color, logTimestampColor);
+      expect(spans[1].style!.color, logLevelColor(LogLevel.warning));
+      expect(spans[2].style!.color, logChannelColor(LogChannel.audio));
+      expect(spans[3].style!.color, logLevelColor(LogLevel.warning));
+    },
+  );
+
+  testWidgets('the channel menu marks each channel with its color', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(robot, records: [_record(message: 'a line')]);
+
+    await tester.tap(find.byKey(LogScreen.channelFilterKey));
+    await tester.pumpAndSettle();
+
+    for (final channel in LogChannel.values) {
+      final dot = tester.widget<Container>(
+        find.byKey(LogChannelFilter.dotKey(channel)),
+      );
+
+      final decoration = dot.decoration! as BoxDecoration;
+
+      expect(
+        decoration.color,
+        logChannelColor(channel),
+        reason: 'the ${channel.name} dot must match its row color',
+      );
+    }
   });
 
   testWidgets('expands a row to reveal its context', (tester) async {
@@ -350,6 +702,79 @@ void main() {
       reason: 'copying one row must not drag in its neighbors',
     );
     expect(copied, contains('second line'));
+  });
+
+  testWidgets('copy all captures records the filters hide', (tester) async {
+    String? copied;
+
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+
+        return null;
+      },
+    );
+
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+    );
+
+    expect(
+      find.textContaining('a debug line'),
+      findsNothing,
+      reason: 'the default level filter must be hiding the debug row',
+    );
+
+    await tester.tap(find.byKey(LogScreen.copyAllKey));
+    await tester.pumpAndSettle();
+
+    expect(copied, contains('an info line'));
+    expect(
+      copied,
+      contains('a debug line'),
+      reason: '"all" means the whole buffer, not just the visible rows',
+    );
+  });
+
+  testWidgets('file export captures records the filters hide', (tester) async {
+    final actions = _RecordingLogActions();
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+      overrides: [logActionsProvider.overrideWithValue(actions)],
+    );
+
+    await tester.tap(find.byKey(LogScreen.exportKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(LogExportDialog.saveKey));
+    await tester.pumpAndSettle();
+
+    expect(actions.exported, isNotNull);
+    expect(actions.exported!.map((r) => r.message), [
+      'a debug line',
+      'an info line',
+    ], reason: 'the whole buffer, oldest first, regardless of view filters');
   });
 
   testWidgets('clear empties the buffer', (tester) async {
