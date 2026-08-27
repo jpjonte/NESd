@@ -323,7 +323,73 @@ void main() {
     expect(controller.value, isA<ImageDisplayFrameState>());
   });
 
-  test('an active video filter forces CPU decode on the GPU path', () async {
+  test('an active video filter keeps the texture path when shader image '
+      'filters are supported', () async {
+    final platform = _FakeNesdTexturePlatform();
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+      shaderFilterSupported: true,
+    )..updateVideoFilter(active: true);
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource();
+
+    controller.updateFrameSource(source);
+
+    for (var i = 0; i < 3; i++) {
+      source.produceFrame(_handle());
+      await pumpEventQueue();
+    }
+
+    expect(platform.updates, greaterThanOrEqualTo(1));
+    expect(controller.value, isA<TextureDisplayFrameState>());
+  });
+
+  test('toggling the video filter does not invalidate the texture when '
+      'shader image filters are supported', () async {
+    final platform = _FakeNesdTexturePlatform();
+    final previousPlatform = NesdTexturePlatform.instance;
+
+    NesdTexturePlatform.instance = platform;
+
+    addTearDown(() => NesdTexturePlatform.instance = previousPlatform);
+
+    final controller = DisplayFrameController(
+      settingsController: _MockSettingsController(),
+      shaderFilterSupported: true,
+    );
+
+    addTearDown(controller.dispose);
+
+    final source = _FakeFrameSource();
+
+    controller.updateFrameSource(source);
+
+    source.produceFrame(_handle());
+    await pumpEventQueue();
+
+    final textureId = (controller.value as TextureDisplayFrameState).textureId;
+
+    controller.updateVideoFilter(active: true);
+
+    source.produceFrame(_handle());
+    await pumpEventQueue();
+
+    final state = controller.value;
+
+    expect(state, isA<TextureDisplayFrameState>());
+    expect((state as TextureDisplayFrameState).textureId, textureId);
+  });
+
+  test('an active video filter forces CPU decode on the GPU path when '
+      'shader image filters are unsupported', () async {
     final platform = _FakeNesdTexturePlatform();
     final previousPlatform = NesdTexturePlatform.instance;
 

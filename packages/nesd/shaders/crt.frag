@@ -1,8 +1,11 @@
 #version 460 core
 #include <flutter/runtime_effect.glsl>
 
-uniform vec2 uSourceSize;
+// The leading vec2 must stay first: when this shader runs as an
+// ImageFilter over the GPU texture path, the engine writes the input
+// texture size into the first two floats.
 uniform vec2 uOutputSize;
+uniform vec2 uSourceSize;
 uniform float uScanlineIntensity;
 uniform float uMaskStrength;
 uniform float uCurvature;

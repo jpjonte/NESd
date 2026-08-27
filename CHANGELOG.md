@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
+- Video filters (CRT, smooth) can now run on top of the GPU renderer instead of forcing a fallback to the CPU renderer
 - The Quit button is no longer shown on Android, where apps background instead of quitting
 - The log viewer now opens at the Info level and tags telemetry lines as Debug
 - The About button moved from the main menu to the General settings tab
