@@ -46,6 +46,15 @@ void main() {
     expect(sink.records.single.message, 'NESD_AUDIO ts=1');
   });
 
+  test('telemetry records are tagged debug so viewers can hide them', () {
+    final sink = _RecordingSink();
+    final log = NesdLog(sinks: [sink]);
+
+    log.telemetry.emit('NESD_AUDIO ts=1');
+
+    expect(sink.records.single.level, LogLevel.debug);
+  });
+
   test('records carry channel, context, error and isolate tag', () {
     final sink = _RecordingSink();
     final log = NesdLog(

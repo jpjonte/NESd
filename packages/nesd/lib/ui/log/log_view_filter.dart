@@ -9,7 +9,7 @@ part 'log_view_filter.g.dart';
 sealed class LogViewFilterState with _$LogViewFilterState {
   const factory LogViewFilterState({
     required Set<LogChannel> channels,
-    @Default(LogLevel.debug) LogLevel level,
+    @Default(LogLevel.info) LogLevel level,
     @Default('') String search,
   }) = _LogViewFilterState;
 }

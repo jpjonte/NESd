@@ -50,7 +50,7 @@ final class LogViewFilterProvider
   }
 }
 
-String _$logViewFilterHash() => r'104d2b43dfad812b95235f49062eb6ba8d1052df';
+String _$logViewFilterHash() => r'0cffad86cea8113e591f2d4d6678af9577adb67c';
 
 /// The viewer's filter selections, kept alive so they survive leaving and
 /// reopening the screen. Deliberately not persisted to disk — a fresh app

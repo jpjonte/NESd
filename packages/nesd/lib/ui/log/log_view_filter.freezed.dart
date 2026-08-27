@@ -203,7 +203,7 @@ return $default(_that.channels,_that.level,_that.search);case _:
 
 
 class _LogViewFilterState implements LogViewFilterState {
-  const _LogViewFilterState({required  Set<LogChannel> channels, this.level = LogLevel.debug, this.search = ''}): _channels = channels;
+  const _LogViewFilterState({required  Set<LogChannel> channels, this.level = LogLevel.info, this.search = ''}): _channels = channels;
   
 
  final  Set<LogChannel> _channels;

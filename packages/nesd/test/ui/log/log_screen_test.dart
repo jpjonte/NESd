@@ -4,14 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_format.dart';
 import 'package:nesd/log/sink/log_buffer_sink.dart';
+import 'package:nesd/ui/log/log_actions.dart';
 import 'package:nesd/ui/log/log_channel_filter.dart';
 import 'package:nesd/ui/log/log_colors.dart';
+import 'package:nesd/ui/log/log_export_dialog.dart';
 import 'package:nesd/ui/log/log_record_tile.dart';
 import 'package:nesd/ui/log/log_screen.dart';
 import 'package:nesd/ui/log/log_search_field.dart';
 import 'package:nesd/ui/log/log_view_filter.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/debug/view_log_button.dart';
+import 'package:riverpod/misc.dart';
 
 import '../robot.dart';
 
@@ -28,6 +31,20 @@ LogRecord _record({
   context: context,
 );
 
+class _RecordingLogActions extends LogActions {
+  List<LogRecord>? exported;
+
+  @override
+  Future<Uri?> exportRecords(
+    Iterable<LogRecord> records, {
+    required bool includeContext,
+  }) async {
+    exported = records.toList();
+
+    return null;
+  }
+}
+
 void main() {
   setUp(() {
     NesdLog.install(
@@ -40,8 +57,9 @@ void main() {
   Future<void> openLog(
     Robot robot, {
     List<LogRecord> records = const [],
+    List<Override> overrides = const [],
   }) async {
-    await robot.pumpApp();
+    await robot.pumpApp(overrides: overrides);
 
     NesdLog.instance.sinkOfType<LogBufferSink>()!.clear();
 
@@ -79,6 +97,27 @@ void main() {
     expect(find.textContaining('first message'), findsOneWidget);
   });
 
+  testWidgets('debug records are hidden by the default level filter', (
+    tester,
+  ) async {
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+    );
+
+    expect(find.textContaining('an info line'), findsOneWidget);
+    expect(
+      find.textContaining('a debug line'),
+      findsNothing,
+      reason: 'the default level is info, keeping telemetry noise out',
+    );
+  });
+
   testWidgets('filters by minimum level', (tester) async {
     final robot = Robot(tester);
 
@@ -90,7 +129,16 @@ void main() {
       ],
     );
 
-    expect(find.byType(LogRecordTile), findsNWidgets(2));
+    await tester.tap(find.byKey(LogScreen.levelFilterKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Debug').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(LogRecordTile),
+      findsNWidgets(2),
+      reason: 'lowering the level below the info default reveals debug rows',
+    );
 
     await tester.tap(find.byKey(LogScreen.levelFilterKey));
     await tester.pumpAndSettle();
@@ -197,7 +245,9 @@ void main() {
     await openLog(
       robot,
       records: [
-        _record(message: 'a debug line', level: LogLevel.debug),
+        // Info, not debug: a filter wrongly reset to the info default
+        // would still hide a debug record and mask the regression.
+        _record(message: 'an info line'),
         _record(message: 'an error line', level: LogLevel.error),
       ],
     );
@@ -273,7 +323,7 @@ void main() {
     await openLog(
       robot,
       records: [
-        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
         _record(message: 'an error line', level: LogLevel.error),
       ],
     );
@@ -652,6 +702,79 @@ void main() {
       reason: 'copying one row must not drag in its neighbors',
     );
     expect(copied, contains('second line'));
+  });
+
+  testWidgets('copy all captures records the filters hide', (tester) async {
+    String? copied;
+
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+
+        return null;
+      },
+    );
+
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+    );
+
+    expect(
+      find.textContaining('a debug line'),
+      findsNothing,
+      reason: 'the default level filter must be hiding the debug row',
+    );
+
+    await tester.tap(find.byKey(LogScreen.copyAllKey));
+    await tester.pumpAndSettle();
+
+    expect(copied, contains('an info line'));
+    expect(
+      copied,
+      contains('a debug line'),
+      reason: '"all" means the whole buffer, not just the visible rows',
+    );
+  });
+
+  testWidgets('file export captures records the filters hide', (tester) async {
+    final actions = _RecordingLogActions();
+    final robot = Robot(tester);
+
+    await openLog(
+      robot,
+      records: [
+        _record(message: 'a debug line', level: LogLevel.debug),
+        _record(message: 'an info line'),
+      ],
+      overrides: [logActionsProvider.overrideWithValue(actions)],
+    );
+
+    await tester.tap(find.byKey(LogScreen.exportKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(LogExportDialog.saveKey));
+    await tester.pumpAndSettle();
+
+    expect(actions.exported, isNotNull);
+    expect(actions.exported!.map((r) => r.message), [
+      'a debug line',
+      'an info line',
+    ], reason: 'the whole buffer, oldest first, regardless of view filters');
   });
 
   testWidgets('clear empties the buffer', (tester) async {

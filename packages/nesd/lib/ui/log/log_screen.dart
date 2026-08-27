@@ -59,7 +59,7 @@ class LogScreen extends ConsumerWidget {
           IconButton(
             key: copyAllKey,
             onPressed: () => unawaited(
-              actions.copyRecords(records.reversed, includeContext: true),
+              actions.copyRecords(buffer.records, includeContext: true),
             ),
             icon: const Icon(Icons.copy),
             tooltip: 'Copy all',
@@ -74,7 +74,7 @@ class LogScreen extends ConsumerWidget {
               }
 
               await actions.exportRecords(
-                records.reversed,
+                buffer.records,
                 includeContext: includeContext,
               );
             },
@@ -199,7 +199,7 @@ class _FilterRow extends StatelessWidget {
               child: Dropdown<LogLevel>(
                 key: LogScreen.levelFilterKey,
                 value: filter.level,
-                onChanged: (value) => notifier.level = value ?? LogLevel.debug,
+                onChanged: (value) => notifier.level = value ?? LogLevel.info,
                 items: [
                   for (final value in LogLevel.values)
                     DropdownMenuItem(value: value, child: Text(value.label)),
