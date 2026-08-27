@@ -153,6 +153,10 @@ class RemoteNes {
   // ignore: avoid_setters_without_getters
   set volume(double volume) => _send(SetVolumeCommand(volume: volume));
 
+  // ignore: avoid_setters_without_getters
+  set lowPassFilter(bool enabled) =>
+      _send(SetLowPassFilterCommand(enabled: enabled));
+
   void startPcmDump(String path) => _send(StartPcmDumpCommand(path: path));
 
   void stopPcmDump() => _send(const StopPcmDumpCommand());

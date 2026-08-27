@@ -51,6 +51,7 @@ void main() {
     when(() => settings.region).thenReturn(null);
     when(() => settings.rewind).thenReturn(false);
     when(() => settings.volume).thenReturn(1.0);
+    when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);

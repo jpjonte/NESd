@@ -8,6 +8,7 @@ part of 'settings.dart';
 
 _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
+  lowPassFilter: json['lowPassFilter'] as bool? ?? false,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
@@ -90,6 +91,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
+  'lowPassFilter': instance.lowPassFilter,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
   'showDebugOverlay': instance.showDebugOverlay,
