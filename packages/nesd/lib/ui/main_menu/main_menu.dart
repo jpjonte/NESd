@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
@@ -44,24 +45,18 @@ class MainMenu extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(initialRomProvider, (_, initialRom) {
-      if (initialRom != null) {
-        scheduleMicrotask(() {
-          unawaited(
-            ref
-                .read(nesControllerProvider)
-                .startRom(
-                  FilesystemFile(
-                    path: initialRom,
-                    name: p.basename(initialRom),
-                    type: FilesystemFileType.file,
-                  ),
-                ),
-          );
-          ref.read(initialRomProvider.notifier).clear();
-        });
-      }
-    });
+    useEffect(() {
+      final subscription = ref.listenManual(initialRomProvider, (
+        _,
+        initialRom,
+      ) {
+        if (initialRom != null) {
+          scheduleMicrotask(() => _startInitialRom(ref, initialRom));
+        }
+      }, fireImmediately: true);
+
+      return subscription.close;
+    }, const []);
 
     return FocusChild(
       autofocus: true,
@@ -89,6 +84,22 @@ class MainMenu extends HookConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _startInitialRom(WidgetRef ref, String initialRom) {
+    unawaited(
+      ref
+          .read(nesControllerProvider)
+          .startRom(
+            FilesystemFile(
+              path: initialRom,
+              name: p.basename(initialRom),
+              type: FilesystemFileType.file,
+            ),
+          ),
+    );
+
+    ref.read(initialRomProvider.notifier).clear();
   }
 }
 

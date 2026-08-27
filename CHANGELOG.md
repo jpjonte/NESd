@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
 
 ### Fixed
+- Fixed a ROM path passed on the command line not starting automatically
 - Fixed the "Save states" entry in the recent ROM context menu doing nothing when no game is running
 - Fixed not all architectures being published to the Flatpak repo
 - Fixed MMC1 games (e.g. The Legend of Zelda) freezing after rewinding
