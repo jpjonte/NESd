@@ -32,9 +32,8 @@ void main() {
     return container.read(settingsControllerProvider.notifier);
   }
 
-  test('video filter settings survive a JSON round trip', () {
+  test('crt filter settings survive a JSON round trip', () {
     final settings = Settings(
-      videoFilter: VideoFilter.crt,
       crtFilter: const CrtFilterSettings(
         scanlineIntensity: 0.5,
         maskStrength: 0.1,
@@ -44,7 +43,6 @@ void main() {
 
     final decoded = Settings.fromJson(settings.toJson());
 
-    expect(decoded.videoFilter, VideoFilter.crt);
     expect(decoded.crtFilter.scanlineIntensity, 0.5);
     expect(decoded.crtFilter.maskStrength, 0.1);
     expect(decoded.crtFilter.curvature, 0.2);
@@ -53,7 +51,6 @@ void main() {
   test('settings JSON without filter keys falls back to defaults', () {
     final decoded = Settings.fromJson({});
 
-    expect(decoded.videoFilter, VideoFilter.none);
     expect(decoded.crtFilter, const CrtFilterSettings());
     expect(decoded.crtFilter.scanlineIntensity, 0.35);
     expect(decoded.crtFilter.maskStrength, 0.25);
