@@ -8,6 +8,7 @@ import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/soak/soak_runner.dart';
+import 'package:nesd/ui/splash/splash.dart';
 import 'package:nesd/ui/theme/dark.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -30,6 +31,8 @@ class _NesdAppState extends ConsumerState<NesdApp> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      dismissSplash();
+
       if (ref.read(startupWarningProvider) case final warning?) {
         ref.read(toasterProvider).send(Toast.warning(warning));
       }

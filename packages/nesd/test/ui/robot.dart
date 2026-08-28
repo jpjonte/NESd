@@ -93,6 +93,7 @@ class Robot extends BaseRobot {
     Size logicalSize = const Size(1920, 1080),
     double? devicePixelRatio,
     List<Override> overrides = const [],
+    StorageFilesystem? storage,
     bool settle = true,
   }) async {
     fileSystem
@@ -153,7 +154,7 @@ class Robot extends BaseRobot {
           filesystemProvider.overrideWithValue(fileSystem),
           applicationSupportPathProvider.overrideWithValue(tempDir.path),
           storageFilesystemProvider.overrideWithValue(
-            NativeStorageFilesystem(),
+            storage ?? NativeStorageFilesystem(),
           ),
           ...overrides,
         ],
