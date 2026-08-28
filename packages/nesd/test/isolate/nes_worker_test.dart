@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -243,6 +244,17 @@ void main() {
     await worker.handleCommand(const SetFastForwardCommand(enabled: false));
 
     expect(events.whereType<StatusEvent>().last.fastForward, isFalse);
+  });
+
+  test('SetFastForwardSpeedCommand applies the speed to the NES', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    await worker.handleCommand(
+      const SetFastForwardSpeedCommand(speed: FastForwardSpeed.x4),
+    );
+
+    expect(worker.nesForTesting!.fastForwardSpeed, FastForwardSpeed.x4);
   });
 
   test('SetRewindCommand enables rewind and reports it', () async {

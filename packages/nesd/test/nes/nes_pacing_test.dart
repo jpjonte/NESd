@@ -5,6 +5,7 @@ import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
@@ -51,7 +52,40 @@ void main() {
     },
   );
 
-  test('fastForward emits empty samples and zero sleep', () async {
+  test('fastForward at a finite speed emits decimated samples and '
+      'governor-driven sleep', () async {
+    final eventBus = EventBus();
+
+    final nes = NES(
+      cartridge: loadNestest(),
+      eventBus: eventBus,
+      audioFillProbe: () => (fill: 2400, capacity: 2400),
+    );
+
+    final fastForwardFrame = eventBus.stream.firstWhere(
+      (event) =>
+          event is FrameNesEvent &&
+          event.samples.isNotEmpty &&
+          event.samples.length < 500,
+    );
+
+    nes
+      ..reset()
+      ..fastForwardSpeed = FastForwardSpeed.x2
+      ..fastForward = true;
+
+    final event =
+        await fastForwardFrame.timeout(const Duration(seconds: 30))
+            as FrameNesEvent;
+
+    nes.stop();
+
+    expect(event.samples.length, inInclusiveRange(300, 500));
+    expect(event.sleepTime, const Duration(microseconds: 25000));
+  });
+
+  test('fastForward at max speed emits empty samples and zero '
+      'sleep', () async {
     final eventBus = EventBus();
     final nes = NES(cartridge: loadNestest(), eventBus: eventBus);
 
@@ -62,6 +96,7 @@ void main() {
     // reset() clears fastForward, so enable it after the loop starts.
     nes
       ..reset()
+      ..fastForwardSpeed = FastForwardSpeed.max
       ..fastForward = true;
 
     final event =

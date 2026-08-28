@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Implemented GPU rendering on Linux and Windows
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
+- Fast-forward now plays audio
+- Fast-forward speed is configurable: 2x (default), 3x, 4x, max (without audio)
 - Added a Low Pass Filter toggle to the Audio settings
 - The log viewer now colors log levels and channels and supports text search
 - Nightly and branch builds now show a build id in the About dialog and the startup log

@@ -13,11 +13,13 @@ import 'package:nesd/nes/cpu/operation.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
+import 'package:nesd/nes/sample_decimator.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/wait.dart';
 
@@ -60,6 +62,10 @@ class NES {
   bool get inLoop => _inLoop;
 
   bool fastForward = false;
+
+  FastForwardSpeed fastForwardSpeed = FastForwardSpeed.x2;
+
+  final SampleDecimator _fastForwardDecimator = SampleDecimator();
 
   bool get rewind => _rewind;
 
@@ -391,17 +397,28 @@ class NES {
 
     final workTime = _openFrameWindow();
 
-    final samples = fastForward
-        ? _emptySamples
-        : apu.sampleBuffer.sublist(0, apu.sampleIndex);
+    final factor = fastForward ? fastForwardSpeed.factor : 1;
 
-    final sleepTime = fastForward
-        ? Duration.zero
-        : governor.sleepFor(
-            samplesProduced: apu.sampleIndex,
-            elapsed: workTime,
-            audio: audioFillProbe?.call(),
-          );
+    final Float32List samples;
+    final Duration sleepTime;
+
+    if (factor == null) {
+      samples = _emptySamples;
+      sleepTime = Duration.zero;
+    } else {
+      samples = factor == 1
+          ? apu.sampleBuffer.sublist(0, apu.sampleIndex)
+          : _fastForwardDecimator.decimate(
+              Float32List.sublistView(apu.sampleBuffer, 0, apu.sampleIndex),
+              factor,
+            );
+
+      sleepTime = governor.sleepFor(
+        samplesProduced: samples.length,
+        elapsed: workTime,
+        audio: audioFillProbe?.call(),
+      );
+    }
 
     eventBus.add(
       FrameNesEvent(

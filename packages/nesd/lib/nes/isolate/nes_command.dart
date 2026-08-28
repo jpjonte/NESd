@@ -3,6 +3,7 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -135,6 +136,12 @@ class SetVolumeCommand extends NesCommand {
   const SetVolumeCommand({required this.volume});
 
   final double volume;
+}
+
+class SetFastForwardSpeedCommand extends NesCommand {
+  const SetFastForwardSpeedCommand({required this.speed});
+
+  final FastForwardSpeed speed;
 }
 
 class SetLowPassFilterCommand extends NesCommand {
