@@ -148,6 +148,24 @@ void main() {
       expect(lightBit(zapper.read(0)), 0);
     });
 
+    test('ignores the pixel at the beam position (not rendered yet)', () {
+      stubBeam(scanline: 115, cycle: 109);
+      stubBrightPixel(108, 115);
+
+      zapper.position = const Offset(110, 116);
+
+      expect(lightBit(zapper.read(0)), 1);
+    });
+
+    test('detects light for the pixel drawn on the previous dot', () {
+      stubBeam(scanline: 115, cycle: 110);
+      stubBrightPixel(108, 115);
+
+      zapper.position = const Offset(110, 116);
+
+      expect(lightBit(zapper.read(0)), 0);
+    });
+
     test('detects light within a small radius around the position', () {
       stubBeam(scanline: 101, cycle: 0);
       stubBrightPixel(102, 100);
