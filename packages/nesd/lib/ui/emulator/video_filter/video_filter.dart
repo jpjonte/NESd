@@ -5,6 +5,17 @@ import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 
 enum VideoFilter { none, crt, smooth }
 
+const videoFilterOrder = [VideoFilter.smooth, VideoFilter.crt];
+
+List<VideoFilter> normalizeVideoFilters(Iterable<VideoFilter> filters) {
+  final enabled = filters.toSet();
+
+  return [
+    for (final filter in videoFilterOrder)
+      if (enabled.contains(filter)) filter,
+  ];
+}
+
 @immutable
 class VideoFilterParameter {
   const VideoFilterParameter({

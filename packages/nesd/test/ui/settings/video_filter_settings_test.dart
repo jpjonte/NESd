@@ -43,4 +43,21 @@ void main() {
     expect(videoFilterUniforms(VideoFilter.smooth, crt), isEmpty);
     expect(videoFilterUniforms(VideoFilter.none, crt), isEmpty);
   });
+
+  test('normalizeVideoFilters enforces canonical order and drops '
+      'duplicates and none', () {
+    expect(normalizeVideoFilters([VideoFilter.crt, VideoFilter.smooth]), [
+      VideoFilter.smooth,
+      VideoFilter.crt,
+    ]);
+    expect(
+      normalizeVideoFilters([
+        VideoFilter.crt,
+        VideoFilter.crt,
+        VideoFilter.none,
+      ]),
+      [VideoFilter.crt],
+    );
+    expect(normalizeVideoFilters([]), isEmpty);
+  });
 }
