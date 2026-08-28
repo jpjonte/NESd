@@ -91,6 +91,18 @@ pushd packages/nesd && fvm flutter analyze && fvm flutter test && popd
 FLUTTER="fvm flutter" ci/0-test/web_test.sh  # browser subset, needs Chrome
 ```
 
+## Supported game counts
+
+The mapper list and game counts in `README.md`, and `supportedGameCount` in `website/lib/content.dart`, are generated from `assets/nes20db.xml`. After adding a mapper or updating the database, regenerate them:
+
+```bash
+pushd packages/nesd && fvm dart run tool/update_game_counts.dart && popd
+```
+
+A new mapper needs its display name added to the README list by hand first, the script will tell you if one is missing. `--check` reports drift without writing, for use in CI.
+
+The script counts retail releases and multicarts, and skips homebrew, bootlegs, hacks, prototypes, bad dumps, samples, arcade boards and BIOS images.
+
 ## Running on the web
 
 Development loop:
