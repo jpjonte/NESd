@@ -183,7 +183,13 @@ void main() {
       })
       .toList();
 
-  for (final name in [_fixSmb, _fixZelda, _fixKirby, _fixPunchOut]) {
+  for (final name in [
+    _fixSmb,
+    _fixZelda,
+    _fixKirby,
+    _fixPunchOut,
+    _fixBattletoads,
+  ]) {
     testWidgets(name, (tester) async {
       final files = _fixtures([name]);
 
