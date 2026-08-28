@@ -162,8 +162,8 @@ class DisplayBuilder extends ConsumerWidget {
                 textureId: textureId!,
                 imageWidth: imageWidth,
                 imageHeight: imageHeight,
-                filter: videoFilter,
-                shader: shader,
+                filters: settings.videoFilters,
+                shaders: shaderState.shaders,
                 crtFilter: settings.crtFilter,
                 shaderFilterSupported: ui.ImageFilter.isShaderFilterSupported,
                 imageFilterFactory: ui.ImageFilter.shader,
@@ -298,8 +298,8 @@ Widget frameTextureLayer({
   required int textureId,
   required int imageWidth,
   required int imageHeight,
-  required VideoFilter filter,
-  required ui.FragmentShader? shader,
+  required List<VideoFilter> filters,
+  required Map<VideoFilter, ui.FragmentShader> shaders,
   required CrtFilterSettings crtFilter,
   required bool shaderFilterSupported,
   required ui.ImageFilter Function(ui.FragmentShader shader) imageFilterFactory,
@@ -308,21 +308,42 @@ Widget frameTextureLayer({
     child: Texture(textureId: textureId, filterQuality: FilterQuality.none),
   );
 
-  if (filter == VideoFilter.none || shader == null || !shaderFilterSupported) {
+  if (!shaderFilterSupported) {
     return texture;
   }
 
-  configureVideoFilterShader(
-    shader,
-    filter: filter,
-    sourceWidth: imageWidth.toDouble(),
-    sourceHeight: imageHeight.toDouble(),
-    crtFilter: crtFilter,
-  );
+  final chain = [
+    for (final filter in filters)
+      if (shaders[filter] case final shader?) (filter: filter, shader: shader),
+  ];
+
+  if (chain.isEmpty) {
+    return texture;
+  }
+
+  ui.ImageFilter? composed;
+
+  for (final stage in chain) {
+    configureVideoFilterShader(
+      stage.shader,
+      filter: stage.filter,
+      sourceWidth: imageWidth.toDouble(),
+      sourceHeight: imageHeight.toDouble(),
+      crtFilter: crtFilter,
+    );
+
+    final stageFilter = imageFilterFactory(stage.shader);
+
+    composed = composed == null
+        ? stageFilter
+        : ui.ImageFilter.compose(outer: stageFilter, inner: composed);
+  }
+
+  final chainKey = chain.map((stage) => stage.filter.name).join('+');
 
   return ImageFiltered(
-    key: ValueKey((filter, crtFilter, imageWidth, imageHeight)),
-    imageFilter: imageFilterFactory(shader),
+    key: ValueKey((chainKey, crtFilter, imageWidth, imageHeight)),
+    imageFilter: composed!,
     child: texture,
   );
 }

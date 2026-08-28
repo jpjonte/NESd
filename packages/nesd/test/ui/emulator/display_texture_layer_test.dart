@@ -33,8 +33,8 @@ void main() {
         textureId: 1,
         imageWidth: 256,
         imageHeight: 240,
-        filter: VideoFilter.crt,
-        shader: shader,
+        filters: const [VideoFilter.crt],
+        shaders: {VideoFilter.crt: shader},
         crtFilter: const CrtFilterSettings(),
         shaderFilterSupported: true,
         imageFilterFactory: (shader) {
@@ -58,13 +58,14 @@ void main() {
   testWidgets('changing filter parameters re-keys the filter widget so the '
       'layer re-snapshots the uniforms', (tester) async {
     final shader = await loadShader(tester);
+    final smoothShader = await loadShader(tester);
 
     Widget layer(CrtFilterSettings crtFilter) => frameTextureLayer(
       textureId: 1,
       imageWidth: 256,
       imageHeight: 240,
-      filter: VideoFilter.crt,
-      shader: shader,
+      filters: const [VideoFilter.crt],
+      shaders: {VideoFilter.crt: shader},
       crtFilter: crtFilter,
       shaderFilterSupported: true,
       imageFilterFactory: identityFilter,
@@ -78,6 +79,25 @@ void main() {
     expect(initial.key, isNotNull);
     expect(initial.key, isNot(changed.key));
     expect(initial.key, unchanged.key);
+
+    Widget layerFor(List<VideoFilter> filters) => frameTextureLayer(
+      textureId: 1,
+      imageWidth: 256,
+      imageHeight: 240,
+      filters: filters,
+      shaders: {VideoFilter.crt: shader, VideoFilter.smooth: smoothShader},
+      crtFilter: const CrtFilterSettings(),
+      shaderFilterSupported: true,
+      imageFilterFactory: identityFilter,
+    );
+
+    final oneFilter = layerFor(const [VideoFilter.crt]);
+    final twoFilters = layerFor(const [VideoFilter.smooth, VideoFilter.crt]);
+
+    expect(
+      (oneFilter as ImageFiltered).key,
+      isNot((twoFilters as ImageFiltered).key),
+    );
   });
 
   testWidgets('the texture stays unfiltered when shader image filters are '
@@ -89,8 +109,8 @@ void main() {
         textureId: 1,
         imageWidth: 256,
         imageHeight: 240,
-        filter: VideoFilter.crt,
-        shader: shader,
+        filters: const [VideoFilter.crt],
+        shaders: {VideoFilter.crt: shader},
         crtFilter: const CrtFilterSettings(),
         shaderFilterSupported: false,
         imageFilterFactory: identityFilter,
@@ -107,8 +127,8 @@ void main() {
         textureId: 1,
         imageWidth: 256,
         imageHeight: 240,
-        filter: VideoFilter.crt,
-        shader: null,
+        filters: const [VideoFilter.crt],
+        shaders: const {},
         crtFilter: const CrtFilterSettings(),
         shaderFilterSupported: true,
         imageFilterFactory: identityFilter,
@@ -125,8 +145,8 @@ void main() {
         textureId: 1,
         imageWidth: 256,
         imageHeight: 240,
-        filter: VideoFilter.none,
-        shader: null,
+        filters: const [],
+        shaders: const {},
         crtFilter: const CrtFilterSettings(),
         shaderFilterSupported: true,
         imageFilterFactory: identityFilter,
@@ -135,5 +155,61 @@ void main() {
 
     expect(find.byType(ImageFiltered), findsNothing);
     expect(find.byType(Texture), findsOneWidget);
+  });
+
+  testWidgets('two enabled filters compose into a single filtered layer '
+      'with the factory called per stage in canonical order', (tester) async {
+    final crtShader = await loadShader(tester);
+    final smoothShader = await loadShader(tester);
+
+    final receivedShaders = <ui.FragmentShader>[];
+
+    await tester.pumpWidget(
+      frameTextureLayer(
+        textureId: 1,
+        imageWidth: 256,
+        imageHeight: 240,
+        filters: const [VideoFilter.smooth, VideoFilter.crt],
+        shaders: {VideoFilter.smooth: smoothShader, VideoFilter.crt: crtShader},
+        crtFilter: const CrtFilterSettings(),
+        shaderFilterSupported: true,
+        imageFilterFactory: (shader) {
+          receivedShaders.add(shader);
+
+          return ui.ImageFilter.matrix(Matrix4.identity().storage);
+        },
+      ),
+    );
+
+    expect(find.byType(ImageFiltered), findsOneWidget);
+    expect(receivedShaders, [smoothShader, crtShader]);
+  });
+
+  testWidgets('a not-yet-loaded filter is skipped from the chain', (
+    tester,
+  ) async {
+    final crtShader = await loadShader(tester);
+
+    final receivedShaders = <ui.FragmentShader>[];
+
+    await tester.pumpWidget(
+      frameTextureLayer(
+        textureId: 1,
+        imageWidth: 256,
+        imageHeight: 240,
+        filters: const [VideoFilter.smooth, VideoFilter.crt],
+        shaders: {VideoFilter.crt: crtShader},
+        crtFilter: const CrtFilterSettings(),
+        shaderFilterSupported: true,
+        imageFilterFactory: (shader) {
+          receivedShaders.add(shader);
+
+          return ui.ImageFilter.matrix(Matrix4.identity().storage);
+        },
+      ),
+    );
+
+    expect(receivedShaders, [crtShader]);
+    expect(find.byType(ImageFiltered), findsOneWidget);
   });
 }
