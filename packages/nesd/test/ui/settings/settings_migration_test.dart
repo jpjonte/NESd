@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -126,5 +127,25 @@ void main() {
     final decoded = Settings.fromJson(settings.toJson());
 
     expect(decoded.openTools, EmulatorTool.values.toSet());
+  });
+
+  test('legacy videoFilter crt migrates to the videoFilters list', () {
+    final controller = load('{"videoFilter": "crt"}');
+
+    expect(controller.videoFilters, [VideoFilter.crt]);
+  });
+
+  test('legacy videoFilter none migrates to an empty list', () {
+    final controller = load('{"videoFilter": "none"}');
+
+    expect(controller.videoFilters, isEmpty);
+  });
+
+  test('a present videoFilters list wins over the legacy key', () {
+    final controller = load(
+      '{"videoFilter": "crt", "videoFilters": ["smooth"]}',
+    );
+
+    expect(controller.videoFilters, [VideoFilter.smooth]);
   });
 }

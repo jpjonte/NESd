@@ -87,9 +87,11 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       PixelAspectRatio.auto,
   customPixelAspectRatio:
       (json['customPixelAspectRatio'] as num?)?.toDouble() ?? 1.0,
-  videoFilter:
-      $enumDecodeNullable(_$VideoFilterEnumMap, json['videoFilter']) ??
-      VideoFilter.none,
+  videoFilters:
+      (json['videoFilters'] as List<dynamic>?)
+          ?.map((e) => $enumDecode(_$VideoFilterEnumMap, e))
+          .toList() ??
+      const [],
   crtFilter: json['crtFilter'] == null
       ? const CrtFilterSettings()
       : _crtFilterFromJson(json['crtFilter']),
@@ -126,7 +128,9 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'rewind': instance.rewind,
   'pixelAspectRatio': _$PixelAspectRatioEnumMap[instance.pixelAspectRatio]!,
   'customPixelAspectRatio': instance.customPixelAspectRatio,
-  'videoFilter': _$VideoFilterEnumMap[instance.videoFilter]!,
+  'videoFilters': instance.videoFilters
+      .map((e) => _$VideoFilterEnumMap[e]!)
+      .toList(),
   'crtFilter': _crtFilterToJson(instance.crtFilter),
 };
 
@@ -231,7 +235,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'86a14dcc309d8f200c222cc654f7b14f0e06d613';
+    r'9a7d402cb9889d3bd700820c24f4d0bf42356bc4';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

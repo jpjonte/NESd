@@ -8,7 +8,6 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd_texture/nesd_texture.dart';
@@ -41,11 +40,11 @@ Raw<DisplayFrameController> displayFrameController(Ref ref) {
     ..listen(videoFilterActiveProvider, (_, active) {
       controller.updateVideoFilter(active: active);
     }, fireImmediately: true)
-    ..listen(settingsControllerProvider.select((s) => s.videoFilter), (
+    ..listen(settingsControllerProvider.select((s) => s.videoFilters), (
       _,
-      filter,
+      filters,
     ) {
-      if (filter != VideoFilter.none) {
+      for (final filter in filters) {
         ref.read(videoFilterRegistryProvider.notifier).ensureLoaded(filter);
       }
     }, fireImmediately: true);

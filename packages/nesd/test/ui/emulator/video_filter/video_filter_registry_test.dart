@@ -38,7 +38,7 @@ void main() {
 
   test('a failing load marks the filter failed and deactivates it', () async {
     final container = buildContainer(
-      settingsJson: '{"videoFilter":"crt"}',
+      settingsJson: '{"videoFilters":["crt"]}',
       loader: (asset) async => throw Exception('no shader support'),
     )..listen(videoFilterActiveProvider, (_, _) {});
 
@@ -63,7 +63,7 @@ void main() {
       final completer = Completer<ui.FragmentProgram>();
 
       final container = buildContainer(
-        settingsJson: '{"videoFilter":"crt"}',
+        settingsJson: '{"videoFilters":["crt"]}',
         loader: (asset) => completer.future,
       );
 
@@ -87,7 +87,9 @@ void main() {
 
   testWidgets('a successful load exposes a shader', (tester) async {
     await tester.runAsync(() async {
-      final container = buildContainer(settingsJson: '{"videoFilter":"crt"}');
+      final container = buildContainer(
+        settingsJson: '{"videoFilters":["crt"]}',
+      );
 
       container
           .read(videoFilterRegistryProvider.notifier)
@@ -108,5 +110,31 @@ void main() {
       expect(state.shaders[VideoFilter.crt], isA<ui.FragmentShader>());
       expect(container.read(videoFilterActiveProvider), isTrue);
     });
+  });
+
+  test('the active provider stays true while any enabled filter has '
+      'not failed', () async {
+    final container = buildContainer(
+      settingsJson: '{"videoFilters":["smooth","crt"]}',
+      loader: (asset) {
+        if (asset.contains('crt')) {
+          throw Exception('no shader support');
+        }
+
+        return Completer<ui.FragmentProgram>().future;
+      },
+    )..listen(videoFilterActiveProvider, (_, _) {});
+
+    container.read(videoFilterRegistryProvider.notifier)
+      ..ensureLoaded(VideoFilter.smooth)
+      ..ensureLoaded(VideoFilter.crt);
+
+    await pumpEventQueue();
+
+    final state = container.read(videoFilterRegistryProvider);
+
+    expect(state.hasFailed(VideoFilter.crt), isTrue);
+    expect(state.hasFailed(VideoFilter.smooth), isFalse);
+    expect(container.read(videoFilterActiveProvider), isTrue);
   });
 }

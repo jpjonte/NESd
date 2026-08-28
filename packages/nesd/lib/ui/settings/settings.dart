@@ -130,7 +130,7 @@ sealed class Settings with _$Settings {
     @Default(true) bool rewind,
     @Default(PixelAspectRatio.auto) PixelAspectRatio pixelAspectRatio,
     @Default(1.0) double customPixelAspectRatio,
-    @Default(VideoFilter.none) VideoFilter videoFilter,
+    @Default([]) List<VideoFilter> videoFilters,
     @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson)
     @Default(CrtFilterSettings())
     CrtFilterSettings crtFilter,
@@ -461,10 +461,18 @@ class SettingsController extends _$SettingsController {
     _update(state.copyWith(customPixelAspectRatio: customPixelAspectRatio));
   }
 
-  VideoFilter get videoFilter => state.videoFilter;
+  List<VideoFilter> get videoFilters => state.videoFilters;
 
-  set videoFilter(VideoFilter videoFilter) {
-    _update(state.copyWith(videoFilter: videoFilter));
+  void toggleVideoFilter(VideoFilter filter, {required bool enabled}) {
+    final updated = state.videoFilters.toSet();
+
+    if (enabled) {
+      updated.add(filter);
+    } else {
+      updated.remove(filter);
+    }
+
+    _update(state.copyWith(videoFilters: normalizeVideoFilters(updated)));
   }
 
   CrtFilterSettings get crtFilter => state.crtFilter;
@@ -524,6 +532,7 @@ class SettingsController extends _$SettingsController {
     log.settings.info('Settings loaded', context: {'firstRun': false});
 
     _migrateOpenTools(json);
+    _migrateVideoFilters(json);
 
     final loaded = Settings.fromJson(json);
 
@@ -567,5 +576,17 @@ class SettingsController extends _$SettingsController {
       if (json['showDebugger'] == true) EmulatorTool.debugger.name,
       if (json['showApuDebug'] == true) EmulatorTool.apuDebug.name,
     ];
+  }
+
+  void _migrateVideoFilters(Map<String, dynamic> json) {
+    final legacy = json.remove('videoFilter');
+
+    if (json.containsKey('videoFilters')) {
+      return;
+    }
+
+    if (legacy is String && legacy != 'none') {
+      json['videoFilters'] = [legacy];
+    }
   }
 }

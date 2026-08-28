@@ -32,8 +32,8 @@ void main() {
 
       final painter = frameBasePainter(
         image: image,
-        filter: VideoFilter.crt,
-        shader: program.fragmentShader(),
+        filters: const [VideoFilter.crt],
+        shaders: {VideoFilter.crt: program.fragmentShader()},
         crtFilter: const CrtFilterSettings(),
       );
 
@@ -48,8 +48,8 @@ void main() {
     await tester.runAsync(() async {
       final painter = frameBasePainter(
         image: await _image(),
-        filter: VideoFilter.crt,
-        shader: null,
+        filters: const [VideoFilter.crt],
+        shaders: const {},
         crtFilter: const CrtFilterSettings(),
       );
 
@@ -61,12 +61,50 @@ void main() {
     await tester.runAsync(() async {
       final painter = frameBasePainter(
         image: await _image(),
-        filter: VideoFilter.none,
-        shader: null,
+        filters: const [],
+        shaders: const {},
         crtFilter: const CrtFilterSettings(),
       );
 
       expect(painter, isA<CpuFramePainter>());
+    });
+  });
+
+  testWidgets('with both filters enabled the CPU path applies crt only', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final crt = await ui.FragmentProgram.fromAsset('shaders/crt.frag');
+      final smooth = await ui.FragmentProgram.fromAsset('shaders/smooth.frag');
+
+      final painter = frameBasePainter(
+        image: await _image(),
+        filters: const [VideoFilter.smooth, VideoFilter.crt],
+        shaders: {
+          VideoFilter.smooth: smooth.fragmentShader(),
+          VideoFilter.crt: crt.fragmentShader(),
+        },
+        crtFilter: const CrtFilterSettings(),
+      );
+
+      expect(painter, isA<ShaderFramePainter>());
+      expect((painter as ShaderFramePainter).parameters, [0.35, 0.25, 0.0]);
+    });
+  });
+
+  testWidgets('crt pending falls back to the smooth filter', (tester) async {
+    await tester.runAsync(() async {
+      final smooth = await ui.FragmentProgram.fromAsset('shaders/smooth.frag');
+
+      final painter = frameBasePainter(
+        image: await _image(),
+        filters: const [VideoFilter.smooth, VideoFilter.crt],
+        shaders: {VideoFilter.smooth: smooth.fragmentShader()},
+        crtFilter: const CrtFilterSettings(),
+      );
+
+      expect(painter, isA<ShaderFramePainter>());
+      expect((painter as ShaderFramePainter).parameters, isEmpty);
     });
   });
 }
