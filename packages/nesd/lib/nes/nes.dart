@@ -29,7 +29,10 @@ class NES {
     required this.eventBus,
     this.governor = const PacingGovernor(),
     this.audioFillProbe,
-  }) : bus = Bus(cartridge) {
+    Stopwatch? clock,
+    this._sleep = wait,
+  }) : _clock = clock ?? Stopwatch(),
+       bus = Bus(cartridge) {
     bus
       ..cpu = cpu
       ..ppu = ppu
@@ -119,7 +122,9 @@ class NES {
 
   Region? _region;
 
-  final Stopwatch _clock = Stopwatch();
+  final Stopwatch _clock;
+
+  final Future<void> Function(Duration duration) _sleep;
 
   /// Marked when a frame's sleep ends; measures pure work time per frame
   /// (the governor input).
@@ -271,7 +276,7 @@ class NES {
     try {
       while (on) {
         if (!running) {
-          await wait(const Duration(milliseconds: 10));
+          await _sleep(const Duration(milliseconds: 10));
 
           continue;
         }
@@ -314,11 +319,15 @@ class NES {
     return workTime;
   }
 
-  /// Closes a frame window: sleeps, then marks the frame boundary.
+  /// Closes a frame window: sleeps, then marks the frame boundary at the
+  /// intended wake time. Timer inconsistencies land in the next frame's
+  /// measured work time, where the governor subtracts it.
   Future<void> _closeFrameWindow(Duration sleepTime) async {
-    await wait(sleepTime);
+    final sleepStartMicros = _clock.elapsedMicroseconds;
 
-    _lastFrameMarkMicros = _clock.elapsedMicroseconds;
+    await _sleep(sleepTime);
+
+    _lastFrameMarkMicros = sleepStartMicros + sleepTime.inMicroseconds;
   }
 
   Future<void> _handleRewind() async {

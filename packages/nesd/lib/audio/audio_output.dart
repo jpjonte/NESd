@@ -14,6 +14,7 @@ typedef AudioStats = ({
   int fullDelta,
   int fillMin,
   int fillMax,
+  int popMax,
 });
 
 /// Native ring capacity: 50 ms at the APU sample rate.
@@ -22,7 +23,7 @@ const audioBufferSamples = 2400;
 /// Web ring capacity: 100 ms to prevent underruns from JavaScript GC.
 const webAudioBufferSamples = 4800;
 
-/// Underrun recovery threshold: 20 ms.
+/// Underrun recovery margin (on top of the largest device read): 20 ms.
 const audioRecoverSamples = 960;
 
 const lowPassCutoff = 14000.0;
@@ -128,6 +129,7 @@ class AudioOutput {
       fullDelta: audio.overruns,
       fillMin: _fillMin ?? fill,
       fillMax: _fillMax ?? fill,
+      popMax: audio.popMax,
     );
 
     audio.resetStats();

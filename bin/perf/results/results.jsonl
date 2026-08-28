@@ -214,3 +214,5 @@
 {"label": "diag-postsoak-smb3", "device": "SM-T720", "freq": "1996800", "rom": "smb3.nes", "frames": 3000, "median_us": 12836, "p90_us": 12990, "flatout_fps": 77.8}
 {"label": "rewind-fix-01", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 5896, "exhaust_episodes": 3, "fill_min": 0}
 {"label": "rewind-fix-02", "kind": "audio-soak", "device": "SM-T720", "freq": "1996800", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 5412, "exhaust_episodes": 2, "fill_min": 0}
+{"label": "354-before-pixel7", "kind": "audio-soak", "device": "Pixel7Pro", "freq": "1826000", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 47, "exhaust_episodes": 41, "fill_min": 0}
+{"label": "354-after-pixel7", "kind": "audio-soak", "device": "Pixel7Pro", "freq": "2850000", "rom": "spritecans.nes", "seconds": 600, "exhaust_total": 0, "exhaust_episodes": 0, "fill_min": 439}

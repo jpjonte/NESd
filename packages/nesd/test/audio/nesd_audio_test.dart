@@ -32,10 +32,12 @@ void main() {
 
     expect(audio.filled, 0);
     expect(audio.underruns, greaterThan(0));
+    expect(audio.popMax, greaterThan(0));
 
     audio.resetStats();
 
     expect(audio.underruns, 0);
+    expect(audio.popMax, 0);
   });
 
   test('short writes count as overruns', () {

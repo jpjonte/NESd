@@ -55,6 +55,13 @@ static int device_init(nesd_audio_backend_t *backend) {
     config.notificationCallback = notification_callback;
     config.pUserData = backend;
 
+    // Without this, miniaudio buffers device reads into fixed-size chunks. On
+    // AAudio the size defaults to the whole device buffer capacity, so our ring
+    // was drained by single pops of that size, starving the ring no matter how
+    // well production keeps up. The render callback can handle any chunk size,
+    // so take the reads as the device makes them.
+    config.noFixedSizedCallback = MA_TRUE;
+
     if (ma_device_init(&backend->context, &config,
                        &backend->device) != MA_SUCCESS) {
         return -1;

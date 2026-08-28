@@ -493,6 +493,7 @@ class NesWorker {
       fullDelta: stats.fullDelta,
       fillMin: stats.fillMin,
       fillMax: stats.fillMax,
+      popMax: stats.popMax,
     );
 
     send(event);

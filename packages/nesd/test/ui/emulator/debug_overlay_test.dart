@@ -41,6 +41,7 @@ void main() {
           fullDelta: 0,
           fillMin: 240,
           fillMax: 2000,
+          popMax: 0,
         ),
       )
       ..add(
@@ -50,6 +51,7 @@ void main() {
           fullDelta: 0,
           fillMin: 900,
           fillMax: 2100,
+          popMax: 0,
         ),
       );
 
@@ -88,6 +90,7 @@ void main() {
           fullDelta: 0,
           fillMin: 240,
           fillMax: 2000,
+          popMax: 0,
         ),
       )
       ..add(
@@ -97,6 +100,7 @@ void main() {
           fullDelta: 0,
           fillMin: 900,
           fillMax: 2100,
+          popMax: 0,
         ),
       );
 

@@ -32,9 +32,10 @@ enum {
 };
 
 // Opens a playback stream of f32 samples. `buffer_samples` is the ring
-// capacity; after an underrun the callback emits silence until the
-// ring refills to `recover_samples`. Returns NULL only if even the
-// null-device fallback failed.
+// capacity. After an underrun the callback emits silence until the
+// ring refills to the largest device read seen plus `recover_samples`
+// of margin (capped at capacity). Returns NULL only if everything including
+// the null-device fallback failed.
 NESD_AUDIO_EXPORT nesd_audio_t *nesd_audio_open(int32_t sample_rate,
                                                 int32_t channels,
                                                 int32_t buffer_samples,
@@ -56,6 +57,9 @@ NESD_AUDIO_EXPORT int32_t nesd_audio_state(nesd_audio_t *stream);
 
 NESD_AUDIO_EXPORT uint32_t nesd_audio_underruns(nesd_audio_t *stream);
 NESD_AUDIO_EXPORT uint32_t nesd_audio_overruns(nesd_audio_t *stream);
+
+// Largest single device read since the last nesd_audio_reset_stats.
+NESD_AUDIO_EXPORT uint32_t nesd_audio_pop_max(nesd_audio_t *stream);
 
 // Lifetime count of device restarts after OS-initiated stops (device
 // disconnect / route change). Not affected by nesd_audio_reset_stats.

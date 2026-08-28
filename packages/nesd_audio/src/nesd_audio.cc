@@ -12,10 +12,12 @@ struct nesd_audio {
     int32_t recover_samples;
     int32_t state;
 
-    bool is_exhaust;  // consumer-thread state only
+    bool is_exhaust;          // consumer-thread state only
+    uint32_t pop_watermark;   // consumer-thread state only
 
     std::atomic<uint32_t> underruns;
     std::atomic<uint32_t> overruns;
+    std::atomic<uint32_t> pop_max;
 
     uint32_t restarts;  // producer-thread mirror of the backend count
 
@@ -23,14 +25,33 @@ struct nesd_audio {
 };
 
 // Runs on the OS audio thread. After an underrun, keeps emitting
-// silence until the ring refills to recover_samples so playback
-// resumes with runway instead of immediately starving again.
+// silence until the ring holds the largest single pop the device has
+// made plus recover_samples of margin, so playback can survive the next
+// pop with margin. Resuming below one pop would hand the next pop a ring
+// it drains straight back to empty, cascading underruns.
 static void render(void *user, float *out, int32_t samples) {
     auto *stream = (nesd_audio_t *)user;
 
+    if ((uint32_t)samples > stream->pop_watermark) {
+        stream->pop_watermark = (uint32_t)samples;
+    }
+
+    if ((uint32_t)samples >
+        stream->pop_max.load(std::memory_order_relaxed)) {
+        stream->pop_max.store((uint32_t)samples,
+                              std::memory_order_relaxed);
+    }
+
+    int32_t recover =
+        stream->recover_samples + (int32_t)stream->pop_watermark;
+
+    // clamp recovery target to capacity so it is reachable
+    if (recover > (int32_t)stream->ring.logical_size) {
+        recover = (int32_t)stream->ring.logical_size;
+    }
+
     if (stream->is_exhaust &&
-        (int32_t)spsc_filled(&stream->ring) <
-            stream->recover_samples) {
+        (int32_t)spsc_filled(&stream->ring) < recover) {
         memset(out, 0, (size_t)samples * sizeof(float));
         stream->underruns.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -61,8 +82,10 @@ nesd_audio_t *nesd_audio_open(int32_t sample_rate, int32_t channels,
     spsc_init(&stream->ring, (uint32_t)buffer_samples);
     stream->recover_samples = recover_samples;
     stream->is_exhaust = false;
+    stream->pop_watermark = 0;
     stream->underruns.store(0, std::memory_order_relaxed);
     stream->overruns.store(0, std::memory_order_relaxed);
+    stream->pop_max.store(0, std::memory_order_relaxed);
     stream->restarts = 0;
 
     const bool want_null =
@@ -141,6 +164,10 @@ uint32_t nesd_audio_overruns(nesd_audio_t *stream) {
     return stream->overruns.load(std::memory_order_relaxed);
 }
 
+uint32_t nesd_audio_pop_max(nesd_audio_t *stream) {
+    return stream->pop_max.load(std::memory_order_relaxed);
+}
+
 uint32_t nesd_audio_restarts(nesd_audio_t *stream) {
     return stream->restarts;
 }
@@ -148,4 +175,5 @@ uint32_t nesd_audio_restarts(nesd_audio_t *stream) {
 void nesd_audio_reset_stats(nesd_audio_t *stream) {
     stream->underruns.store(0, std::memory_order_relaxed);
     stream->overruns.store(0, std::memory_order_relaxed);
+    stream->pop_max.store(0, std::memory_order_relaxed);
 }

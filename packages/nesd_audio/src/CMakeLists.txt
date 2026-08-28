@@ -29,4 +29,9 @@ if (NESD_AUDIO_BUILD_TESTS)
 
   find_package(Threads REQUIRED)
   target_link_libraries(spsc_ring_test PRIVATE Threads::Threads)
+
+  add_executable(nesd_audio_core_test
+    nesd_audio_core_test.cc
+    nesd_audio.cc
+  )
 endif()

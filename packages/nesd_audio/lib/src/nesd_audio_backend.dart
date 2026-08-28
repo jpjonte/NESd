@@ -16,6 +16,9 @@ abstract interface class NesdAudioBackend {
   /// Overruns (short writes) since the last [resetStats].
   int get overruns;
 
+  /// Largest single device read since last [resetStats] (0 where not tracked).
+  int get popMax;
+
   /// Device restarts after OS-initiated stops; always 0 on web.
   int get restarts;
 
