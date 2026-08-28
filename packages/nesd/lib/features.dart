@@ -8,8 +8,9 @@ abstract final class Features {
   /// The debug tools are desktop-only for now.
   static const bool debugger = !kIsWeb;
 
-  /// The fragment-shader filters are not wired up for the web renderer yet.
-  static const bool videoFilters = !kIsWeb;
+  /// On the web the filters use the CPU renderer.
+  /// GPU path stays gated by `ImageFilter.isShaderFilterSupported`.
+  static const bool videoFilters = true;
 
   /// The GPU renderer uploads frames via native texture pointers.
   static const bool gpuRenderer = !kIsWeb;
