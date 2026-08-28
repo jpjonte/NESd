@@ -13,6 +13,9 @@ runs:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
+        # GITHUB_ACTION_PATH leaks from this composite action into the nested
+        # step, so setup-dart looks for its matcher file here and fails
+        problem-matcher: 'false'
     - uses: actions/download-artifact@v8
       with:
         name: coverage-badge
