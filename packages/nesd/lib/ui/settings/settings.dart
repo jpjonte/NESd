@@ -131,6 +131,7 @@ sealed class Settings with _$Settings {
     @Default(PixelAspectRatio.auto) PixelAspectRatio pixelAspectRatio,
     @Default(1.0) double customPixelAspectRatio,
     @Default(VideoFilter.none) VideoFilter videoFilter,
+    @Default([]) List<VideoFilter> videoFilters,
     @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson)
     @Default(CrtFilterSettings())
     CrtFilterSettings crtFilter,
@@ -465,6 +466,20 @@ class SettingsController extends _$SettingsController {
 
   set videoFilter(VideoFilter videoFilter) {
     _update(state.copyWith(videoFilter: videoFilter));
+  }
+
+  List<VideoFilter> get videoFilters => state.videoFilters;
+
+  void toggleVideoFilter(VideoFilter filter, {required bool enabled}) {
+    final updated = state.videoFilters.toSet();
+
+    if (enabled) {
+      updated.add(filter);
+    } else {
+      updated.remove(filter);
+    }
+
+    _update(state.copyWith(videoFilters: normalizeVideoFilters(updated)));
   }
 
   CrtFilterSettings get crtFilter => state.crtFilter;
