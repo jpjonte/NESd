@@ -45,6 +45,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed constant audio crackling on some Android devices. Audio is now consumed at the device's own pace, and underrun recovery fills the buffer further than before
 - Fixed audio stutters due to inconsistent timers 
 - Fixed the main menu logo appearing a moment after the rest of the menu
+- Fixed the browser locking up for about a second while the ROM database loaded
+- Fixed ROMs being loaded before the ROM database is ready
 
 ## [0.17.0] - 2026-08-23
 
