@@ -8,7 +8,7 @@ import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
-import 'package:nesd/ui/settings/graphics/video_filter_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/video_filter_switches.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 
@@ -20,8 +20,8 @@ class GraphicsSettings extends ConsumerWidget {
     final pixelAspectRatio = ref.watch(
       settingsControllerProvider.select((s) => s.pixelAspectRatio),
     );
-    final videoFilter = ref.watch(
-      settingsControllerProvider.select((s) => s.videoFilter),
+    final videoFilters = ref.watch(
+      settingsControllerProvider.select((s) => s.videoFilters),
     );
 
     return SettingsTab(
@@ -38,8 +38,9 @@ class GraphicsSettings extends ConsumerWidget {
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
             if (Features.videoFilters) ...[
-              const VideoFilterDropdown(),
-              if (videoFilter == VideoFilter.crt) ...[
+              const SmoothingFilterSwitch(),
+              const CrtFilterSwitch(),
+              if (videoFilters.contains(VideoFilter.crt)) ...[
                 const ScanlineIntensitySlider(),
                 const MaskStrengthSlider(),
                 const CurvatureSlider(),

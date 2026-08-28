@@ -180,10 +180,10 @@ void main() {
       'display',
     ], platformBrightness: Brightness.light);
 
-    final titleText = tester.widget<Text>(find.text('Filter'));
+    final titleText = tester.widget<Text>(find.text('Smoothing'));
 
     final style = DefaultTextStyle.of(
-      tester.element(find.text('Filter')),
+      tester.element(find.text('Smoothing')),
     ).style.merge(titleText.style);
 
     expect(style.color!.computeLuminance(), greaterThan(0.5));

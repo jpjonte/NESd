@@ -10,7 +10,6 @@ import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
-import 'package:nesd/ui/settings/graphics/video_filter_dropdown.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
@@ -54,7 +53,8 @@ void main() {
   testWidgets('shows no CRT sliders while the filter is off', (tester) async {
     await pump(tester, '{}');
 
-    expect(find.byType(VideoFilterDropdown), findsOneWidget);
+    expect(find.text('Smoothing'), findsOneWidget);
+    expect(find.text('CRT effect'), findsOneWidget);
     expect(find.byType(ScanlineIntensitySlider), findsNothing);
     expect(find.byType(MaskStrengthSlider), findsNothing);
     expect(find.byType(CurvatureSlider), findsNothing);
@@ -64,12 +64,11 @@ void main() {
   testWidgets('shows the CRT sliders when the CRT filter is active', (
     tester,
   ) async {
-    final container = await pump(tester, '{"videoFilter":"crt"}');
+    final container = await pump(tester, '{"videoFilters":["crt"]}');
 
-    expect(
-      container.read(settingsControllerProvider).videoFilter,
+    expect(container.read(settingsControllerProvider).videoFilters, [
       VideoFilter.crt,
-    );
+    ]);
     expect(find.byType(ScanlineIntensitySlider), findsOneWidget);
     expect(find.byType(MaskStrengthSlider), findsOneWidget);
     expect(find.byType(CurvatureSlider), findsOneWidget);
@@ -115,10 +114,6 @@ void main() {
       ),
     );
 
-    expect(
-      tester.getSize(find.byType(Dropdown<VideoFilter>)).width,
-      greaterThan(400),
-    );
     expect(
       tester.getSize(find.byType(Dropdown<Scaling>)).width,
       greaterThan(400),

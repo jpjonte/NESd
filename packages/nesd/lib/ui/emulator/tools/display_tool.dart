@@ -6,7 +6,7 @@ import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
-import 'package:nesd/ui/settings/graphics/video_filter_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/video_filter_switches.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class DisplayToolWidget extends ConsumerWidget {
@@ -14,8 +14,8 @@ class DisplayToolWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final videoFilter = ref.watch(
-      settingsControllerProvider.select((s) => s.videoFilter),
+    final videoFilters = ref.watch(
+      settingsControllerProvider.select((s) => s.videoFilters),
     );
     final pixelAspectRatio = ref.watch(
       settingsControllerProvider.select((s) => s.pixelAspectRatio),
@@ -24,8 +24,9 @@ class DisplayToolWidget extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const VideoFilterDropdown(expand: true),
-        if (videoFilter == VideoFilter.crt) ...[
+        const SmoothingFilterSwitch(),
+        const CrtFilterSwitch(),
+        if (videoFilters.contains(VideoFilter.crt)) ...[
           const ScanlineIntensitySlider(),
           const MaskStrengthSlider(),
           const CurvatureSlider(),

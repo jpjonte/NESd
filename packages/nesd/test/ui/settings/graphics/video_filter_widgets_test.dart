@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
-import 'package:nesd/ui/settings/graphics/video_filter_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/video_filter_switches.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
@@ -32,24 +32,48 @@ void main() {
     );
   }
 
-  testWidgets('selecting CRT in the dropdown updates the setting', (
+  testWidgets('toggling both switches enables the canonical chain', (
     tester,
   ) async {
-    await tester.pumpWidget(wrap(const VideoFilterDropdown()));
+    await tester.pumpWidget(
+      wrap(
+        const Column(children: [SmoothingFilterSwitch(), CrtFilterSwitch()]),
+      ),
+    );
 
-    await tester.tap(find.text('Off'));
+    await tester.tap(find.text('CRT effect'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Smoothing'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('CRT').last);
-    await tester.pumpAndSettle();
-
-    final element = tester.element(find.byType(VideoFilterDropdown));
+    final element = tester.element(find.byType(CrtFilterSwitch));
     final container = ProviderScope.containerOf(element);
 
-    expect(
-      container.read(settingsControllerProvider).videoFilter,
+    expect(container.read(settingsControllerProvider).videoFilters, [
+      VideoFilter.smooth,
       VideoFilter.crt,
+    ]);
+  });
+
+  testWidgets('toggling CRT off removes only crt', (tester) async {
+    await tester.pumpWidget(
+      wrap(
+        const Column(children: [SmoothingFilterSwitch(), CrtFilterSwitch()]),
+      ),
     );
+
+    await tester.tap(find.text('Smoothing'));
+    await tester.tap(find.text('CRT effect'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CRT effect'));
+    await tester.pumpAndSettle();
+
+    final element = tester.element(find.byType(CrtFilterSwitch));
+    final container = ProviderScope.containerOf(element);
+
+    expect(container.read(settingsControllerProvider).videoFilters, [
+      VideoFilter.smooth,
+    ]);
   });
 
   testWidgets('dragging the scanline slider changes the CRT settings', (
