@@ -40,6 +40,20 @@ Future<ui.Image> _patternImage(
   return completer.future;
 }
 
+Future<ui.Image> _imageFromPixels(Uint8List pixels, int width, int height) {
+  final completer = Completer<ui.Image>();
+
+  ui.decodeImageFromPixels(
+    pixels,
+    width,
+    height,
+    ui.PixelFormat.rgba8888,
+    completer.complete,
+  );
+
+  return completer.future;
+}
+
 Future<Uint8List> _paint(
   String asset,
   List<double> parameters,
@@ -264,6 +278,55 @@ void main() {
 
       final seam2Pixel = _getPixel(pixels, 32, 16, 64);
       expect(seam2Pixel[1], greaterThan(100));
+    });
+  });
+
+  testWidgets('smooth output fed into the crt pass keeps the smoothed '
+      'seam and adds scanlines', (tester) async {
+    await tester.runAsync(() async {
+      final upscaled = await _patternImage(
+        64,
+        32,
+        [255, 0, 0, 255],
+        [0, 255, 0, 255],
+      );
+
+      final smoothed = await _paintFilterMode(
+        'shaders/smooth.frag',
+        filter: VideoFilter.smooth,
+        crtFilter: const CrtFilterSettings(),
+        image: upscaled,
+        sourceSize: const ui.Size(4, 2),
+        outputSize: const ui.Size(64, 32),
+      );
+
+      final smoothedImage = await _imageFromPixels(smoothed, 64, 32);
+
+      final chained = await _paintFilterMode(
+        'shaders/crt.frag',
+        filter: VideoFilter.crt,
+        crtFilter: const CrtFilterSettings(
+          scanlineIntensity: 1,
+          maskStrength: 0,
+        ),
+        image: smoothedImage,
+        sourceSize: const ui.Size(4, 2),
+        outputSize: const ui.Size(64, 32),
+      );
+
+      final boundary = _getPixel(chained, 8, 16, 64);
+      final center = _getPixel(chained, 8, 24, 64);
+
+      expect(
+        boundary[0] + boundary[1] + boundary[2],
+        lessThan(center[0] + center[1] + center[2] - 150),
+      );
+
+      final seamLeft = _getPixel(chained, 31, 24, 64);
+      final seamRight = _getPixel(chained, 32, 24, 64);
+
+      expect(seamLeft[0], greaterThan(60));
+      expect(seamRight[1], greaterThan(60));
     });
   });
 }

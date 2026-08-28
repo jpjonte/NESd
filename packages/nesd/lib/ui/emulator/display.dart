@@ -91,11 +91,7 @@ class DisplayBuilder extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final nes = ref.watch(nesStateProvider);
 
-    final videoFilter = settings.videoFilter;
     final shaderState = ref.watch(videoFilterRegistryProvider);
-    final shader = videoFilter == VideoFilter.none
-        ? null
-        : shaderState.shaders[videoFilter];
 
     return LayoutBuilder(
       builder: (_, constraints) {
@@ -171,8 +167,8 @@ class DisplayBuilder extends ConsumerWidget {
             : CustomPaint(
                 painter: frameBasePainter(
                   image: image!,
-                  filter: videoFilter,
-                  shader: shader,
+                  filters: settings.videoFilters,
+                  shaders: shaderState.shaders,
                   crtFilter: settings.crtFilter,
                 ),
                 child: const SizedBox.expand(),
@@ -350,17 +346,25 @@ Widget frameTextureLayer({
 
 CustomPainter frameBasePainter({
   required ui.Image image,
-  required VideoFilter filter,
-  required ui.FragmentShader? shader,
+  required List<VideoFilter> filters,
+  required Map<VideoFilter, ui.FragmentShader> shaders,
   required CrtFilterSettings crtFilter,
 }) {
-  if (filter == VideoFilter.none || shader == null) {
-    return CpuFramePainter(image: image);
+  for (final filter in videoFilterOrder.reversed) {
+    if (!filters.contains(filter)) {
+      continue;
+    }
+
+    final shader = shaders[filter];
+
+    if (shader != null) {
+      return ShaderFramePainter(
+        image: image,
+        shader: shader,
+        parameters: videoFilterUniforms(filter, crtFilter),
+      );
+    }
   }
 
-  return ShaderFramePainter(
-    image: image,
-    shader: shader,
-    parameters: videoFilterUniforms(filter, crtFilter),
-  );
+  return CpuFramePainter(image: image);
 }
