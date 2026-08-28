@@ -59,6 +59,8 @@ class Robot extends BaseRobot {
   final FilePickerScreenRobot filePickerScreen;
   final ToolsScreenRobot tools;
 
+  final List<FakeNesIsolateHandle> isolateHandles = [];
+
   ProviderContainer get container =>
       (tester.widget(find.byType(UncontrolledProviderScope))
               as UncontrolledProviderScope)
@@ -141,9 +143,13 @@ class Robot extends BaseRobot {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          nesIsolateSpawnerProvider.overrideWithValue(
-            () async => FakeNesIsolateHandle(),
-          ),
+          nesIsolateSpawnerProvider.overrideWithValue(() async {
+            final handle = FakeNesIsolateHandle();
+
+            isolateHandles.add(handle);
+
+            return handle;
+          }),
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           packageInfoProvider.overrideWithValue(packageInfo),
           filesystemProvider.overrideWithValue(fileSystem),

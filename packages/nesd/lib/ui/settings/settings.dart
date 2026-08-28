@@ -8,6 +8,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
@@ -93,6 +94,7 @@ sealed class Settings with _$Settings {
   factory Settings({
     @Default(1.0) double volume,
     @Default(false) bool lowPassFilter,
+    @Default(FastForwardSpeed.x2) FastForwardSpeed fastForwardSpeed,
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
     @Default(false) bool showDebugOverlay,
@@ -165,6 +167,12 @@ class SettingsController extends _$SettingsController {
 
   set lowPassFilter(bool lowPassFilter) {
     _update(state.copyWith(lowPassFilter: lowPassFilter));
+  }
+
+  FastForwardSpeed get fastForwardSpeed => state.fastForwardSpeed;
+
+  set fastForwardSpeed(FastForwardSpeed fastForwardSpeed) {
+    _update(state.copyWith(fastForwardSpeed: fastForwardSpeed));
   }
 
   bool get showBorder => state.showBorder;

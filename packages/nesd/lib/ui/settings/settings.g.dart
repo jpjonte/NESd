@@ -9,6 +9,12 @@ part of 'settings.dart';
 _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   lowPassFilter: json['lowPassFilter'] as bool? ?? false,
+  fastForwardSpeed:
+      $enumDecodeNullable(
+        _$FastForwardSpeedEnumMap,
+        json['fastForwardSpeed'],
+      ) ??
+      FastForwardSpeed.x2,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
@@ -92,6 +98,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'lowPassFilter': instance.lowPassFilter,
+  'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
   'showDebugOverlay': instance.showDebugOverlay,
@@ -121,6 +128,13 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'customPixelAspectRatio': instance.customPixelAspectRatio,
   'videoFilter': _$VideoFilterEnumMap[instance.videoFilter]!,
   'crtFilter': _crtFilterToJson(instance.crtFilter),
+};
+
+const _$FastForwardSpeedEnumMap = {
+  FastForwardSpeed.x2: 'x2',
+  FastForwardSpeed.x3: 'x3',
+  FastForwardSpeed.x4: 'x4',
+  FastForwardSpeed.max: 'max',
 };
 
 const _$LogLevelEnumMap = {
@@ -217,7 +231,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'ca49f3b967c4bc468067c1df4b4ffd9ee3ecd6fa';
+    r'86a14dcc309d8f200c222cc654f7b14f0e06d613';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

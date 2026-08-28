@@ -6,6 +6,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
@@ -79,6 +80,16 @@ class RemoteNes {
     _fastForward = enabled;
 
     _send(SetFastForwardCommand(enabled: enabled));
+  }
+
+  FastForwardSpeed _fastForwardSpeed = FastForwardSpeed.x2;
+
+  FastForwardSpeed get fastForwardSpeed => _fastForwardSpeed;
+
+  set fastForwardSpeed(FastForwardSpeed speed) {
+    _fastForwardSpeed = speed;
+
+    _send(SetFastForwardSpeedCommand(speed: speed));
   }
 
   /// Forwards a hold-mode rewind change to the worker. Optimistically

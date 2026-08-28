@@ -4,6 +4,7 @@ import 'package:nesd/ui/settings/general/about_button.dart';
 import 'package:nesd/ui/settings/general/auto_load_switch.dart';
 import 'package:nesd/ui/settings/general/auto_save_interval.dart';
 import 'package:nesd/ui/settings/general/auto_save_switch.dart';
+import 'package:nesd/ui/settings/general/fast_forward_speed_selector.dart';
 import 'package:nesd/ui/settings/general/region_selector.dart';
 import 'package:nesd/ui/settings/general/rewind_switch.dart';
 import 'package:nesd/ui/settings/general/theme_mode_selector.dart';
@@ -24,6 +25,7 @@ class GeneralSettings extends StatelessWidget {
             AutoLoadSwitch(),
             RegionSelector(),
             if (Features.rewind) RewindSwitch(),
+            FastForwardSpeedSelector(),
             ThemeModeSelector(),
             AboutButton(),
           ],

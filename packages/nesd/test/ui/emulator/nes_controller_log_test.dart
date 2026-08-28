@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -55,6 +56,7 @@ class _Harness {
     when(() => settings.rewind).thenReturn(false);
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
+    when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);

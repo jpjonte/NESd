@@ -107,6 +107,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(lowPassFilterSubscription.close);
 
+  final fastForwardSpeedSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.fastForwardSpeed),
+    (_, speed) => controller.nes?.fastForwardSpeed = speed,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(fastForwardSpeedSubscription.close);
+
   final regionSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.region),
     (_, region) => controller.nes?.region = region,
@@ -447,7 +455,8 @@ class NesController {
 
       remote
         ..volume = settingsController.volume
-        ..lowPassFilter = settingsController.lowPassFilter;
+        ..lowPassFilter = settingsController.lowPassFilter
+        ..fastForwardSpeed = settingsController.fastForwardSpeed;
 
       nesState.set(remote);
 

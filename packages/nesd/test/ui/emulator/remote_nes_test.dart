@@ -7,6 +7,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -199,6 +200,17 @@ void main() {
       expect(
         handle.commands.whereType<SetFastForwardCommand>().last.enabled,
         isFalse,
+      );
+
+      remote.dispose();
+    });
+
+    test('fastForwardSpeed setter sends SetFastForwardSpeedCommand', () {
+      final remote = build()..fastForwardSpeed = FastForwardSpeed.x3;
+
+      expect(
+        handle.commands.whereType<SetFastForwardSpeedCommand>().single.speed,
+        FastForwardSpeed.x3,
       );
 
       remote.dispose();
