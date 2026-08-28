@@ -8,6 +8,7 @@ import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/file_picker/file_list.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -52,7 +53,9 @@ class FilePickerScreen extends HookConsumerWidget {
     final controller = ref.watch(filePickerControllerProvider);
 
     useEffect(() {
-      scheduleMicrotask(() => controller.go(initialDirectory));
+      scheduleMicrotask(
+        () => controller.go(initialDirectory, isEntryPoint: true),
+      );
 
       return null;
     }, [initialDirectory]);
@@ -93,23 +96,55 @@ class FilePicker extends ConsumerWidget {
       ),
       body: Center(
         child: NesdMenuWrapper(
-          child: FocusChild(
-            autofocus: true,
-            child: Column(
-              children: [
-                DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
-                const SearchBox(),
-                const FilePickerProgressIndicator(),
-                FileList(
-                  allowedExtensions: allowedExtensions,
-                  onChangeDirectory: onChangeDirectory,
-                ),
-              ],
+          child: Actions(
+            actions: {
+              DismissIntent: CallbackAction<DismissIntent>(
+                onInvoke: (_) {
+                  unawaited(_goUpOrClose(context, ref));
+
+                  return null;
+                },
+              ),
+            },
+            child: FocusChild(
+              autofocus: true,
+              child: Column(
+                children: [
+                  DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
+                  const SearchBox(),
+                  const FilePickerProgressIndicator(),
+                  FileList(
+                    allowedExtensions: allowedExtensions,
+                    onChangeDirectory: onChangeDirectory,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _goUpOrClose(BuildContext context, WidgetRef ref) async {
+    final navigator = Navigator.of(context);
+    final controller = ref.read(filePickerControllerProvider);
+
+    if (!controller.insideEntryDirectory) {
+      await navigator.maybePop();
+
+      return;
+    }
+
+    final parent = await controller.goUp();
+
+    if (parent != null) {
+      onChangeDirectory?.call(parent);
+
+      return;
+    }
+
+    await navigator.maybePop();
   }
 }
 
@@ -207,7 +242,7 @@ class DirectoryPickerButton extends ConsumerWidget {
           final result = await filesystem.chooseDirectory(path);
 
           if (result != null) {
-            controller.go(result);
+            controller.go(result, isEntryPoint: true);
 
             onChangeDirectory?.call(result);
           }
@@ -224,182 +259,6 @@ class DirectoryPickerButton extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class FileList extends HookConsumerWidget {
-  const FileList({
-    required this.allowedExtensions,
-    this.onChangeDirectory,
-    super.key,
-  });
-
-  final List<String> allowedExtensions;
-  final void Function(FilesystemFile)? onChangeDirectory;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(filePickerStateProvider);
-
-    final scrollController = useScrollController();
-
-    return Expanded(
-      child: CustomScrollView(
-        controller: scrollController,
-        slivers: [
-          switch (state) {
-            FilePickerLoading() => const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            FilePickerError(message: final message) => SliverToBoxAdapter(
-              child: Center(
-                child: Text(
-                  message,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontVariations: const [FontVariation.weight(700)],
-                  ),
-                ),
-              ),
-            ),
-            FilePickerData(directory: final directory, files: final files) =>
-              SliverList.separated(
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return ParentTile(
-                      directory: directory,
-                      onChangeDirectory: onChangeDirectory,
-                    );
-                  }
-
-                  final file = files[index - 1];
-
-                  return FileTile(
-                    enabled:
-                        file.type == FilesystemFileType.directory ||
-                        allowedExtensions.isEmpty ||
-                        allowedExtensions.contains(
-                          p.extension(file.path).toLowerCase(),
-                        ),
-                    isDirectory: file.type == FilesystemFileType.directory,
-                    file: file,
-                    fileIsZip: p.extension(file.path) == '.zip',
-                    onChangeDirectory: onChangeDirectory,
-                  );
-                },
-                separatorBuilder: (context, index) => const Divider(),
-                itemCount: files.length + 1,
-              ),
-          },
-        ],
-      ),
-    );
-  }
-}
-
-class ParentTile extends ConsumerWidget {
-  const ParentTile({
-    required this.directory,
-    this.onChangeDirectory,
-    super.key,
-  });
-
-  final FilesystemFile directory;
-  final void Function(FilesystemFile)? onChangeDirectory;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(filePickerControllerProvider);
-    final filesystem = ref.watch(filesystemProvider);
-
-    return FocusOnHover(
-      child: Builder(
-        builder: (context) {
-          final focused = Focus.of(context).hasFocus;
-          final colorScheme = Theme.of(context).colorScheme;
-
-          return ListTile(
-            leading: Icon(
-              Icons.drive_folder_upload_rounded,
-              color: focused ? colorScheme.onPrimary : colorScheme.primary,
-            ),
-            title: Text(
-              'Up a directory',
-              style: TextStyle(color: focused ? colorScheme.onPrimary : null),
-            ),
-            onTap: () async {
-              final parent = await filesystem.parent(directory.path);
-
-              if (parent == null) {
-                return;
-              }
-
-              controller.go(parent);
-
-              onChangeDirectory?.call(parent);
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class FileTile extends ConsumerWidget {
-  const FileTile({
-    required this.isDirectory,
-    required this.enabled,
-    required this.file,
-    required this.fileIsZip,
-    this.onChangeDirectory,
-    super.key,
-  });
-
-  final bool isDirectory;
-  final bool enabled;
-  final FilesystemFile file;
-  final bool fileIsZip;
-  final void Function(FilesystemFile)? onChangeDirectory;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(filePickerControllerProvider);
-
-    return FocusOnHover(
-      child: Builder(
-        builder: (context) {
-          final focused = Focus.of(context).hasFocus;
-          final colorScheme = Theme.of(context).colorScheme;
-
-          return ListTile(
-            leading: Icon(
-              isDirectory
-                  ? Icons.folder
-                  : enabled
-                  ? Icons.videogame_asset
-                  : null,
-              color: focused ? colorScheme.onPrimary : colorScheme.primary,
-            ),
-            enabled: enabled,
-            title: Text(
-              p.basename(file.name),
-              style: TextStyle(color: focused ? colorScheme.onPrimary : null),
-            ),
-            onTap: () async {
-              if (isDirectory) {
-                controller.go(file);
-
-                onChangeDirectory?.call(file);
-              } else if (fileIsZip) {
-                controller.go(file);
-              } else {
-                await context.router.maybePop(file);
-              }
-            },
-          );
-        },
       ),
     );
   }

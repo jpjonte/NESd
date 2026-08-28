@@ -19,6 +19,11 @@ typedef GamepadMap =
 const _inputOnThreshold = 0.2;
 const _inputOffThreshold = 0.1;
 
+const _repeatDelay = Duration(milliseconds: 500);
+const _initialRepeatInterval = Duration(milliseconds: 100);
+const _minRepeatInterval = Duration(milliseconds: 33);
+const _repeatAcceleration = 0.9;
+
 @riverpod
 GamepadInputHandler gamepadInputHandler(Ref ref) {
   final bindings = ref.watch(
@@ -62,6 +67,7 @@ class GamepadInputHandler {
 
   void dispose() {
     _subscription.cancel();
+    _stopRepeat();
   }
 
   void _handleGamepadEvent(GamepadInputEvent event) {
@@ -188,18 +194,20 @@ class GamepadInputHandler {
     _delayTimer?.cancel();
 
     if (_state.entries.any((e) => e.value.isNotEmpty)) {
-      _delayTimer = Timer(const Duration(milliseconds: 500), _startRepeat);
+      _delayTimer = Timer(_repeatDelay, _startRepeat);
     }
   }
 
   void _startRepeat() {
+    _scheduleRepeat(_initialRepeatInterval);
+  }
+
+  void _scheduleRepeat(Duration interval) {
     _repeatTimer?.cancel();
-    _repeatTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _repeatTimer = Timer(interval, () {
       final actions = _getActions();
 
       if (actions.isEmpty) {
-        _repeatTimer?.cancel();
-
         return;
       }
 
@@ -212,7 +220,15 @@ class GamepadInputHandler {
           ),
         );
       }
+
+      _scheduleRepeat(_accelerate(interval));
     });
+  }
+
+  Duration _accelerate(Duration interval) {
+    final next = interval * _repeatAcceleration;
+
+    return next < _minRepeatInterval ? _minRepeatInterval : next;
   }
 
   void _stopRepeat() {

@@ -73,26 +73,54 @@ class MockFileSystem extends Mock implements Filesystem {
     _files[path] = data;
   }
 
+  String _prefix(String path) => path.endsWith('/') ? path : '$path/';
+
   @override
   Future<List<FilesystemFile>> list(String path) async {
+    final prefix = _prefix(path);
+    final children = <String, FilesystemFileType>{};
+
+    for (final key in _files.keys) {
+      if (!key.startsWith(prefix)) {
+        continue;
+      }
+
+      final rest = key.substring(prefix.length);
+      final slash = rest.indexOf('/');
+
+      if (slash == -1) {
+        children[rest] = FilesystemFileType.file;
+      } else {
+        children[rest.substring(0, slash)] = FilesystemFileType.directory;
+      }
+    }
+
     return [
-      for (final entry in _files.entries)
-        FilesystemFile(
-          path: p.basename(entry.key),
-          name: p.basename(entry.key),
-          type: FilesystemFileType.file,
-        ),
+      for (final MapEntry(key: name, value: type) in children.entries)
+        FilesystemFile(path: '$prefix$name', name: name, type: type),
     ];
+  }
+
+  // Mirrors NativeFilesystem: the root is its own parent, never null.
+  @override
+  Future<FilesystemFile?> parent(String path) async {
+    final parentPath = p.dirname(path);
+
+    return FilesystemFile(
+      path: parentPath,
+      name: parentPath,
+      type: FilesystemFileType.directory,
+    );
   }
 
   @override
   Future<bool> exists(String path) async {
-    return _files.entries.any((entry) => entry.key.startsWith(path));
+    return _files.containsKey(path) || await isDirectory(path);
   }
 
   @override
   Future<bool> isDirectory(String path) async {
-    return _files.entries.any((entry) => entry.key.startsWith(path));
+    return _files.keys.any((key) => key.startsWith(_prefix(path)));
   }
 }
 

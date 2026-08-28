@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
 - Fast-forward now plays audio
 - Fast-forward speed is configurable: 2x (default), 3x, 4x, max (without audio)
+- The file picker now supports letter skipping on a gamepad: the Previous/Next Tab actions jump to the previous/next starting letter
 - Added a Low Pass Filter toggle to the Audio settings
 - The log viewer now colors log levels and channels and supports text search
 - Nightly and branch builds now show a build id in the About dialog and the startup log
@@ -18,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Multiple video filters can now be activated at once
 
 ### Changed
+- Holding a gamepad button in menus now speeds up the repeat rate over time
+- Cancel on a gamepad (Escape on the keyboard) in the file picker now goes up one directory, and closes the picker once it is back at the directory it was opened at
 - Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
 - Video filters (CRT, smooth) can now run on top of the GPU renderer instead of forcing a fallback to the CPU renderer
 - The Quit button is no longer shown on Android, where apps background instead of quitting

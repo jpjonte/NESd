@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/exception/filesystem_exception.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -60,6 +61,16 @@ void main() {
 
     await pumpEventQueue();
   }
+
+  test('sorts names case-insensitively when no filter is set', () async {
+    when(
+      () => filesystem.list('/roms'),
+    ).thenAnswer((_) async => [_file('Zelda.nes'), _file('adventure.nes')]);
+
+    await controller.go(_directory);
+
+    expect(currentFileNames(), ['adventure.nes', 'Zelda.nes']);
+  });
 
   test('keeps directories first when no filter is set', () async {
     when(
@@ -140,6 +151,168 @@ void main() {
       expect(currentFileNames(), isEmpty);
     },
   );
+
+  group('goUp', () {
+    const root = FilesystemFile(
+      path: '/',
+      name: '/',
+      type: FilesystemFileType.directory,
+    );
+
+    setUp(() {
+      when(
+        () => filesystem.list('/roms'),
+      ).thenAnswer((_) async => [_file('Zelda.nes')]);
+      when(() => filesystem.isDirectory('/')).thenAnswer((_) async => true);
+      when(
+        () => filesystem.list('/'),
+      ).thenAnswer((_) async => [_subDirectory('roms')]);
+    });
+
+    test('navigates to the parent directory', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory);
+
+      final result = await controller.goUp();
+
+      expect(result?.path, '/');
+
+      final state = container.read(filePickerStateProvider);
+
+      expect((state as FilePickerData).directory.path, '/');
+    });
+
+    test('returns null and stays when there is no parent', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => null);
+
+      await controller.go(_directory);
+
+      final result = await controller.goUp();
+
+      expect(result, isNull);
+
+      final state = container.read(filePickerStateProvider);
+
+      expect((state as FilePickerData).directory.path, '/roms');
+    });
+
+    test('returns null when the parent is the directory itself', () async {
+      when(
+        () => filesystem.parent('/roms'),
+      ).thenAnswer((_) async => _directory);
+
+      await controller.go(_directory);
+
+      final result = await controller.goUp();
+
+      expect(result, isNull);
+
+      final state = container.read(filePickerStateProvider);
+
+      expect((state as FilePickerData).directory.path, '/roms');
+    });
+
+    test('returns null before any directory was loaded', () async {
+      expect(await controller.goUp(), isNull);
+    });
+
+    test('stays put when resolving the parent fails', () async {
+      when(() => filesystem.parent('/roms')).thenThrow(FilesystemException());
+
+      await controller.go(_directory);
+
+      final result = await controller.goUp();
+
+      expect(result, isNull);
+
+      final state = container.read(filePickerStateProvider);
+
+      expect((state as FilePickerData).directory.path, '/roms');
+    });
+
+    test('remembers the directory it left for focus restore', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory);
+      await controller.goUp();
+
+      expect(controller.takePendingFocusPath(), '/roms');
+      expect(controller.takePendingFocusPath(), isNull);
+    });
+
+    test('plain navigation clears the remembered directory', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory);
+      await controller.goUp();
+      await controller.go(_directory);
+
+      expect(controller.takePendingFocusPath(), isNull);
+    });
+  });
+
+  group('insideEntryDirectory', () {
+    const root = FilesystemFile(
+      path: '/',
+      name: '/',
+      type: FilesystemFileType.directory,
+    );
+
+    const sub = FilesystemFile(
+      path: '/roms/sub',
+      name: '/roms/sub',
+      type: FilesystemFileType.directory,
+    );
+
+    setUp(() {
+      when(
+        () => filesystem.list('/roms'),
+      ).thenAnswer((_) async => [_subDirectory('/roms/sub')]);
+      when(
+        () => filesystem.isDirectory('/roms/sub'),
+      ).thenAnswer((_) async => true);
+      when(() => filesystem.list('/roms/sub')).thenAnswer((_) async => []);
+      when(() => filesystem.isDirectory('/')).thenAnswer((_) async => true);
+      when(
+        () => filesystem.list('/'),
+      ).thenAnswer((_) async => [_subDirectory('/roms')]);
+    });
+
+    test('is false before any directory was loaded', () {
+      expect(controller.insideEntryDirectory, isFalse);
+    });
+
+    test('is false at the entry directory', () async {
+      await controller.go(_directory, isEntryPoint: true);
+
+      expect(controller.insideEntryDirectory, isFalse);
+    });
+
+    test('is true below the entry directory', () async {
+      await controller.go(_directory, isEntryPoint: true);
+      await controller.go(sub);
+
+      expect(controller.insideEntryDirectory, isTrue);
+    });
+
+    test('is false above the entry directory', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory, isEntryPoint: true);
+      await controller.goUp();
+
+      expect(controller.insideEntryDirectory, isFalse);
+    });
+
+    test('re-anchors on a new entry point', () async {
+      await controller.go(sub, isEntryPoint: true);
+      await controller.go(_directory, isEntryPoint: true);
+      await controller.go(sub);
+
+      expect(controller.insideEntryDirectory, isTrue);
+    });
+  });
 
   test('puts directories first for equally good matches', () async {
     when(

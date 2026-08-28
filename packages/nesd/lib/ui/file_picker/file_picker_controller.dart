@@ -61,7 +61,77 @@ class FilePickerController {
     }
   }
 
-  Future<void> go(FilesystemFile directory) async {
+  String? _entryPath;
+
+  /// true while the current directory is strictly below the directory the
+  /// picker was opened at
+  bool get insideEntryDirectory {
+    final entryPath = _entryPath;
+
+    if (entryPath == null) {
+      return false;
+    }
+
+    if (notifier.current case final FilePickerData data) {
+      return p.isWithin(entryPath, data.directory.path);
+    }
+
+    return false;
+  }
+
+  String? _pendingFocusPath;
+
+  String? takePendingFocusPath() {
+    final path = _pendingFocusPath;
+
+    _pendingFocusPath = null;
+
+    return path;
+  }
+
+  Future<FilesystemFile?> goUp() async {
+    final state = notifier.current;
+
+    if (state is! FilePickerData) {
+      return null;
+    }
+
+    final directory = state.directory;
+
+    final FilesystemFile? parent;
+
+    try {
+      parent = await filesystem.parent(directory.path);
+    } on NesdException catch (e) {
+      log.storage.warning(
+        'Could not resolve the parent directory',
+        context: {'path': directory.path},
+        error: e,
+      );
+
+      return null;
+    }
+
+    if (parent == null || parent.path == directory.path) {
+      return null;
+    }
+
+    await go(parent, focusPath: directory.path);
+
+    return parent;
+  }
+
+  Future<void> go(
+    FilesystemFile directory, {
+    String? focusPath,
+    bool isEntryPoint = false,
+  }) async {
+    _pendingFocusPath = focusPath;
+
+    if (isEntryPoint) {
+      _entryPath = directory.path;
+    }
+
     final state = notifier.current;
 
     if (state is FilePickerData) {
@@ -121,7 +191,9 @@ class FilePickerController {
                 return aDirectory ? -1 : 1;
               }
 
-              return a.file.path.compareTo(b.file.path);
+              return a.file.path.toLowerCase().compareTo(
+                b.file.path.toLowerCase(),
+              );
             });
 
       final children = [for (final match in matches) match.file];

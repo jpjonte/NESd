@@ -61,6 +61,8 @@ class Robot extends BaseRobot {
 
   final List<FakeNesIsolateHandle> isolateHandles = [];
 
+  final MockFileSystem fileSystem = MockFileSystem();
+
   ProviderContainer get container =>
       (tester.widget(find.byType(UncontrolledProviderScope))
               as UncontrolledProviderScope)
@@ -93,17 +95,13 @@ class Robot extends BaseRobot {
     List<Override> overrides = const [],
     bool settle = true,
   }) async {
-    final fileSystem = MockFileSystem()
+    fileSystem
       ..addFile(
         '/test/roms/nestest.nes',
         File('../../roms/test/nestest/nestest.nes').readAsBytesSync(),
       )
       ..addFile('/test/roms/z_fake.nes', Uint8List(0));
 
-    // `MockFileSystem.list` ignores its `path` argument and returns every
-    // registered file, so extra fixtures are opt-in per test (added here,
-    // after the fixed set above) rather than always-on. Otherwise they'd
-    // inflate file-picker directory-listing counts in unrelated tests.
     for (final entry in extraFiles.entries) {
       fileSystem.addFile(entry.key, entry.value);
     }
