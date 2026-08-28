@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -eux
+set -eu
 
 {
   echo "changes<<EOF"
@@ -8,7 +8,7 @@ set -eux
   BEGIN {
     inside_latest_version = 0
   }
-  /^## \[Unreleased]/ {
+  /^## \[?Unreleased]?/ {
     if (inside_latest_version)
       exit
     else
