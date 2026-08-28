@@ -116,17 +116,17 @@ class VideoFilterRegistry extends _$VideoFilterRegistry {
 
 @riverpod
 bool videoFilterActive(Ref ref) {
-  final filter = ref.watch(
-    settingsControllerProvider.select((s) => s.videoFilter),
+  final filters = ref.watch(
+    settingsControllerProvider.select((s) => s.videoFilters),
   );
 
-  if (filter == VideoFilter.none) {
+  if (filters.isEmpty) {
     return false;
   }
 
-  final failed = ref.watch(
-    videoFilterRegistryProvider.select((s) => s.hasFailed(filter)),
+  final allFailed = ref.watch(
+    videoFilterRegistryProvider.select((s) => filters.every(s.hasFailed)),
   );
 
-  return !failed;
+  return !allFailed;
 }
