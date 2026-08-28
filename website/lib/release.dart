@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
 enum DownloadPlatform {
@@ -63,12 +64,14 @@ class ReleaseManifest {
     required this.version,
     required this.releaseUrl,
     required this.assets,
+    this.publishedAt,
   });
 
   factory ReleaseManifest.fromJson(Map<String, Object?> json) {
     final version = json['tag_name'];
     final htmlUrl = json['html_url'];
     final rawAssets = json['assets'];
+    final rawPublishedAt = json['published_at'];
 
     if (version is! String || htmlUrl is! String || rawAssets is! List) {
       throw const FormatException(
@@ -111,6 +114,9 @@ class ReleaseManifest {
       version: version,
       releaseUrl: Uri.parse(htmlUrl),
       assets: assets,
+      publishedAt: rawPublishedAt is String
+          ? DateTime.tryParse(rawPublishedAt)
+          : null,
     );
   }
 
@@ -119,6 +125,16 @@ class ReleaseManifest {
   final Uri releaseUrl;
 
   final List<DownloadAsset> assets;
+
+  final DateTime? publishedAt;
+
+  String? get releaseDate {
+    if (publishedAt case final date?) {
+      return DateFormat('d MMMM y').format(date);
+    }
+
+    return null;
+  }
 
   List<DownloadAsset> forPlatform(DownloadPlatform platform) => [
     for (final asset in assets)

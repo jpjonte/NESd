@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+    <!--
+      Traced pixel-for-pixel from packages/nesd/web/favicon.png so the site
+      and the web app show the same tab icon. The full logo is illegible at
+      16px, which is why this is the N alone.
+    -->
+    <rect width="32" height="32" rx="2" ry="2" fill="#FFFFFF"/>
+    <g fill="#DD2222">
+    <rect x="6" y="6" width="8" height="1"/>
+    <rect x="22" y="6" width="4" height="1"/>
+    <rect x="6" y="7" width="8" height="1"/>
+    <rect x="22" y="7" width="4" height="1"/>
+    <rect x="6" y="8" width="8" height="1"/>
+    <rect x="22" y="8" width="4" height="1"/>
+    <rect x="6" y="9" width="8" height="1"/>
+    <rect x="22" y="9" width="4" height="1"/>
+    <rect x="6" y="10" width="4" height="1"/>
+    <rect x="12" y="10" width="4" height="1"/>
+    <rect x="22" y="10" width="4" height="1"/>
+    <rect x="6" y="11" width="4" height="1"/>
+    <rect x="12" y="11" width="4" height="1"/>
+    <rect x="22" y="11" width="4" height="1"/>
+    <rect x="6" y="12" width="4" height="1"/>
+    <rect x="12" y="12" width="4" height="1"/>
+    <rect x="22" y="12" width="4" height="1"/>
+    <rect x="6" y="13" width="4" height="1"/>
+    <rect x="12" y="13" width="4" height="1"/>
+    <rect x="22" y="13" width="4" height="1"/>
+    <rect x="6" y="14" width="4" height="1"/>
+    <rect x="14" y="14" width="4" height="1"/>
+    <rect x="22" y="14" width="4" height="1"/>
+    <rect x="6" y="15" width="4" height="1"/>
+    <rect x="14" y="15" width="4" height="1"/>
+    <rect x="22" y="15" width="4" height="1"/>
+    <rect x="6" y="16" width="4" height="1"/>
+    <rect x="14" y="16" width="4" height="1"/>
+    <rect x="22" y="16" width="4" height="1"/>
+    <rect x="6" y="17" width="4" height="1"/>
+    <rect x="14" y="17" width="4" height="1"/>
+    <rect x="22" y="17" width="4" height="1"/>
+    <rect x="6" y="18" width="4" height="1"/>
+    <rect x="16" y="18" width="4" height="1"/>
+    <rect x="22" y="18" width="4" height="1"/>
+    <rect x="6" y="19" width="4" height="1"/>
+    <rect x="16" y="19" width="4" height="1"/>
+    <rect x="22" y="19" width="4" height="1"/>
+    <rect x="6" y="20" width="4" height="1"/>
+    <rect x="16" y="20" width="4" height="1"/>
+    <rect x="22" y="20" width="4" height="1"/>
+    <rect x="6" y="21" width="4" height="1"/>
+    <rect x="16" y="21" width="4" height="1"/>
+    <rect x="22" y="21" width="4" height="1"/>
+    <rect x="6" y="22" width="4" height="1"/>
+    <rect x="18" y="22" width="8" height="1"/>
+    <rect x="6" y="23" width="4" height="1"/>
+    <rect x="18" y="23" width="8" height="1"/>
+    <rect x="6" y="24" width="4" height="1"/>
+    <rect x="20" y="24" width="6" height="1"/>
+    <rect x="6" y="25" width="4" height="1"/>
+    <rect x="20" y="25" width="6" height="1"/>
+    </g>
+</svg>

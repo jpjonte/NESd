@@ -3,6 +3,7 @@
   "name": "NESd 0.16.0",
   "html_url": "https://github.com/jpjonte/NESd/releases/tag/0.16.0",
   "prerelease": false,
+  "published_at": "2025-04-13T18:22:31Z",
   "assets": [
     {"name": "artifact.tar", "browser_download_url": "https://github.com/jpjonte/NESd/releases/download/0.16.0/artifact.tar"},
     {"name": "dev.jpj.NESd.flatpak", "browser_download_url": "https://github.com/jpjonte/NESd/releases/download/0.16.0/dev.jpj.NESd.flatpak"},

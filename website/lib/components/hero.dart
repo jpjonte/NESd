@@ -13,25 +13,35 @@ class Hero extends StatelessComponent {
   Component build(BuildContext context) {
     return section(classes: 'hero', [
       div(classes: 'container', [
-        div(classes: 'hero-copy', [
-          const h1([.text('A cycle-accurate NES emulator')]),
-          const div(classes: 'accent-rule', []),
-          const p(classes: 'tagline', [
-            .text(
-              'Free and open source. Plays $supportedGameCount games on '
-              'macOS, Windows, Linux, Android and the web.',
-            ),
+        const div(classes: 'hero-top', [
+          div(classes: 'hero-copy', [
+            h1([.text('Play NES games anywhere')]),
+            div(classes: 'accent-rule', []),
+            p(classes: 'tagline', [
+              .text(
+                'A free, open-source, cycle-accurate emulator for macOS, '
+                'Windows, Linux, Android and your browser. Plays ',
+              ),
+              a(classes: 'tagline-link', href: mappersUrl, [
+                .text('$supportedGameCount games'),
+              ]),
+              .text('.'),
+            ]),
           ]),
-          DownloadCards(release: release),
-          p(classes: 'release-meta', [
-            .text('Version ${release.version} · '),
-            const a(href: releasesUrl, [.text('All releases')]),
-            const .text(' · '),
-            const a(href: nightlyUrl, [.text('Nightly')]),
+          div(classes: 'hero-logo', [
+            img(src: 'img/logo.svg', alt: 'NESd logo', width: 220, height: 220),
           ]),
         ]),
-        const div(classes: 'hero-logo', [
-          img(src: 'img/logo.svg', alt: 'NESd logo', width: 280, height: 280),
+        DownloadCards(release: release),
+        p(classes: 'release-meta', [
+          .text('Version ${release.version}'),
+          if (release.releaseDate case final date?) .text(' · $date'),
+          const .text(' · '),
+          const a(href: changelogUrl, [.text("What's new")]),
+          const .text(' · '),
+          const a(href: releasesUrl, [.text('All releases')]),
+          const .text(' · '),
+          const a(href: nightlyUrl, [.text('Nightly')]),
         ]),
       ]),
     ]);

@@ -10,8 +10,14 @@ class FeatureList extends StatelessComponent {
     return section(id: 'features', classes: 'features', [
       div(classes: 'container', [
         const h2([.text('Features')]),
-        ul(classes: 'feature-list', [
-          for (final feature in features) li([.text(feature)]),
+        div(classes: 'feature-groups', [
+          for (final group in featureGroups)
+            div(classes: 'feature-group', [
+              h3([.text(group.title)]),
+              ul(classes: 'feature-list', [
+                for (final feature in group.features) li([.text(feature)]),
+              ]),
+            ]),
         ]),
       ]),
     ]);
