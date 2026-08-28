@@ -70,7 +70,7 @@ class Zapper implements InputDevice {
 
     var previousFrame = ppu.scanline >= vblankScanline;
 
-    if (delta < 0) {
+    if (delta <= 0) {
       delta += (ppu.preRenderScanline + 1) * _dotsPerScanline;
       previousFrame = true;
     }
