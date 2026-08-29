@@ -16,6 +16,12 @@ const toggleDisplay = ToggleTool(
   code: 'tool.display',
 );
 
+const toggleAudio = ToggleTool(
+  tool: EmulatorTool.audio,
+  title: 'Toggle Audio',
+  code: 'tool.audio',
+);
+
 const toggleTileViewer = ToggleTool(
   tool: EmulatorTool.tileViewer,
   title: 'Toggle Tile Viewer',

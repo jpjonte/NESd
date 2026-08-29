@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The web version now shows a loading screen while it starts up
 - Added overscan settings, configurable per side
 - The debug overlay now includes a frame time graph, splitting each frame into emulation work and pacing sleep
+- Added an Audio settings tool
 
 ### Changed
 - Holding a gamepad button in menus now speeds up the repeat rate over time

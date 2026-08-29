@@ -101,6 +101,7 @@ void main() {
     test('allows non-debugger tools regardless of the gate', () {
       for (final tool in [
         EmulatorTool.display,
+        EmulatorTool.audio,
         EmulatorTool.tileViewer,
         EmulatorTool.cartridgeInfo,
       ]) {
@@ -123,6 +124,7 @@ void main() {
 
       expect(filtered, {
         EmulatorTool.display,
+        EmulatorTool.audio,
         EmulatorTool.tileViewer,
         EmulatorTool.cartridgeInfo,
       });
