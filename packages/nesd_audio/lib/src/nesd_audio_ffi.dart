@@ -141,7 +141,7 @@ class NesdAudio implements NesdAudioBackend {
     }
 
     if (Platform.isMacOS) {
-      return DynamicLibrary.open('nesd_audio.framework/nesd_audio');
+      return DynamicLibrary.process();
     }
 
     return DynamicLibrary.open('libnesd_audio.so');
