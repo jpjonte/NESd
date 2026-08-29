@@ -102,6 +102,7 @@ sealed class Settings with _$Settings {
   factory Settings({
     @Default(1.0) double volume,
     @Default(false) bool lowPassFilter,
+    @Default(false) bool swapDutyCycles,
     @Default(FastForwardSpeed.x2) FastForwardSpeed fastForwardSpeed,
     @Default(TurboSpeed.x1) TurboSpeed turboSpeed,
     @Default(true) bool stretch,
@@ -179,6 +180,12 @@ class SettingsController extends _$SettingsController {
 
   set lowPassFilter(bool lowPassFilter) {
     _update(state.copyWith(lowPassFilter: lowPassFilter));
+  }
+
+  bool get swapDutyCycles => state.swapDutyCycles;
+
+  set swapDutyCycles(bool swapDutyCycles) {
+    _update(state.copyWith(swapDutyCycles: swapDutyCycles));
   }
 
   FastForwardSpeed get fastForwardSpeed => state.fastForwardSpeed;

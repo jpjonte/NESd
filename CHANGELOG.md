@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fast-forward now plays audio
 - Fast-forward speed is configurable: 2x (default), 3x, 4x, max (without audio)
 - The file picker now supports letter skipping on a gamepad: the Previous/Next Tab actions jump to the previous/next starting letter
+- Added a Swap Duty Cycles toggle to the Audio settings
 - Added a Low Pass Filter toggle to the Audio settings
 - The log viewer now colors log levels and channels and supports text search
 - Nightly and branch builds now show a build id in the About dialog and the startup log

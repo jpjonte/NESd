@@ -9,15 +9,13 @@ part of 'settings.dart';
 _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   lowPassFilter: json['lowPassFilter'] as bool? ?? false,
+  swapDutyCycles: json['swapDutyCycles'] as bool? ?? false,
   fastForwardSpeed:
       $enumDecodeNullable(
         _$FastForwardSpeedEnumMap,
         json['fastForwardSpeed'],
       ) ??
       FastForwardSpeed.x2,
-  turboSpeed:
-      $enumDecodeNullable(_$TurboSpeedEnumMap, json['turboSpeed']) ??
-      TurboSpeed.x1,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
@@ -98,16 +96,13 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   crtFilter: json['crtFilter'] == null
       ? const CrtFilterSettings()
       : _crtFilterFromJson(json['crtFilter']),
-  overscan: json['overscan'] == null
-      ? const Overscan()
-      : _overscanFromJson(json['overscan']),
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'lowPassFilter': instance.lowPassFilter,
+  'swapDutyCycles': instance.swapDutyCycles,
   'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
-  'turboSpeed': _$TurboSpeedEnumMap[instance.turboSpeed]!,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
   'showDebugOverlay': instance.showDebugOverlay,
@@ -139,7 +134,6 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
       .map((e) => _$VideoFilterEnumMap[e]!)
       .toList(),
   'crtFilter': _crtFilterToJson(instance.crtFilter),
-  'overscan': _overscanToJson(instance.overscan),
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -147,13 +141,6 @@ const _$FastForwardSpeedEnumMap = {
   FastForwardSpeed.x3: 'x3',
   FastForwardSpeed.x4: 'x4',
   FastForwardSpeed.max: 'max',
-};
-
-const _$TurboSpeedEnumMap = {
-  TurboSpeed.x1: 'x1',
-  TurboSpeed.x2: 'x2',
-  TurboSpeed.x3: 'x3',
-  TurboSpeed.x4: 'x4',
 };
 
 const _$LogLevelEnumMap = {
@@ -250,7 +237,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'61d0908be63a475e17723a048af27edddeb37b01';
+    r'5e4b5ad4e5b9b92540f132d250cbaeaf51f4bc2c';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

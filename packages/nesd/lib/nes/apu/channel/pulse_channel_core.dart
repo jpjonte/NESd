@@ -10,14 +10,31 @@ abstract class PulseChannelCore {
   final lengthCounter = LengthCounterUnit();
 
   int _duty = 0;
+  bool _swapDutyCycles = false;
   int _dutyMask = dutyCycleSequences[0];
 
   int get duty => _duty;
 
   set duty(int value) {
     _duty = value;
-    _dutyMask = dutyCycleSequences[value];
+    _dutyMask = _dutyCycleSequences[value];
   }
+
+  bool get swapDutyCycles => _swapDutyCycles;
+
+  set swapDutyCycles(bool value) {
+    if (value == _swapDutyCycles) {
+      return;
+    }
+
+    _swapDutyCycles = value;
+    _dutyMask = _dutyCycleSequences[_duty];
+
+    updateOutput();
+  }
+
+  List<int> get _dutyCycleSequences =>
+      _swapDutyCycles ? swappedDutyCycleSequences : dutyCycleSequences;
 
   bool constantVolume = false;
 

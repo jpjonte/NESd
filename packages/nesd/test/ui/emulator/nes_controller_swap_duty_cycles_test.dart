@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -7,8 +5,6 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
-import 'package:nesd/nes/isolate/nes_isolate.dart';
-import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -28,28 +24,6 @@ class _MockRomManager extends Mock implements RomManager {}
 
 class _MockFilesystem extends Mock implements Filesystem {}
 
-/// Stands in for a wedged or dead emulator isolate: commands go nowhere and
-/// no events ever arrive.
-class _UnresponsiveHandle implements NesIsolateHandle {
-  final StreamController<NesIsolateEvent> _events =
-      StreamController<NesIsolateEvent>.broadcast();
-
-  bool disposed = false;
-
-  @override
-  Stream<NesIsolateEvent> get events => _events.stream;
-
-  @override
-  void send(NesCommand command) {}
-
-  @override
-  Future<void> dispose() async {
-    disposed = true;
-
-    await _events.close();
-  }
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -65,8 +39,7 @@ void main() {
     );
   });
 
-  test('loadRom timeout tears down the isolate so the next load '
-      'respawns', () async {
+  Future<FakeNesIsolateHandle> loadWith({required bool swapDutyCycles}) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     container.listen(nesStateProvider, (_, _) {});
@@ -79,13 +52,13 @@ void main() {
     when(() => settings.rewind).thenReturn(false);
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
-    when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.swapDutyCycles).thenReturn(swapDutyCycles);
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
-    when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);
     when(() => settings.logLevel).thenReturn(LogLevel.info);
+    when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
 
     final romManager = _MockRomManager();
 
@@ -93,29 +66,12 @@ void main() {
 
     final database = MockNesDatabase();
 
-    final unresponsive = _UnresponsiveHandle();
-    final handles = <NesIsolateHandle>[];
-
-    Future<NesIsolateHandle> spawner() async {
-      // First spawn yields a handle that never answers; later spawns work.
-      final handle = handles.isEmpty ? unresponsive : FakeNesIsolateHandle();
-
-      handles.add(handle);
-
-      return handle;
-    }
-
-    addTearDown(() async {
-      for (final handle in handles) {
-        if (handle is FakeNesIsolateHandle) {
-          await handle.dispose();
-        }
-      }
-    });
+    final handle = FakeNesIsolateHandle();
+    addTearDown(handle.dispose);
 
     final controller = NesController(
       nesState: container.read(nesStateProvider.notifier),
-      spawner: spawner,
+      spawner: () async => handle,
       router: Router(),
       settingsController: settings,
       toaster: _MockToaster(),
@@ -124,7 +80,6 @@ void main() {
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
       romImporter: FakeRomImporter(),
-      romLoadTimeout: const Duration(milliseconds: 200),
     );
 
     const file = FilesystemFile(
@@ -133,20 +88,30 @@ void main() {
       type: FilesystemFileType.file,
     );
 
-    final rom = minimalValidRom();
+    final loaded = await controller.loadRom(file, data: minimalValidRom());
 
-    final first = await controller.loadRom(file, data: rom);
+    expect(loaded, isTrue);
 
-    expect(first, isFalse);
-    expect(
-      unresponsive.disposed,
-      isTrue,
-      reason: 'a load timeout must tear down the unresponsive isolate',
-    );
+    return handle;
+  }
 
-    final second = await controller.loadRom(file, data: rom);
+  test('loadRom sends the enabled duty cycle swap to the worker', () async {
+    final handle = await loadWith(swapDutyCycles: true);
 
-    expect(second, isTrue, reason: 'the retry must reach a fresh isolate');
-    expect(handles, hasLength(2));
+    final sent = handle.sentCommands
+        .whereType<SetSwapDutyCyclesCommand>()
+        .single;
+
+    expect(sent.enabled, isTrue);
+  });
+
+  test('loadRom sends the disabled duty cycle swap to the worker', () async {
+    final handle = await loadWith(swapDutyCycles: false);
+
+    final sent = handle.sentCommands
+        .whereType<SetSwapDutyCyclesCommand>()
+        .single;
+
+    expect(sent.enabled, isFalse);
   });
 }

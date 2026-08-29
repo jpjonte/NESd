@@ -189,6 +189,10 @@ class RemoteNes {
   set lowPassFilter(bool enabled) =>
       _send(SetLowPassFilterCommand(enabled: enabled));
 
+  // ignore: avoid_setters_without_getters
+  set swapDutyCycles(bool enabled) =>
+      _send(SetSwapDutyCyclesCommand(enabled: enabled));
+
   void startPcmDump(String path) => _send(StartPcmDumpCommand(path: path));
 
   void stopPcmDump() => _send(const StopPcmDumpCommand());
