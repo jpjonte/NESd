@@ -116,7 +116,11 @@ class FilePickerController {
       return null;
     }
 
-    await go(parent, focusPath: directory.path);
+    await go(
+      parent,
+      focusPath: directory.path,
+      isEntryPoint: _entryPath != null && !insideEntryDirectory,
+    );
 
     return parent;
   }

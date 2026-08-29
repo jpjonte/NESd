@@ -265,6 +265,12 @@ void main() {
       type: FilesystemFileType.directory,
     );
 
+    const deep = FilesystemFile(
+      path: '/roms/sub/deep',
+      name: '/roms/sub/deep',
+      type: FilesystemFileType.directory,
+    );
+
     setUp(() {
       when(
         () => filesystem.list('/roms'),
@@ -311,6 +317,42 @@ void main() {
       await controller.go(sub);
 
       expect(controller.insideEntryDirectory, isTrue);
+    });
+
+    test('re-anchors when going up from the entry directory', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory, isEntryPoint: true);
+      await controller.goUp();
+      await controller.go(_directory);
+
+      expect(controller.insideEntryDirectory, isTrue);
+    });
+
+    test('keeps the entry point when going up from below it', () async {
+      when(
+        () => filesystem.isDirectory('/roms/sub/deep'),
+      ).thenAnswer((_) async => true);
+      when(() => filesystem.list('/roms/sub/deep')).thenAnswer((_) async => []);
+      when(
+        () => filesystem.parent('/roms/sub/deep'),
+      ).thenAnswer((_) async => sub);
+
+      await controller.go(_directory, isEntryPoint: true);
+      await controller.go(deep);
+      await controller.goUp();
+
+      expect(controller.insideEntryDirectory, isTrue);
+    });
+
+    test('does not anchor an entry point when there is none', () async {
+      when(() => filesystem.parent('/roms')).thenAnswer((_) async => root);
+
+      await controller.go(_directory);
+      await controller.goUp();
+      await controller.go(_directory);
+
+      expect(controller.insideEntryDirectory, isFalse);
     });
   });
 
