@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #define NESD_AUDIO_EXPORT __declspec(dllexport)
 #else
-#define NESD_AUDIO_EXPORT __attribute__((visibility("default")))
+#define NESD_AUDIO_EXPORT __attribute__((visibility("default"), used))
 #endif
 
 #ifdef __cplusplus
