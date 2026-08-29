@@ -1,11 +1,16 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/util/wait.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:xml/xml.dart';
+import 'package:xml/xml_events.dart';
 
 part 'database.g.dart';
 
@@ -13,9 +18,15 @@ part 'database.g.dart';
 NesDatabase database(Ref ref) => NesDatabase();
 
 class NesDatabase {
+  static const _chunkSize = 64 * 1024;
+
   NesDatabase() {
-    _load();
+    _ready = _load();
   }
+
+  late final Future<void> _ready;
+
+  Future<void> get ready => _ready;
 
   final Map<String, NesDatabaseEntry> _database = {};
 
@@ -36,56 +47,87 @@ class NesDatabase {
   }
 
   Future<void> _load() async {
-    final databaseXml = await rootBundle.loadString('assets/nes20db.xml');
-    final data = XmlDocument.parse(databaseXml);
+    final data = await rootBundle.load('assets/nes20db.xml');
 
-    for (final game in data.findAllElements('game')) {
-      final romHash = _getHash(game, 'rom');
+    final bytes = data.buffer.asUint8List(
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
 
-      if (romHash == null) {
-        continue;
+    final stream = _chunks(bytes)
+        .transform(utf8.decoder)
+        .toXmlEvents()
+        .selectSubtreeEvents((event) => event.name == 'game')
+        .toXmlNodes();
+
+    await for (final nodes in stream) {
+      for (final node in nodes) {
+        if (node is XmlElement) {
+          _addGame(node);
+        }
       }
+    }
+  }
 
-      final name = p.basenameWithoutExtension(
-        game.children.whereType<XmlComment>().single.value.trim().replaceAll(
-          '\\',
-          '/',
-        ),
-      );
+  Stream<List<int>> _chunks(Uint8List bytes) async* {
+    for (var offset = 0; offset < bytes.length; offset += _chunkSize) {
+      // give other tasks a chance to compute
+      await wait(Duration.zero);
 
-      final chrHash = _getHash(game, 'chrrom');
-      final prgHash = _getHash(game, 'prgrom')!;
-      final mapper = _getAttribute(game, 'pcb', 'mapper').toIntOrZero();
-      final submapper = _getAttribute(game, 'pcb', 'submapper').toIntOrZero();
-      final region = _getAttribute(game, 'console', 'region').toIntOrZero();
-      final chrRamSize = _getAttribute(game, 'chrram', 'size').toIntOrZero();
-      final prgRamSize = _getAttribute(game, 'prgram', 'size').toIntOrZero();
-      final prgSaveRamSize = _getAttribute(
-        game,
-        'prgnvram',
-        'size',
-      ).toIntOrZero();
-      final hasBattery = _getAttribute(game, 'pcb', 'battery') == '1';
-
-      _database[romHash] = NesDatabaseEntry(
-        name: name,
-        romHash: romHash,
-        chrHash: chrHash,
-        prgHash: prgHash,
-        chrRamSize: chrRamSize,
-        prgRamSize: prgRamSize,
-        prgSaveRamSize: prgSaveRamSize,
-        hasBattery: hasBattery,
-        mapper: mapper,
-        submapper: submapper,
-        region: switch (region) {
-          0 => Region.ntsc,
-          1 => Region.pal,
-          _ => null,
-        },
-        expansion: int.parse(_getAttribute(game, 'expansion', 'type')!),
+      yield Uint8List.sublistView(
+        bytes,
+        offset,
+        min(offset + _chunkSize, bytes.length),
       );
     }
+  }
+
+  void _addGame(XmlElement game) {
+    final romHash = _getHash(game, 'rom');
+
+    if (romHash == null) {
+      return;
+    }
+
+    final name = p.basenameWithoutExtension(
+      game.children.whereType<XmlComment>().single.value.trim().replaceAll(
+        '\\',
+        '/',
+      ),
+    );
+
+    final chrHash = _getHash(game, 'chrrom');
+    final prgHash = _getHash(game, 'prgrom')!;
+    final mapper = _getAttribute(game, 'pcb', 'mapper').toIntOrZero();
+    final submapper = _getAttribute(game, 'pcb', 'submapper').toIntOrZero();
+    final region = _getAttribute(game, 'console', 'region').toIntOrZero();
+    final chrRamSize = _getAttribute(game, 'chrram', 'size').toIntOrZero();
+    final prgRamSize = _getAttribute(game, 'prgram', 'size').toIntOrZero();
+    final prgSaveRamSize = _getAttribute(
+      game,
+      'prgnvram',
+      'size',
+    ).toIntOrZero();
+    final hasBattery = _getAttribute(game, 'pcb', 'battery') == '1';
+
+    _database[romHash] = NesDatabaseEntry(
+      name: name,
+      romHash: romHash,
+      chrHash: chrHash,
+      prgHash: prgHash,
+      chrRamSize: chrRamSize,
+      prgRamSize: prgRamSize,
+      prgSaveRamSize: prgSaveRamSize,
+      hasBattery: hasBattery,
+      mapper: mapper,
+      submapper: submapper,
+      region: switch (region) {
+        0 => Region.ntsc,
+        1 => Region.pal,
+        _ => null,
+      },
+      expansion: int.parse(_getAttribute(game, 'expansion', 'type')!),
+    );
   }
 
   String? _getAttribute(XmlElement child, String tag, String attribute) {

@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Nightly and branch builds now show a build id in the About dialog and the startup log
 - The video filters (CRT and smooth) are now available in the web version
 - Multiple video filters can now be activated at once
+- The web version now shows a loading screen while it starts up
 
 ### Changed
 - Holding a gamepad button in menus now speeds up the repeat rate over time
@@ -28,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The About button moved from the main menu to the General settings tab
 - The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
 - Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
+- Recent ROM thumbnails now fade in and show a progress indicator when they take a while to load
 
 ### Fixed
 - Fixed the Zapper registering hits on the wrong target
@@ -42,6 +44,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Keys that are not bound to anything no longer trigger UI shortcuts while in game (e.g. Escape quitting to the main menu when "Open Menu" is bound to another key)
 - Fixed constant audio crackling on some Android devices. Audio is now consumed at the device's own pace, and underrun recovery fills the buffer further than before
 - Fixed audio stutters due to inconsistent timers 
+- Fixed the main menu logo appearing a moment after the rest of the menu
+- Fixed the browser locking up for about a second while the ROM database loaded
+- Fixed ROMs being loaded before the ROM database is ready
 
 ## [0.17.0] - 2026-08-23
 

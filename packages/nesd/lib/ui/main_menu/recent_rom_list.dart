@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
+import 'package:nesd/ui/common/logo.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
-import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class RecentRomList extends HookConsumerWidget {
@@ -25,8 +25,6 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
-    final route = ref.watch(currentRouteProvider);
-
     if (recentRoms.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
@@ -34,20 +32,18 @@ class RecentRomList extends HookConsumerWidget {
           key: logoKey,
           width: 256,
           height: 256,
-          child: Image.asset('assets/logo.png'),
+          child: Image.asset(logoAsset),
         ),
       );
     }
 
     final thumbnailRevision = useValueListenable(romManager.thumbnailRevision);
 
-    // rebuilding the tile data makes the tiles reload their thumbnails, so
-    // returning to the list after playing shows the thumbnail just saved
     final roms = useMemoized(
       () => [
         for (final romInfo in recentRoms) romManager.getRomTileData(romInfo),
       ],
-      [recentRoms, route == MainRoute.name, thumbnailRevision],
+      [recentRoms, thumbnailRevision],
     );
 
     Future<void> remove(BuildContext context, RomTileData romTileData) async {

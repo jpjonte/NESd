@@ -14,6 +14,9 @@ class _NullDatabase implements NesDatabase {
 
   @override
   NesDatabaseEntry? find(RomInfo info) => null;
+
+  @override
+  Future<void> get ready => Future.value();
 }
 
 NES _buildNes() {

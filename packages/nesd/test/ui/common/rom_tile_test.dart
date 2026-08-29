@@ -11,6 +11,8 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/native_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 
+import '../../helpers/gated_storage.dart';
+
 void main() {
   late Directory tempDir;
   late StorageFilesystem storage;
@@ -22,6 +24,12 @@ void main() {
       name: 'test.nes',
       type: FilesystemFileType.file,
     ),
+  );
+
+  const storedTileData = RomTileData(
+    romInfo: romInfo,
+    title: 'test',
+    thumbnail: StoredThumbnail(),
   );
 
   setUp(() async {
@@ -42,6 +50,47 @@ void main() {
     width: 2,
     height: 2,
     pixels: Uint8List(2 * 2 * 4),
+  );
+
+  ui.Image? thumbnailOf(WidgetTester tester) =>
+      tester.widget<RawImage>(find.byType(RawImage)).image;
+
+  /// Alternate between real async work and test frames until the tile shows an
+  /// image.
+  Future<ui.Image?> pumpUntilThumbnail(
+    WidgetTester tester, {
+    int rounds = 20,
+  }) async {
+    for (var round = 0; round < rounds; round++) {
+      await tester.runAsync(
+        () async => await Future.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+
+      if (thumbnailOf(tester) case final image?) {
+        return image;
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> pumpTile(
+    WidgetTester tester,
+    RomTileData romTileData, {
+    StorageFilesystem? storageOverride,
+  }) => tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        applicationSupportPathProvider.overrideWithValue(tempDir.path),
+        storageFilesystemProvider.overrideWithValue(storageOverride ?? storage),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: RomTile(romTileData: romTileData, onPressed: () {}),
+        ),
+      ),
+    ),
   );
 
   group('loadStoredThumbnail', () {
@@ -70,53 +119,6 @@ void main() {
   });
 
   group('RomTile', () {
-    const storedTileData = RomTileData(
-      romInfo: romInfo,
-      title: 'test',
-      thumbnail: StoredThumbnail(),
-    );
-
-    ui.Image? thumbnailOf(WidgetTester tester) =>
-        tester.widget<RawImage>(find.byType(RawImage)).image;
-
-    /// Alternates real async work and frames until the tile shows an image.
-    ///
-    /// Every `await` of the file read and the image decoding needs its own
-    /// round of real time before the fake clock can carry the result into the
-    /// widget tree.
-    Future<ui.Image?> pumpUntilThumbnail(
-      WidgetTester tester, {
-      int rounds = 20,
-    }) async {
-      for (var round = 0; round < rounds; round++) {
-        await tester.runAsync(
-          () async => await Future.delayed(const Duration(milliseconds: 20)),
-        );
-        await tester.pump();
-
-        if (thumbnailOf(tester) case final image?) {
-          return image;
-        }
-      }
-
-      return null;
-    }
-
-    Future<void> pumpTile(WidgetTester tester, RomTileData romTileData) =>
-        tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              applicationSupportPathProvider.overrideWithValue(tempDir.path),
-              storageFilesystemProvider.overrideWithValue(storage),
-            ],
-            child: MaterialApp(
-              home: Scaffold(
-                body: RomTile(romTileData: romTileData, onPressed: () {}),
-              ),
-            ),
-          ),
-        );
-
     testWidgets('loads a stored thumbnail', (tester) async {
       await tester.runAsync(saveThumbnail);
 
@@ -152,6 +154,117 @@ void main() {
       );
 
       expect(thumbnailOf(tester), same(image));
+    });
+  });
+
+  group('RomTile thumbnail loading', () {
+    late GatedStorage gated;
+
+    setUp(() => gated = GatedStorage(storage));
+
+    final spinner = find.byType(CircularProgressIndicator);
+
+    Future<void> pumpGatedTile(WidgetTester tester) =>
+        pumpTile(tester, storedTileData, storageOverride: gated);
+
+    double opacityOf(WidgetTester tester) => tester
+        .widget<FadeTransition>(
+          find.descendant(
+            of: find.byKey(RomTile.thumbnailFadeKey),
+            matching: find.byType(FadeTransition),
+          ),
+        )
+        .opacity
+        .value;
+
+    testWidgets('shows no progress indicator while the read is still quick', (
+      tester,
+    ) async {
+      await pumpGatedTile(tester);
+
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(spinner, findsNothing);
+    });
+
+    testWidgets('shows a progress indicator once the read drags on', (
+      tester,
+    ) async {
+      await pumpGatedTile(tester);
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(spinner, findsOneWidget);
+    });
+
+    testWidgets('hides the progress indicator when the thumbnail arrives', (
+      tester,
+    ) async {
+      await tester.runAsync(saveThumbnail);
+
+      await pumpGatedTile(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(spinner, findsOneWidget);
+
+      gated.openGate();
+
+      expect(await pumpUntilThumbnail(tester), isNotNull);
+      expect(spinner, findsNothing);
+    });
+
+    testWidgets('keeps the thumbnail transparent until it loads', (
+      tester,
+    ) async {
+      await tester.runAsync(saveThumbnail);
+
+      await pumpGatedTile(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(opacityOf(tester), 0);
+    });
+
+    testWidgets('keeps the delay running when the tile data is replaced', (
+      tester,
+    ) async {
+      await pumpGatedTile(tester);
+
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(spinner, findsNothing);
+
+      await pumpTile(
+        tester,
+        // ignore: prefer_const_constructors
+        RomTileData(
+          romInfo: romInfo,
+          title: 'test',
+          thumbnail: const StoredThumbnail(),
+        ),
+        storageOverride: gated,
+      );
+
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(spinner, findsOneWidget);
+    });
+
+    testWidgets('fades the thumbnail in instead of showing it at once', (
+      tester,
+    ) async {
+      await tester.runAsync(saveThumbnail);
+
+      await pumpGatedTile(tester);
+
+      gated.openGate();
+
+      expect(await pumpUntilThumbnail(tester), isNotNull);
+
+      expect(opacityOf(tester), lessThan(1));
+
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(opacityOf(tester), 1);
     });
   });
 }

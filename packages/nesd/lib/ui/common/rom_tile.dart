@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -17,6 +18,10 @@ const gameTileHeight = 256.0;
 
 const thumbnailWidth = 256.0;
 const thumbnailHeight = 240.0;
+
+const _spinnerDelay = Duration(milliseconds: 150);
+
+const _fadeDuration = Duration(milliseconds: 200);
 
 sealed class RomThumbnail {
   const RomThumbnail();
@@ -68,6 +73,8 @@ Future<ui.Image?> loadStoredThumbnail(Uint8List? bytes) async {
 }
 
 class RomTile extends ConsumerWidget {
+  static const thumbnailFadeKey = Key('thumbnailFade');
+
   const RomTile({
     required this.romTileData,
     required this.onPressed,
@@ -204,7 +211,37 @@ class _StoredThumbnail extends HookConsumerWidget {
     // returning to the ROM list does not blank out the tile
     final snapshot = useFuture(loading);
 
-    return _Thumbnail(image: snapshot.data);
+    final romPath = romTileData.romInfo.file.path;
+
+    final startedAt = useMemoized(
+      () => WidgetsBinding.instance.currentFrameTimeStamp,
+      [romPath],
+    );
+
+    final wakeUp = useState(0);
+
+    useEffect(() {
+      final timer = Timer(_spinnerDelay, () => wakeUp.value++);
+
+      return timer.cancel;
+    }, [romPath]);
+
+    final loaded = snapshot.connectionState != ConnectionState.waiting;
+
+    final elapsed = WidgetsBinding.instance.currentFrameTimeStamp - startedAt;
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _Thumbnail(image: snapshot.data),
+        if (!loaded && elapsed >= _spinnerDelay)
+          const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+      ],
+    );
   }
 }
 
@@ -214,10 +251,15 @@ class _Thumbnail extends StatelessWidget {
   final ui.Image? image;
 
   @override
-  Widget build(BuildContext context) => RawImage(
-    width: thumbnailWidth,
-    height: thumbnailHeight,
-    filterQuality: FilterQuality.none,
-    image: image,
+  Widget build(BuildContext context) => AnimatedOpacity(
+    key: RomTile.thumbnailFadeKey,
+    opacity: image == null ? 0 : 1,
+    duration: _fadeDuration,
+    child: RawImage(
+      width: thumbnailWidth,
+      height: thumbnailHeight,
+      filterQuality: FilterQuality.none,
+      image: image,
+    ),
   );
 }

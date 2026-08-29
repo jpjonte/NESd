@@ -13,10 +13,100 @@
 
   <link rel="icon" type="image/png" href="favicon.png"/>
 
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
   <title>NESd</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- preload the logo for Flutter -->
+  <link rel="preload" as="image" href="assets/assets/logo.png">
+
+  <style>
+    :root {
+      color-scheme: dark light;
+      --nesd-background: #000000;
+      --nesd-track: #611010;
+      --nesd-fill: #dd2222;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --nesd-background: #ffffff;
+      }
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--nesd-background);
+    }
+
+    #splash {
+      position: fixed;
+      inset: 0;
+      /* draw the splash on top of <flutter-view> */
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      background-color: var(--nesd-background);
+      transition: opacity 250ms ease-out;
+    }
+
+    #splash.dismissed {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #splash-logo {
+      width: 256px;
+      height: 256px;
+      max-width: 60vmin;
+      max-height: 60vmin;
+    }
+
+    #splash-progress {
+      width: 256px;
+      max-width: 60vmin;
+      height: 6px;
+      border-radius: 3px;
+      background-color: var(--nesd-track);
+      overflow: hidden;
+    }
+
+    #splash-progress::after {
+      content: '';
+      display: block;
+      width: 40%;
+      height: 100%;
+      border-radius: 3px;
+      background-color: var(--nesd-fill);
+      animation: splash-progress 1.2s ease-in-out infinite;
+    }
+
+    @keyframes splash-progress {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(250%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #splash-progress::after {
+        width: 100%;
+        animation: none;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div id="splash">
+    <!-- No alt text here so it isn't rendered while the logo is loading -->
+    <img id="splash-logo" src="assets/assets/logo.png" alt="" aria-hidden="true">
+    <div id="splash-progress" role="progressbar" aria-label="Loading NESd"></div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -41,6 +41,9 @@ class _FixedDatabase implements NesDatabase {
 
   @override
   NesDatabaseEntry? find(RomInfo info) => entry;
+
+  @override
+  Future<void> get ready => Future.value();
 }
 
 /// Plain, non-isolate command handler for the NES emulator core.

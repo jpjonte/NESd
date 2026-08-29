@@ -11,6 +11,7 @@ import 'package:nesd/log/log_setup.dart';
 import 'package:nesd/profile/dev_profile_migration.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/common/logo.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/android_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -55,6 +56,8 @@ void main(List<String> arguments) async {
   }
 
   _addLicenses();
+
+  final logoReady = precacheLogo();
 
   const sharedPreferencesOptions = SharedPreferencesOptions();
 
@@ -112,6 +115,8 @@ void main(List<String> arguments) async {
   } else {
     filesystem = Platform.isAndroid ? AndroidFilesystem() : NativeFilesystem();
   }
+
+  await logoReady;
 
   runApp(
     ProviderScope(

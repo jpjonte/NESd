@@ -379,6 +379,10 @@ class NesController {
         _ => throw UnsupportedFileType(extension),
       };
 
+      // make sure database is loaded before querying it
+      await database.ready;
+
+      // CartridgeFactory queries the database
       final cartridge = cartridgeFactory.fromFile(file, rom);
 
       cartridge.databaseEntry = database.find(cartridge.romInfo);

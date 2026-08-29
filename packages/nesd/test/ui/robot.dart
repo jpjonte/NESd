@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/about/package_info.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
@@ -93,6 +94,7 @@ class Robot extends BaseRobot {
     Size logicalSize = const Size(1920, 1080),
     double? devicePixelRatio,
     List<Override> overrides = const [],
+    StorageFilesystem? storage,
     bool settle = true,
   }) async {
     fileSystem
@@ -148,12 +150,13 @@ class Robot extends BaseRobot {
 
             return handle;
           }),
+          databaseProvider.overrideWithValue(MockNesDatabase()),
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
           packageInfoProvider.overrideWithValue(packageInfo),
           filesystemProvider.overrideWithValue(fileSystem),
           applicationSupportPathProvider.overrideWithValue(tempDir.path),
           storageFilesystemProvider.overrideWithValue(
-            NativeStorageFilesystem(),
+            storage ?? NativeStorageFilesystem(),
           ),
           ...overrides,
         ],

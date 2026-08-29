@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/build_id.dart';
 import 'package:nesd/ui/about/package_info.dart';
+import 'package:nesd/ui/common/logo.dart';
 import 'package:nesd/ui/theme/base.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,11 +23,7 @@ class AboutDialog extends ConsumerWidget {
             ? packageInfo.version
             : '${packageInfo.version} ($buildId)',
         applicationLegalese: '© 2024-2026 John Paul Jonte',
-        applicationIcon: Image.asset(
-          'assets/logo.png',
-          width: 128,
-          height: 128,
-        ),
+        applicationIcon: Image.asset(logoAsset, width: 128, height: 128),
         children: [
           InkWell(
             child: Padding(

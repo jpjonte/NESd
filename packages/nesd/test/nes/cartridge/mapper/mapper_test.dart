@@ -38,6 +38,9 @@ class _FixedSaveRamDatabase implements NesDatabase {
     submapper: 0,
     expansion: 1,
   );
+
+  @override
+  Future<void> get ready => Future.value();
 }
 
 Cartridge _buildCartridge(NesDatabase database) {
