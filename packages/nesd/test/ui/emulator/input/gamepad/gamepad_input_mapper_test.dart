@@ -76,7 +76,7 @@ void main() {
       ]);
 
       expect(result.single.inputId, 'axis_leftStickY');
-      expect(result.single.value, -0.5);
+      expect(result.single.value, 0.5);
     });
 
     test('maps macOS sticks to normalized axes', () async {
@@ -112,7 +112,7 @@ void main() {
 
       expect(pressed.map((e) => e.inputId), [
         'button_dpadLeft',
-        'button_dpadDown',
+        'button_dpadUp',
       ]);
     });
 

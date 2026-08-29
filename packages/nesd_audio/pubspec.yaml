@@ -9,10 +9,10 @@ environment:
   flutter: '>=3.22.0'
 
 dependencies:
-  ffi: ^2.1.2
+  ffi: ^2.2.0
   flutter:
     sdk: flutter
-  web: ^1.1.0
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
