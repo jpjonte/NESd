@@ -14,7 +14,7 @@ import 'package:nesd/ui/file_picker/letter_jump.dart';
 import 'package:path/path.dart' as p;
 
 const _baseTileHeight = 56.0;
-const _dividerHeight = 16.0;
+const _dividerHeight = 1.0;
 
 /// fixed row height for scrolling automation
 const _baseItemExtent = _baseTileHeight + _dividerHeight;
