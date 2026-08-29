@@ -53,6 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed the main menu logo appearing a moment after the rest of the menu
 - Fixed the browser locking up for about a second while the ROM database loaded
 - Fixed ROMs being loaded before the ROM database is ready
+- Fixed emulator tools swallowing input and Escape quitting to main menu instead of opening the in-game menu
 
 ## [0.17.0] - 2026-08-23
 

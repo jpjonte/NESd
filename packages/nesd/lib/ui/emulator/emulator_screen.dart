@@ -19,12 +19,15 @@ class EmulatorScreen extends StatelessWidget {
             ? const Row(
                 children: [
                   Expanded(child: EmulatorWidget()),
-                  DockedToolHost(),
+                  ExcludeFocus(child: DockedToolHost()),
                 ],
               )
             : const Stack(
                 fit: StackFit.expand,
-                children: [EmulatorWidget(), CompactToolHost()],
+                children: [
+                  EmulatorWidget(),
+                  ExcludeFocus(child: CompactToolHost()),
+                ],
               ),
       ),
     );
