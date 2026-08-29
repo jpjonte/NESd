@@ -51,6 +51,7 @@ const featureGroups = [
       'Gamepads',
       'Rebindable controls',
       'Touch controls',
+      'Turbo buttons',
       'CRT and smooth filters',
       'Zapper light gun',
     ],

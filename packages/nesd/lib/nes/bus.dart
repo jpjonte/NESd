@@ -12,6 +12,7 @@ import 'package:nesd/nes/input/controller.dart';
 import 'package:nesd/nes/input/input_device.dart';
 import 'package:nesd/nes/input/zapper.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 
 const addressNone = -1;
 const addressA = -2;
@@ -32,6 +33,8 @@ class Bus {
   late final APU apu;
 
   final List<InputDevice> _inputs = [Controller(), Controller()];
+
+  TurboSpeed turboSpeed = TurboSpeed.x1;
 
   late final Zapper _zapper = Zapper(bus: this);
 
@@ -166,21 +169,31 @@ class Bus {
     }
   }
 
-  void buttonDown(int controller, NesButton button) {
+  void buttonDown(int controller, NesButton button, {bool turbo = false}) {
     if (_inputs[controller] case final Controller controller) {
-      controller.buttonDown(button);
+      controller.buttonDown(button, turbo: turbo);
     }
   }
 
-  void buttonUp(int controller, NesButton button) {
+  void buttonUp(int controller, NesButton button, {bool turbo = false}) {
     if (_inputs[controller] case final Controller controller) {
-      controller.buttonUp(button);
+      controller.buttonUp(button, turbo: turbo);
     }
   }
 
-  void buttonToggle(int controller, NesButton button) {
+  void buttonToggle(int controller, NesButton button, {bool turbo = false}) {
     if (_inputs[controller] case final Controller controller) {
-      controller.buttonToggle(button);
+      controller.buttonToggle(button, turbo: turbo);
+    }
+  }
+
+  void updateTurboPhase(int frame) {
+    final on = (frame ~/ turboSpeed.divider).isEven;
+
+    for (final input in _inputs) {
+      if (input case final Controller controller) {
+        controller.turboPhase = on;
+      }
     }
   }
 

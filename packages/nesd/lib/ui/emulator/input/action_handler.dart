@@ -161,7 +161,7 @@ class ActionHandler {
     switch (action) {
       case ControllerPress():
         if (_inGame) {
-          nes?.buttonUp(action.controller, action.button);
+          nes?.buttonUp(action.controller, action.button, turbo: action.turbo);
         }
       case FastForward():
         if (_inGame) {
@@ -188,7 +188,11 @@ class ActionHandler {
   void _handleActionToggleInGame(InputAction action) {
     switch (action) {
       case ControllerPress():
-        nes?.buttonToggle(action.controller, action.button);
+        nes?.buttonToggle(
+          action.controller,
+          action.button,
+          turbo: action.turbo,
+        );
       case FastForward():
         nes?.toggleFastForward();
       case Rewind():
@@ -203,7 +207,7 @@ class ActionHandler {
   void _handleActionDownInGame(InputAction action) {
     switch (action) {
       case ControllerPress():
-        nes?.buttonDown(action.controller, action.button);
+        nes?.buttonDown(action.controller, action.button, turbo: action.turbo);
       case SaveState():
         _saveState(action.slot);
       case LoadState():

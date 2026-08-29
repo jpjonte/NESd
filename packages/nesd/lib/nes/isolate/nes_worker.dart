@@ -115,11 +115,23 @@ class NesWorker {
       case ShutdownCommand():
         await shutdown();
       case ButtonDownCommand():
-        _nes?.buttonDown(command.controller, command.button);
+        _nes?.buttonDown(
+          command.controller,
+          command.button,
+          turbo: command.turbo,
+        );
       case ButtonUpCommand():
-        _nes?.buttonUp(command.controller, command.button);
+        _nes?.buttonUp(
+          command.controller,
+          command.button,
+          turbo: command.turbo,
+        );
       case ButtonToggleCommand():
-        _nes?.buttonToggle(command.controller, command.button);
+        _nes?.buttonToggle(
+          command.controller,
+          command.button,
+          turbo: command.turbo,
+        );
       case ToggleFastForwardCommand():
         _nes?.toggleFastForward();
         _sendStatus();
@@ -147,6 +159,8 @@ class NesWorker {
         _audioOutput?.volume = command.volume;
       case SetFastForwardSpeedCommand():
         _nes?.fastForwardSpeed = command.speed;
+      case SetTurboSpeedCommand():
+        _nes?.turboSpeed = command.speed;
       case SetLowPassFilterCommand():
         _audioOutput?.lowPassFilter = command.enabled;
       case StartPcmDumpCommand():

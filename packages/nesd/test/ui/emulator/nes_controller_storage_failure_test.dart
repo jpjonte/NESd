@@ -7,6 +7,7 @@ import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -66,6 +67,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
+    when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);

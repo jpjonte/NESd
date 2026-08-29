@@ -15,6 +15,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
         json['fastForwardSpeed'],
       ) ??
       FastForwardSpeed.x2,
+  turboSpeed:
+      $enumDecodeNullable(_$TurboSpeedEnumMap, json['turboSpeed']) ??
+      TurboSpeed.x1,
   stretch: json['stretch'] as bool? ?? true,
   showBorder: json['showBorder'] as bool? ?? false,
   showDebugOverlay: json['showDebugOverlay'] as bool? ?? false,
@@ -101,6 +104,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'lowPassFilter': instance.lowPassFilter,
   'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
+  'turboSpeed': _$TurboSpeedEnumMap[instance.turboSpeed]!,
   'stretch': instance.stretch,
   'showBorder': instance.showBorder,
   'showDebugOverlay': instance.showDebugOverlay,
@@ -139,6 +143,13 @@ const _$FastForwardSpeedEnumMap = {
   FastForwardSpeed.x3: 'x3',
   FastForwardSpeed.x4: 'x4',
   FastForwardSpeed.max: 'max',
+};
+
+const _$TurboSpeedEnumMap = {
+  TurboSpeed.x1: 'x1',
+  TurboSpeed.x2: 'x2',
+  TurboSpeed.x3: 'x3',
+  TurboSpeed.x4: 'x4',
 };
 
 const _$LogLevelEnumMap = {
@@ -235,7 +246,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'9a7d402cb9889d3bd700820c24f4d0bf42356bc4';
+    r'2e0fab664341ffa8c2bea3b827335822df96d2e2';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

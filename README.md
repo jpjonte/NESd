@@ -102,6 +102,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 - Customizable controls with multiple bindings per action
 - Gamepad support
 - Customizable touch screen controls
+- Turbo A and B for both controllers, with an adjustable fire rate
 - Load ROMs from file or ZIP archive, with a searchable file picker
 - Debug overlay and debug tools: Display, Tile Viewer, Cartridge Info, APU Debug, Debugger and Execution Log
 - A log viewer with search, copy and file export

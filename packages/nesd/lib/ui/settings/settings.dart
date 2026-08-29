@@ -10,6 +10,7 @@ import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -95,6 +96,7 @@ sealed class Settings with _$Settings {
     @Default(1.0) double volume,
     @Default(false) bool lowPassFilter,
     @Default(FastForwardSpeed.x2) FastForwardSpeed fastForwardSpeed,
+    @Default(TurboSpeed.x1) TurboSpeed turboSpeed,
     @Default(true) bool stretch,
     @Default(false) bool showBorder,
     @Default(false) bool showDebugOverlay,
@@ -173,6 +175,12 @@ class SettingsController extends _$SettingsController {
 
   set fastForwardSpeed(FastForwardSpeed fastForwardSpeed) {
     _update(state.copyWith(fastForwardSpeed: fastForwardSpeed));
+  }
+
+  TurboSpeed get turboSpeed => state.turboSpeed;
+
+  set turboSpeed(TurboSpeed turboSpeed) {
+    _update(state.copyWith(turboSpeed: turboSpeed));
   }
 
   bool get showBorder => state.showBorder;
