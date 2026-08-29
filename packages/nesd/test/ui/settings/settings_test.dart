@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 void main() {
@@ -13,5 +14,17 @@ void main() {
 
   test('fastForwardSpeed defaults to 2x for missing settings keys', () {
     expect(Settings.fromJson(const {}).fastForwardSpeed, FastForwardSpeed.x2);
+  });
+
+  test('turboSpeed round-trips through JSON', () {
+    final settings = Settings(turboSpeed: TurboSpeed.x3);
+
+    final restored = Settings.fromJson(settings.toJson());
+
+    expect(restored.turboSpeed, TurboSpeed.x3);
+  });
+
+  test('turboSpeed defaults to the fastest pulse for missing keys', () {
+    expect(Settings.fromJson(const {}).turboSpeed, TurboSpeed.x1);
   });
 }

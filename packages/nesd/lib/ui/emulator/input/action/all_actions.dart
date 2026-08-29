@@ -37,6 +37,8 @@ const inputActions = [
   controller1Select,
   controller1A,
   controller1B,
+  controller1TurboA,
+  controller1TurboB,
   controller2Up,
   controller2Down,
   controller2Left,
@@ -45,6 +47,8 @@ const inputActions = [
   controller2Select,
   controller2A,
   controller2B,
+  controller2TurboA,
+  controller2TurboB,
 ];
 
 const saveStateActions = [

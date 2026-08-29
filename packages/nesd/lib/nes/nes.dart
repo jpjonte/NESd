@@ -21,6 +21,7 @@ import 'package:nesd/nes/rewind/rewind_buffer.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/sample_decimator.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/util/wait.dart';
 
 class NES {
@@ -67,6 +68,10 @@ class NES {
   bool fastForward = false;
 
   FastForwardSpeed fastForwardSpeed = FastForwardSpeed.x2;
+
+  TurboSpeed get turboSpeed => bus.turboSpeed;
+
+  set turboSpeed(TurboSpeed speed) => bus.turboSpeed = speed;
 
   final SampleDecimator _fastForwardDecimator = SampleDecimator();
 
@@ -298,6 +303,8 @@ class NES {
         }
 
         if (vblankBefore == 0 && ppu.PPUSTATUS_V == 1) {
+          bus.updateTurboPhase(ppu.frames);
+
           await _sendFrame();
         }
       }
@@ -530,16 +537,16 @@ class NES {
     unpause();
   }
 
-  void buttonDown(int controller, NesButton button) {
-    bus.buttonDown(controller, button);
+  void buttonDown(int controller, NesButton button, {bool turbo = false}) {
+    bus.buttonDown(controller, button, turbo: turbo);
   }
 
-  void buttonUp(int controller, NesButton button) {
-    bus.buttonUp(controller, button);
+  void buttonUp(int controller, NesButton button, {bool turbo = false}) {
+    bus.buttonUp(controller, button, turbo: turbo);
   }
 
-  void buttonToggle(int controller, NesButton button) {
-    bus.buttonToggle(controller, button);
+  void buttonToggle(int controller, NesButton button, {bool turbo = false}) {
+    bus.buttonToggle(controller, button, turbo: turbo);
   }
 
   void step() {

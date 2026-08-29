@@ -9,6 +9,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -78,6 +79,7 @@ void main() {
     when(() => settings.autoLoad).thenReturn(false);
     when(() => settings.logLevel).thenReturn(LogLevel.info);
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
+    when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
 
     final romManager = _MockRomManager();
 

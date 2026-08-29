@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Implemented GPU rendering on Linux and Windows
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
+- Turbo for the A and B buttons on both controllers, with a configurable speed
 - Fast-forward now plays audio
 - Fast-forward speed is configurable: 2x (default), 3x, 4x, max (without audio)
 - The file picker now supports letter skipping on a gamepad: the Previous/Next Tab actions jump to the previous/next starting letter

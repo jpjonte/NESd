@@ -6,10 +6,13 @@ class ControllerPress extends InputAction {
     this.button, {
     required super.title,
     required super.code,
+    this.turbo = false,
   }) : super(toggleable: true);
 
   final int controller;
   final NesButton button;
+
+  final bool turbo;
 }
 
 const controller1Up = ControllerPress(
@@ -122,4 +125,36 @@ const controller2B = ControllerPress(
   NesButton.b,
   title: 'Controller 2 B',
   code: 'controller2.b',
+);
+
+const controller1TurboA = ControllerPress(
+  0,
+  NesButton.a,
+  title: 'Controller 1 Turbo A',
+  code: 'controller1.turboA',
+  turbo: true,
+);
+
+const controller1TurboB = ControllerPress(
+  0,
+  NesButton.b,
+  title: 'Controller 1 Turbo B',
+  code: 'controller1.turboB',
+  turbo: true,
+);
+
+const controller2TurboA = ControllerPress(
+  1,
+  NesButton.a,
+  title: 'Controller 2 Turbo A',
+  code: 'controller2.turboA',
+  turbo: true,
+);
+
+const controller2TurboB = ControllerPress(
+  1,
+  NesButton.b,
+  title: 'Controller 2 Turbo B',
+  code: 'controller2.turboB',
+  turbo: true,
 );

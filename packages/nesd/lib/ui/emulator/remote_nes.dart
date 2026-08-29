@@ -12,6 +12,7 @@ import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/frame_source.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -92,6 +93,16 @@ class RemoteNes {
     _send(SetFastForwardSpeedCommand(speed: speed));
   }
 
+  TurboSpeed _turboSpeed = TurboSpeed.x1;
+
+  TurboSpeed get turboSpeed => _turboSpeed;
+
+  set turboSpeed(TurboSpeed speed) {
+    _turboSpeed = speed;
+
+    _send(SetTurboSpeedCommand(speed: speed));
+  }
+
   /// Forwards a hold-mode rewind change to the worker. Optimistically
   /// mirrored like [fastForward]; the worker's plain assignment does not
   /// gate on `rewindEnabled`, so the next [StatusEvent] is authoritative.
@@ -117,14 +128,24 @@ class RemoteNes {
 
   void _send(NesCommand command) => _isolate.send(command);
 
-  void buttonDown(int controller, NesButton button) =>
-      _send(ButtonDownCommand(controller: controller, button: button));
+  void buttonDown(int controller, NesButton button, {bool turbo = false}) =>
+      _send(
+        ButtonDownCommand(controller: controller, button: button, turbo: turbo),
+      );
 
-  void buttonUp(int controller, NesButton button) =>
-      _send(ButtonUpCommand(controller: controller, button: button));
+  void buttonUp(int controller, NesButton button, {bool turbo = false}) =>
+      _send(
+        ButtonUpCommand(controller: controller, button: button, turbo: turbo),
+      );
 
-  void buttonToggle(int controller, NesButton button) =>
-      _send(ButtonToggleCommand(controller: controller, button: button));
+  void buttonToggle(int controller, NesButton button, {bool turbo = false}) =>
+      _send(
+        ButtonToggleCommand(
+          controller: controller,
+          button: button,
+          turbo: turbo,
+        ),
+      );
 
   void pause() => _send(const PauseCommand());
 

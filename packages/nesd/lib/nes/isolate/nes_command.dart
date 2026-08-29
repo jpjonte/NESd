@@ -6,6 +6,7 @@ import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 sealed class NesCommand {
@@ -73,24 +74,39 @@ class ShutdownCommand extends NesCommand {
 }
 
 class ButtonDownCommand extends NesCommand {
-  const ButtonDownCommand({required this.controller, required this.button});
+  const ButtonDownCommand({
+    required this.controller,
+    required this.button,
+    this.turbo = false,
+  });
 
   final int controller;
   final NesButton button;
+  final bool turbo;
 }
 
 class ButtonUpCommand extends NesCommand {
-  const ButtonUpCommand({required this.controller, required this.button});
+  const ButtonUpCommand({
+    required this.controller,
+    required this.button,
+    this.turbo = false,
+  });
 
   final int controller;
   final NesButton button;
+  final bool turbo;
 }
 
 class ButtonToggleCommand extends NesCommand {
-  const ButtonToggleCommand({required this.controller, required this.button});
+  const ButtonToggleCommand({
+    required this.controller,
+    required this.button,
+    this.turbo = false,
+  });
 
   final int controller;
   final NesButton button;
+  final bool turbo;
 }
 
 class ToggleFastForwardCommand extends NesCommand {
@@ -142,6 +158,12 @@ class SetFastForwardSpeedCommand extends NesCommand {
   const SetFastForwardSpeedCommand({required this.speed});
 
   final FastForwardSpeed speed;
+}
+
+class SetTurboSpeedCommand extends NesCommand {
+  const SetTurboSpeedCommand({required this.speed});
+
+  final TurboSpeed speed;
 }
 
 class SetLowPassFilterCommand extends NesCommand {
