@@ -78,20 +78,29 @@ List<double> videoFilterUniforms(VideoFilter filter, CrtFilterSettings crt) {
   };
 }
 
+const videoFilterParameterOffset = 8;
+
 void configureVideoFilterShader(
   ui.FragmentShader shader, {
   required VideoFilter filter,
   required double sourceWidth,
   required double sourceHeight,
   required CrtFilterSettings crtFilter,
+  ui.Rect? sourceRect,
 }) {
+  final rect = sourceRect ?? ui.Rect.fromLTWH(0, 0, sourceWidth, sourceHeight);
+
   shader
     ..setFloat(2, sourceWidth)
-    ..setFloat(3, sourceHeight);
+    ..setFloat(3, sourceHeight)
+    ..setFloat(4, rect.left)
+    ..setFloat(5, rect.top)
+    ..setFloat(6, rect.width)
+    ..setFloat(7, rect.height);
 
   final parameters = videoFilterUniforms(filter, crtFilter);
 
   for (var i = 0; i < parameters.length; i++) {
-    shader.setFloat(4 + i, parameters[i]);
+    shader.setFloat(videoFilterParameterOffset + i, parameters[i]);
   }
 }

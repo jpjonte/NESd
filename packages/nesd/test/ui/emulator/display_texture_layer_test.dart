@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
+import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 
@@ -211,5 +213,60 @@ void main() {
 
     expect(receivedShaders, [crtShader]);
     expect(find.byType(ImageFiltered), findsOneWidget);
+  });
+
+  testWidgets('the crop sits inside the filter so warping cannot undo it', (
+    tester,
+  ) async {
+    final shader = await loadShader(tester);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: frameTextureLayer(
+          textureId: 1,
+          imageWidth: 256,
+          imageHeight: 240,
+          filters: const [VideoFilter.crt],
+          shaders: {VideoFilter.crt: shader},
+          crtFilter: const CrtFilterSettings(),
+          shaderFilterSupported: true,
+          imageFilterFactory: identityFilter,
+          overscan: const Overscan(),
+        ),
+      ),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byType(ImageFiltered),
+        matching: find.byType(OverscanCrop),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the texture is still cropped when no filter is active', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: frameTextureLayer(
+          textureId: 1,
+          imageWidth: 256,
+          imageHeight: 240,
+          filters: const [],
+          shaders: const {},
+          crtFilter: const CrtFilterSettings(),
+          shaderFilterSupported: true,
+          imageFilterFactory: identityFilter,
+          overscan: const Overscan(),
+        ),
+      ),
+    );
+
+    expect(find.byType(ImageFiltered), findsNothing);
+    expect(find.byType(OverscanCrop), findsOneWidget);
   });
 }

@@ -3,32 +3,28 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nesd/ui/emulator/display_position.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
 
 class CpuFramePainter extends CustomPainter {
-  CpuFramePainter({required this.image});
+  CpuFramePainter({required this.image, required this.sourceRect});
 
   final ui.Image image;
+
+  final Rect sourceRect;
+
   final Paint _backgroundPaint = Paint()..color = Colors.black;
   final Paint _framePaint = Paint();
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, _backgroundPaint);
-
-    final src = Rect.fromLTWH(
-      0,
-      0,
-      image.width.toDouble(),
-      image.height.toDouble(),
-    );
-    final dst = Offset.zero & size;
-
-    canvas.drawImageRect(image, src, dst, _framePaint);
+    canvas
+      ..drawRect(Offset.zero & size, _backgroundPaint)
+      ..drawImageRect(image, sourceRect, Offset.zero & size, _framePaint);
   }
 
   @override
   bool shouldRepaint(covariant CpuFramePainter oldDelegate) =>
-      image != oldDelegate.image;
+      image != oldDelegate.image || sourceRect != oldDelegate.sourceRect;
 }
 
 class EmulatorOverlayPainter extends CustomPainter {
@@ -39,11 +35,13 @@ class EmulatorOverlayPainter extends CustomPainter {
     required this.paused,
     required this.fastForward,
     required this.rewind,
+    this.overscan = Overscan.none,
     this.crossHairPosition,
   }) : super(repaint: crossHairPosition);
 
   final double scale;
   final double pixelAspectRatio;
+  final Overscan overscan;
   final bool showBorder;
   final bool paused;
   final bool fastForward;
@@ -91,6 +89,7 @@ class EmulatorOverlayPainter extends CustomPainter {
           position: position,
           scale: scale,
           pixelAspectRatio: pixelAspectRatio,
+          overscan: overscan,
         ),
       );
     }
@@ -160,6 +159,7 @@ class EmulatorOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant EmulatorOverlayPainter oldDelegate) {
     return scale != oldDelegate.scale ||
+        overscan != oldDelegate.overscan ||
         showBorder != oldDelegate.showBorder ||
         paused != oldDelegate.paused ||
         fastForward != oldDelegate.fastForward ||

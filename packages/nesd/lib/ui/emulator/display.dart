@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -6,9 +5,12 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
+import 'package:nesd/ui/emulator/display_geometry.dart';
 import 'package:nesd/ui/emulator/display_position.dart';
 import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
+import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/shader_frame_painter.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
@@ -79,6 +81,8 @@ class DisplayBuilder extends ConsumerWidget {
     );
   }
 
+  static const screenKey = Key('emulator-display-screen');
+
   final ui.Image? image;
 
   final int imageWidth;
@@ -96,42 +100,25 @@ class DisplayBuilder extends ConsumerWidget {
     return LayoutBuilder(
       builder: (_, constraints) {
         final region = settings.region ?? Region.ntsc;
+        final overscan = settings.overscan;
         final pixelAspectRatio = _calculatePixelAspectRatio(
           settings,
           constraints,
           region,
         );
-        final imageAspectRatio = imageWidth / imageHeight;
-        final aspectRatio = imageAspectRatio * pixelAspectRatio;
 
-        final effectiveImageWidth = (aspectRatio * imageHeight).round();
-
-        final maxScale = min(
-          constraints.maxWidth / effectiveImageWidth,
-          constraints.maxHeight / imageHeight,
+        final geometry = calculateDisplayGeometry(
+          constraints: constraints,
+          visibleWidth: overscan.visibleWidth(imageWidth),
+          visibleHeight: overscan.visibleHeight(imageHeight),
+          pixelAspectRatio: pixelAspectRatio,
+          scaling: settings.scaling,
         );
 
-        final scale = min(
-          maxScale,
-          _calculateScale(
-            settings,
-            constraints.maxWidth,
-            constraints.maxHeight,
-            effectiveImageWidth,
-            imageHeight,
-          ),
-        );
+        final scale = geometry.scale;
+        final scaledSize = geometry.scaledSize;
 
         final narrow = constraints.maxWidth < constraints.maxHeight;
-
-        final screenWidth = effectiveImageWidth;
-        final screenHeight = imageHeight;
-
-        final screenSize = Size(
-          screenWidth.toDouble(),
-          screenHeight.toDouble(),
-        );
-        final scaledSize = screenSize * scale;
 
         final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
 
@@ -151,6 +138,7 @@ class DisplayBuilder extends ConsumerWidget {
           pixelAspectRatio: pixelAspectRatio,
           imageWidth: imageWidth,
           imageHeight: imageHeight,
+          overscan: overscan,
         );
 
         final baseLayer = textureId != null
@@ -163,6 +151,7 @@ class DisplayBuilder extends ConsumerWidget {
                 crtFilter: settings.crtFilter,
                 shaderFilterSupported: ui.ImageFilter.isShaderFilterSupported,
                 imageFilterFactory: ui.ImageFilter.shader,
+                overscan: overscan,
               )
             : CustomPaint(
                 painter: frameBasePainter(
@@ -170,6 +159,7 @@ class DisplayBuilder extends ConsumerWidget {
                   filters: settings.videoFilters,
                   shaders: shaderState.shaders,
                   crtFilter: settings.crtFilter,
+                  overscan: overscan,
                 ),
                 child: const SizedBox.expand(),
               );
@@ -178,6 +168,7 @@ class DisplayBuilder extends ConsumerWidget {
           painter: EmulatorOverlayPainter(
             scale: scale,
             pixelAspectRatio: pixelAspectRatio,
+            overscan: overscan,
             showBorder: settings.showBorder,
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
@@ -190,6 +181,7 @@ class DisplayBuilder extends ConsumerWidget {
         );
 
         final screen = SizedBox(
+          key: screenKey,
           width: scaledSize.width,
           height: scaledSize.height,
           child: Stack(
@@ -251,26 +243,6 @@ class DisplayBuilder extends ConsumerWidget {
     );
   }
 
-  double _calculateScale(
-    Settings settings,
-    double width,
-    double height,
-    int imageWidth,
-    int imageHeight,
-  ) {
-    return switch (settings.scaling) {
-      .x1 => 1.0,
-      .x2 => 2.0,
-      .x3 => 3.0,
-      .x4 => 4.0,
-      .autoInteger => max(
-        0.5,
-        min(width ~/ imageWidth, height ~/ imageHeight),
-      ).toDouble(),
-      .autoSmooth => 1000,
-    };
-  }
-
   double _calculatePixelAspectRatio(
     Settings settings,
     BoxConstraints constraints,
@@ -299,9 +271,15 @@ Widget frameTextureLayer({
   required CrtFilterSettings crtFilter,
   required bool shaderFilterSupported,
   required ui.ImageFilter Function(ui.FragmentShader shader) imageFilterFactory,
+  Overscan overscan = Overscan.none,
 }) {
-  final texture = SizedBox.expand(
-    child: Texture(textureId: textureId, filterQuality: FilterQuality.none),
+  final texture = OverscanCrop(
+    overscan: overscan,
+    imageWidth: imageWidth,
+    imageHeight: imageHeight,
+    child: SizedBox.expand(
+      child: Texture(textureId: textureId, filterQuality: FilterQuality.none),
+    ),
   );
 
   if (!shaderFilterSupported) {
@@ -317,14 +295,17 @@ Widget frameTextureLayer({
     return texture;
   }
 
+  final visibleWidth = overscan.visibleWidth(imageWidth);
+  final visibleHeight = overscan.visibleHeight(imageHeight);
+
   ui.ImageFilter? composed;
 
   for (final stage in chain) {
     configureVideoFilterShader(
       stage.shader,
       filter: stage.filter,
-      sourceWidth: imageWidth.toDouble(),
-      sourceHeight: imageHeight.toDouble(),
+      sourceWidth: visibleWidth.toDouble(),
+      sourceHeight: visibleHeight.toDouble(),
       crtFilter: crtFilter,
     );
 
@@ -338,7 +319,7 @@ Widget frameTextureLayer({
   final chainKey = chain.map((stage) => stage.filter.name).join('+');
 
   return ImageFiltered(
-    key: ValueKey((chainKey, crtFilter, imageWidth, imageHeight)),
+    key: ValueKey((chainKey, crtFilter, visibleWidth, visibleHeight)),
     imageFilter: composed!,
     child: texture,
   );
@@ -349,7 +330,10 @@ CustomPainter frameBasePainter({
   required List<VideoFilter> filters,
   required Map<VideoFilter, ui.FragmentShader> shaders,
   required CrtFilterSettings crtFilter,
+  Overscan overscan = Overscan.none,
 }) {
+  final sourceRect = overscan.visibleRect(image.width, image.height);
+
   for (final filter in videoFilterOrder.reversed) {
     if (!filters.contains(filter)) {
       continue;
@@ -362,9 +346,10 @@ CustomPainter frameBasePainter({
         image: image,
         shader: shader,
         parameters: videoFilterUniforms(filter, crtFilter),
+        sourceRect: sourceRect,
       );
     }
   }
 
-  return CpuFramePainter(image: image);
+  return CpuFramePainter(image: image, sourceRect: sourceRect);
 }
