@@ -115,4 +115,50 @@ void main() {
       expect(inside, contains(flatpakRepoUrl));
     },
   );
+
+  test('states the requirements of every platform', () async {
+    final html = await renderHtml(
+      DownloadCards(release: _manifest([..._singleAssets, ..._linuxAssets])),
+    );
+
+    for (final platform in DownloadPlatform.values) {
+      expect(html, contains(platformNotes[platform]!.requirement));
+    }
+  });
+
+  test('explains how to get past Gatekeeper and SmartScreen', () async {
+    final html = await renderHtml(
+      DownloadCards(release: _manifest(_singleAssets)),
+    );
+
+    expect(html, contains('scroll to "Security" and choose "Open Anyway"'));
+    expect(html, contains('choose "More info", then "Run anyway"'));
+    expect('card-warn'.allMatches(html), hasLength(4));
+  });
+
+  test('points Linux users on old distributions at the Flatpak', () async {
+    final html = await renderHtml(
+      DownloadCards(release: _manifest([..._singleAssets, ..._linuxAssets])),
+    );
+
+    expect(html, contains('glibc 2.39 or later'));
+    expect(html, contains('install the Flatpak instead'));
+  });
+
+  test('asks for Play Store testers on the Android card', () async {
+    final html = await renderHtml(
+      DownloadCards(release: _manifest(_singleAssets)),
+    );
+
+    expect(html, contains('Not on Google Play yet'));
+    expect(html, contains('href="$testersUrl">Testers wanted</a>'));
+  });
+
+  test('tells phone visitors the browser build needs no install', () async {
+    final html = await renderHtml(
+      DownloadCards(release: _manifest(_singleAssets)),
+    );
+
+    expect(html, contains('Works on iPhone and iPad too'));
+  });
 }

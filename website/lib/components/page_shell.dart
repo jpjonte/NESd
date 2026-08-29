@@ -1,22 +1,25 @@
 import 'package:jaspr/dom.dart';
-import 'package:jaspr/jaspr.dart';
+import 'package:jaspr/server.dart';
 import 'package:nesd_website/content.dart';
 
 class PageShell extends StatelessComponent {
-  const PageShell({required this.children, super.key});
+  const PageShell({required this.children, required this.path, super.key});
 
   final List<Component> children;
+
+  final String path;
 
   @override
   Component build(BuildContext context) {
     return div(classes: 'page', [
-      const header(classes: 'site-header', [
+      Document.head(
+        children: [link(rel: 'canonical', href: '$siteUrl$path')],
+      ),
+      header(classes: 'site-header', [
         nav(classes: 'container', [
-          a(classes: 'brand', href: '/', [
-            img(src: 'img/logo.svg', alt: '', width: 32, height: 32),
-            span([.text('NESd')]),
-          ]),
-          ul(classes: 'nav-links', [
+          if (path != '/')
+            const a(classes: 'site-brand', href: '/', [.text('NESd')]),
+          const ul(classes: 'nav-links', [
             li([
               a(href: '/#screenshots', [.text('Screenshots')]),
             ]),

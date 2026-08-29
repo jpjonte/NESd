@@ -16,6 +16,7 @@ class PrivacyPage extends StatelessComponent {
     );
 
     return PageShell(
+      path: '/privacy',
       children: [
         article(classes: 'prose container', [RawText(html)]),
       ],

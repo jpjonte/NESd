@@ -16,10 +16,13 @@ class DownloadCards extends StatelessComponent {
     ]);
   }
 
-  Component _webCard() => const div(classes: 'download-card', [
-    h2([.text('Web')]),
+  Component _webCard() => const div(classes: 'download-card web-card', [
+    h3([.text('Web')]),
     div(classes: 'download-links', [
       a(classes: 'dl primary', href: playUrl, [.text('Play in browser')]),
+    ]),
+    p(classes: 'card-note', [
+      .text('Nothing to install. Works on iPhone and iPad too.'),
     ]),
   ]);
 
@@ -41,13 +44,26 @@ class DownloadCards extends StatelessComponent {
         const a(classes: 'dl', href: flatpakRepoUrl, [.text('Flatpak repo')]),
     ];
 
+    final note = platformNotes[platform];
+
     return div(classes: 'download-card', [
-      h2([.text(platform.label)]),
+      h3([.text(platform.label)]),
       div(classes: 'download-links', [primary]),
       if (more.isNotEmpty)
         details(classes: 'download-more', [
           const summary([.text('All formats')]),
           div(classes: 'download-links', more),
+        ]),
+      if (note != null) ...[
+        p(classes: 'card-note', [.text(note.requirement)]),
+        if (note.firstLaunch case final firstLaunch?)
+          p(classes: 'card-note card-warn', [.text(firstLaunch)]),
+      ],
+      if (platform == DownloadPlatform.android)
+        const p(classes: 'card-note', [
+          .text('Not on Google Play yet. '),
+          a(href: testersUrl, [.text('Testers wanted')]),
+          .text('!'),
         ]),
     ]);
   }

@@ -132,5 +132,26 @@ void main() {
         throwsA(isA<FormatException>()),
       );
     });
+
+    test('formats published_at as a readable release date', () {
+      final json = _manifestWith(['nesd.1.0.0.macos-universal.dmg'])
+        ..['published_at'] = '2026-08-21T19:07:49Z';
+
+      expect(ReleaseManifest.fromJson(json).releaseDate, '21 August 2026');
+    });
+
+    test('has no release date when published_at is absent', () {
+      final json = _manifestWith(['nesd.1.0.0.macos-universal.dmg'])
+        ..remove('published_at');
+
+      expect(ReleaseManifest.fromJson(json).releaseDate, isNull);
+    });
+
+    test('survives an unparsable published_at', () {
+      final json = _manifestWith(['nesd.1.0.0.macos-universal.dmg'])
+        ..['published_at'] = 'not a date';
+
+      expect(ReleaseManifest.fromJson(json).releaseDate, isNull);
+    });
   });
 }
