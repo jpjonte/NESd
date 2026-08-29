@@ -6,6 +6,7 @@
 // texture size into the first two floats.
 uniform vec2 uOutputSize;
 uniform vec2 uSourceSize;
+uniform vec4 uSourceRect;
 uniform float uScanlineIntensity;
 uniform float uMaskStrength;
 uniform float uCurvature;
@@ -33,9 +34,11 @@ void main() {
     return;
   }
 
-  vec3 color = texture(uSource, warped).rgb;
+  vec2 sourceUv = (uSourceRect.xy + warped * uSourceRect.zw) / uSourceSize;
 
-  float scanWeight = 0.5 + 0.5 * cos(6.2831853 * warped.y * uSourceSize.y);
+  vec3 color = texture(uSource, sourceUv).rgb;
+
+  float scanWeight = 0.5 + 0.5 * cos(6.2831853 * warped.y * uSourceRect.w);
   color *= 1.0 - uScanlineIntensity * scanWeight;
 
   float column = mod(FlutterFragCoord().x, 3.0);

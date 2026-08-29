@@ -65,6 +65,12 @@ Future<Uint8List> _paint(
     image: image,
     shader: program.fragmentShader(),
     parameters: parameters,
+    sourceRect: ui.Rect.fromLTWH(
+      0,
+      0,
+      image.width.toDouble(),
+      image.height.toDouble(),
+    ),
   );
 
   final recorder = ui.PictureRecorder();

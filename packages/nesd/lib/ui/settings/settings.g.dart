@@ -98,6 +98,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   crtFilter: json['crtFilter'] == null
       ? const CrtFilterSettings()
       : _crtFilterFromJson(json['crtFilter']),
+  overscan: json['overscan'] == null
+      ? const Overscan()
+      : _overscanFromJson(json['overscan']),
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -136,6 +139,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
       .map((e) => _$VideoFilterEnumMap[e]!)
       .toList(),
   'crtFilter': _crtFilterToJson(instance.crtFilter),
+  'overscan': _overscanToJson(instance.overscan),
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -246,7 +250,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'2e0fab664341ffa8c2bea3b827335822df96d2e2';
+    r'61d0908be63a475e17723a048af27edddeb37b01';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

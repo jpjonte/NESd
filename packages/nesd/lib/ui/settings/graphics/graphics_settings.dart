@@ -4,6 +4,7 @@ import 'package:nesd/features.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/border_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
+import 'package:nesd/ui/settings/graphics/overscan_sliders.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
@@ -37,6 +38,7 @@ class GraphicsSettings extends ConsumerWidget {
             PixelAspectRatioSlider(
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
+            const OverscanSliders(),
             if (Features.videoFilters) ...[
               const SmoothingFilterSwitch(),
               const CrtFilterSwitch(),

@@ -13,6 +13,7 @@ import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
@@ -90,6 +91,12 @@ CrtFilterSettings _crtFilterFromJson(dynamic json) => json == null
     ? const CrtFilterSettings()
     : CrtFilterSettings.fromJson(json as Map<String, dynamic>);
 
+Map<String, dynamic> _overscanToJson(Overscan overscan) => overscan.toJson();
+
+Overscan _overscanFromJson(dynamic json) => json == null
+    ? const Overscan()
+    : Overscan.fromJson(json as Map<String, dynamic>);
+
 @freezed
 sealed class Settings with _$Settings {
   factory Settings({
@@ -136,6 +143,9 @@ sealed class Settings with _$Settings {
     @JsonKey(toJson: _crtFilterToJson, fromJson: _crtFilterFromJson)
     @Default(CrtFilterSettings())
     CrtFilterSettings crtFilter,
+    @JsonKey(toJson: _overscanToJson, fromJson: _overscanFromJson)
+    @Default(Overscan())
+    Overscan overscan,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -488,6 +498,23 @@ class SettingsController extends _$SettingsController {
   set crtFilter(CrtFilterSettings crtFilter) {
     _update(state.copyWith(crtFilter: crtFilter));
   }
+
+  Overscan get overscan => state.overscan;
+
+  set overscan(Overscan overscan) {
+    _update(
+      state.copyWith(
+        overscan: Overscan(
+          top: _clampOverscan(overscan.top),
+          bottom: _clampOverscan(overscan.bottom),
+          left: _clampOverscan(overscan.left),
+          right: _clampOverscan(overscan.right),
+        ),
+      ),
+    );
+  }
+
+  int _clampOverscan(int value) => value.clamp(0, maxOverscan);
 
   void _update(Settings settings) {
     state = settings;

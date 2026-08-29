@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The video filters (CRT and smooth) are now available in the web version
 - Multiple video filters can now be activated at once
 - The web version now shows a loading screen while it starts up
+- Added overscan settings, configurable per side
 
 ### Changed
 - Holding a gamepad button in menus now speeds up the repeat rate over time
@@ -30,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The About button moved from the main menu to the General settings tab
 - The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
 - Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
+- Overscan is set to the top and bottom 8 pixels by default
 - Recent ROM thumbnails now fade in and show a progress indicator when they take a while to load
 
 ### Fixed
