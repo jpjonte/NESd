@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,22 @@ import 'package:nesd/ui/emulator/display_controller.dart';
 
 class _MockDisplayFrameController extends Mock
     implements DisplayFrameController {}
+
+FrameEvent _frameEvent({
+  required int frameTimeMicroseconds,
+  required int sleepTimeMicroseconds,
+}) {
+  return FrameEvent(
+    frameHandle: 0,
+    pixels: InlineFramePixels(bytes: Uint8List(0)),
+    width: 256,
+    height: 240,
+    frameTimeMicroseconds: frameTimeMicroseconds,
+    sleepTimeMicroseconds: sleepTimeMicroseconds,
+    frame: 1,
+    rewindSize: 0,
+  );
+}
 
 void main() {
   test('accumulates underruns and mirrors fill minimum', () async {
@@ -118,5 +135,66 @@ void main() {
 
     expect(state.underruns, 0);
     expect(state.fillMin, 0);
+  });
+
+  test('records every frame in the graph history', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    container.listen(debugOverlayStateProvider, (_, _) {});
+
+    final controller = DebugOverlayController(
+      notifier: container.read(debugOverlayStateProvider.notifier),
+      frameController: _MockDisplayFrameController(),
+    );
+    addTearDown(controller.dispose);
+
+    final events = StreamController<NesIsolateEvent>.broadcast();
+    addTearDown(events.close);
+
+    controller.updateEvents(events.stream);
+
+    events.add(
+      _frameEvent(frameTimeMicroseconds: 16000, sleepTimeMicroseconds: 4000),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+
+    expect(controller.history.length, 1);
+    expect(controller.history.workAt(0), 12000);
+    expect(controller.history.sleepAt(0), 4000);
+  });
+
+  test('clears the graph history when the event stream changes', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    container.listen(debugOverlayStateProvider, (_, _) {});
+
+    final controller = DebugOverlayController(
+      notifier: container.read(debugOverlayStateProvider.notifier),
+      frameController: _MockDisplayFrameController(),
+    );
+    addTearDown(controller.dispose);
+
+    final firstEvents = StreamController<NesIsolateEvent>.broadcast();
+    addTearDown(firstEvents.close);
+
+    controller.updateEvents(firstEvents.stream);
+
+    firstEvents.add(
+      _frameEvent(frameTimeMicroseconds: 16000, sleepTimeMicroseconds: 4000),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+
+    expect(controller.history.length, 1);
+
+    final secondEvents = StreamController<NesIsolateEvent>.broadcast();
+    addTearDown(secondEvents.close);
+
+    controller.updateEvents(secondEvents.stream);
+
+    expect(controller.history.length, 0);
   });
 }

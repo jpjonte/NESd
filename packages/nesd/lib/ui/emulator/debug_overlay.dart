@@ -7,8 +7,10 @@ import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/display_controller.dart';
+import 'package:nesd/ui/emulator/frame_graph.dart';
+import 'package:nesd/ui/emulator/frame_graph_history.dart';
+import 'package:nesd/ui/emulator/frame_graph_painter.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
-import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/theme/base.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -72,6 +74,8 @@ class DebugOverlayController {
   final DebugOverlayStateNotifier notifier;
   final DisplayFrameController frameController;
 
+  final history = FrameGraphHistory(capacity: frameGraphColumns);
+
   StreamSubscription<NesIsolateEvent>? _subscription;
 
   bool _subscribedBefore = false;
@@ -84,6 +88,8 @@ class DebugOverlayController {
         underruns: 0,
         fillMin: 0,
       );
+
+      history.clear();
     }
 
     _subscribedBefore = true;
@@ -96,6 +102,7 @@ class DebugOverlayController {
   void dispose() {
     unawaited(_subscription?.cancel());
     frameController.removeListener(_handleFrameDelivery);
+    history.dispose();
   }
 
   void _handleEvent(NesIsolateEvent event) {
@@ -104,6 +111,11 @@ class DebugOverlayController {
         final frameTime = event.frameTimeMicroseconds / 1000.0;
         final fps = 1000 / frameTime;
         final sleepTime = event.sleepTimeMicroseconds / 1000.0;
+
+        history.add(
+          frameTimeMicroseconds: event.frameTimeMicroseconds,
+          sleepTimeMicroseconds: event.sleepTimeMicroseconds,
+        );
 
         notifier.overlayState = notifier.overlayState.copyWith(
           frameTime: frameTime,
@@ -135,11 +147,9 @@ class DebugOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(debugOverlayStateProvider);
-    final nes = ref.watch(nesStateProvider);
+    final controller = ref.watch(debugOverlayControllerProvider);
 
-    ref.watch(debugOverlayControllerProvider);
-
-    final color = _getColor(nes, state);
+    final color = frameRateColor(state.fps);
     final fillMinMs = state.fillMin * 1000 / apuSampleRate;
 
     return Align(
@@ -183,31 +193,12 @@ class DebugOverlay extends ConsumerWidget {
                   FrameDelivery.cpu => 'CPU',
                   FrameDelivery.none => 'Unknown',
                 }),
+                FrameGraph(history: controller.history),
               ],
             ),
           ),
         ),
       ),
     );
-  }
-
-  MaterialColor? _getColor(RemoteNes? nes, DebugOverlayState state) {
-    // RemoteNes does not mirror the worker-side frame rate; the NTSC
-    // default of 60 is a good enough threshold for the overlay coloring.
-    const targetFrameRate = 60;
-
-    if (state.fps < targetFrameRate ~/ 2) {
-      return nesdRed;
-    }
-
-    if (state.fps < targetFrameRate - 10) {
-      return Colors.orange;
-    }
-
-    if (state.fps < targetFrameRate) {
-      return Colors.yellow;
-    }
-
-    return Colors.green;
   }
 }
