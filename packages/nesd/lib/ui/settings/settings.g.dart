@@ -9,6 +9,7 @@ part of 'settings.dart';
 _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   lowPassFilter: json['lowPassFilter'] as bool? ?? false,
+  swapDutyCycles: json['swapDutyCycles'] as bool? ?? false,
   fastForwardSpeed:
       $enumDecodeNullable(
         _$FastForwardSpeedEnumMap,
@@ -106,6 +107,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'lowPassFilter': instance.lowPassFilter,
+  'swapDutyCycles': instance.swapDutyCycles,
   'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
   'turboSpeed': _$TurboSpeedEnumMap[instance.turboSpeed]!,
   'stretch': instance.stretch,
@@ -203,6 +205,7 @@ const _$VideoFilterEnumMap = {
 
 const _$EmulatorToolEnumMap = {
   EmulatorTool.display: 'display',
+  EmulatorTool.audio: 'audio',
   EmulatorTool.tileViewer: 'tileViewer',
   EmulatorTool.cartridgeInfo: 'cartridgeInfo',
   EmulatorTool.apuDebug: 'apuDebug',
@@ -250,7 +253,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'61d0908be63a475e17723a048af27edddeb37b01';
+    r'31fe3adb93d3d1035f667eb2dd8e3df248ccf498';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

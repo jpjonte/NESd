@@ -84,6 +84,7 @@ class CompactToolHost extends HookConsumerWidget {
       ),
 
       EmulatorTool.display ||
+      EmulatorTool.audio ||
       EmulatorTool.tileViewer ||
       EmulatorTool.cartridgeInfo ||
       EmulatorTool.apuDebug => _panned(

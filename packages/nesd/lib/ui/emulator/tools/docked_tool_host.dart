@@ -67,7 +67,9 @@ class DockedToolHost extends HookConsumerWidget {
         EmulatorTool.debugger || EmulatorTool.executionLog => Expanded(
           child: emulatorToolWidget(tool, cartridgeInfo),
         ),
-        EmulatorTool.display || EmulatorTool.apuDebug => Expanded(
+        EmulatorTool.display ||
+        EmulatorTool.audio ||
+        EmulatorTool.apuDebug => Expanded(
           child: SingleChildScrollView(
             child: emulatorToolWidget(tool, cartridgeInfo),
           ),
@@ -80,6 +82,7 @@ class DockedToolHost extends HookConsumerWidget {
     height: tool.minHeight,
     child: switch (tool) {
       EmulatorTool.display ||
+      EmulatorTool.audio ||
       EmulatorTool.tileViewer ||
       EmulatorTool.cartridgeInfo ||
       EmulatorTool.apuDebug => SingleChildScrollView(

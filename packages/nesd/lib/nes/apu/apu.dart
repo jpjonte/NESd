@@ -47,6 +47,17 @@ class APU {
   int _dmcSamples = 0;
   int _sampleStart = 0;
 
+  bool _swapDutyCycles = false;
+
+  bool get swapDutyCycles => _swapDutyCycles;
+
+  set swapDutyCycles(bool value) {
+    _swapDutyCycles = value;
+
+    pulse1.swapDutyCycles = value;
+    pulse2.swapDutyCycles = value;
+  }
+
   ExpansionAudio? _expansion;
 
   /// The cached expansion chip, for debug consumers that need it outside the

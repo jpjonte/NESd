@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
+import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/audio/volume_slider.dart';
 import 'package:nesd/ui/settings/settings_tab.dart';
 
@@ -11,7 +12,13 @@ class AudioSettings extends StatelessWidget {
     return const SettingsTab(
       index: 2,
       child: SingleChildScrollView(
-        child: Column(children: [VolumeSlider(), LowPassFilterSwitch()]),
+        child: Column(
+          children: [
+            VolumeSlider(),
+            LowPassFilterSwitch(),
+            SwapDutyCyclesSwitch(),
+          ],
+        ),
       ),
     );
   }

@@ -4,12 +4,14 @@ import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/debugger/debugger_widget.dart';
 import 'package:nesd/ui/emulator/execution_log/execution_log_widget.dart';
 import 'package:nesd/ui/emulator/tile_debug.dart';
+import 'package:nesd/ui/emulator/tools/audio_tool.dart';
 import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 Widget emulatorToolWidget(EmulatorTool tool, CartridgeInfo? cartridgeInfo) =>
     switch (tool) {
       EmulatorTool.display => const DisplayToolWidget(),
+      EmulatorTool.audio => const AudioToolWidget(),
       EmulatorTool.tileViewer => const TileDebugWidget(),
       EmulatorTool.cartridgeInfo =>
         cartridgeInfo != null

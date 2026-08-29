@@ -107,6 +107,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(lowPassFilterSubscription.close);
 
+  final swapDutyCyclesSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.swapDutyCycles),
+    (_, enabled) => controller.nes?.swapDutyCycles = enabled,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(swapDutyCyclesSubscription.close);
+
   final fastForwardSpeedSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.fastForwardSpeed),
     (_, speed) => controller.nes?.fastForwardSpeed = speed,
@@ -469,7 +477,8 @@ class NesController {
         ..volume = settingsController.volume
         ..lowPassFilter = settingsController.lowPassFilter
         ..fastForwardSpeed = settingsController.fastForwardSpeed
-        ..turboSpeed = settingsController.turboSpeed;
+        ..turboSpeed = settingsController.turboSpeed
+        ..swapDutyCycles = settingsController.swapDutyCycles;
 
       nesState.set(remote);
 

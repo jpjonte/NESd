@@ -75,6 +75,7 @@ const saveStateActions = [
 
 const toolActions = [
   toggleDisplay,
+  toggleAudio,
   toggleTileViewer,
   toggleCartridgeInfo,
   toggleDebugger,

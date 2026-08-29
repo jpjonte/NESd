@@ -172,6 +172,12 @@ class SetLowPassFilterCommand extends NesCommand {
   final bool enabled;
 }
 
+class SetSwapDutyCyclesCommand extends NesCommand {
+  const SetSwapDutyCyclesCommand({required this.enabled});
+
+  final bool enabled;
+}
+
 class StartPcmDumpCommand extends NesCommand {
   const StartPcmDumpCommand({required this.path});
 

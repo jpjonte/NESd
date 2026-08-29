@@ -99,6 +99,17 @@ const dutyCycleSequences = [
   0xfc,
 ];
 
+const swappedDutyCycleSequences = [
+  // 0 0 0 0 0 0 0 1
+  0x01,
+  // 0 0 0 0 1 1 1 1
+  0x0f,
+  // 0 0 0 0 0 0 1 1
+  0x03,
+  // 1 1 1 1 1 1 0 0
+  0xfc,
+];
+
 const pulseTable = [
   0.0,
   0.011609139523578026,

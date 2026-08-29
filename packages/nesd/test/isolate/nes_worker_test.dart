@@ -494,6 +494,21 @@ void main() {
     );
   });
 
+  test('SetSwapDutyCyclesCommand reaches the pulse channels', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.apu.swapDutyCycles, isFalse);
+
+    await worker.handleCommand(const SetSwapDutyCyclesCommand(enabled: true));
+
+    expect(nes.apu.swapDutyCycles, isTrue);
+    expect(nes.apu.pulse1.swapDutyCycles, isTrue);
+    expect(nes.apu.pulse2.swapDutyCycles, isTrue);
+  });
+
   test('load applies the rewind capture interval to the NES', () async {
     await worker.handleCommand(_loadRomCommand(rewindCaptureInterval: 3));
     await waitForCount<FrameEvent>(1);

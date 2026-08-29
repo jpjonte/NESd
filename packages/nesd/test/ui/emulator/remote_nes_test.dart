@@ -457,6 +457,7 @@ void main() {
         ..cheats = const []
         ..volume = 0.5
         ..lowPassFilter = true
+        ..swapDutyCycles = true
         ..breakpoints = const []
         ..addBreakpoint(Breakpoint(0x8000))
         ..removeBreakpoint(0x8000)
@@ -491,6 +492,7 @@ void main() {
         isA<SetCheatsCommand>(),
         isA<SetVolumeCommand>(),
         isA<SetLowPassFilterCommand>(),
+        isA<SetSwapDutyCyclesCommand>(),
         isA<SetBreakpointsCommand>(),
         isA<AddBreakpointCommand>(),
         isA<RemoveBreakpointCommand>(),

@@ -57,6 +57,7 @@ class _Harness {
     when(() => settings.rewind).thenReturn(false);
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
+    when(() => settings.swapDutyCycles).thenReturn(false);
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
