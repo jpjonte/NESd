@@ -22,32 +22,43 @@ class EmulatorScreen extends ConsumerWidget {
       child: const EmulatorWidget(),
     );
 
+    final body = LayoutBuilder(
+      builder: (context, constraints) =>
+          constraints.maxWidth >= dockedToolsMinWidth
+          ? Row(
+              children: [
+                Expanded(child: game),
+                ExcludeFocus(
+                  excluding: !toolsFocused,
+                  child: FocusChild(
+                    autofocus: toolsFocused,
+                    child: const DockedToolHost(),
+                  ),
+                ),
+              ],
+            )
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                game,
+                ExcludeFocus(
+                  excluding: !toolsFocused,
+                  child: const CompactToolHost(),
+                ),
+              ],
+            ),
+    );
+
     return NesdScaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) =>
-            constraints.maxWidth >= dockedToolsMinWidth
-            ? Row(
-                children: [
-                  Expanded(child: game),
-                  ExcludeFocus(
-                    excluding: !toolsFocused,
-                    child: FocusChild(
-                      autofocus: toolsFocused,
-                      child: const DockedToolHost(),
-                    ),
-                  ),
-                ],
-              )
-            : Stack(
-                fit: StackFit.expand,
-                children: [
-                  game,
-                  ExcludeFocus(
-                    excluding: !toolsFocused,
-                    child: const CompactToolHost(),
-                  ),
-                ],
-              ),
+      body: Actions(
+        actions: {
+          if (toolsFocused)
+            DismissIntent: CallbackAction<DismissIntent>(
+              onInvoke: (_) =>
+                  ref.read(toolFocusControllerProvider.notifier).exit(),
+            ),
+        },
+        child: body,
       ),
     );
   }

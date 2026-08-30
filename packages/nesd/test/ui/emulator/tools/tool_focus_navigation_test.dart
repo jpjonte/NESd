@@ -7,6 +7,8 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/audio_tool.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
+import 'package:nesd/ui/main_menu/main_screen.dart';
+import 'package:nesd/ui/menu/menu_screen.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 import '../../robot.dart';
@@ -223,6 +225,29 @@ void main() {
     await r.pumpFrames(const Duration(milliseconds: 100));
 
     expect(r.container.read(toolFocusControllerProvider), isFalse);
+
+    await quit(r);
+  });
+
+  testWidgets('escape exits the mode instead of quitting the game', (
+    tester,
+  ) async {
+    final r = await start(tester, ['audio']);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(r.container.read(toolFocusControllerProvider), isTrue);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.escape);
+    await r.pumpFrames(const Duration(milliseconds: 500));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.escape);
+    await r.pumpFrames(const Duration(milliseconds: 50));
+
+    expect(find.byType(MainScreen), findsNothing);
+    expect(find.byType(MenuScreen), findsNothing);
+    expect(r.container.read(toolFocusControllerProvider), isFalse);
+    r.emulator.expectEmulatorWidgetFound();
 
     await quit(r);
   });
