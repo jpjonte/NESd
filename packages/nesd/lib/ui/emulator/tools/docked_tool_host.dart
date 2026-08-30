@@ -56,49 +56,65 @@ class DockedToolHost extends HookConsumerWidget {
         ),
         NextTabIntent: CallbackAction<NextTabIntent>(onInvoke: (_) => step(1)),
       },
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: dockedToolColumnWidth),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final needed = tools.fold(0.0, (sum, tool) => sum + tool.minHeight);
-
-            if (constraints.hasBoundedHeight &&
-                needed <= constraints.maxHeight) {
-              return Column(
-                children: [
-                  for (final tool in tools)
-                    _filled(
-                      tool,
-                      cartridgeInfo,
-                      focus: focused && tool == active,
-                    ),
-                ],
+      child: DecoratedBox(
+        key: const Key('toolFocusIndicator'),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: focused
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: dockedToolColumnWidth),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final needed = tools.fold(
+                0.0,
+                (sum, tool) => sum + tool.minHeight,
               );
-            }
 
-            return Scrollbar(
-              controller: scrollController,
-              thumbVisibility: true,
-              child: ScrollConfiguration(
-                behavior: ScrollConfiguration.of(
-                  context,
-                ).copyWith(scrollbars: false),
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    children: [
-                      for (final tool in tools)
-                        _pinned(
-                          tool,
-                          cartridgeInfo,
-                          focus: focused && tool == active,
-                        ),
-                    ],
+              if (constraints.hasBoundedHeight &&
+                  needed <= constraints.maxHeight) {
+                return Column(
+                  children: [
+                    for (final tool in tools)
+                      _filled(
+                        tool,
+                        cartridgeInfo,
+                        focus: focused && tool == active,
+                      ),
+                  ],
+                );
+              }
+
+              return Scrollbar(
+                controller: scrollController,
+                thumbVisibility: true,
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(
+                    context,
+                  ).copyWith(scrollbars: false),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      children: [
+                        for (final tool in tools)
+                          _pinned(
+                            tool,
+                            cartridgeInfo,
+                            focus: focused && tool == active,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

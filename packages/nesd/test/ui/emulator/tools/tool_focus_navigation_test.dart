@@ -71,6 +71,26 @@ bool focusInside(WidgetTester tester, Finder ancestor) {
 }
 
 void main() {
+  Color dockedIndicatorColor(WidgetTester tester) {
+    final box = tester.widget<DecoratedBox>(
+      find.byKey(const Key('toolFocusIndicator')),
+    );
+
+    final border = (box.decoration as BoxDecoration).border! as Border;
+
+    return border.left.color;
+  }
+
+  Color compactIndicatorColor(WidgetTester tester) {
+    final box = tester.widget<DecoratedBox>(
+      find.byKey(const Key('toolFocusIndicator')),
+    );
+
+    final border = (box.decoration as BoxDecoration).border! as Border;
+
+    return border.top.color;
+  }
+
   testWidgets('entering moves focus into the docked panel', (tester) async {
     final r = await start(tester, ['audio']);
 
@@ -456,6 +476,42 @@ void main() {
 
     expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
     expect(find.byType(DebuggerWidget), findsNothing);
+
+    await quit(r);
+  });
+
+  testWidgets('the docked column marks itself while focused', (tester) async {
+    final r = await start(tester, ['audio']);
+
+    expect(dockedIndicatorColor(tester), Colors.transparent);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(dockedIndicatorColor(tester), isNot(Colors.transparent));
+
+    r.sendInputAction(cancel);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(dockedIndicatorColor(tester), Colors.transparent);
+
+    await quit(r);
+  });
+
+  testWidgets('the compact column marks itself while focused', (tester) async {
+    final r = await start(tester, ['audio'], logicalSize: const Size(800, 600));
+
+    expect(compactIndicatorColor(tester), Colors.transparent);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(compactIndicatorColor(tester), isNot(Colors.transparent));
+
+    r.sendInputAction(cancel);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(compactIndicatorColor(tester), Colors.transparent);
 
     await quit(r);
   });
