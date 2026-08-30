@@ -41,6 +41,14 @@ Future<Robot> start(
 }
 
 Future<void> quit(Robot r) async {
+  // widen back to a docked width first: in the compact layout the tool
+  // host is a full-screen Stack overlay that covers the emulator's own
+  // menu button whenever any tool is open (see compact_tool_host_test.dart)
+  r.tester.view.physicalSize =
+      const Size(1920, 1080) * r.tester.view.devicePixelRatio;
+  addTearDown(r.tester.view.resetPhysicalSize);
+  await r.tester.pump();
+
   await r.emulator.tapMenu();
   await r.menuScreen.tapQuitGame();
   await r.waitUntil(() => r.container.read(nesStateProvider) == null);
@@ -313,6 +321,141 @@ void main() {
 
     expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
     expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    await quit(r);
+  });
+
+  testWidgets('the compact host takes focus and switches tabs', (tester) async {
+    final r = await start(tester, [
+      'display',
+      'audio',
+    ], logicalSize: const Size(800, 600));
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+
+    await quit(r);
+  });
+
+  testWidgets(
+    'the compact tab row and close button refuse programmatic focus',
+    (tester) async {
+      final r = await start(tester, [
+        'audio',
+      ], logicalSize: const Size(800, 600));
+
+      r.sendInputAction(focusTools);
+      await r.pumpFrames(const Duration(milliseconds: 100));
+
+      expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+
+      final tabNode = Focus.of(
+        tester.element(
+          find
+              .descendant(
+                of: find.byKey(const Key('compactTab_audio')),
+                matching: find.byType(Text),
+              )
+              .first,
+        ),
+      )..requestFocus();
+      await r.pumpFrames(const Duration(milliseconds: 50));
+
+      expect(tabNode.hasFocus, isFalse);
+      expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+
+      final closeNode = Focus.of(
+        tester.element(
+          find
+              .descendant(
+                of: find.byKey(const Key('compactToolClose')),
+                matching: find.byType(Icon),
+              )
+              .first,
+        ),
+      )..requestFocus();
+      await r.pumpFrames(const Duration(milliseconds: 50));
+
+      expect(closeNode.hasFocus, isFalse);
+      expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+
+      await quit(r);
+    },
+  );
+
+  testWidgets('compact tab cycling skips pointer-only panels', (tester) async {
+    final r = await start(tester, [
+      'display',
+      'debugger',
+      'audio',
+    ], logicalSize: const Size(800, 600));
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    await quit(r);
+  });
+
+  testWidgets('compact previous tab wraps backward past a pointer-only panel', (
+    tester,
+  ) async {
+    final r = await start(tester, [
+      'display',
+      'debugger',
+      'audio',
+    ], logicalSize: const Size(800, 600));
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+
+    r.sendInputAction(previousTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    await quit(r);
+  });
+
+  testWidgets('entering focus redirects away from a pointer-only compact tab', (
+    tester,
+  ) async {
+    final r = await start(tester, [
+      'display',
+      'debugger',
+    ], logicalSize: const Size(800, 600));
+
+    await tester.tap(find.byKey(const Key('compactTab_debugger')));
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(find.byType(DebuggerWidget), findsOneWidget);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+    expect(find.byType(DebuggerWidget), findsNothing);
 
     await quit(r);
   });
