@@ -19,6 +19,9 @@ Set<EmulatorTool> availableTools(
     .where((tool) => isToolAvailable(tool, debuggerEnabled: debuggerEnabled))
     .toSet();
 
+Set<EmulatorTool> navigableTools(Set<EmulatorTool> tools) =>
+    tools.where((tool) => !tool.pointerOnly).toSet();
+
 @riverpod
 class EmulatorToolsController extends _$EmulatorToolsController {
   @override
