@@ -30,10 +30,7 @@ class EmulatorScreen extends ConsumerWidget {
                 Expanded(child: game),
                 ExcludeFocus(
                   excluding: !toolsFocused,
-                  child: FocusChild(
-                    autofocus: toolsFocused,
-                    child: const DockedToolHost(),
-                  ),
+                  child: const DockedToolHost(),
                 ),
               ],
             )

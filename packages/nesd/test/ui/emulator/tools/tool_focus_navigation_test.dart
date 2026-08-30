@@ -6,6 +6,7 @@ import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/audio_tool.dart';
+import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/main_menu/main_screen.dart';
 import 'package:nesd/ui/menu/menu_screen.dart';
@@ -248,6 +249,70 @@ void main() {
     expect(find.byType(MenuScreen), findsNothing);
     expect(r.container.read(toolFocusControllerProvider), isFalse);
     r.emulator.expectEmulatorWidgetFound();
+
+    await quit(r);
+  });
+
+  testWidgets('next tab moves focus to the next navigable panel', (
+    tester,
+  ) async {
+    final r = await start(tester, ['display', 'audio']);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+
+    // wraps back around
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+
+    await quit(r);
+  });
+
+  testWidgets('tab cycling skips pointer-only panels', (tester) async {
+    final r = await start(tester, ['display', 'debugger', 'audio']);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    r.sendInputAction(nextTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
+
+    await quit(r);
+  });
+
+  testWidgets('previous tab wraps backward and skips pointer-only panels', (
+    tester,
+  ) async {
+    final r = await start(tester, ['display', 'debugger', 'audio']);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(DisplayToolWidget)), isTrue);
+
+    r.sendInputAction(previousTab);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+    expect(focusInside(tester, find.byType(DebuggerWidget)), isFalse);
 
     await quit(r);
   });
