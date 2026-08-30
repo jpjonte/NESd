@@ -74,6 +74,7 @@ const saveStateActions = [
 ];
 
 const toolActions = [
+  focusTools,
   toggleDisplay,
   toggleAudio,
   toggleTileViewer,

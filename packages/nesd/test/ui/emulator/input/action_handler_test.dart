@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -22,6 +23,8 @@ class _MockSettingsController extends Mock implements SettingsController {}
 
 class _MockEmulatorToolsController extends Mock
     implements EmulatorToolsController {}
+
+class _MockToolFocusController extends Mock implements ToolFocusController {}
 
 class _RecordingSink extends LogSink {
   _RecordingSink(this.records);
@@ -49,6 +52,7 @@ void main() {
       romManager: _MockRomManager(),
       settingsController: _MockSettingsController(),
       toolsController: toolsController,
+      toolFocusController: _MockToolFocusController(),
       actionStream: const Stream.empty(),
     );
 

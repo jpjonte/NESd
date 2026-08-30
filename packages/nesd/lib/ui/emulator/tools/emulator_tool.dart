@@ -38,6 +38,16 @@ enum EmulatorTool {
     EmulatorTool.tileViewer ||
     EmulatorTool.cartridgeInfo => false,
   };
+
+  bool get pointerOnly => switch (this) {
+    EmulatorTool.debugger ||
+    EmulatorTool.apuDebug ||
+    EmulatorTool.executionLog => true,
+    EmulatorTool.display ||
+    EmulatorTool.audio ||
+    EmulatorTool.tileViewer ||
+    EmulatorTool.cartridgeInfo => false,
+  };
 }
 
 const _standardToolWidth = 512.0;
