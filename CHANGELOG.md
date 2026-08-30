@@ -4,58 +4,56 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.18.0] - 2026-08-30
+
+**Two more Android testers needed!**  
+Google Play requires 12 testers to opt in and use an app for 14 days before it can be published. 10 people have signed up so far! If you'd like to help NESd reach the Play Store, sign up in [Discussions](https://github.com/jpjonte/NESd/discussions/322).
 
 ### Added
-- Implemented GPU rendering on Linux and Windows
 - Play NESd in the browser at https://nesd.jpj.dev/play/, with a self-hostable Docker image (ghcr.io/jpjonte/nesd)
-- Turbo for the A and B buttons on both controllers, with a configurable speed
-- Fast-forward now plays audio
+- Implemented GPU rendering on Linux and Windows
+- Added Turbo for the A and B buttons on both controllers, with a configurable speed
 - Fast-forward speed is configurable: 2x (default), 3x, 4x, max (without audio)
+- Fast-forward now plays audio
 - The file picker now supports letter skipping on a gamepad: the Previous/Next Tab actions jump to the previous/next starting letter
 - Added a Swap Duty Cycles toggle to the Audio settings
 - Added a Low Pass Filter toggle to the Audio settings
-- The log viewer now colors log levels and channels and supports text search
-- Nightly and branch builds now show a build id in the About dialog and the startup log
-- The video filters (CRT and smooth) are now available in the web version
+- Added overscan settings, configurable per side, 8px top and bottom by default
 - Multiple video filters can now be activated at once
-- The web version now shows a loading screen while it starts up
-- Added overscan settings, configurable per side
 - The debug overlay now includes a frame time graph, splitting each frame into emulation work and pacing sleep
 - Added an Audio settings tool
 - Emulator tools can now be navigated with a gamepad
 - Tools can now be focused using the "Focus Tools" action
+- The log viewer now colors log levels and channels and supports text search
+- Nightly and branch builds now show a build id in the About dialog and the startup log
 
 ### Changed
-- Holding a gamepad button in menus now speeds up the repeat rate over time
-- Cancel on a gamepad (Escape on the keyboard) in the file picker now goes up one directory, and closes the picker once it is back at the directory it was opened at
-- Flatpak nightlies are now published to the main jpj.dev Flatpak repo. The separate nightly repo is retired. Existing nightly installs show a message pointing at the new repo
 - Video filters (CRT, smooth) can now run on top of the GPU renderer instead of forcing a fallback to the CPU renderer
-- The Quit button is no longer shown on Android, where apps background instead of quitting
+- Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
+- The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
+- Recent ROM thumbnails now fade in and show a progress indicator when they take a while to load
+- Holding a gamepad button in menus now speeds up the repeat rate over time
+- Cancel on a gamepad (Escape on the keyboard) in the file picker now goes back one directory
 - The log viewer now opens at the Info level and tags telemetry lines as Debug
 - The About button moved from the main menu to the General settings tab
-- The main menu buttons now sit in a single row below the recent ROM list, so the ROM grid gets more rows on wide screens like the Steam Deck
-- Updated default settings for new users: Auto load is enabled and scaling is set to "smooth"
-- Overscan is set to the top and bottom 8 pixels by default
-- Recent ROM thumbnails now fade in and show a progress indicator when they take a while to load
+- The "Quit NESd" button is no longer shown on Android
+- Flatpak nightlies are now published to the main jpj.dev Flatpak repo. Existing nightly installs show a message pointing at the new repo
 
 ### Fixed
 - Fixed the Zapper registering hits on the wrong target
 - Fixed the CRT filter's scanlines rendering as one giant scanline
-- Fixed a ROM path passed on the command line not starting automatically
+- Fixed constant audio crackling on some Android devices
+- Fixed audio stutters due to inconsistent timers
 - Fixed the "Save states" entry in the recent ROM context menu doing nothing when no game is running
-- Fixed not all architectures being published to the Flatpak repo
-- Fixed MMC1 games (e.g. The Legend of Zelda) freezing after rewinding
 - Fixed controller focus getting stuck in the file picker's search bar
 - Fixed Escape quitting to the main menu instead of opening the in-game menu after resuming the game with Enter
 - The Android status and navigation bars are now hidden by default
-- Keys that are not bound to anything no longer trigger UI shortcuts while in game (e.g. Escape quitting to the main menu when "Open Menu" is bound to another key)
-- Fixed constant audio crackling on some Android devices. Audio is now consumed at the device's own pace, and underrun recovery fills the buffer further than before
-- Fixed audio stutters due to inconsistent timers 
-- Fixed the main menu logo appearing a moment after the rest of the menu
-- Fixed the browser locking up for about a second while the ROM database loaded
+- Keys that are not bound to anything no longer trigger UI shortcuts while in game
+- Fixed the main menu logo appearing late
 - Fixed ROMs being loaded before the ROM database is ready
 - Fixed emulator tools swallowing input and Escape quitting to main menu instead of opening the in-game menu
+- Fixed not all architectures being published to the Flatpak repo
+- Fixed a ROM path passed on the command line not starting automatically
 
 ## [0.17.0] - 2026-08-23
 

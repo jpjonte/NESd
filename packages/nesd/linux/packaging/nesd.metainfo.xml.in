@@ -77,6 +77,7 @@
     <content_rating type="oars-1.1"/>
 
     <releases>
+        <release version="0.18.0" date="2026-08-30" />
         <release version="0.17.0" date="2026-08-23" />
         <release version="0.16.0" date="2026-08-07" />
         <release version="0.15.1" date="2026-07-31" />
