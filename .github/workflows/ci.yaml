@@ -204,6 +204,8 @@ jobs:
         uses: ./.github/actions/env
       - uses: subosito/flutter-action@v2
         with:
+          # Flutter doesn't publish arm64 tarballs for versions, use master instead
+          channel: master
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: ci/1-build/prepare.sh
@@ -243,22 +245,15 @@ jobs:
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     needs: [ test ]
+    env:
+      GRADLE_USER_HOME: /root/.gradle
     steps:
       - uses: actions/checkout@v7
       - id: env
         uses: ./.github/actions/env
-      - uses: actions/cache@v6
+      - uses: actions/cache/restore@v6
         with:
-          path: |
-            ~/.gradle/caches/modules-2
-            ~/.gradle/caches/jars-*
-            ~/.gradle/caches/transforms-*
-            ~/.gradle/wrapper/dists
-          key: gradle-deps-${{ hashFiles('packages/*/android/**/*.gradle', 'packages/nesd/android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
-          restore-keys: gradle-deps-
-      - uses: actions/cache@v6
-        with:
-          path: ~/.gradle/caches/build-cache-1
+          path: ${{ env.GRADLE_USER_HOME }}/caches/build-cache-1
           key: gradle-build-${{ github.sha }}
           restore-keys: gradle-build-
       - run: ci/1-build/prepare.sh
@@ -267,6 +262,11 @@ jobs:
           KEY_STORE_BASE64: ${{ secrets.ANDROID_KEY_STORE }}
           KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
       - run: ci/1-build/android/build.sh
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.GRADLE_USER_HOME }}/caches/build-cache-1
+          key: gradle-build-${{ github.sha }}
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_FLAVORED }}.android.apk
