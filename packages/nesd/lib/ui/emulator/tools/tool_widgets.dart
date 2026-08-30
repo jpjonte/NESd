@@ -9,15 +9,18 @@ import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 
 Widget emulatorToolWidget(EmulatorTool tool, CartridgeInfo? cartridgeInfo) =>
-    switch (tool) {
-      EmulatorTool.display => const DisplayToolWidget(),
-      EmulatorTool.audio => const AudioToolWidget(),
-      EmulatorTool.tileViewer => const TileDebugWidget(),
-      EmulatorTool.cartridgeInfo =>
-        cartridgeInfo != null
-            ? CartridgeInfoWidget(info: cartridgeInfo)
-            : const SizedBox.shrink(),
-      EmulatorTool.debugger => const DebuggerWidget(),
-      EmulatorTool.apuDebug => const ApuDebugWidget(),
-      EmulatorTool.executionLog => const ExecutionLogWidget(),
-    };
+    ExcludeFocus(
+      excluding: tool.pointerOnly,
+      child: switch (tool) {
+        EmulatorTool.display => const DisplayToolWidget(),
+        EmulatorTool.audio => const AudioToolWidget(),
+        EmulatorTool.tileViewer => const TileDebugWidget(),
+        EmulatorTool.cartridgeInfo =>
+          cartridgeInfo != null
+              ? CartridgeInfoWidget(info: cartridgeInfo)
+              : const SizedBox.shrink(),
+        EmulatorTool.debugger => const DebuggerWidget(),
+        EmulatorTool.apuDebug => const ApuDebugWidget(),
+        EmulatorTool.executionLog => const ExecutionLogWidget(),
+      },
+    );
