@@ -10,6 +10,10 @@ class ToggleTool extends InputAction {
   final EmulatorTool tool;
 }
 
+class FocusTools extends InputAction {
+  const FocusTools({required super.title, required super.code});
+}
+
 const toggleDisplay = ToggleTool(
   tool: EmulatorTool.display,
   title: 'Toggle Display',
@@ -51,3 +55,5 @@ const toggleExecutionLog = ToggleTool(
   title: 'Toggle Execution Log',
   code: 'tool.executionLog',
 );
+
+const focusTools = FocusTools(title: 'Focus Tools', code: 'tool.focus');

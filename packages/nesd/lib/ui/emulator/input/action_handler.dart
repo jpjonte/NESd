@@ -10,6 +10,7 @@ import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -63,6 +64,7 @@ ActionHandler actionHandler(Ref ref) {
     romManager: ref.watch(romManagerProvider),
     settingsController: ref.read(settingsControllerProvider.notifier),
     toolsController: ref.watch(emulatorToolsControllerProvider.notifier),
+    toolFocusController: ref.watch(toolFocusControllerProvider.notifier),
     actionStream: actionStream.stream,
   );
 
@@ -76,6 +78,14 @@ ActionHandler actionHandler(Ref ref) {
 
   ref.onDispose(routeSubscription.close);
 
+  final toolFocusSubscription = ref.listen(
+    toolFocusControllerProvider,
+    (_, focused) => handler.toolsFocused = focused,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(toolFocusSubscription.close);
+
   return handler;
 }
 
@@ -87,6 +97,7 @@ class ActionHandler {
     required this.romManager,
     required this.settingsController,
     required this.toolsController,
+    required this.toolFocusController,
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
@@ -98,14 +109,19 @@ class ActionHandler {
   final RomManager romManager;
   final SettingsController settingsController;
   final EmulatorToolsController toolsController;
+  final ToolFocusController toolFocusController;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
   final _heldToggleTools = <EmulatorTool>{};
 
+  bool _focusToolsHeld = false;
+
   bool enabled = true;
 
   bool emulatorActive = false;
+
+  bool toolsFocused = false;
 
   bool get _inGame => emulatorActive;
 
@@ -132,6 +148,20 @@ class ActionHandler {
       return;
     }
 
+    if (event.action case FocusTools()) {
+      if (event.value > 0.5) {
+        if (!_focusToolsHeld) {
+          _focusToolsHeld = true;
+
+          toolFocusController.toggle();
+        }
+      } else {
+        _focusToolsHeld = false;
+      }
+
+      return;
+    }
+
     if (event.value > 0.5) {
       if (event.bindingType == BindingType.toggle && _inGame) {
         _handleActionToggleInGame(event.action);
@@ -150,10 +180,29 @@ class ActionHandler {
   }
 
   void _handleActionDown(InputAction action) {
-    if (_inGame) {
-      _handleActionDownInGame(action);
-    } else {
+    if (!_inGame) {
       _handleActionDownInMenu(action);
+
+      return;
+    }
+
+    if (toolsFocused) {
+      _handleActionDownInTools(action);
+
+      return;
+    }
+
+    _handleActionDownInGame(action);
+  }
+
+  void _handleActionDownInTools(InputAction action) {
+    switch (action) {
+      case Cancel():
+        toolFocusController.exit();
+      case OpenMenu():
+        router.navigate(const MenuRoute());
+      default:
+        _handleActionDownInMenu(action);
     }
   }
 
@@ -302,9 +351,12 @@ class ActionHandler {
   void _warnIfInGameAction(InputAction action) {
     assert(() {
       if (_isInGameAction(action)) {
+        final reason = toolsFocused
+            ? 'the tool panel owns input'
+            : 'the emulator is not the active screen';
+
         log.input.debug(
-          'ActionHandler: dropped in-game action "${action.code}" - '
-          'the emulator is not the active screen',
+          'ActionHandler: dropped in-game action "${action.code}" - $reason',
         );
       }
 
