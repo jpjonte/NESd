@@ -13,6 +13,7 @@ const _passing = <String>[
   'cpu_exec_space/test_cpu_exec_space_apu.nes',
   'cpu_exec_space/test_cpu_exec_space_ppuio.nes',
   'ppu_open_bus/ppu_open_bus.nes',
+  'cpu_dummy_writes/cpu_dummy_writes_ppumem.nes',
   'mmc3_test/1-clocking.nes',
   'mmc3_test/2-details.nes',
   'mmc3_test/3-A12_clocking.nes',
