@@ -34,6 +34,7 @@ class CPUState {
     required this.cycles,
     required this.consoleCycles,
     required this.callStack,
+    this.openBus = 0,
   });
 
   factory CPUState.deserialize(PayloadReader reader) {
@@ -44,6 +45,7 @@ class CPUState {
       1 => CPUState._version1(reader),
       2 => CPUState._version2(reader),
       3 => CPUState._version3(reader),
+      4 => CPUState._version4(reader),
       _ => throw InvalidSerializationVersion('CPUState', version),
     };
   }
@@ -168,6 +170,37 @@ class CPUState {
     );
   }
 
+  factory CPUState._version4(PayloadReader reader) {
+    return CPUState(
+      PC: reader.get(uint16),
+      SP: reader.get(uint8),
+      A: reader.get(uint8),
+      X: reader.get(uint8),
+      Y: reader.get(uint8),
+      P: reader.get(uint8),
+      irq: reader.get(uint8),
+      doIrq: reader.get(boolean),
+      previousDoIrq: reader.get(boolean),
+      nmi: reader.get(boolean),
+      previousNmi: reader.get(boolean),
+      doNmi: reader.get(boolean),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oamDma: reader.get(boolean),
+      oamDmaStarted: reader.get(boolean),
+      oamDmaOffset: reader.get(uint8),
+      oamDmaValue: reader.get(uint8),
+      dmcDma: reader.get(boolean),
+      dmcDmaRead: reader.get(boolean),
+      dmcDmaDummy: reader.get(boolean),
+      dmcDmaValue: reader.get(uint8),
+      oamDmaPage: reader.get(uint8),
+      cycles: reader.get(nesdUint64),
+      consoleCycles: reader.get(nesdUint64),
+      callStack: reader.get(uint16List(lengthType: uint32)),
+      openBus: reader.get(uint8),
+    );
+  }
+
   final int PC;
   final int SP;
   final int A;
@@ -201,9 +234,11 @@ class CPUState {
 
   final List<int> callStack;
 
+  final int openBus;
+
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 3) // version
+      ..set(uint8, 4) // version
       ..set(uint16, PC)
       ..set(uint8, SP)
       ..set(uint8, A)
@@ -228,6 +263,7 @@ class CPUState {
       ..set(uint8, oamDmaPage)
       ..set(nesdUint64, cycles)
       ..set(nesdUint64, consoleCycles)
-      ..set(uint16List(lengthType: uint32), Uint16List.fromList(callStack));
+      ..set(uint16List(lengthType: uint32), Uint16List.fromList(callStack))
+      ..set(uint8, openBus);
   }
 }

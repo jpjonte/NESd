@@ -211,7 +211,7 @@ abstract class Mapper {
     final mapping = _mapCpuAddress(address);
 
     if (mapping == null) {
-      return 0;
+      return bus.cpu.openBus;
     }
 
     if (mapping.readable) {
@@ -221,7 +221,7 @@ abstract class Mapper {
       return source[offset];
     }
 
-    return 0;
+    return bus.cpu.openBus;
   }
 
   int ppuRead(int address, {bool disableSideEffects = false}) {
