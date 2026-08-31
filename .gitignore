@@ -49,6 +49,8 @@ roms/
 !roms/test/mmc3_test/5-MMC3.nes
 !roms/test/cpu_dummy_writes/cpu_dummy_writes_oam.nes
 !roms/test/cpu_exec_space/test_cpu_exec_space_apu.nes
+!roms/test/cpu_exec_space/test_cpu_exec_space_ppuio.nes
+!roms/test/ppu_open_bus/ppu_open_bus.nes
 !roms/test/ppu_vbl_nmi/rom_singles/01-vbl_basics.nes
 !roms/test/ppu_vbl_nmi/rom_singles/04-nmi_control.nes
 !roms/test/ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes

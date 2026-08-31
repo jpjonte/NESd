@@ -615,8 +615,7 @@ class PPU {
       }
     }
 
-    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
-    if (cycle >= 257 && cycle <= 320) {
+    if (renderingActive && cycle >= 257 && cycle <= 320) {
       OAMADDR = 0x0000;
     }
 
@@ -663,8 +662,7 @@ class PPU {
       }
     }
 
-    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
-    if (cycle >= 257 && cycle <= 320) {
+    if (renderingActive && cycle >= 257 && cycle <= 320) {
       OAMADDR = 0x0000;
     }
 
