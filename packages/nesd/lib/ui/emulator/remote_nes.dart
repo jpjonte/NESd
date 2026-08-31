@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -192,6 +193,10 @@ class RemoteNes {
   // ignore: avoid_setters_without_getters
   set swapDutyCycles(bool enabled) =>
       _send(SetSwapDutyCyclesCommand(enabled: enabled));
+
+  // ignore: avoid_setters_without_getters
+  set systemPalette(Uint32List palette) =>
+      _send(SetPaletteCommand(palette: palette));
 
   void startPcmDump(String path) => _send(StartPcmDumpCommand(path: path));
 

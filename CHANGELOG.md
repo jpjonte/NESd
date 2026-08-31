@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Implemented open bus for the CPU and PPU
+- Added multiple color palettes, selectable in Graphics settings
 
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
@@ -16,7 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed skipped IRQs on MMC3 games
 - Fixed MMC3 scanline counter being off by one
 - Fixed sprite data getting discarded while rendering is off
-
+- Fixed color emphasis applying an inverted tint
+- Fixed color emphasis on PAL
 ## [0.18.0] - 2026-08-30
 
 **Two more Android testers needed!**  
