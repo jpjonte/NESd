@@ -75,10 +75,7 @@ class Bus {
     }
 
     if (address < 0x4000) {
-      return ppu.readRegister(
-        0x2000 | (address & 0x07),
-        disableSideEffects: disableSideEffects,
-      );
+      return ppu.readRegister(address, disableSideEffects: disableSideEffects);
     }
 
     if (address == 0x4015) {

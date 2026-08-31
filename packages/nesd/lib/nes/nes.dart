@@ -48,6 +48,8 @@ class NES {
     cpu.cartridgeNeedsStep = cartridge.mapper.needsStep;
     ppu.mapperNeedsPpuAddress = cartridge.mapper.needsPpuAddressUpdates;
     ppu.mapperNeedsPpuReads = cartridge.mapper.needsPpuReads;
+    ppu.mapperNeedsExtendedPpuRegisters =
+        cartridge.mapper.needsExtendedPpuRegisters;
   }
 
   final Bus bus;

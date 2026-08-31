@@ -22,6 +22,7 @@ import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/txsrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom512.dart';
+import 'package:nesd/nes/cartridge/mapper/vt/mapper256.dart';
 
 enum CpuMemoryType { prgRom, prgRam, prgSaveRam }
 
@@ -84,6 +85,7 @@ abstract class Mapper {
       118 => TxSROM(),
       176 => Mapper176(subMapperId),
       206 => Namco108(),
+      256 => Mapper256(subMapperId),
       _ => throw UnsupportedMapper(mapperId, subMapperId),
     };
   }
@@ -286,6 +288,12 @@ abstract class Mapper {
   /// Whether the PPU must route every fetch through [ppuRead] instead
   /// of serving it from its own block cache.
   bool get needsPpuReads => false;
+
+  bool get needsExtendedPpuRegisters => false;
+
+  int extendedPpuRead(int address, {bool disableSideEffects = false}) => 0;
+
+  void extendedPpuWrite(int address, int value) {}
 
   void mapCpu(
     int fromAddress,

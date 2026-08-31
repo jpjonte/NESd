@@ -150,9 +150,9 @@ class PPU {
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
 
-  /// Set by NES at power-on; when true, fetches bypass the block cache so the
-  /// mapper can observe and answer them. See `Mapper.needsPpuReads`.
   bool mapperNeedsPpuReads = false;
+
+  bool mapperNeedsExtendedPpuRegisters = false;
 
   int cycles = 0;
   int cycle = 0;
@@ -438,10 +438,37 @@ class PPU {
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
-    return switch (address) {
-      0x2002 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
-      0x2004 => _readOAMDATA(),
-      0x2007 => _readPPUDATA(disableSideEffects: disableSideEffects),
+    if (mapperNeedsExtendedPpuRegisters) {
+      final register = address & 0x1f;
+
+      if (register >= 0x10) {
+        return bus.cartridge.mapper.extendedPpuRead(
+          0x2000 | register,
+          disableSideEffects: disableSideEffects,
+        );
+      }
+
+      if (register >= 0x08) {
+        return _decayValue;
+      }
+
+      return _readStockRegister(
+        register,
+        disableSideEffects: disableSideEffects,
+      );
+    }
+
+    return _readStockRegister(
+      address & 0x07,
+      disableSideEffects: disableSideEffects,
+    );
+  }
+
+  int _readStockRegister(int register, {bool disableSideEffects = false}) {
+    return switch (register) {
+      2 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
+      4 => _readOAMDATA(),
+      7 => _readPPUDATA(disableSideEffects: disableSideEffects),
       _ => _decayValue,
     };
   }
@@ -478,11 +505,31 @@ class PPU {
   }
 
   void writeRegister(int address, int value) {
-    final wrapped = address & 0x7;
+    if (mapperNeedsExtendedPpuRegisters) {
+      final register = address & 0x1f;
 
+      if (register >= 0x10) {
+        bus.cartridge.mapper.extendedPpuWrite(0x2000 | register, value);
+
+        return;
+      }
+
+      if (register >= 0x08) {
+        return;
+      }
+
+      _writeStockRegister(register, value);
+
+      return;
+    }
+
+    _writeStockRegister(address & 0x07, value);
+  }
+
+  void _writeStockRegister(int register, int value) {
     _refreshDecay(value, 0xff);
 
-    switch (wrapped) {
+    switch (register) {
       case 0:
         _writePPUCTRL(value);
       case 1:
