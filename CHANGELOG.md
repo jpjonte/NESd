@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Implemented open bus for the CPU and PPU
 - Added multiple color palettes, selectable in Graphics settings
+- Implemented UNROM 512 (mapper 30)
 
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
