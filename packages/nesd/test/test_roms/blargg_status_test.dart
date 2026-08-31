@@ -13,6 +13,7 @@ const _passing = <String>[
   'cpu_exec_space/test_cpu_exec_space_apu.nes',
   'cpu_exec_space/test_cpu_exec_space_ppuio.nes',
   'ppu_open_bus/ppu_open_bus.nes',
+  'cpu_dummy_writes/cpu_dummy_writes_oam.nes',
   'cpu_dummy_writes/cpu_dummy_writes_ppumem.nes',
   'mmc3_test/1-clocking.nes',
   'mmc3_test/2-details.nes',
@@ -29,9 +30,6 @@ const _knownFailures = <String, int>{
   // $2000 write. The 6502 polls for interrupts on an instruction's
   // second-to-last cycle.
   'ppu_vbl_nmi/rom_singles/04-nmi_control.nes': 11,
-  // Fails an OAM read-back check, because $2004 writes are dropped on
-  // visible scanlines even when rendering is off.
-  'cpu_dummy_writes/cpu_dummy_writes_oam.nes': 6,
 };
 
 void main() {

@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away
 - Fixed skipped IRQs on MMC3 games
 - Fixed MMC3 scanline counter being off by one
+- Fixed sprite data getting discarded while rendering is off
 
 ## [0.18.0] - 2026-08-30
 

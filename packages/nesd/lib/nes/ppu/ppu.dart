@@ -811,8 +811,10 @@ class PPU {
   }
 
   void _writeOAMDATA(int value) {
-    // ignore writes while rendering
-    if (scanline < 240 && cycle >= 1 && cycle <= 256) {
+    if ((_showBackground || _showSprites) &&
+        scanline < 240 &&
+        cycle >= 1 &&
+        cycle <= 256) {
       return;
     }
 
