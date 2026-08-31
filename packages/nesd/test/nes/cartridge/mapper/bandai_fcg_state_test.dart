@@ -71,9 +71,10 @@ void main() {
 
     final bytes = binarize(writer);
 
-    expect(bytes[0], 0, reason: 'MapperState envelope version');
-    expect(bytes[1], 16, reason: 'mapper id');
-    expect(bytes[2], 0, reason: 'BandaiFCGState version');
+    expect(bytes[0], 1, reason: 'MapperState envelope version');
+    expect(bytes[1], 0, reason: 'mapper id high byte');
+    expect(bytes[2], 16, reason: 'mapper id low byte');
+    expect(bytes[3], 0, reason: 'BandaiFCGState version');
 
     final decoded =
         MapperState.deserialize(Payload.read(bytes)) as BandaiFCGState;

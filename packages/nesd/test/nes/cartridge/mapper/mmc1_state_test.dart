@@ -2,6 +2,7 @@ import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1_state.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
 
 void main() {
   test('round-trips through serialization', () {
@@ -20,9 +21,10 @@ void main() {
 
     final bytes = binarize(writer);
 
-    expect(bytes[0], 0, reason: 'MapperState envelope version');
-    expect(bytes[1], 1, reason: 'mapper id');
-    expect(bytes[2], 1, reason: 'MMC1State version');
+    expect(bytes[0], 1, reason: 'MapperState envelope version');
+    expect(bytes[1], 0, reason: 'mapper id high byte');
+    expect(bytes[2], 1, reason: 'mapper id low byte');
+    expect(bytes[3], 1, reason: 'MMC1State version');
 
     final decoded = MapperState.deserialize(Payload.read(bytes)) as MMC1State;
 
@@ -54,5 +56,24 @@ void main() {
     expect(decoded.chrBank1, 9);
     expect(decoded.prgBank, 7);
     expect(decoded.lastWrite, 0);
+  });
+
+  test('deserializes a version 0 envelope with an 8-bit id', () {
+    final writer = Payload.write()
+      ..set(uint8, 0) // MapperState envelope version
+      ..set(uint8, 1) // mapper id, 8-bit
+      ..set(uint8, 1) // MMC1State version
+      ..set(uint8, 0x15) // shift
+      ..set(uint8, 0x1f) // control
+      ..set(uint8, 4) // chrBank0
+      ..set(uint8, 9) // chrBank1
+      ..set(uint8, 7) // prgBank
+      ..set(nesdUint64, 0x123456789a); // lastWrite
+
+    final decoded =
+        MapperState.deserialize(Payload.read(binarize(writer))) as MMC1State;
+
+    expect(decoded.shift, 0x15);
+    expect(decoded.lastWrite, 0x123456789a);
   });
 }

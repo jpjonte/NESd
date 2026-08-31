@@ -24,14 +24,13 @@ abstract class MapperState {
     final version = reader.get(uint8);
 
     return switch (version) {
-      0 => MapperState._version0(reader),
+      0 => MapperState._fromId(reader, reader.get(uint8)),
+      1 => MapperState._fromId(reader, reader.get(uint16)),
       _ => throw InvalidSerializationVersion('MapperState', version),
     };
   }
 
-  factory MapperState._version0(PayloadReader reader) {
-    final id = reader.get(uint8);
-
+  factory MapperState._fromId(PayloadReader reader, int id) {
     return switch (id) {
       0 => const NROMState(),
       1 => MMC1State.deserialize(reader),
@@ -57,7 +56,7 @@ abstract class MapperState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
-      ..set(uint8, id);
+      ..set(uint8, 1) // version
+      ..set(uint16, id);
   }
 }
