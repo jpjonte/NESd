@@ -1,5 +1,6 @@
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/mapper/chip/a12_edge_detector.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
@@ -46,7 +47,7 @@ class MMC3 extends Mapper {
   bool _irqReload = false;
   bool _irqEnabled = false;
 
-  int _a12LowStart = 0;
+  final _a12Detector = A12EdgeDetector();
 
   @override
   MMC3State get state => MMC3State(
@@ -66,7 +67,7 @@ class MMC3 extends Mapper {
     irqLatch: _irqLatch,
     irqReload: _irqReload,
     irqEnabled: _irqEnabled,
-    a12LowStart: _a12LowStart,
+    a12LowStart: _a12Detector.lowStart,
   );
 
   @override
@@ -90,7 +91,7 @@ class MMC3 extends Mapper {
     _irqLatch = state.irqLatch;
     _irqReload = state.irqReload;
     _irqEnabled = state.irqEnabled;
-    _a12LowStart = state.a12LowStart;
+    _a12Detector.lowStart = state.a12LowStart;
 
     _remapAll();
   }
@@ -119,14 +120,14 @@ class MMC3 extends Mapper {
     _irqReload = false;
     _irqEnabled = false;
 
-    _a12LowStart = 0;
+    _a12Detector.lowStart = 0;
 
     _remapAll();
   }
 
   @override
   void updatePpuAddress(int address) {
-    if (!_a12RisingEdgeDetected(address)) {
+    if (!_a12Detector.detect(address, bus.cpu.cycles)) {
       return;
     }
 
@@ -262,23 +263,5 @@ class MMC3 extends Mapper {
       1 => NametableLayout.vertical,
       _ => NametableLayout.horizontal,
     };
-  }
-
-  bool _a12RisingEdgeDetected(int address) {
-    if (address.bit(12) == 1) {
-      // rising edge only counts if A12 was low for at least 3 cycles
-      final cyclesHaveElapsed =
-          _a12LowStart > 0 && (bus.cpu.cycles - _a12LowStart) >= 3;
-
-      _a12LowStart = 0;
-
-      return cyclesHaveElapsed;
-    }
-
-    if (_a12LowStart == 0) {
-      _a12LowStart = bus.cpu.cycles;
-    }
-
-    return false;
   }
 }
