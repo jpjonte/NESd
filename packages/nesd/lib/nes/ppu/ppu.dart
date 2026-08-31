@@ -3,79 +3,14 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
 import 'package:nesd/nes/region.dart';
-
-const systemPalette = [
-  0x626262,
-  0x001fb2,
-  0x2404c8,
-  0x5200b2,
-  0x730076,
-  0x800024,
-  0x730b00,
-  0x522800,
-  0x244400,
-  0x005700,
-  0x005c00,
-  0x005324,
-  0x003c76,
-  0x000000,
-  0x000000,
-  0x000000,
-  0xababab,
-  0x0d57ff,
-  0x4b30ff,
-  0x8a13ff,
-  0xbc08d6,
-  0xd21269,
-  0xc72e00,
-  0x9d5400,
-  0x607b00,
-  0x209800,
-  0x00a300,
-  0x009942,
-  0x007db4,
-  0x000000,
-  0x000000,
-  0x000000,
-  0xffffff,
-  0x53aeff,
-  0x9085ff,
-  0xd365ff,
-  0xff57ff,
-  0xff5dcf,
-  0xff7757,
-  0xfa9e00,
-  0xbdc700,
-  0x7ae700,
-  0x43f611,
-  0x26ef7e,
-  0x2cd5f6,
-  0x4e4e4e,
-  0x000000,
-  0x000000,
-  0xffffff,
-  0xb6e1ff,
-  0xced1ff,
-  0xe9c3ff,
-  0xffbcff,
-  0xffbdf4,
-  0xffc6c3,
-  0xffd59a,
-  0xe9e681,
-  0xcef481,
-  0xb6fb9a,
-  0xa9fac3,
-  0xa9f0f4,
-  0xb8b8b8,
-  0x000000,
-  0x000000,
-];
 
 const ntscConsoleCyclesPerCycle = 4;
 const palConsoleCyclesPerCycle = 5;
@@ -162,6 +97,31 @@ class PPU {
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
   final Uint32List _paletteLut = Uint32List(0x20);
+
+  Uint32List _systemPalette = defaultPalette;
+
+  Region _region = Region.ntsc;
+
+  int _emphasisBase = 0;
+
+  @visibleForTesting
+  Uint32List get paletteLut => _paletteLut;
+
+  Uint32List get systemPalette => _systemPalette;
+
+  set systemPalette(Uint32List value) {
+    if (value.length != nesPaletteLength) {
+      throw ArgumentError.value(
+        value.length,
+        'value',
+        'expected $nesPaletteLength entries',
+      );
+    }
+
+    _systemPalette = value;
+
+    _rebuildPaletteLut();
+  }
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
   final List<Uint8List?> _ppuBlocks = List<Uint8List?>.filled(
@@ -353,6 +313,8 @@ class PPU {
   // we don't need a getter from this
   // ignore: avoid_setters_without_getters
   set region(Region region) {
+    _region = region;
+
     switch (region) {
       case Region.ntsc:
         _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
@@ -365,6 +327,8 @@ class PPU {
     // The phase depends on _preRenderScanline; a live mid-game region
     // switch must not run a stale phase for the rest of the scanline.
     _scanlinePhase = _phaseForScanline();
+
+    _rebuildPaletteLut();
   }
 
   void reset() {
@@ -1007,31 +971,6 @@ class PPU {
     frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
 
-  int _applyEmphasis(int color) {
-    final red = color & 0xff;
-    final green = (color >> 8) & 0xff;
-    final blue = (color >> 16) & 0xff;
-
-    // TODO implement an accurate algorithm
-    final resultRed = (PPUMASK_EG == 1 || PPUMASK_EB == 1) ? (red >> 2) : red;
-    final resultGreen = (PPUMASK_ER == 1 || PPUMASK_EB == 1)
-        ? (green >> 2)
-        : green;
-    final resultBlue = (PPUMASK_ER == 1 || PPUMASK_EG == 1)
-        ? (blue >> 2)
-        : blue;
-
-    return (resultBlue << 16) | (resultGreen << 8) | resultRed;
-  }
-
-  int _packPaletteColor(int color) {
-    final red = (color >> 16) & 0xff;
-    final green = (color >> 8) & 0xff;
-    final blue = color & 0xff;
-
-    return 0xff000000 | (blue << 16) | (green << 8) | red;
-  }
-
   @pragma('vm:prefer-inline')
   int _getPixelColor() {
     if (!_showBackground && !_showSprites) {
@@ -1420,14 +1359,25 @@ class PPU {
     _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
   }
 
-  // Called when PPUMASK changes or palette memory is written to, to update LUT.
   void _rebuildPaletteLut() {
+    _emphasisBase = _emphasisRow() << 6;
+
     for (var i = 0; i < 0x20; i++) {
       final remapped = _remapPaletteIndex(i);
       final value = _computePaletteEntry(remapped);
 
       _setPaletteEntry(remapped, value);
     }
+  }
+
+  int _emphasisRow() {
+    final r = PPUMASK_ER;
+    final g = PPUMASK_EG;
+    final b = PPUMASK_EB;
+
+    return _region == Region.pal
+        ? g | (r << 1) | (b << 2)
+        : r | (g << 1) | (b << 2);
   }
 
   void onPaletteWrite(int index) {
@@ -1461,14 +1411,9 @@ class PPU {
   }
 
   int _computePaletteEntry(int index) {
-    final idx = index & 0x1f;
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
-    final palVal = palette[idx] & greyMask;
-    final rgb = systemPalette[palVal];
 
-    final emphasized = _applyEmphasis(rgb);
-
-    return _packPaletteColor(emphasized);
+    return _systemPalette[_emphasisBase | (palette[index & 0x1f] & greyMask)];
   }
 
   int _remapPaletteIndex(int index) {

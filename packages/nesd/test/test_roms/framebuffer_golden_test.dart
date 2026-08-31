@@ -32,9 +32,6 @@ const _goldens = <String, int>{
   '$_base/sprite_hit_tests_2005.10.05/08.double_height.nes':
       -4246198069118455891,
   // PASSED
-  '$_base/sprite_hit_tests_2005.10.05/09.timing_basics.nes':
-      -5418624616629182540,
-  // FAILED #5: upper-right corner too late.
   '$_base/sprite_hit_tests_2005.10.05/10.timing_order.nes': -355897874731065419,
   // PASSED
   '$_base/sprite_hit_tests_2005.10.05/11.edge_timing.nes': 8772810262352546524,

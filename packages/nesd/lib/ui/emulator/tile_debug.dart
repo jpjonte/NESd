@@ -6,7 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/nes/ppu/ppu.dart' show systemPalette;
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/frame_buffer_image.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -20,6 +20,8 @@ const width = 2 * nametableWidth;
 const height = 2 * nametableHeight;
 
 final buffer = FrameBuffer(width: width, height: height);
+
+final _defaultPalette = expandRgbToPalette(defaultPaletteRgb);
 
 const _pollInterval = Duration(milliseconds: 100);
 
@@ -173,11 +175,11 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final systemPaletteIndex = data.ppuRead(paletteAddress);
 
-              final color = systemPalette[systemPaletteIndex & 0x3f];
+              final color = _defaultPalette[systemPaletteIndex & 0x3f];
 
-              buffer.setPixel(
+              buffer.setPixelWithBase(
+                (ny * nametableHeight + ty * 8 + py) * width,
                 nx * nametableWidth + tx * 8 + px,
-                ny * nametableHeight + ty * 8 + py,
                 color,
               );
             }
