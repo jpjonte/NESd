@@ -711,6 +711,8 @@ class PPU {
 
     if (!disableSideEffects) {
       v += PPUCTRL_I == 0 ? 1 : 32;
+
+      _updateBusAddress(v & 0x3fff);
     }
 
     return value;
@@ -791,6 +793,8 @@ class PPU {
     writePpuMemory(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
+
+    _updateBusAddress(v & 0x3fff);
   }
 
   @pragma('vm:prefer-inline')

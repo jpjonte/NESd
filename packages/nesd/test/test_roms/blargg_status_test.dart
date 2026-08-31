@@ -11,6 +11,7 @@ const _passing = <String>[
   'instr_misc/rom_singles/02-branch_wrap.nes',
   'cpu_interrupts_v2/rom_singles/1-cli_latency.nes',
   'mmc3_test/1-clocking.nes',
+  'mmc3_test/3-A12_clocking.nes',
   'mmc3_test/5-MMC3.nes',
   'ppu_vbl_nmi/rom_singles/01-vbl_basics.nes',
   'ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes',

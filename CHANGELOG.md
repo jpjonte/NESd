@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away
+- Fixed skipped IRQs on MMC3 games
 
 ## [0.18.0] - 2026-08-30
 
