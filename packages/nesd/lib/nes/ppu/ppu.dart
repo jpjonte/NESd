@@ -172,6 +172,12 @@ class PPU {
   bool _showBackground = false;
   bool _showSprites = false;
 
+  int decay = 0;
+
+  final List<int> decayRefreshedAt = List<int>.filled(8, 0);
+
+  static const _decayFrames = 36;
+
   bool _renderingAtSkipDecision = false;
   bool _showLeftBackground = false;
   bool _showLeftSprites = false;
@@ -273,6 +279,8 @@ class PPU {
     secondarySpriteCount: secondarySpriteCount,
     sprite0OnNextLine: sprite0OnNextLine,
     sprite0OnCurrentLine: sprite0OnCurrentLine,
+    decay: decay,
+    decayRefreshedAt: decayRefreshedAt,
     spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
   );
 
@@ -320,6 +328,12 @@ class PPU {
     secondarySpriteCount = state.secondarySpriteCount;
     sprite0OnNextLine = state.sprite0OnNextLine;
     sprite0OnCurrentLine = state.sprite0OnCurrentLine;
+
+    decay = state.decay;
+
+    for (var bit = 0; bit < 8; bit++) {
+      decayRefreshedAt[bit] = state.decayRefreshedAt[bit];
+    }
 
     for (var i = 0; i < _spriteOutputs.length; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
@@ -408,6 +422,9 @@ class PPU {
 
     _renderingAtSkipDecision = false;
 
+    decay = 0;
+    decayRefreshedAt.fillRange(0, 8, 0);
+
     frameBuffer.resetBuffers();
 
     _rebuildPaletteLut();
@@ -459,12 +476,45 @@ class PPU {
       0x2002 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
       0x2004 => _readOAMDATA(),
       0x2007 => _readPPUDATA(disableSideEffects: disableSideEffects),
-      _ => 0,
+      _ => _decayValue,
     };
+  }
+
+  int _readWithDecay(int value, int mask) {
+    _refreshDecay(value, mask);
+
+    return (value & mask) | (_decayValue & ~mask & 0xff);
+  }
+
+  void _refreshDecay(int value, int mask) {
+    for (var bit = 0; bit < 8; bit++) {
+      final flag = 1 << bit;
+
+      if (mask & flag == 0) {
+        continue;
+      }
+
+      decay = (decay & ~flag) | (value & flag);
+      decayRefreshedAt[bit] = frames;
+    }
+  }
+
+  int get _decayValue {
+    var value = decay;
+
+    for (var bit = 0; bit < 8; bit++) {
+      if (frames - decayRefreshedAt[bit] > _decayFrames) {
+        value &= ~(1 << bit);
+      }
+    }
+
+    return value & 0xff;
   }
 
   void writeRegister(int address, int value) {
     final wrapped = address & 0x7;
+
+    _refreshDecay(value, 0xff);
 
     switch (wrapped) {
       case 0:
@@ -686,18 +736,24 @@ class PPU {
   int _readPPUSTATUS({bool disableSideEffects = false}) {
     final value = PPUSTATUS;
 
-    if (!disableSideEffects) {
-      PPUSTATUS_V = 0;
-      w = 0;
-
-      _updateNmiLine();
+    if (disableSideEffects) {
+      return (value & 0xe0) | (_decayValue & 0x1f);
     }
 
-    return value;
+    PPUSTATUS_V = 0;
+    w = 0;
+
+    _updateNmiLine();
+
+    return _readWithDecay(value, 0xe0);
   }
 
   int _readOAMDATA() {
-    return oam[OAMADDR];
+    final value = oam[OAMADDR];
+
+    final driven = OAMADDR & 0x3 == 2 ? value & 0xe3 : value;
+
+    return _readWithDecay(driven, 0xff);
   }
 
   int _readPPUDATA({bool disableSideEffects = false}) {
@@ -713,13 +769,19 @@ class PPU {
       value = PPUDATA;
     }
 
+    final isPalette = v >= 0x3f00;
+
     if (!disableSideEffects) {
       v += PPUCTRL_I == 0 ? 1 : 32;
 
       _updateBusAddress(v & 0x3fff);
     }
 
-    return value;
+    if (disableSideEffects) {
+      return value;
+    }
+
+    return _readWithDecay(value, isPalette ? 0x3f : 0xff);
   }
 
   void _writePPUCTRL(int value) {

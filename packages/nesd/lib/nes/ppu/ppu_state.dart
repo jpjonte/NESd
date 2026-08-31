@@ -1,6 +1,8 @@
 // the register names don't match dart naming conventions
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:typed_data';
+
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
@@ -46,7 +48,9 @@ class PPUState {
     required this.sprite0OnNextLine,
     required this.sprite0OnCurrentLine,
     required this.spriteOutputs,
-  });
+    this.decay = 0,
+    List<int>? decayRefreshedAt,
+  }) : decayRefreshedAt = decayRefreshedAt ?? const [0, 0, 0, 0, 0, 0, 0, 0];
 
   factory PPUState.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
@@ -55,6 +59,7 @@ class PPUState {
       0 => PPUState.version0(reader),
       1 => PPUState.version1(reader),
       2 => PPUState.version2(reader),
+      3 => PPUState.version3(reader),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -185,6 +190,50 @@ class PPUState {
     );
   }
 
+  factory PPUState.version3(PayloadReader reader) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
+      frameBuffer: FrameBuffer.deserialize(reader),
+      consoleCycles: reader.get(nesdUint64),
+      cycles: reader.get(nesdUint64),
+      cycle: reader.get(uint16),
+      scanline: reader.get(uint16),
+      frames: reader.get(uint32),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHighShift: reader.get(uint16),
+      patternTableLowShift: reader.get(uint16),
+      attributeTableLatch: reader.get(uint8),
+      attributeTableHighShift: reader.get(uint8),
+      attributeTableLowShift: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamAddress: reader.get(uint16),
+      oamBuffer: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+      decay: reader.get(uint8),
+      decayRefreshedAt: reader.get(uint32List()),
+    );
+  }
+
   final int PPUCTRL;
   final int PPUMASK;
   final int PPUSTATUS;
@@ -237,9 +286,15 @@ class PPUState {
 
   final List<SpriteOutputState> spriteOutputs;
 
+  /// Open-bus value behind the PPU registers.
+  final int decay;
+
+  /// Frame each decay bit was last refreshed in.
+  final List<int> decayRefreshedAt;
+
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 2) // version
+      ..set(uint8, 3) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -281,5 +336,9 @@ class PPUState {
       ..set(boolean, sprite0OnCurrentLine);
 
     SpriteOutputState.serializeList(writer, spriteOutputs);
+
+    writer
+      ..set(uint8, decay)
+      ..set(uint32List(), Uint32List.fromList(decayRefreshedAt));
   }
 }

@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- Implemented open bus for the CPU
+- Implemented open bus for the CPU and PPU
 
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
