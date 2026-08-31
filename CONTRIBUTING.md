@@ -99,7 +99,7 @@ The mapper list and game counts in `README.md`, and `supportedGameCount` in `web
 pushd packages/nesd && fvm dart run tool/update_game_counts.dart && popd
 ```
 
-A new mapper needs its display name added to the README list by hand first, the script will tell you if one is missing. `--check` reports drift without writing, for use in CI.
+A new mapper needs its display name added to the README list by hand first, the script will tell you if one is missing. If the mapper is registered in `Mapper.fromId` but doesn't run games yet, add its id to `inProgressMapperIds` in the script instead of a README label. Remove it once the mapper works. `--check` reports drift without writing, for use in CI.
 
 The script counts retail releases, multicarts and plug-and-play devices, and skips homebrew, bootlegs, hacks, prototypes, bad dumps, samples, arcade boards and BIOS images.
 

@@ -38,13 +38,17 @@ const excludedCategories = {
 const startMarker = '<!-- game-counts:start -->';
 const endMarker = '<!-- game-counts:end -->';
 
+/// Mappers that aren't fully implemented yet. Ignored in README.md and
+/// `supportedGameCount`.
+const inProgressMapperIds = {256};
+
 void main(List<String> args) {
   final checkOnly = args.contains('--check');
   final root = _repoRoot();
 
   final mappers = _supportedMappers(
     File('${root.path}/packages/nesd/lib/nes/cartridge/mapper/mapper.dart'),
-  );
+  ).where((id) => !inProgressMapperIds.contains(id)).toList();
 
   final readme = File('${root.path}/README.md');
   final labels = _mapperLabels(readme);
