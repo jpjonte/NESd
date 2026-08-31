@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cheat/cheat_engine.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
@@ -142,7 +143,11 @@ class Bus {
     }
 
     if (address == 0x4014) {
-      cpu.triggerOamDma(value);
+      if (cartridge.mapper.handlesDma) {
+        cartridge.mapper.startDma(value);
+      } else {
+        cpu.triggerOamDma(value);
+      }
 
       return;
     }
@@ -227,6 +232,9 @@ class Bus {
   void clearNmi() => cpu.clearNmi();
 
   void triggerDmcDma() => cpu.triggerDmcDma();
+
+  DmaSettings? get dmaSettings =>
+      cartridge.mapper.handlesDma ? cartridge.mapper.dmaSettings : null;
 
   void zapperPull() => _zapper.trigger = true;
 

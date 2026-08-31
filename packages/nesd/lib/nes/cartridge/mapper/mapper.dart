@@ -8,6 +8,7 @@ import 'package:nesd/nes/cartridge/mapper/axrom.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
+import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper176.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper45.dart';
@@ -294,6 +295,12 @@ abstract class Mapper {
   int extendedPpuRead(int address, {bool disableSideEffects = false}) => 0;
 
   void extendedPpuWrite(int address, int value) {}
+
+  bool get handlesDma => false;
+
+  void startDma(int page) {}
+
+  DmaSettings? get dmaSettings => null;
 
   void mapCpu(
     int fromAddress,

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cartridge/mapper/chip/a12_edge_detector.dart';
+import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/vt02_state.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/vt02_timer.dart';
@@ -20,6 +21,8 @@ abstract class VT02 extends Mapper {
   /// `0x4034` and `0x4035`
   final Uint8List _extraRegisters = Uint8List(2);
 
+  DmaSettings _dmaSettings = DmaSettings.fromRegister(0);
+
   final a12Detector = A12EdgeDetector();
 
   final timer = VT02Timer();
@@ -36,6 +39,15 @@ abstract class VT02 extends Mapper {
 
   @override
   bool get needsStep => true;
+
+  @override
+  bool get handlesDma => true;
+
+  @override
+  void startDma(int page) => bus.cpu.triggerOamDma(page);
+
+  @override
+  DmaSettings get dmaSettings => _dmaSettings;
 
   int registerAt(int address) {
     if (address >= 0x4100 && address <= 0x411b) {
@@ -60,6 +72,7 @@ abstract class VT02 extends Mapper {
     _systemRegisters.fillRange(0, _systemRegisters.length, 0);
     _graphicsRegisters.fillRange(0, _graphicsRegisters.length, 0);
     _extraRegisters.fillRange(0, _extraRegisters.length, 0);
+    _dmaSettings = DmaSettings.fromRegister(0);
 
     a12Detector.lowStart = 0;
 
@@ -160,6 +173,10 @@ abstract class VT02 extends Mapper {
     if (address == 0x4034 || address == 0x4035) {
       _extraRegisters[address - 0x4034] = value;
 
+      if (address == 0x4034) {
+        _dmaSettings = DmaSettings.fromRegister(value);
+      }
+
       return;
     }
 
@@ -250,6 +267,7 @@ abstract class VT02 extends Mapper {
 
     _extraRegisters[0] = state.dmaControl;
     _extraRegisters[1] = state.xop2;
+    _dmaSettings = DmaSettings.fromRegister(_extraRegisters[0]);
 
     _graphicsRegisters[0x00] = state.extendedControl1;
     _graphicsRegisters[0x01] = state.extendedControl2;
