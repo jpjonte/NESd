@@ -56,6 +56,7 @@ roms/
 !roms/test/ppu_vbl_nmi/rom_singles/04-nmi_control.nes
 !roms/test/ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes
 !roms/test/ppu_vbl_nmi/rom_singles/10-even_odd_timing.nes
+!roms/test/unrom512_flash/unrom512_flash.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/

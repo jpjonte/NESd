@@ -19,6 +19,7 @@ class Unrom512Config {
     this.fourScreen = false,
     this.horizontalArrangement = false,
     this.chrRamShift = 9,
+    this.prgBanks = unrom512PrgBanks,
   });
 
   final int subMapper;
@@ -28,6 +29,8 @@ class Unrom512Config {
 
   final int chrRamShift;
 
+  final int prgBanks;
+
   @override
   bool operator ==(Object other) =>
       other is Unrom512Config &&
@@ -35,7 +38,8 @@ class Unrom512Config {
       other.battery == battery &&
       other.fourScreen == fourScreen &&
       other.horizontalArrangement == horizontalArrangement &&
-      other.chrRamShift == chrRamShift;
+      other.chrRamShift == chrRamShift &&
+      other.prgBanks == prgBanks;
 
   @override
   int get hashCode => Object.hash(
@@ -44,11 +48,12 @@ class Unrom512Config {
     fourScreen,
     horizontalArrangement,
     chrRamShift,
+    prgBanks,
   );
 }
 
 Uint8List _buildRom(Unrom512Config config) {
-  const prgSize = unrom512PrgBanks * 0x4000;
+  final prgSize = config.prgBanks * 0x4000;
 
   final flags6 =
       0xe0 |
@@ -62,7 +67,7 @@ Uint8List _buildRom(Unrom512Config config) {
       0x45,
       0x53,
       0x1a,
-      unrom512PrgBanks, // 512 KiB PRG-ROM
+      config.prgBanks, // PRG-ROM size in 16 KiB banks
       0, // no CHR-ROM
       flags6,
       0x18, // mapper high nibble 1 + NES 2.0 marker
@@ -78,7 +83,7 @@ Uint8List _buildRom(Unrom512Config config) {
 
   const prgStart = 16;
 
-  for (var bank = 0; bank < unrom512PrgBanks; bank++) {
+  for (var bank = 0; bank < config.prgBanks; bank++) {
     rom.fillRange(
       prgStart + bank * 0x4000,
       prgStart + (bank + 1) * 0x4000,
@@ -97,6 +102,7 @@ UNROM512 buildUnrom512({
   bool fourScreen = false,
   bool horizontalArrangement = false,
   int chrRamShift = 9,
+  int prgBanks = unrom512PrgBanks,
 }) {
   final config = Unrom512Config(
     subMapper: subMapper,
@@ -104,6 +110,7 @@ UNROM512 buildUnrom512({
     fourScreen: fourScreen,
     horizontalArrangement: horizontalArrangement,
     chrRamShift: chrRamShift,
+    prgBanks: prgBanks,
   );
 
   final rom = _roms.putIfAbsent(config, () => _buildRom(config));
