@@ -66,6 +66,7 @@ flutter:
   assets:
     - assets/
     - assets/fonts/
+    - assets/palettes/
 
   shaders:
     - shaders/crt.frag
