@@ -22,4 +22,12 @@ void main() {
       expect(result.passed, isTrue, reason: result.toString());
     });
   }
+
+  test('cpu_dummy_writes_oam reaches a verdict without crashing', () {
+    final result = RomRobot(
+      '$_base/cpu_dummy_writes/cpu_dummy_writes_oam.nes',
+    ).runUntilResult();
+
+    expect(result.status, isNot(equals(0)), reason: result.toString());
+  });
 }

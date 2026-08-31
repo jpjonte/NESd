@@ -735,7 +735,7 @@ class PPU {
 
     oam[OAMADDR] = value;
 
-    OAMADDR++;
+    OAMADDR = (OAMADDR + 1) & 0xff;
   }
 
   void _writePPUSCROLL(int value) {

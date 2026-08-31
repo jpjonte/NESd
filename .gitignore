@@ -45,6 +45,7 @@ roms/
 !roms/test/cpu_interrupts_v2/rom_singles/1-cli_latency.nes
 !roms/test/mmc3_test/1-clocking.nes
 !roms/test/mmc3_test/5-MMC3.nes
+!roms/test/cpu_dummy_writes/cpu_dummy_writes_oam.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/
