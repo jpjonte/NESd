@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 
 enum EmulatorTool {
-  display('Display', contentWidth: _standardToolWidth, minHeight: 470),
+  display('Display', contentWidth: _standardToolWidth, minHeight: 526),
   audio('Audio', contentWidth: _standardToolWidth, minHeight: 240),
   tileViewer('Tile Viewer', contentWidth: _standardToolWidth, minHeight: 480),
   cartridgeInfo(
