@@ -782,7 +782,10 @@ class PPU {
     cycles++;
     cycle++;
 
-    if (scanline == _preRenderScanline && cycle == 340 && frames.isOdd) {
+    if (scanline == _preRenderScanline &&
+        cycle == 340 &&
+        frames.isOdd &&
+        (_showBackground || _showSprites)) {
       scanline = 0;
       cycle = 0;
       frames++;
