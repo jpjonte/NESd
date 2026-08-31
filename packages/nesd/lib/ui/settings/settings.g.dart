@@ -102,6 +102,12 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   overscan: json['overscan'] == null
       ? const Overscan()
       : _overscanFromJson(json['overscan']),
+  paletteId:
+      $enumDecodeNullable(_$NesPaletteIdEnumMap, json['paletteId']) ??
+      NesPaletteId.defaultPalette,
+  ntscPalette: json['ntscPalette'] == null
+      ? const NtscPaletteSettings()
+      : _ntscPaletteFromJson(json['ntscPalette']),
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -142,6 +148,8 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
       .toList(),
   'crtFilter': _crtFilterToJson(instance.crtFilter),
   'overscan': _overscanToJson(instance.overscan),
+  'paletteId': _$NesPaletteIdEnumMap[instance.paletteId]!,
+  'ntscPalette': _ntscPaletteToJson(instance.ntscPalette),
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -203,6 +211,14 @@ const _$VideoFilterEnumMap = {
   VideoFilter.smooth: 'smooth',
 };
 
+const _$NesPaletteIdEnumMap = {
+  NesPaletteId.defaultPalette: 'defaultPalette',
+  NesPaletteId.warm: 'warm',
+  NesPaletteId.cool: 'cool',
+  NesPaletteId.flat: 'flat',
+  NesPaletteId.generated: 'generated',
+};
+
 const _$EmulatorToolEnumMap = {
   EmulatorTool.display: 'display',
   EmulatorTool.audio: 'audio',
@@ -253,7 +269,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'31fe3adb93d3d1035f667eb2dd8e3df248ccf498';
+    r'e3d601ba2eec3a98aad60526f9ee064bcd9bc2c4';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

@@ -5,6 +5,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -113,5 +114,13 @@ void main() {
         .single;
 
     expect(sent.enabled, isFalse);
+  });
+
+  test('loadRom sends the system palette to the worker', () async {
+    final handle = await loadWith(swapDutyCycles: false);
+
+    final sent = handle.sentCommands.whereType<SetPaletteCommand>().single;
+
+    expect(sent.palette, equals(expandRgbToPalette(defaultPaletteRgb)));
   });
 }

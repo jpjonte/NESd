@@ -9,6 +9,8 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
@@ -97,6 +99,13 @@ Overscan _overscanFromJson(dynamic json) => json == null
     ? const Overscan()
     : Overscan.fromJson(json as Map<String, dynamic>);
 
+Map<String, dynamic> _ntscPaletteToJson(NtscPaletteSettings settings) =>
+    settings.toJson();
+
+NtscPaletteSettings _ntscPaletteFromJson(dynamic json) => json == null
+    ? const NtscPaletteSettings()
+    : NtscPaletteSettings.fromJson(json as Map<String, dynamic>);
+
 @freezed
 sealed class Settings with _$Settings {
   factory Settings({
@@ -147,6 +156,10 @@ sealed class Settings with _$Settings {
     @JsonKey(toJson: _overscanToJson, fromJson: _overscanFromJson)
     @Default(Overscan())
     Overscan overscan,
+    @Default(NesPaletteId.defaultPalette) NesPaletteId paletteId,
+    @JsonKey(toJson: _ntscPaletteToJson, fromJson: _ntscPaletteFromJson)
+    @Default(NtscPaletteSettings())
+    NtscPaletteSettings ntscPalette,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -522,6 +535,18 @@ class SettingsController extends _$SettingsController {
   }
 
   int _clampOverscan(int value) => value.clamp(0, maxOverscan);
+
+  NesPaletteId get paletteId => state.paletteId;
+
+  set paletteId(NesPaletteId paletteId) {
+    _update(state.copyWith(paletteId: paletteId));
+  }
+
+  NtscPaletteSettings get ntscPalette => state.ntscPalette;
+
+  set ntscPalette(NtscPaletteSettings ntscPalette) {
+    _update(state.copyWith(ntscPalette: ntscPalette));
+  }
 
   void _update(Settings settings) {
     state = settings;

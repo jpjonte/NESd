@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
@@ -16,8 +17,10 @@ import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/emulator_active.dart';
+import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -114,6 +117,14 @@ NesController nesController(Ref ref) {
   );
 
   ref.onDispose(swapDutyCyclesSubscription.close);
+
+  final paletteSubscription = ref.listen(
+    nesPaletteProvider,
+    (_, palette) => controller.systemPalette = palette,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(paletteSubscription.close);
 
   final fastForwardSpeedSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.fastForwardSpeed),
@@ -220,6 +231,8 @@ class NesController {
   bool lifeCycleListenerEnabled = true;
 
   bool _emulatorActive = false;
+
+  Uint32List _systemPalette = defaultPalette;
 
   Timer? _autoSaveTimer;
 
@@ -478,7 +491,8 @@ class NesController {
         ..lowPassFilter = settingsController.lowPassFilter
         ..fastForwardSpeed = settingsController.fastForwardSpeed
         ..turboSpeed = settingsController.turboSpeed
-        ..swapDutyCycles = settingsController.swapDutyCycles;
+        ..swapDutyCycles = settingsController.swapDutyCycles
+        ..systemPalette = _systemPalette;
 
       nesState.set(remote);
 
@@ -679,6 +693,13 @@ class NesController {
     }
 
     return Uint8List.fromList(roms.single.content as List<int>);
+  }
+
+  // ignore: avoid_setters_without_getters
+  set systemPalette(Uint32List palette) {
+    _systemPalette = palette;
+
+    nes?.systemPalette = palette;
   }
 
   // ignore: avoid_setters_without_getters

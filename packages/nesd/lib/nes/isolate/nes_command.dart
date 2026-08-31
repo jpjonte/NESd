@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:nesd/log/log_level.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
@@ -176,6 +178,12 @@ class SetSwapDutyCyclesCommand extends NesCommand {
   const SetSwapDutyCyclesCommand({required this.enabled});
 
   final bool enabled;
+}
+
+class SetPaletteCommand extends NesCommand {
+  const SetPaletteCommand({required this.palette});
+
+  final Uint32List palette;
 }
 
 class StartPcmDumpCommand extends NesCommand {

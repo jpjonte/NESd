@@ -271,7 +271,7 @@ void main() {
       expect(frequencies.map((f) => f.length).toSet(), {8});
     });
 
-    testWidgets('each lane draws its trace in its own colour', (tester) async {
+    testWidgets('each lane draws its trace in its own color', (tester) async {
       await pumpPanel(tester);
 
       handle.emit(_event());
@@ -285,7 +285,7 @@ void main() {
           .toList();
 
       expect(colors, hasLength(6));
-      expect(colors.toSet(), hasLength(6), reason: 'lane colours must differ');
+      expect(colors.toSet(), hasLength(6), reason: 'lane colors must differ');
     });
 
     testWidgets('a disabled channel keeps its hue but dims', (tester) async {

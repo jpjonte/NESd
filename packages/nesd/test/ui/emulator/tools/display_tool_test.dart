@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
+import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
+import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
@@ -40,7 +43,9 @@ void main() {
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
         child: MaterialApp(
           theme: nesdThemeLight,
-          home: const Scaffold(body: DisplayToolWidget()),
+          home: const Scaffold(
+            body: SingleChildScrollView(child: DisplayToolWidget()),
+          ),
         ),
       ),
     );
@@ -122,5 +127,38 @@ void main() {
       tester.getSize(find.byType(Dropdown<PixelAspectRatio>)).width,
       greaterThan(400),
     );
+    expect(
+      tester.getSize(find.byType(Dropdown<NesPaletteId>)).width,
+      greaterThan(400),
+    );
+  });
+
+  testWidgets('shows no NTSC sliders unless the generated palette is used', (
+    tester,
+  ) async {
+    await pump(tester, '{}');
+
+    expect(find.byType(PaletteDropdown), findsOneWidget);
+    expect(find.byType(HueSlider), findsNothing);
+    expect(find.byType(SaturationSlider), findsNothing);
+    expect(find.byType(ContrastSlider), findsNothing);
+    expect(find.byType(BrightnessSlider), findsNothing);
+    expect(find.byType(GammaSlider), findsNothing);
+  });
+
+  testWidgets('shows the NTSC sliders for the generated palette', (
+    tester,
+  ) async {
+    final container = await pump(tester, '{"paletteId":"generated"}');
+
+    expect(
+      container.read(settingsControllerProvider).paletteId,
+      NesPaletteId.generated,
+    );
+    expect(find.byType(HueSlider), findsOneWidget);
+    expect(find.byType(SaturationSlider), findsOneWidget);
+    expect(find.byType(ContrastSlider), findsOneWidget);
+    expect(find.byType(BrightnessSlider), findsOneWidget);
+    expect(find.byType(GammaSlider), findsOneWidget);
   });
 }

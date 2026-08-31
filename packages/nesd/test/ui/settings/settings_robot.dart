@@ -1,6 +1,15 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart' hide AboutDialog;
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
+import 'package:nesd/ui/settings/shared_preferences.dart';
+import 'package:nesd/ui/theme/light.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../base_robot.dart';
 import 'controls/controls_settings_robot.dart';
@@ -13,6 +22,29 @@ class SettingsScreenRobot extends BaseRobot {
 
   final ControlsSettingsRobot controls;
   final DebugSettingsRobot debug;
+
+  Future<void> pumpSettingsScreen() async {
+    tester.view.physicalSize =
+        const Size(1920, 1080) * tester.view.devicePixelRatio;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await _loadFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
+    await _loadFont('MaterialIcons', [
+      '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+    ]);
+
+    SharedPreferences.setMockInitialValues({});
+
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: MaterialApp(theme: nesdThemeLight, home: const SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
 
   void expectSettingsScreenFound() {
     expect(find.byType(SettingsScreen), findsOneWidget);
@@ -64,5 +96,22 @@ class SettingsScreenRobot extends BaseRobot {
 
   Future<void> tapDebugTab() async {
     await go(find.byKey(SettingsScreen.debugKey));
+  }
+
+  Future<void> selectPalette(NesPaletteId id) async {
+    await go(find.byType(DropdownButton<NesPaletteId>));
+    await go(find.text(id.displayName).last);
+  }
+
+  Future<void> _loadFont(String family, List<String> fontFiles) async {
+    final fontLoader = FontLoader(family);
+
+    for (final fontFile in fontFiles) {
+      final fontData = rootBundle.load(fontFile);
+
+      fontLoader.addFont(fontData);
+    }
+
+    await fontLoader.load();
   }
 }

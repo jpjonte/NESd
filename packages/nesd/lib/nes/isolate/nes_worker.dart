@@ -165,6 +165,8 @@ class NesWorker {
         _audioOutput?.lowPassFilter = command.enabled;
       case SetSwapDutyCyclesCommand():
         _nes?.apu.swapDutyCycles = command.enabled;
+      case SetPaletteCommand():
+        _nes?.ppu.systemPalette = command.palette;
       case StartPcmDumpCommand():
         _startPcmDump(command.path);
       case StopPcmDumpCommand():
