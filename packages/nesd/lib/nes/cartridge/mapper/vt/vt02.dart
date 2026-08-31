@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cartridge/mapper/chip/a12_edge_detector.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/vt02_state.dart';
+import 'package:nesd/nes/cartridge/mapper/vt/vt02_timer.dart';
+import 'package:nesd/nes/cpu/irq_source.dart';
 
 abstract class VT02 extends Mapper {
   VT02(super.id, [super.subMapperId = 0]);
@@ -18,8 +21,20 @@ abstract class VT02 extends Mapper {
 
   final a12Detector = A12EdgeDetector();
 
+  final timer = VT02Timer();
+
+  int _lastScanline = 0;
+
   @override
   bool get needsExtendedPpuRegisters => true;
+
+  bool get _hsyncClock => _systemRegisters[0x0b].bit(7) == 1;
+
+  @override
+  bool get needsPpuAddressUpdates => true;
+
+  @override
+  bool get needsStep => true;
 
   int registerAt(int address) {
     if (address >= 0x4100 && address <= 0x411b) {
@@ -46,6 +61,46 @@ abstract class VT02 extends Mapper {
     _extraRegisters.fillRange(0, _extraRegisters.length, 0);
 
     a12Detector.lowStart = 0;
+
+    timer.reset();
+
+    _lastScanline = 0;
+  }
+
+  @override
+  void updatePpuAddress(int address) {
+    if (_hsyncClock) {
+      return;
+    }
+
+    if (!a12Detector.detect(address, bus.cpu.cycles)) {
+      return;
+    }
+
+    _tickTimer();
+  }
+
+  @override
+  void step() {
+    if (!_hsyncClock) {
+      return;
+    }
+
+    final scanline = bus.ppu.scanline;
+
+    if (scanline == _lastScanline) {
+      return;
+    }
+
+    _lastScanline = scanline;
+
+    _tickTimer();
+  }
+
+  void _tickTimer() {
+    if (timer.tick()) {
+      bus.triggerIrq(IrqSource.mapper);
+    }
   }
 
   @override
@@ -65,6 +120,22 @@ abstract class VT02 extends Mapper {
   @override
   void cpuWrite(int address, int value) {
     if (address >= 0x4100 && address <= 0x411b) {
+      switch (address) {
+        case 0x4101:
+          timer.preload = value;
+        case 0x4102:
+          timer.load();
+        case 0x4103:
+          timer.enabled = false;
+          bus.clearIrq(IrqSource.mapper);
+        case 0x4104:
+          timer.enabled = true;
+        case 0x410b:
+          if ((_systemRegisters[0x0b] ^ value) & 0x80 != 0) {
+            a12Detector.lowStart = 0;
+          }
+      }
+
       if (_isWritableSystemRegister(address)) {
         _systemRegisters[address - 0x4100] = value;
       }
@@ -140,11 +211,11 @@ abstract class VT02 extends Mapper {
     videoBanks: _graphicsRegisters.sublist(0x02, 0x08),
     videoBank1: _graphicsRegisters[0x08],
     videoBank0Select: _graphicsRegisters[0x0a],
-    timerCounter: 0,
-    timerRunning: false,
-    timerEnabled: false,
+    timerCounter: timer.counter,
+    timerRunning: timer.running,
+    timerEnabled: timer.enabled,
     a12LowStart: a12Detector.lowStart,
-    lastScanline: 0,
+    lastScanline: _lastScanline,
   );
 
   @override
@@ -173,5 +244,12 @@ abstract class VT02 extends Mapper {
     _graphicsRegisters[0x0a] = state.videoBank0Select;
 
     a12Detector.lowStart = state.a12LowStart;
+
+    timer.preload = state.timerPreload;
+    timer.counter = state.timerCounter;
+    timer.running = state.timerRunning;
+    timer.enabled = state.timerEnabled;
+
+    _lastScanline = state.lastScanline;
   }
 }
