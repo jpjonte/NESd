@@ -171,6 +171,8 @@ class PPU {
 
   bool _showBackground = false;
   bool _showSprites = false;
+
+  bool _renderingAtSkipDecision = false;
   bool _showLeftBackground = false;
   bool _showLeftSprites = false;
   bool _nmiEnabled = false;
@@ -327,6 +329,8 @@ class PPU {
     _bgPatternBase = (PPUCTRL_B & 1) << 12;
     _updateMaskFlags();
 
+    _renderingAtSkipDecision = _showBackground || _showSprites;
+
     _rebuildPaletteLut();
 
     _rasterizeSpriteLine();
@@ -401,6 +405,8 @@ class PPU {
     _nmiEnabled = false;
     _bgPatternBase = 0;
     _updateMaskFlags();
+
+    _renderingAtSkipDecision = false;
 
     frameBuffer.resetBuffers();
 
@@ -619,8 +625,19 @@ class PPU {
       PPUSTATUS_S = 0;
       PPUSTATUS_V = 0;
 
-      bus.clearNmi();
+      _updateNmiLine();
     }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _updateNmiLine() {
+    if (PPUSTATUS_V == 1 && _nmiEnabled) {
+      bus.triggerNmi();
+
+      return;
+    }
+
+    bus.clearNmi();
   }
 
   @pragma('vm:prefer-inline')
@@ -634,9 +651,7 @@ class PPU {
 
       _spriteLine.fillRange(0, 256, 0);
 
-      if (_nmiEnabled) {
-        bus.triggerNmi();
-      }
+      _updateNmiLine();
     }
 
     // Cycle 0 bus address update
@@ -671,7 +686,7 @@ class PPU {
       PPUSTATUS_V = 0;
       w = 0;
 
-      bus.clearNmi();
+      _updateNmiLine();
     }
 
     return value;
@@ -705,6 +720,8 @@ class PPU {
     PPUCTRL = value;
 
     _nmiEnabled = (value & 0x80) != 0;
+
+    _updateNmiLine();
 
     t = (t & 0xF3FF) | (PPUCTRL_N << 10);
 
@@ -782,10 +799,14 @@ class PPU {
     cycles++;
     cycle++;
 
+    if (scanline == _preRenderScanline && cycle == 339) {
+      _renderingAtSkipDecision = _showBackground || _showSprites;
+    }
+
     if (scanline == _preRenderScanline &&
         cycle == 340 &&
         frames.isOdd &&
-        (_showBackground || _showSprites)) {
+        _renderingAtSkipDecision) {
       scanline = 0;
       cycle = 0;
       frames++;

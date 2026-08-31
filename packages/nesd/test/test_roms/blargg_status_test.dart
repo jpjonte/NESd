@@ -14,22 +14,38 @@ const _passing = <String>[
   'mmc3_test/5-MMC3.nes',
   'ppu_vbl_nmi/rom_singles/01-vbl_basics.nes',
   'ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes',
+  'ppu_vbl_nmi/rom_singles/10-even_odd_timing.nes',
 ];
 
+/// known failing ROMs and the error code they report
+const _knownFailures = <String, int>{
+  // Needs the NMI to be serviced after the instruction following the
+  // $2000 write. The 6502 polls for interrupts on an instruction's
+  // second-to-last cycle.
+  'ppu_vbl_nmi/rom_singles/04-nmi_control.nes': 11,
+  // Fails an OAM read-back check, because $2004 writes are dropped on
+  // visible scanlines even when rendering is off.
+  'cpu_dummy_writes/cpu_dummy_writes_oam.nes': 6,
+};
+
 void main() {
-  for (final rom in _passing) {
-    test(rom, () {
-      final result = RomRobot('$_base/$rom').runUntilResult();
+  group('passing', () {
+    for (final rom in _passing) {
+      test(rom, () {
+        final result = RomRobot('$_base/$rom').runUntilResult();
 
-      expect(result.passed, isTrue, reason: result.toString());
-    });
-  }
+        expect(result.passed, isTrue, reason: result.toString());
+      });
+    }
+  });
 
-  test('cpu_dummy_writes_oam reaches a verdict without crashing', () {
-    final result = RomRobot(
-      '$_base/cpu_dummy_writes/cpu_dummy_writes_oam.nes',
-    ).runUntilResult();
+  group('known failures', () {
+    for (final entry in _knownFailures.entries) {
+      test(entry.key, () {
+        final result = RomRobot('$_base/${entry.key}').runUntilResult();
 
-    expect(result.status, isNot(equals(0)), reason: result.toString());
+        expect(result.status, equals(entry.value), reason: result.toString());
+      });
+    }
   });
 }

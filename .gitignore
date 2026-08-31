@@ -47,7 +47,9 @@ roms/
 !roms/test/mmc3_test/5-MMC3.nes
 !roms/test/cpu_dummy_writes/cpu_dummy_writes_oam.nes
 !roms/test/ppu_vbl_nmi/rom_singles/01-vbl_basics.nes
+!roms/test/ppu_vbl_nmi/rom_singles/04-nmi_control.nes
 !roms/test/ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes
+!roms/test/ppu_vbl_nmi/rom_singles/10-even_odd_timing.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/
