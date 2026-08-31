@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/features.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/border_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
+import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/overscan_sliders.dart';
+import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette_preview.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
@@ -24,6 +28,9 @@ class GraphicsSettings extends ConsumerWidget {
     final videoFilters = ref.watch(
       settingsControllerProvider.select((s) => s.videoFilters),
     );
+    final paletteId = ref.watch(
+      settingsControllerProvider.select((s) => s.paletteId),
+    );
 
     return SettingsTab(
       index: 1,
@@ -39,6 +46,15 @@ class GraphicsSettings extends ConsumerWidget {
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
             const OverscanSliders(),
+            const PaletteDropdown(),
+            const PalettePreview(),
+            if (paletteId == NesPaletteId.generated) ...[
+              const HueSlider(),
+              const SaturationSlider(),
+              const ContrastSlider(),
+              const BrightnessSlider(),
+              const GammaSlider(),
+            ],
             if (Features.videoFilters) ...[
               const SmoothingFilterSwitch(),
               const CrtFilterSwitch(),

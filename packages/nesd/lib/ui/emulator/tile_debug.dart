@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -6,10 +7,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/extension/hex_extension.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
-import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/common/key_value.dart';
 import 'package:nesd/ui/emulator/frame_buffer_image.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/tile_debug_data.dart';
 
@@ -20,8 +21,6 @@ const width = 2 * nametableWidth;
 const height = 2 * nametableHeight;
 
 final buffer = FrameBuffer(width: width, height: height);
-
-final _defaultPalette = expandRgbToPalette(defaultPaletteRgb);
 
 const _pollInterval = Duration(milliseconds: 100);
 
@@ -107,6 +106,7 @@ class TileDebugWidget extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nes = ref.watch(nesStateProvider);
+    final palette = ref.watch(nesPaletteProvider);
 
     final controller = useMemoized(() => TileDebugController(nes), [nes]);
 
@@ -120,7 +120,7 @@ class TileDebugWidget extends HookConsumerWidget {
     }
 
     return FutureBuilder<ui.Image>(
-      future: _buildTileImage(data),
+      future: _buildTileImage(data, palette),
       builder: (context, snapshot) {
         final image = snapshot.data;
 
@@ -142,7 +142,10 @@ class TileDebugWidget extends HookConsumerWidget {
     );
   }
 
-  Future<ui.Image> _buildTileImage(TileDebugData data) async {
+  Future<ui.Image> _buildTileImage(
+    TileDebugData data,
+    Uint32List colors,
+  ) async {
     final patternTableIndex = data.PPUCTRL_B;
 
     for (var n = 0; n < 4; n++) {
@@ -175,7 +178,7 @@ class TileDebugWidget extends HookConsumerWidget {
 
               final systemPaletteIndex = data.ppuRead(paletteAddress);
 
-              final color = _defaultPalette[systemPaletteIndex & 0x3f];
+              final color = colors[systemPaletteIndex & 0x3f];
 
               buffer.setPixelWithBase(
                 (ny * nametableHeight + ty * 8 + py) * width,
