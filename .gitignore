@@ -44,6 +44,7 @@ roms/
 !roms/test/instr_misc/rom_singles/02-branch_wrap.nes
 !roms/test/cpu_interrupts_v2/rom_singles/1-cli_latency.nes
 !roms/test/mmc3_test/1-clocking.nes
+!roms/test/mmc3_test/2-details.nes
 !roms/test/mmc3_test/3-A12_clocking.nes
 !roms/test/mmc3_test/5-MMC3.nes
 !roms/test/cpu_dummy_writes/cpu_dummy_writes_oam.nes

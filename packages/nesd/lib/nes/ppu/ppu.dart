@@ -607,6 +607,10 @@ class PPU {
       if (cycle >= 280 && cycle <= 304) {
         _copyVerticalBits();
       }
+
+      if (cycle >= 257 && cycle <= 320) {
+        _fetchSpritesForBusOnly();
+      }
     }
 
     // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
@@ -1259,6 +1263,26 @@ class PPU {
         _spriteOutputs[sprite].x = spriteWord >> 24;
       case 4:
         _loadSprite(sprite);
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _fetchSpritesForBusOnly() {
+    final subcycle = cycle - 257;
+
+    switch (subcycle & 0x7) {
+      case 0:
+        readPpuMemory(_nametableAddress());
+      case 2:
+        readPpuMemory(_attributeAddress());
+      case 4:
+        final spriteWord = _secondaryOamWords[subcycle >> 3];
+        final tileIndex = (spriteWord >> 8) & 0xff;
+        final patternTable = PPUCTRL_H == 1 ? tileIndex & 1 : PPUCTRL_S;
+        final address = ((patternTable & 1) << 12) | (tileIndex << 4);
+
+        readPpuMemory(address);
+        readPpuMemory(address | 8);
     }
   }
 

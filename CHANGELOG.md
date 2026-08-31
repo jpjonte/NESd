@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away
 - Fixed skipped IRQs on MMC3 games
+- Fixed MMC3 scanline counter being off by one
 
 ## [0.18.0] - 2026-08-30
 
