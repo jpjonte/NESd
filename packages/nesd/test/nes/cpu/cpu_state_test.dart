@@ -2,7 +2,7 @@ import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
 
-CPUState buildState() {
+CPUState buildState({int openBus = 0xbd}) {
   return CPUState(
     PC: 0xc123,
     SP: 0xfd,
@@ -29,6 +29,7 @@ CPUState buildState() {
     cycles: 123456789,
     consoleCycles: 987654321,
     callStack: [0x8000, 0x8123, 0xfffe],
+    openBus: openBus,
   );
 }
 
@@ -46,6 +47,7 @@ void expectStatesEqual(CPUState actual, CPUState expected) {
   expect(actual.previousNmi, expected.previousNmi);
   expect(actual.doNmi, expected.doNmi);
   expect(actual.ram, expected.ram);
+  expect(actual.openBus, expected.openBus);
   expect(actual.oamDma, expected.oamDma);
   expect(actual.oamDmaStarted, expected.oamDmaStarted);
   expect(actual.oamDmaOffset, expected.oamDmaOffset);
@@ -61,14 +63,14 @@ void expectStatesEqual(CPUState actual, CPUState expected) {
 }
 
 void main() {
-  test('serialize writes version 3 and round-trips', () {
+  test('serialize writes version 4 and round-trips', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 3, reason: 'CPUState version');
+    expect(bytes[0], 4, reason: 'CPUState version');
 
     final decoded = CPUState.deserialize(Payload.read(bytes));
 
@@ -109,6 +111,9 @@ void main() {
 
     final decoded = CPUState.deserialize(Payload.read(binarize(writer)));
 
-    expectStatesEqual(decoded, original);
+    // v2 predates open bus, so it decodes to the default.
+    expect(decoded.openBus, equals(0));
+
+    expectStatesEqual(decoded, buildState(openBus: 0));
   });
 }

@@ -11,8 +11,10 @@ FrameBuffer buildFrameBuffer() {
 
 /// Adversarial fixture: every widened field holds a value the old uint8
 /// wire format cannot represent.
-PPUState buildState() {
+PPUState buildState({int decay = 0x5a}) {
   return PPUState(
+    decay: decay,
+    decayRefreshedAt: List<int>.generate(8, (i) => 1000 + i),
     PPUCTRL: 0x90,
     PPUMASK: 0x1e,
     PPUSTATUS: 0xa0,
@@ -62,6 +64,7 @@ PPUState buildState() {
 /// can hold, for exercising the preserved v0/v1 readers.
 PPUState buildLegacyState({int consoleCycles = 987654321}) {
   return PPUState(
+    decayRefreshedAt: List<int>.filled(8, 0),
     PPUCTRL: 0x90,
     PPUMASK: 0x1e,
     PPUSTATUS: 0xa0,
@@ -107,6 +110,8 @@ PPUState buildLegacyState({int consoleCycles = 987654321}) {
 }
 
 void expectStatesEqual(PPUState actual, PPUState expected) {
+  expect(actual.decay, expected.decay);
+  expect(actual.decayRefreshedAt, expected.decayRefreshedAt);
   expect(actual.PPUCTRL, expected.PPUCTRL);
   expect(actual.PPUMASK, expected.PPUMASK);
   expect(actual.PPUSTATUS, expected.PPUSTATUS);
@@ -211,14 +216,14 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
 }
 
 void main() {
-  test('serialize writes version 2 and round-trips adversarial values', () {
+  test('serialize writes version 3 and round-trips adversarial values', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 2, reason: 'PPUState version');
+    expect(bytes[0], 3, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
 

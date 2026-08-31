@@ -87,6 +87,8 @@ class CPU {
   bool _previousNmi = false;
   bool doNmi = false;
 
+  int openBus = 0;
+
   bool _oamDma = false;
   bool _oamDmaStarted = false;
 
@@ -128,9 +130,12 @@ class CPU {
     cycles: cycles,
     consoleCycles: consoleCycles,
     callStack: callStack,
+    openBus: openBus,
   );
 
   set state(CPUState state) {
+    openBus = state.openBus;
+
     consoleCycles = state.consoleCycles;
     cycles = state.cycles;
 

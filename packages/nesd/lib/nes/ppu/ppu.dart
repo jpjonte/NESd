@@ -171,6 +171,14 @@ class PPU {
 
   bool _showBackground = false;
   bool _showSprites = false;
+
+  int decay = 0;
+
+  final List<int> decayRefreshedAt = List<int>.filled(8, 0);
+
+  static const _decayFrames = 36;
+
+  bool _renderingAtSkipDecision = false;
   bool _showLeftBackground = false;
   bool _showLeftSprites = false;
   bool _nmiEnabled = false;
@@ -271,6 +279,8 @@ class PPU {
     secondarySpriteCount: secondarySpriteCount,
     sprite0OnNextLine: sprite0OnNextLine,
     sprite0OnCurrentLine: sprite0OnCurrentLine,
+    decay: decay,
+    decayRefreshedAt: decayRefreshedAt,
     spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
   );
 
@@ -319,6 +329,12 @@ class PPU {
     sprite0OnNextLine = state.sprite0OnNextLine;
     sprite0OnCurrentLine = state.sprite0OnCurrentLine;
 
+    decay = state.decay;
+
+    for (var bit = 0; bit < 8; bit++) {
+      decayRefreshedAt[bit] = state.decayRefreshedAt[bit];
+    }
+
     for (var i = 0; i < _spriteOutputs.length; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
     }
@@ -326,6 +342,8 @@ class PPU {
     _nmiEnabled = (PPUCTRL & 0x80) != 0;
     _bgPatternBase = (PPUCTRL_B & 1) << 12;
     _updateMaskFlags();
+
+    _renderingAtSkipDecision = _showBackground || _showSprites;
 
     _rebuildPaletteLut();
 
@@ -402,6 +420,11 @@ class PPU {
     _bgPatternBase = 0;
     _updateMaskFlags();
 
+    _renderingAtSkipDecision = false;
+
+    decay = 0;
+    decayRefreshedAt.fillRange(0, 8, 0);
+
     frameBuffer.resetBuffers();
 
     _rebuildPaletteLut();
@@ -453,12 +476,45 @@ class PPU {
       0x2002 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
       0x2004 => _readOAMDATA(),
       0x2007 => _readPPUDATA(disableSideEffects: disableSideEffects),
-      _ => 0,
+      _ => _decayValue,
     };
+  }
+
+  int _readWithDecay(int value, int mask) {
+    _refreshDecay(value, mask);
+
+    return (value & mask) | (_decayValue & ~mask & 0xff);
+  }
+
+  void _refreshDecay(int value, int mask) {
+    for (var bit = 0; bit < 8; bit++) {
+      final flag = 1 << bit;
+
+      if (mask & flag == 0) {
+        continue;
+      }
+
+      decay = (decay & ~flag) | (value & flag);
+      decayRefreshedAt[bit] = frames;
+    }
+  }
+
+  int get _decayValue {
+    var value = decay;
+
+    for (var bit = 0; bit < 8; bit++) {
+      if (frames - decayRefreshedAt[bit] > _decayFrames) {
+        value &= ~(1 << bit);
+      }
+    }
+
+    return value & 0xff;
   }
 
   void writeRegister(int address, int value) {
     final wrapped = address & 0x7;
+
+    _refreshDecay(value, 0xff);
 
     switch (wrapped) {
       case 0:
@@ -559,8 +615,7 @@ class PPU {
       }
     }
 
-    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
-    if (cycle >= 257 && cycle <= 320) {
+    if (renderingActive && cycle >= 257 && cycle <= 320) {
       OAMADDR = 0x0000;
     }
 
@@ -601,10 +656,13 @@ class PPU {
       if (cycle >= 280 && cycle <= 304) {
         _copyVerticalBits();
       }
+
+      if (cycle >= 257 && cycle <= 320) {
+        _fetchSpritesForBusOnly();
+      }
     }
 
-    // OAMADDR = 0 at cycles 257-320 (regardless of rendering)
-    if (cycle >= 257 && cycle <= 320) {
+    if (renderingActive && cycle >= 257 && cycle <= 320) {
       OAMADDR = 0x0000;
     }
 
@@ -619,8 +677,19 @@ class PPU {
       PPUSTATUS_S = 0;
       PPUSTATUS_V = 0;
 
-      bus.clearNmi();
+      _updateNmiLine();
     }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _updateNmiLine() {
+    if (PPUSTATUS_V == 1 && _nmiEnabled) {
+      bus.triggerNmi();
+
+      return;
+    }
+
+    bus.clearNmi();
   }
 
   @pragma('vm:prefer-inline')
@@ -634,9 +703,7 @@ class PPU {
 
       _spriteLine.fillRange(0, 256, 0);
 
-      if (_nmiEnabled) {
-        bus.triggerNmi();
-      }
+      _updateNmiLine();
     }
 
     // Cycle 0 bus address update
@@ -667,18 +734,24 @@ class PPU {
   int _readPPUSTATUS({bool disableSideEffects = false}) {
     final value = PPUSTATUS;
 
-    if (!disableSideEffects) {
-      PPUSTATUS_V = 0;
-      w = 0;
-
-      bus.clearNmi();
+    if (disableSideEffects) {
+      return (value & 0xe0) | (_decayValue & 0x1f);
     }
 
-    return value;
+    PPUSTATUS_V = 0;
+    w = 0;
+
+    _updateNmiLine();
+
+    return _readWithDecay(value, 0xe0);
   }
 
   int _readOAMDATA() {
-    return oam[OAMADDR];
+    final value = oam[OAMADDR];
+
+    final driven = OAMADDR & 0x3 == 2 ? value & 0xe3 : value;
+
+    return _readWithDecay(driven, 0xff);
   }
 
   int _readPPUDATA({bool disableSideEffects = false}) {
@@ -694,17 +767,27 @@ class PPU {
       value = PPUDATA;
     }
 
+    final isPalette = v >= 0x3f00;
+
     if (!disableSideEffects) {
       v += PPUCTRL_I == 0 ? 1 : 32;
+
+      _updateBusAddress(v & 0x3fff);
     }
 
-    return value;
+    if (disableSideEffects) {
+      return value;
+    }
+
+    return _readWithDecay(value, isPalette ? 0x3f : 0xff);
   }
 
   void _writePPUCTRL(int value) {
     PPUCTRL = value;
 
     _nmiEnabled = (value & 0x80) != 0;
+
+    _updateNmiLine();
 
     t = (t & 0xF3FF) | (PPUCTRL_N << 10);
 
@@ -728,14 +811,16 @@ class PPU {
   }
 
   void _writeOAMDATA(int value) {
-    // ignore writes while rendering
-    if (scanline < 240 && cycle >= 1 && cycle <= 256) {
+    if ((_showBackground || _showSprites) &&
+        scanline < 240 &&
+        cycle >= 1 &&
+        cycle <= 256) {
       return;
     }
 
     oam[OAMADDR] = value;
 
-    OAMADDR++;
+    OAMADDR = (OAMADDR + 1) & 0xff;
   }
 
   void _writePPUSCROLL(int value) {
@@ -774,6 +859,8 @@ class PPU {
     writePpuMemory(v, value);
 
     v += PPUCTRL_I == 0 ? 1 : 32;
+
+    _updateBusAddress(v & 0x3fff);
   }
 
   @pragma('vm:prefer-inline')
@@ -782,7 +869,14 @@ class PPU {
     cycles++;
     cycle++;
 
-    if (scanline == _preRenderScanline && cycle == 340 && frames.isOdd) {
+    if (scanline == _preRenderScanline && cycle == 339) {
+      _renderingAtSkipDecision = _showBackground || _showSprites;
+    }
+
+    if (scanline == _preRenderScanline &&
+        cycle == 340 &&
+        frames.isOdd &&
+        _renderingAtSkipDecision) {
       scanline = 0;
       cycle = 0;
       frames++;
@@ -1231,6 +1325,26 @@ class PPU {
         _spriteOutputs[sprite].x = spriteWord >> 24;
       case 4:
         _loadSprite(sprite);
+    }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _fetchSpritesForBusOnly() {
+    final subcycle = cycle - 257;
+
+    switch (subcycle & 0x7) {
+      case 0:
+        readPpuMemory(_nametableAddress());
+      case 2:
+        readPpuMemory(_attributeAddress());
+      case 4:
+        final spriteWord = _secondaryOamWords[subcycle >> 3];
+        final tileIndex = (spriteWord >> 8) & 0xff;
+        final patternTable = PPUCTRL_H == 1 ? tileIndex & 1 : PPUCTRL_S;
+        final address = ((patternTable & 1) << 12) | (tileIndex << 4);
+
+        readPpuMemory(address);
+        readPpuMemory(address | 8);
     }
   }
 

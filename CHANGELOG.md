@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- Implemented open bus for the CPU and PPU
+
+### Fixed
+- Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
+- Fixed the PPU skipping a cycle on odd frames while rendering is turned off
+- Turning NMI on while the PPU is already in vblank now triggers an NMI right away
+- Fixed skipped IRQs on MMC3 games
+- Fixed MMC3 scanline counter being off by one
+- Fixed sprite data getting discarded while rendering is off
+
 ## [0.18.0] - 2026-08-30
 
 **Two more Android testers needed!**  

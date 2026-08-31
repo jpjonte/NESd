@@ -45,8 +45,17 @@ class Bus {
       return cpu.A;
     }
 
-    address &= 0xffff;
+    final value = _cpuRead(address & 0xffff, disableSideEffects);
 
+    if (!disableSideEffects) {
+      cpu.openBus = value;
+    }
+
+    return value;
+  }
+
+  @pragma('vm:prefer-inline')
+  int _cpuRead(int address, bool disableSideEffects) {
     // Cartridge space first: opcode/operand fetches dominate traffic.
     if (address >= 0x4020) {
       final value = cartridge.cpuRead(
@@ -77,14 +86,24 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      return _inputs[0].read(address, disableSideEffects: disableSideEffects);
+      return _controllerRead(0, address, disableSideEffects);
     }
 
     if (address == 0x4017) {
-      return _inputs[1].read(address, disableSideEffects: disableSideEffects);
+      return _controllerRead(1, address, disableSideEffects);
     }
 
-    return 0;
+    return cpu.openBus;
+  }
+
+  @pragma('vm:prefer-inline')
+  int _controllerRead(int port, int address, bool disableSideEffects) {
+    final value = _inputs[port].read(
+      address,
+      disableSideEffects: disableSideEffects,
+    );
+
+    return (cpu.openBus & 0xe0) | (value & 0x1f);
   }
 
   void cpuWrite(int address, int value) {
@@ -97,6 +116,8 @@ class Bus {
     }
 
     address &= 0xffff;
+
+    cpu.openBus = value;
 
     if (address < 0x2000) {
       cpu.ram[address & 0x7ff] = value;

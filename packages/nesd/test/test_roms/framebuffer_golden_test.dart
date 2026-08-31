@@ -31,15 +31,16 @@ const _goldens = <String, int>{
   // PASSED
   '$_base/sprite_hit_tests_2005.10.05/08.double_height.nes':
       -4246198069118455891,
-  // FAILED #9: cleared at end of VBL too late
-  '$_base/sprite_hit_tests_2005.10.05/09.timing_basics.nes':
-      -8469869588937526515,
   // PASSED
-  '$_base/sprite_hit_tests_2005.10.05/10.timing_order.nes':
-      -5712493370050576132,
+  '$_base/sprite_hit_tests_2005.10.05/09.timing_basics.nes':
+      -5418624616629182540,
+  // FAILED #5: upper-right corner too late.
+  '$_base/sprite_hit_tests_2005.10.05/10.timing_order.nes': -355897874731065419,
   // PASSED
   '$_base/sprite_hit_tests_2005.10.05/11.edge_timing.nes': 8772810262352546524,
-  '$_base/scanline/scanline.nes': -3956729394634635011,
+  // Mid-scanline write test. It reports no pass/fail code, so this hash
+  // is a change detector only.
+  '$_base/scanline/scanline.nes': -5071674518877676179,
   '$_base/spritecans-2011/spritecans.nes': 6027694824722942956,
   '$_base/full_palette/full_palette.nes': 6387691627853472549,
   '$_base/mmc5test_v2/mmc5test.nes': 7390973552206513059,

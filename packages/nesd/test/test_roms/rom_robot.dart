@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/event/event_bus.dart';
@@ -8,7 +9,24 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../ui/mocks.dart';
 
+@immutable
+class RomResult {
+  const RomResult({required this.status, required this.text});
+
+  final int status;
+  final String text;
+
+  bool get passed => status == 0;
+
+  @override
+  String toString() => 'status $status: $text';
+}
+
 class RomRobot {
+  static const _statusAddress = 0x6000;
+  static const _statusRunning = 0x80;
+  static const _maxResultText = 512;
+
   RomRobot(this.path) {
     final file = File(path);
 
@@ -69,6 +87,56 @@ class RomRobot {
       nes.apu.sampleIndex = 0;
     }
   }
+
+  RomResult runUntilResult({int maxFrames = 2400}) {
+    var sawRunning = false;
+
+    for (var frame = 0; frame < maxFrames; frame++) {
+      runFrames(1);
+
+      if (!_hasResultSignature()) {
+        continue;
+      }
+
+      final status = _peek(_statusAddress);
+
+      if (status >= _statusRunning) {
+        sawRunning = true;
+
+        continue;
+      }
+
+      if (sawRunning) {
+        return RomResult(status: status, text: _resultText());
+      }
+    }
+
+    throw StateError(
+      'ROM reported no result within $maxFrames frames '
+      '(status ${_peek(_statusAddress)}): ${_resultText()}',
+    );
+  }
+
+  bool _hasResultSignature() =>
+      _peek(0x6001) == 0xde && _peek(0x6002) == 0xb0 && _peek(0x6003) == 0x61;
+
+  String _resultText() {
+    final buffer = StringBuffer();
+
+    for (var offset = 0; offset < _maxResultText; offset++) {
+      final char = _peek(0x6004 + offset);
+
+      if (char == 0) {
+        break;
+      }
+
+      buffer.writeCharCode(char);
+    }
+
+    return buffer.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  int _peek(int address) => nes.bus.cpuRead(address, disableSideEffects: true);
 
   /// FNV-1a over the current framebuffer; relies on Dart VM 64-bit
   /// wrapping int arithmetic (tests run on the VM only).
