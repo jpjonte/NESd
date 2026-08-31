@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/region.dart';
 
 import 'vt02_harness.dart';
 
@@ -35,7 +36,8 @@ void main() {
 
       nes.bus.cpuWrite(0x410c, 0xff);
 
-      expect(nes.bus.cpuRead(0x410c), 0);
+      expect(mapper.registerAt(0x410c), 0);
+      expect(nes.bus.cpuRead(0x410c), 0xff, reason: 'open bus');
     });
   });
 
@@ -151,6 +153,83 @@ void main() {
       final (:nes, :mapper) = buildVt02();
 
       expect(mapper.ppuRead(0x0000), 0);
+    });
+  });
+
+  group('RS232', () {
+    test('reports transmission as complete so polling loops exit', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x411a, 0x41);
+
+      expect(nes.bus.cpuRead(0x4119) & 0x40, 0x40, reason: 'TIFLAG');
+    });
+
+    test('never reports received data', () {
+      final (:nes, :mapper) = buildVt02();
+
+      final flags = nes.bus.cpuRead(0x4119);
+
+      expect(flags & 0x80, 0, reason: 'RIFLAG');
+      expect(flags & 0x20, 0, reason: 'RINGF');
+      expect(flags & 0x02, 0, reason: 'RERRF');
+      expect(nes.bus.cpuRead(0x411b), 0, reason: 'RX data');
+    });
+
+    test(r'does not echo writes back on $411B', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x411b, 0x77);
+
+      expect(nes.bus.cpuRead(0x411b), 0);
+    });
+
+    test('reports NTSC in the region bits', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.region = Region.ntsc;
+
+      final flags = nes.bus.cpuRead(0x4119);
+
+      expect(flags & 0x08, 0, reason: 'XPORN: 0 is NTSC');
+      expect(flags & 0x10, 0, reason: 'XF5OR6: 0 is 60Hz');
+    });
+
+    test('reports PAL in the region bits', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.region = Region.pal;
+
+      final flags = nes.bus.cpuRead(0x4119);
+
+      expect(flags & 0x08, 0x08, reason: 'XPORN: 1 is PAL');
+      expect(flags & 0x10, 0x10, reason: 'XF5OR6: 1 is 50Hz');
+    });
+
+    test('stores the baud divisor', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus
+        ..cpuWrite(0x4114, 0x67)
+        ..cpuWrite(0x4115, 0x05);
+
+      expect(mapper.registerAt(0x4114), 0x67);
+      expect(mapper.registerAt(0x4115), 0x05);
+    });
+  });
+
+  group('I/O ports', () {
+    test('store direction and data', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus
+        ..cpuWrite(0x410d, 0xaa)
+        ..cpuWrite(0x410e, 0x5a)
+        ..cpuWrite(0x410f, 0xa5);
+
+      expect(mapper.registerAt(0x410d), 0xaa);
+      expect(nes.bus.cpuRead(0x410e), 0x5a);
+      expect(nes.bus.cpuRead(0x410f), 0xa5);
     });
   });
 }

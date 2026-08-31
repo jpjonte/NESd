@@ -6,6 +6,7 @@ import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/vt02_state.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/vt02_timer.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
+import 'package:nesd/nes/region.dart';
 
 abstract class VT02 extends Mapper {
   VT02(super.id, [super.subMapperId = 0]);
@@ -105,6 +106,10 @@ abstract class VT02 extends Mapper {
 
   @override
   int cpuRead(int address, {bool disableSideEffects = false}) {
+    if (address == 0x4119) {
+      return _rs232Flags;
+    }
+
     if (_isReadableSystemRegister(address)) {
       return _systemRegisters[address - 0x4100];
     }
@@ -115,6 +120,15 @@ abstract class VT02 extends Mapper {
     }
 
     return super.cpuRead(address, disableSideEffects: disableSideEffects);
+  }
+
+  int get _rs232Flags {
+    const transmitComplete = 0x40;
+
+    return switch (bus.region) {
+      Region.ntsc => transmitComplete,
+      Region.pal => transmitComplete | 0x08 | 0x10,
+    };
   }
 
   @override

@@ -12,6 +12,7 @@ import 'package:nesd/nes/input/controller.dart';
 import 'package:nesd/nes/input/input_device.dart';
 import 'package:nesd/nes/input/zapper.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 
 const addressNone = -1;
@@ -35,6 +36,8 @@ class Bus {
   final List<InputDevice> _inputs = [Controller(), Controller()];
 
   TurboSpeed turboSpeed = TurboSpeed.x1;
+
+  Region region = Region.ntsc;
 
   late final Zapper _zapper = Zapper(bus: this);
 

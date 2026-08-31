@@ -403,6 +403,7 @@ class NES {
     cpu.region = region;
     apu.region = region;
     ppu.region = region;
+    bus.region = region;
 
     frameRate = switch (region) {
       Region.ntsc => 60,
