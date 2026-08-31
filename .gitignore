@@ -38,6 +38,13 @@ roms/
 !roms/test/spritecans-2011/spritecans.nes
 !roms/test/full_palette/full_palette.nes
 !roms/test/mmc5test_v2/mmc5test.nes
+!roms/test/instr_test-v5/all_instrs.nes
+!roms/test/instr_timing/instr_timing.nes
+!roms/test/instr_misc/rom_singles/01-abs_x_wrap.nes
+!roms/test/instr_misc/rom_singles/02-branch_wrap.nes
+!roms/test/cpu_interrupts_v2/rom_singles/1-cli_latency.nes
+!roms/test/mmc3_test/1-clocking.nes
+!roms/test/mmc3_test/5-MMC3.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/
