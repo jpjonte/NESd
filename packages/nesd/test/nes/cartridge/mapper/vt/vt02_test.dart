@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/region.dart';
 
 import 'vt02_harness.dart';
@@ -223,6 +224,59 @@ void main() {
       expect(mapper.registerAt(0x410d), 0xaa);
       expect(nes.bus.cpuRead(0x410e), 0x5a);
       expect(nes.bus.cpuRead(0x410f), 0xa5);
+    });
+  });
+
+  group('mirroring', () {
+    test(r'$4106 bit 0 selects the nametable arrangement', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x4106, 0);
+      mapper.ppuWrite(0x2000, 0x11);
+
+      expect(mapper.ppuRead(0x2800), 0x11);
+
+      nes.bus.cpuWrite(0x4106, 1);
+      mapper.ppuWrite(0x2000, 0x22);
+
+      expect(mapper.ppuRead(0x2400), 0x22);
+    });
+
+    test(
+      'reset selects the horizontal arrangement regardless of the header',
+      () {
+        final (:nes, :mapper) = buildVt02();
+
+        expect(
+          nes.bus.cartridge.nametableLayout,
+          NametableLayout.vertical,
+          reason: 'the header must disagree with the register default',
+        );
+
+        nes.bus.cpuWrite(0x4106, 1);
+
+        mapper
+          ..reset()
+          ..ppuWrite(0x2000, 0x33);
+
+        expect(mapper.ppuRead(0x2800), 0x33);
+      },
+    );
+
+    test(r'restoring a state applies its $4106 arrangement', () {
+      final (nes: sourceNes, mapper: source) = buildVt02();
+
+      sourceNes.bus.cpuWrite(0x4106, 0);
+
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x4106, 1);
+
+      mapper
+        ..state = source.state
+        ..ppuWrite(0x2000, 0x44);
+
+      expect(mapper.ppuRead(0x2800), 0x44);
     });
   });
 }

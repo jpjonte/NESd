@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/chip/a12_edge_detector.dart';
 import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
@@ -88,6 +89,7 @@ abstract class VT02 extends Mapper {
 
     _updatePrgBanks();
     _updateChrBanks();
+    _updateMirroring();
   }
 
   void _updatePrgBanks() {
@@ -196,6 +198,12 @@ abstract class VT02 extends Mapper {
 
   bool get _comr7 => _systemRegisters[0x05].bit(7) == 1;
 
+  void _updateMirroring() {
+    nametableLayout = _systemRegisters[0x06].bit(0) == 0
+        ? NametableLayout.horizontal
+        : NametableLayout.vertical;
+  }
+
   @override
   void updatePpuAddress(int address) {
     if (_hsyncClock) {
@@ -288,6 +296,10 @@ abstract class VT02 extends Mapper {
 
       if (_isChrControlRegister(address)) {
         _updateChrBanks();
+      }
+
+      if (address == 0x4106) {
+        _updateMirroring();
       }
 
       return;
@@ -424,5 +436,6 @@ abstract class VT02 extends Mapper {
 
     _updatePrgBanks();
     _updateChrBanks();
+    _updateMirroring();
   }
 }
