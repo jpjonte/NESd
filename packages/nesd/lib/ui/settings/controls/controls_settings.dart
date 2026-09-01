@@ -9,6 +9,7 @@ import 'package:nesd/ui/emulator/input/action/all_actions.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/controls/gamepad_slots.dart';
 import 'package:nesd/ui/settings/controls/reset_bindings_button.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/controls/touch_editor_button.dart';
@@ -33,6 +34,7 @@ class ControlsSettings extends StatelessWidget {
             const ShowTouchControlsSwitch(),
             const TurboSpeedSelector(),
             const TouchEditorButton(),
+            const GamepadSlotsSection(),
             const ProfileSelectionHeader(),
             for (final action in allActions)
               if (_isBindable(action)) BindingTile(action: action),
