@@ -1,4 +1,5 @@
 import 'package:gamepads/gamepads.dart';
+import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 
 /// Builds the stable input id stored in bindings for a normalized
 /// button.
@@ -39,3 +40,15 @@ String axisLabel(GamepadAxis axis) => switch (axis) {
   GamepadAxis.leftTrigger => 'Left Trigger',
   GamepadAxis.rightTrigger => 'Right Trigger',
 };
+
+GamepadInput gamepadButtonInput(GamepadButton button) => GamepadInput(
+  id: buttonInputId(button),
+  direction: 1,
+  label: buttonLabel(button),
+);
+
+GamepadInput gamepadAxisInput(GamepadAxis axis, int direction) => GamepadInput(
+  id: axisInputId(axis),
+  direction: direction,
+  label: axisLabel(axis),
+);

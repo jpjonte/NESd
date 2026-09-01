@@ -55,4 +55,4 @@ final class GamepadInputMapperProvider
 }
 
 String _$gamepadInputMapperHash() =>
-    r'08e2ceb682b3a19e591cc0cf17974e08e6d1df82';
+    r'52ac0a1a2830e53fdf3d0afe810f9060d34abd59';
