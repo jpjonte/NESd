@@ -5,7 +5,7 @@ import 'vt02_harness.dart';
 
 void main() {
   group('AD12 clock', () {
-    test('fires after the preloaded number of edges', () {
+    test('fires on the edge after the counter reaches zero', () {
       final (:nes, :mapper) = buildVt02();
 
       nes.bus
@@ -13,6 +13,46 @@ void main() {
         ..cpuWrite(0x4101, 3) // preload
         ..cpuWrite(0x4104, 0) // enable
         ..cpuWrite(0x4102, 0); // load and start
+
+      clockA12(mapper, nes, 3);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, 0);
+
+      clockA12(mapper, nes, 1);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
+    });
+
+    test('fires on every edge with a preload of zero', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus
+        ..cpuWrite(0x410b, 0x00)
+        ..cpuWrite(0x4101, 0)
+        ..cpuWrite(0x4104, 0)
+        ..cpuWrite(0x4102, 0);
+
+      clockA12(mapper, nes, 1);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
+
+      nes.bus
+        ..cpuWrite(0x4103, 0)
+        ..cpuWrite(0x4104, 0);
+
+      clockA12(mapper, nes, 1);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
+    });
+
+    test(r'loads a preload written after $4102 on the next edge', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus
+        ..cpuWrite(0x410b, 0x00)
+        ..cpuWrite(0x4104, 0)
+        ..cpuWrite(0x4102, 0) // MMC3 code may write $C001 before $C000
+        ..cpuWrite(0x4101, 2);
 
       clockA12(mapper, nes, 2);
 
@@ -46,7 +86,7 @@ void main() {
         ..cpuWrite(0x4104, 0)
         ..cpuWrite(0x4102, 0);
 
-      clockA12(mapper, nes, 2);
+      clockA12(mapper, nes, 3);
 
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
 
@@ -57,6 +97,10 @@ void main() {
       nes.bus.cpuWrite(0x4104, 0);
 
       clockA12(mapper, nes, 2);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, 0);
+
+      clockA12(mapper, nes, 1);
 
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
     });
@@ -70,7 +114,7 @@ void main() {
         ..cpuWrite(0x4104, 0)
         ..cpuWrite(0x4102, 0);
 
-      clockA12(mapper, nes, 1);
+      clockA12(mapper, nes, 2);
 
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
 
@@ -84,7 +128,7 @@ void main() {
 
       nes.bus
         ..cpuWrite(0x410b, 0x00)
-        ..cpuWrite(0x4101, 1)
+        ..cpuWrite(0x4101, 0)
         ..cpuWrite(0x4104, 0);
 
       clockA12(mapper, nes, 5);
@@ -97,7 +141,7 @@ void main() {
 
       nes.bus
         ..cpuWrite(0x410b, 0x00) // TSYNEN = 0, AD12 clock
-        ..cpuWrite(0x4101, 2)
+        ..cpuWrite(0x4101, 0)
         ..cpuWrite(0x4104, 0)
         ..cpuWrite(0x4102, 0);
 
@@ -137,6 +181,11 @@ void main() {
       nes.ppu.scanline = 2;
       mapper.step();
 
+      expect(nes.cpu.irq & IrqSource.mapper.value, 0);
+
+      nes.ppu.scanline = 3;
+      mapper.step();
+
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
     });
 
@@ -145,7 +194,7 @@ void main() {
 
       nes.bus
         ..cpuWrite(0x410b, 0x00) // TSYNEN = 0, AD12 clock
-        ..cpuWrite(0x4101, 1) // preload
+        ..cpuWrite(0x4101, 0) // preload: the first edge fires
         ..cpuWrite(0x4104, 0) // enable
         ..cpuWrite(0x4102, 0); // load and start
 
@@ -184,7 +233,7 @@ void main() {
 
       mapper.state = source.state;
 
-      clockA12(mapper, nes, 3);
+      clockA12(mapper, nes, 4);
 
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
 
@@ -196,11 +245,15 @@ void main() {
 
       expect(
         nes.cpu.irq & IrqSource.mapper.value,
-        isNot(0),
+        0,
         reason:
-            'the second firing only lands on the copied preload; a lost '
-            'timer.preload reloads to 0 and takes 256 edges instead',
+            'a lost timer.preload reloads to 0 and fires on the very next '
+            'edge',
       );
+
+      clockA12(mapper, nes, 1);
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
     });
   });
 }

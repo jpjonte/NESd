@@ -6,7 +6,7 @@ class VT02Timer {
   bool enabled = false;
 
   void load() {
-    counter = preload;
+    counter = 0;
     running = true;
   }
 
@@ -15,15 +15,13 @@ class VT02Timer {
       return false;
     }
 
-    counter = (counter - 1) & 0xff;
-
-    if (counter != 0) {
-      return false;
+    if (counter == 0) {
+      counter = preload;
+    } else {
+      counter--;
     }
 
-    counter = preload;
-
-    return enabled;
+    return counter == 0 && enabled;
   }
 
   void reset() {
