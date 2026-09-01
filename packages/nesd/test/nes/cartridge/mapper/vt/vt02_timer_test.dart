@@ -1,18 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/nes/cartridge/mapper/vt/mapper256.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
-import 'package:nesd/nes/nes.dart';
 
 import 'vt02_harness.dart';
-
-void clockA12(Mapper256 mapper, NES nes, int count) {
-  for (var i = 0; i < count; i++) {
-    nes.cpu.cycles += 4;
-    mapper.updatePpuAddress(0x0000);
-    nes.cpu.cycles += 4;
-    mapper.updatePpuAddress(0x1000);
-  }
-}
 
 void main() {
   group('AD12 clock', () {

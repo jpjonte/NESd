@@ -66,3 +66,12 @@ final _roms = <(int, int), Uint8List>{};
 
   return (nes: nes, mapper: cartridge.mapper as Mapper256);
 }
+
+void clockA12(Mapper256 mapper, NES nes, int count) {
+  for (var i = 0; i < count; i++) {
+    nes.cpu.cycles += 4;
+    mapper.updatePpuAddress(0x0000);
+    nes.cpu.cycles += 4;
+    mapper.updatePpuAddress(0x1000);
+  }
+}
