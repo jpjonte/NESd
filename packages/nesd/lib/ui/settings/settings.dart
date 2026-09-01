@@ -14,6 +14,7 @@ import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
@@ -24,6 +25,7 @@ import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_binding_migration.dart';
+import 'package:nesd/ui/settings/controls/gamepad_slot_migration.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -113,6 +115,24 @@ NtscPaletteSettings _ntscPaletteFromJson(dynamic json) => json == null
     ? const NtscPaletteSettings()
     : NtscPaletteSettings.fromJson(json as Map<String, dynamic>);
 
+Map<int, GamepadDeviceKey> gamepadSlotsFromJson(Map<String, dynamic>? json) {
+  if (json == null) {
+    return const {};
+  }
+
+  return {
+    for (final MapEntry(:key, :value) in json.entries)
+      if (int.tryParse(key) case final slot?)
+        if (GamepadDeviceKey.tryFromJson(value) case final deviceKey?)
+          slot: deviceKey,
+  };
+}
+
+Map<String, dynamic> gamepadSlotsToJson(Map<int, GamepadDeviceKey> slots) => {
+  for (final MapEntry(:key, :value) in slots.entries)
+    key.toString(): value.toJson(),
+};
+
 @freezed
 sealed class Settings with _$Settings {
   factory Settings({
@@ -136,7 +156,10 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
-    @Default(2) int bindingsVersion,
+    @Default(3) int bindingsVersion,
+    @JsonKey(fromJson: gamepadSlotsFromJson, toJson: gamepadSlotsToJson)
+    @Default(<int, GamepadDeviceKey>{})
+    Map<int, GamepadDeviceKey> gamepadSlots,
     @JsonKey(fromJson: _lastRomPathFromJson)
     @Default(null)
     FilesystemFile? lastRomPath,
@@ -323,6 +346,12 @@ class SettingsController extends _$SettingsController {
 
   set bindings(Bindings bindings) {
     _update(state.copyWith(bindings: bindings));
+  }
+
+  Map<int, GamepadDeviceKey> get gamepadSlots => state.gamepadSlots;
+
+  set gamepadSlots(Map<int, GamepadDeviceKey> gamepadSlots) {
+    _update(state.copyWith(gamepadSlots: gamepadSlots));
   }
 
   Binding? getBinding(InputAction action, int index) {
@@ -636,6 +665,15 @@ class SettingsController extends _$SettingsController {
   Settings _loadFrom(String raw) {
     final json = jsonDecode(raw) as Map<String, dynamic>;
 
+    // Read the raw value rather than the parsed one: Settings.fromJson
+    // defaults an absent bindingsVersion to the current version, which
+    // would skip every migration for the oldest files.
+    final storedVersion = (json['bindingsVersion'] as num?)?.toInt() ?? 1;
+
+    if (storedVersion < 3) {
+      migrateGamepadSlots(json);
+    }
+
     _migrateOpenTools(json);
     _migrateVideoFilters(json);
 
@@ -662,11 +700,14 @@ class SettingsController extends _$SettingsController {
         ? loaded.bindings
         : defaultBindings;
 
+    final migrated = storedVersion < 2
+        ? migrateGamepadBindings(bindings)
+        : bindings;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: json.containsKey('bindingsVersion')
-          ? bindings
-          : migrateGamepadBindings(bindings),
+      bindings: migrated,
+      bindingsVersion: 3,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }

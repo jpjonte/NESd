@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_slot_registry.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
@@ -25,6 +27,7 @@ class BinderController {
     required this.state,
     required this.stateNotifier,
     required this.actionHandler,
+    required this.gamepadSlotRegistry,
     required GamepadInputMapper gamepadInputMapper,
   }) {
     _subscription = gamepadInputMapper.stream.listen(_handleGamepadEvent);
@@ -36,6 +39,7 @@ class BinderController {
   final BinderState state;
   final BinderStateNotifier stateNotifier;
   final ActionHandler actionHandler;
+  final GamepadSlotRegistry gamepadSlotRegistry;
 
   late final StreamSubscription<GamepadInputEvent> _subscription;
 
@@ -109,19 +113,16 @@ class BinderController {
       return;
     }
 
+    final slot = gamepadSlotRegistry.observe(event.gamepadId, event.deviceKey);
+
     final updatedInput =
-        state.input ??
-        InputCombination.gamepad(
-          gamepadId: event.gamepadId,
-          gamepadName: event.gamepadName,
-          inputs: const {},
-        );
+        state.input ?? InputCombination.gamepad(slot: slot, inputs: const {});
 
     if (updatedInput is! GamepadInputCombination) {
       return;
     }
 
-    if (event.gamepadId != updatedInput.gamepadId) {
+    if (slot != updatedInput.slot) {
       return;
     }
 
@@ -165,6 +166,7 @@ BinderController binderController(Ref ref, InputAction action) {
     state: ref.watch(binderStateProvider(action)),
     stateNotifier: ref.watch(binderStateProvider(action).notifier),
     actionHandler: ref.watch(actionHandlerProvider),
+    gamepadSlotRegistry: ref.watch(gamepadSlotRegistryProvider),
     gamepadInputMapper: ref.watch(gamepadInputMapperProvider),
   );
 

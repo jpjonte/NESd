@@ -4,9 +4,11 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_slot_registry.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
@@ -22,6 +24,14 @@ GamepadInputEvent _dpadDown(double value) => GamepadInputEvent(
   label: 'D-Pad Down',
 );
 
+GamepadInputEvent _leftStickY(double value) => GamepadInputEvent(
+  gamepadId: '0',
+  gamepadName: 'Test Pad',
+  inputId: 'axis_leftStickY',
+  value: value,
+  label: 'Left Stick Y',
+);
+
 void main() {
   test('accelerates hold-to-repeat while an input stays held', () {
     fakeAsync((async) {
@@ -29,6 +39,11 @@ void main() {
       final mapper = _MockInputMapper();
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+
+      // ignore: cascade_invocations
+      registry.observe('0', const GamepadDeviceKey(name: 'Test Pad'));
 
       final actionStream = ActionStream();
 
@@ -38,13 +53,14 @@ void main() {
             index: 0,
             action: inputDown,
             input: InputCombination.gamepad(
-              gamepadId: '0',
+              slot: 0,
               inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
             ),
           ),
         ],
         actionStream: actionStream,
         inputMapper: mapper,
+        slotRegistry: registry,
       );
 
       final times = <Duration>[];
@@ -119,6 +135,11 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+
+      // ignore: cascade_invocations
+      registry.observe('0', const GamepadDeviceKey(name: 'Test Pad'));
+
       final actionStream = ActionStream();
 
       final handler = GamepadInputHandler(
@@ -127,13 +148,14 @@ void main() {
             index: 0,
             action: inputDown,
             input: InputCombination.gamepad(
-              gamepadId: '0',
+              slot: 0,
               inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
             ),
           ),
         ],
         actionStream: actionStream,
         inputMapper: mapper,
+        slotRegistry: registry,
       );
 
       var count = 0;
@@ -157,6 +179,290 @@ void main() {
       expect(count, countAfterDispose);
 
       subscription.cancel();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
+  test('resolves a slot binding to the pad in that slot', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+
+      // ignore: cascade_invocations
+      registry.observe('pad-b', const GamepadDeviceKey(name: 'B'));
+
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        [
+          Binding(
+            index: 0,
+            action: inputDown,
+            input: InputCombination.gamepad(
+              slot: 0,
+              inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
+            ),
+          ),
+        ],
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final fired = <InputAction>[];
+
+      final subscription = actionStream.stream.listen((e) {
+        if (e.value > 0.5) {
+          fired.add(e.action);
+        }
+      });
+
+      events.add(
+        const GamepadInputEvent(
+          gamepadId: 'pad-b',
+          gamepadName: 'B',
+          inputId: 'button_dpadDown',
+          value: 1,
+          label: 'D-Pad Down',
+        ),
+      );
+
+      async.flushMicrotasks();
+
+      expect(fired, [inputDown]);
+
+      subscription.cancel();
+      handler.dispose();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
+  test('releasing a pad turns off the action it was holding', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        [
+          Binding(
+            index: 0,
+            action: inputDown,
+            input: InputCombination.gamepad(
+              slot: 0,
+              inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
+            ),
+          ),
+        ],
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final fired = <InputActionEvent>[];
+
+      final subscription = actionStream.stream.listen(fired.add);
+
+      events.add(_dpadDown(1));
+      async.flushMicrotasks();
+
+      expect(fired.single.value, 1);
+
+      fired.clear();
+
+      registry.releaseAllExcept({});
+      async.flushMicrotasks();
+
+      expect(fired.map((e) => (e.action, e.value)), [
+        (inputDown, 0.0),
+      ], reason: 'unplugging a pad releases the button it was holding');
+
+      subscription.cancel();
+      handler.dispose();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
+  test('a pad that comes back is not still holding its old button', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        [
+          Binding(
+            index: 0,
+            action: inputDown,
+            input: InputCombination.gamepad(
+              slot: 0,
+              inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
+            ),
+          ),
+        ],
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final fired = <InputActionEvent>[];
+
+      final subscription = actionStream.stream.listen(fired.add);
+
+      events.add(_dpadDown(1));
+      async.flushMicrotasks();
+
+      registry
+        ..releaseAllExcept({})
+        ..observe('0', const GamepadDeviceKey(name: 'Test Pad'));
+
+      async.flushMicrotasks();
+      fired.clear();
+
+      async.elapse(const Duration(seconds: 2));
+
+      expect(
+        fired,
+        isEmpty,
+        reason: 'the held state is dropped when the pad disappears',
+      );
+
+      subscription.cancel();
+      handler.dispose();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
+  test('an axis flip does not leave the opposite direction held', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        [
+          Binding(
+            index: 0,
+            action: inputUp,
+            input: InputCombination.gamepad(
+              slot: 0,
+              inputs: {const GamepadInput(id: 'axis_leftStickY', direction: 1)},
+            ),
+          ),
+          Binding(
+            index: 0,
+            action: inputDown,
+            input: InputCombination.gamepad(
+              slot: 0,
+              inputs: {
+                const GamepadInput(id: 'axis_leftStickY', direction: -1),
+              },
+            ),
+          ),
+        ],
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final released = <InputAction>[];
+
+      final subscription = actionStream.stream.listen((e) {
+        if (e.value == 0) {
+          released.add(e.action);
+        }
+      });
+
+      events.add(_leftStickY(0.9));
+      async.flushMicrotasks();
+
+      // A stick can jump between extremes without a sample near zero.
+      events.add(_leftStickY(-0.9));
+      async.flushMicrotasks();
+
+      events.add(_leftStickY(0));
+      async.flushMicrotasks();
+
+      expect(released, [
+        inputDown,
+      ], reason: 'only the direction the stick ended up in was still held');
+
+      subscription.cancel();
+      handler.dispose();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
+  test('ignores input for a slot that has no pad', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        [
+          Binding(
+            index: 0,
+            action: inputDown,
+            input: InputCombination.gamepad(
+              slot: 3,
+              inputs: {const GamepadInput(id: 'button_dpadDown', direction: 1)},
+            ),
+          ),
+        ],
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final fired = <InputAction>[];
+
+      final subscription = actionStream.stream.listen(
+        (e) => fired.add(e.action),
+      );
+
+      events.add(
+        const GamepadInputEvent(
+          gamepadId: 'pad-a',
+          gamepadName: 'A',
+          inputId: 'button_dpadDown',
+          value: 1,
+          label: 'D-Pad Down',
+        ),
+      );
+
+      async.flushMicrotasks();
+
+      expect(fired, isEmpty);
+
+      subscription.cancel();
+      handler.dispose();
       events.close();
       async.flushMicrotasks();
     });

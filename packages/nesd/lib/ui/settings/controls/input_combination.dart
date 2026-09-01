@@ -273,9 +273,8 @@ sealed class InputCombination with _$InputCombination {
   ) = KeyboardInputCombination;
 
   const factory InputCombination.gamepad({
-    required String gamepadId,
+    required int slot,
     required Set<GamepadInput> inputs,
-    @Default('Unknown') String gamepadName,
   }) = GamepadInputCombination;
 
   String get label => switch (this) {
@@ -294,8 +293,7 @@ sealed class InputCombination with _$InputCombination {
   static String _gamepadLabel(GamepadInputCombination input) {
     final buttons = input.inputs.map((button) => button.label ?? button.id);
 
-    return '${input.gamepadName} (${input.gamepadId})\n'
-        '${buttons.join(' + ')}';
+    return 'Gamepad ${input.slot + 1}\n${buttons.join(' + ')}';
   }
 
   factory InputCombination.fromJson(Map<String, dynamic> json) =>

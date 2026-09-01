@@ -40,7 +40,7 @@ mixin _$InputCombination {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InputCombination);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is InputCombination);
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'InputCombination()';
+    return 'InputCombination()';
 }
 
 
@@ -139,11 +139,11 @@ return gamepad(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)?  keyboard,TResult Function( String gamepadId,  Set<GamepadInput> inputs,  String gamepadName)?  gamepad,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)?  keyboard,TResult Function( int slot,  Set<GamepadInput> inputs)?  gamepad,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case KeyboardInputCombination() when keyboard != null:
 return keyboard(_that.keys);case GamepadInputCombination() when gamepad != null:
-return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);case _:
+return gamepad(_that.slot,_that.inputs);case _:
   return orElse();
 
 }
@@ -161,11 +161,11 @@ return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)  keyboard,required TResult Function( String gamepadId,  Set<GamepadInput> inputs,  String gamepadName)  gamepad,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)  keyboard,required TResult Function( int slot,  Set<GamepadInput> inputs)  gamepad,}) {final _that = this;
 switch (_that) {
 case KeyboardInputCombination():
 return keyboard(_that.keys);case GamepadInputCombination():
-return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);}
+return gamepad(_that.slot,_that.inputs);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -179,11 +179,11 @@ return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)?  keyboard,TResult? Function( String gamepadId,  Set<GamepadInput> inputs,  String gamepadName)?  gamepad,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function(@JsonKey(fromJson: keysFromJson, toJson: keysToJson)  Set<LogicalKeyboardKey> keys)?  keyboard,TResult? Function( int slot,  Set<GamepadInput> inputs)?  gamepad,}) {final _that = this;
 switch (_that) {
 case KeyboardInputCombination() when keyboard != null:
 return keyboard(_that.keys);case GamepadInputCombination() when gamepad != null:
-return gamepad(_that.gamepadId,_that.inputs,_that.gamepadName);case _:
+return gamepad(_that.slot,_that.inputs);case _:
   return null;
 
 }
@@ -223,16 +223,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is KeyboardInputCombination&&const DeepCollectionEquality().equals(other._keys, _keys));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is KeyboardInputCombination&&const DeepCollectionEquality().equals(other.keys, _keys));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_keys));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_keys));
+}
 
 @override
 String toString() {
-  return 'InputCombination.keyboard(keys: $keys)';
+    return 'InputCombination.keyboard(keys: $keys)';
 }
 
 
@@ -274,10 +276,10 @@ as Set<LogicalKeyboardKey>,
 @JsonSerializable()
 
 class GamepadInputCombination extends InputCombination {
-  const GamepadInputCombination({required this.gamepadId, required  Set<GamepadInput> inputs, this.gamepadName = 'Unknown',  String? $type}): _inputs = inputs,$type = $type ?? 'gamepad',super._();
+  const GamepadInputCombination({required this.slot, required  Set<GamepadInput> inputs,  String? $type}): _inputs = inputs,$type = $type ?? 'gamepad',super._();
   factory GamepadInputCombination.fromJson(Map<String, dynamic> json) => _$GamepadInputCombinationFromJson(json);
 
- final  String gamepadId;
+ final  int slot;
  final  Set<GamepadInput> _inputs;
  Set<GamepadInput> get inputs {
   if (_inputs is EqualUnmodifiableSetView) return _inputs;
@@ -285,7 +287,6 @@ class GamepadInputCombination extends InputCombination {
   return EqualUnmodifiableSetView(_inputs);
 }
 
-@JsonKey() final  String gamepadName;
 
 @JsonKey(name: 'type')
 final String $type;
@@ -304,16 +305,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GamepadInputCombination&&(identical(other.gamepadId, gamepadId) || other.gamepadId == gamepadId)&&const DeepCollectionEquality().equals(other._inputs, _inputs)&&(identical(other.gamepadName, gamepadName) || other.gamepadName == gamepadName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is GamepadInputCombination&&(identical(other.slot, slot) || other.slot == slot)&&const DeepCollectionEquality().equals(other.inputs, _inputs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,gamepadId,const DeepCollectionEquality().hash(_inputs),gamepadName);
+int get hashCode {
+    return Object.hash(runtimeType,slot,const DeepCollectionEquality().hash(_inputs));
+}
 
 @override
 String toString() {
-  return 'InputCombination.gamepad(gamepadId: $gamepadId, inputs: $inputs, gamepadName: $gamepadName)';
+    return 'InputCombination.gamepad(slot: $slot, inputs: $inputs)';
 }
 
 
@@ -324,7 +327,7 @@ abstract mixin class $GamepadInputCombinationCopyWith<$Res> implements $InputCom
   factory $GamepadInputCombinationCopyWith(GamepadInputCombination value, $Res Function(GamepadInputCombination) _then) = _$GamepadInputCombinationCopyWithImpl;
 @useResult
 $Res call({
- String gamepadId, Set<GamepadInput> inputs, String gamepadName
+ int slot, Set<GamepadInput> inputs
 });
 
 
@@ -341,12 +344,11 @@ class _$GamepadInputCombinationCopyWithImpl<$Res>
 
 /// Create a copy of InputCombination
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? gamepadId = null,Object? inputs = null,Object? gamepadName = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? slot = null,Object? inputs = null,}) {
   return _then(GamepadInputCombination(
-gamepadId: null == gamepadId ? _self.gamepadId : gamepadId // ignore: cast_nullable_to_non_nullable
-as String,inputs: null == inputs ? _self._inputs : inputs // ignore: cast_nullable_to_non_nullable
-as Set<GamepadInput>,gamepadName: null == gamepadName ? _self.gamepadName : gamepadName // ignore: cast_nullable_to_non_nullable
-as String,
+slot: null == slot ? _self.slot : slot // ignore: cast_nullable_to_non_nullable
+as int,inputs: null == inputs ? _self._inputs : inputs // ignore: cast_nullable_to_non_nullable
+as Set<GamepadInput>,
   ));
 }
 

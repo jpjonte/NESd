@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - The emulator now runs on the fastest CPU cores on Android
+- Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
 
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
