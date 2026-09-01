@@ -5,6 +5,9 @@ class SpriteOutput {
   int patternLow = 0;
   int patternHigh = 0;
 
+  int patternLow2 = 0;
+  int patternHigh2 = 0;
+
   int attribute = 0;
 
   int x = 0;
@@ -12,6 +15,8 @@ class SpriteOutput {
   SpriteOutputState get state => SpriteOutputState(
     patternLow: patternLow,
     patternHigh: patternHigh,
+    patternLow2: patternLow2,
+    patternHigh2: patternHigh2,
     attribute: attribute,
     x: x,
   );
@@ -19,6 +24,8 @@ class SpriteOutput {
   set state(SpriteOutputState state) {
     patternLow = state.patternLow;
     patternHigh = state.patternHigh;
+    patternLow2 = state.patternLow2;
+    patternHigh2 = state.patternHigh2;
     attribute = state.attribute;
     x = state.x;
   }
@@ -30,6 +37,8 @@ class SpriteOutputState {
     required this.patternHigh,
     required this.attribute,
     required this.x,
+    this.patternLow2 = 0,
+    this.patternHigh2 = 0,
   });
 
   factory SpriteOutputState.deserialize(PayloadReader reader) {
@@ -37,6 +46,7 @@ class SpriteOutputState {
 
     return switch (version) {
       0 => SpriteOutputState._version0(reader),
+      1 => SpriteOutputState._version1(reader),
       _ => throw InvalidSerializationVersion('SpriteOutputState', version),
     };
   }
@@ -45,6 +55,17 @@ class SpriteOutputState {
     return SpriteOutputState(
       patternLow: reader.get(uint8),
       patternHigh: reader.get(uint8),
+      attribute: reader.get(uint8),
+      x: reader.get(uint8),
+    );
+  }
+
+  factory SpriteOutputState._version1(PayloadReader reader) {
+    return SpriteOutputState(
+      patternLow: reader.get(uint8),
+      patternHigh: reader.get(uint8),
+      patternLow2: reader.get(uint8),
+      patternHigh2: reader.get(uint8),
       attribute: reader.get(uint8),
       x: reader.get(uint8),
     );
@@ -70,15 +91,20 @@ class SpriteOutputState {
   final int patternLow;
   final int patternHigh;
 
+  final int patternLow2;
+  final int patternHigh2;
+
   final int attribute;
 
   final int x;
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(uint8, patternLow)
       ..set(uint8, patternHigh)
+      ..set(uint8, patternLow2)
+      ..set(uint8, patternHigh2)
       ..set(uint8, attribute)
       ..set(uint8, x);
   }

@@ -213,9 +213,11 @@ class PPU {
 
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
-  /// Per-scanline sprite coverage, built once after sprite fetch
-  /// (cycle 321): bits 0-4 = priority/palette/pattern exactly as
-  /// _getSpritePixelColor returns, bit 5 = opaque pixel of sprite 0.
+  /// Sprite data for each pixel of the current scanline (built in cycle 321)
+  /// bits 0-3 = pattern
+  /// bit 4 = priority
+  /// bits 5-6 = attribute in the 4bpp position (zero in 2bpp entries)
+  /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
 
   PPUState get state => PPUState(
@@ -1116,13 +1118,13 @@ class PPU {
 
     // sprite 0 hit detection
     if (sprite0OnCurrentLine &&
-        entry & 0x20 != 0 &&
+        entry & 0x80 != 0 &&
         currentX < 255 &&
-        backgroundColor & 0x3 != 0) {
+        backgroundColor != 0) {
       PPUSTATUS_S = 1;
     }
 
-    return entry & 0x1f;
+    return entry & 0x7f;
   }
 
   @pragma('vm:prefer-inline')
@@ -1388,14 +1390,22 @@ class PPU {
   void _rasterizeSpriteLine() {
     _spriteLine.fillRange(0, 256, 0);
 
+    final fourBpp = spriteFourBpp;
+
     for (var i = spriteCount - 1; i >= 0; i--) {
       final spriteOutput = _spriteOutputs[i];
       final attribute = spriteOutput.attribute;
       final flipH = (attribute >> 6) & 1;
-      final base = ((attribute >> 5) & 1) << 4 | (attribute & 0x3) << 2;
-      final sprite0Bit = i == 0 ? 0x20 : 0;
+      final priorityBit = ((attribute >> 5) & 1) << 4;
+      final attrBits = fourBpp
+          ? (attribute & 0x3) << 5
+          : (attribute & 0x3) << 2;
+      final base = priorityBit | attrBits;
+      final sprite0Bit = i == 0 ? 0x80 : 0;
       final patternLow = spriteOutput.patternLow;
       final patternHigh = spriteOutput.patternHigh;
+      final patternLow2 = spriteOutput.patternLow2;
+      final patternHigh2 = spriteOutput.patternHigh2;
 
       for (var xOffset = 0; xOffset < 8; xOffset++) {
         final x = spriteOutput.x + xOffset;
@@ -1405,8 +1415,14 @@ class PPU {
         }
 
         final fineX = flipH == 1 ? xOffset : 7 - xOffset;
-        final pattern =
+        var pattern =
             (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+
+        if (fourBpp) {
+          pattern |=
+              (((patternHigh2 >> fineX) & 1) << 3) |
+              (((patternLow2 >> fineX) & 1) << 2);
+        }
 
         if (pattern == 0) {
           continue;
@@ -1453,8 +1469,24 @@ class PPU {
     final lowAddress = base | (tile << 4) | (fineY + addressOffset);
     final highAddress = base | (tile << 4) | (fineY + 8 - addressOffset);
 
-    _spriteOutputs[sprite].patternLow = readPpuMemory(lowAddress);
-    _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
+    final output = _spriteOutputs[sprite];
+
+    if (spriteFourBpp) {
+      _updateBusAddress(lowAddress);
+
+      output.patternLow = readFourBpp(_fourBppAddress(lowAddress, 0));
+      output.patternLow2 = readFourBpp(_fourBppAddress(lowAddress, 1));
+
+      _updateBusAddress(highAddress);
+
+      output.patternHigh = readFourBpp(_fourBppAddress(highAddress, 0));
+      output.patternHigh2 = readFourBpp(_fourBppAddress(highAddress, 1));
+
+      return;
+    }
+
+    output.patternLow = readPpuMemory(lowAddress);
+    output.patternHigh = readPpuMemory(highAddress);
   }
 
   void _rebuildPaletteLut() {

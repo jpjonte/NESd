@@ -457,4 +457,25 @@ void main() {
 
     expect(ppu.frameBuffer.pixels[0], 0xcd);
   });
+
+  test('sprite outputs round-trip the 4bpp plane bytes', () {
+    const state = SpriteOutputState(
+      patternLow: 1,
+      patternHigh: 2,
+      patternLow2: 0xa5,
+      patternHigh2: 0x5a,
+      attribute: 3,
+      x: 4,
+    );
+
+    final writer = Payload.write();
+    state.serialize(writer);
+
+    final restored = SpriteOutputState.deserialize(
+      Payload.read(binarize(writer)),
+    );
+
+    expect(restored.patternLow2, 0xa5);
+    expect(restored.patternHigh2, 0x5a);
+  });
 }
