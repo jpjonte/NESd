@@ -39,6 +39,9 @@ abstract class VT02 extends Mapper {
   @override
   bool get needsExtendedPpuRegisters => true;
 
+  @override
+  bool get hasExtendedPalette => true;
+
   bool get _hsyncClock => _systemRegisters[0x0b].bit(7) == 1;
 
   @override

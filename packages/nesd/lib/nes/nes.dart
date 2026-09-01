@@ -50,6 +50,7 @@ class NES {
     ppu.mapperNeedsPpuReads = cartridge.mapper.needsPpuReads;
     ppu.mapperNeedsExtendedPpuRegisters =
         cartridge.mapper.needsExtendedPpuRegisters;
+    ppu.extendedPalette = cartridge.mapper.hasExtendedPalette;
   }
 
   final Bus bus;

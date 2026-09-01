@@ -93,10 +93,10 @@ class PPU {
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
   late final Uint32List _secondaryOamWords = secondaryOam.buffer.asUint32List();
-  final Uint8List palette = Uint8List(0x20);
+  final Uint8List palette = Uint8List(0x100);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
-  final Uint32List _paletteLut = Uint32List(0x20);
+  final Uint32List _paletteLut = Uint32List(0x80);
 
   Uint32List _systemPalette = defaultPalette;
 
@@ -159,6 +159,8 @@ class PPU {
   bool mapperNeedsPpuReads = false;
 
   bool mapperNeedsExtendedPpuRegisters = false;
+
+  bool extendedPalette = false;
 
   bool bgFourBpp = false;
   bool spriteFourBpp = false;
@@ -1030,7 +1032,7 @@ class PPU {
     final color = _getPixelColor();
 
     // Use precomputed final RGB color for this palette index (with mirroring)
-    final rgb = _paletteLut[color & 0x1f];
+    final rgb = _paletteLut[color & 0x7f];
 
     frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
@@ -1426,7 +1428,9 @@ class PPU {
   void _rebuildPaletteLut() {
     _emphasisBase = _emphasisRow() << 6;
 
-    for (var i = 0; i < 0x20; i++) {
+    final limit = extendedPalette ? 0x80 : 0x20;
+
+    for (var i = 0; i < limit; i++) {
       final remapped = _remapPaletteIndex(i);
       final value = _computePaletteEntry(remapped);
 
@@ -1445,7 +1449,9 @@ class PPU {
   }
 
   void onPaletteWrite(int index) {
-    if (index < 0 || index >= 0x20) {
+    final limit = extendedPalette ? 0x80 : 0x20;
+
+    if (index < 0 || index >= limit) {
       return;
     }
 
@@ -1456,6 +1462,23 @@ class PPU {
   }
 
   void _setPaletteEntry(int index, int value) {
+    if (extendedPalette) {
+      _paletteLut[index] = value;
+
+      switch (index) {
+        case 0x00:
+          _paletteLut[0x10] = value;
+        case 0x04:
+          _paletteLut[0x14] = value;
+        case 0x08:
+          _paletteLut[0x18] = value;
+        case 0x0c:
+          _paletteLut[0x1c] = value;
+      }
+
+      return;
+    }
+
     switch (index) {
       case 0x00:
         _paletteLut[0x00] = value;
@@ -1477,10 +1500,20 @@ class PPU {
   int _computePaletteEntry(int index) {
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
-    return _systemPalette[_emphasisBase | (palette[index & 0x1f] & greyMask)];
+    return _systemPalette[_emphasisBase | (palette[index & 0x7f] & greyMask)];
   }
 
   int _remapPaletteIndex(int index) {
+    if (extendedPalette) {
+      return switch (index & 0xff) {
+        0x10 => 0x00,
+        0x14 => 0x04,
+        0x18 => 0x08,
+        0x1c => 0x0c,
+        _ => index & 0xff,
+      };
+    }
+
     return switch (index & 0x1f) {
       0x10 => 0x00,
       0x14 => 0x04,

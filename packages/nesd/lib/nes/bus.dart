@@ -246,6 +246,16 @@ class Bus {
 
   @pragma('vm:prefer-inline')
   int _paletteAddress(int address) {
+    if (ppu.extendedPalette) {
+      return switch (address & 0xff) {
+        0x10 => 0x00,
+        0x14 => 0x04,
+        0x18 => 0x08,
+        0x1c => 0x0c,
+        _ => address & 0xff,
+      };
+    }
+
     return switch (address & 0x1f) {
       0x10 => 0x00,
       0x14 => 0x04,

@@ -297,6 +297,8 @@ abstract class Mapper {
   /// of serving it from its own block cache.
   bool get needsPpuReads => false;
 
+  bool get hasExtendedPalette => false;
+
   bool get needsExtendedPpuRegisters => false;
 
   int extendedPpuRead(int address, {bool disableSideEffects = false}) => 0;
