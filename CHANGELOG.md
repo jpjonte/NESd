@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added an xBR-style upscaling video filter
 - Added an audio mixer to Audio settings, with a volume control per channel
 - Folders inside an archive can now be browsed like any other folder
+- Gamepads now work out of the box with a default mapping. A second gamepad automatically controls player 2
 
 ### Changed
 - The emulator now runs on the fastest CPU cores on Android

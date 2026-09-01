@@ -1,11 +1,109 @@
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:gamepads/gamepads.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_id.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 
 part 'input_combination.freezed.dart';
 part 'input_combination.g.dart';
+
+Binding _gamepadButton(
+  InputAction action,
+  GamepadButton button, {
+  required int slot,
+  BindingType type = BindingType.hold,
+}) => Binding(
+  index: 1,
+  action: action,
+  input: InputCombination.gamepad(
+    slot: slot,
+    inputs: {gamepadButtonInput(button)},
+  ),
+  type: type,
+);
+
+Binding _gamepadAxis(
+  InputAction action,
+  GamepadAxis axis,
+  int direction, {
+  required int slot,
+}) => Binding(
+  index: 2,
+  action: action,
+  input: InputCombination.gamepad(
+    slot: slot,
+    inputs: {gamepadAxisInput(axis, direction)},
+  ),
+);
+
+List<Binding> _controllerGamepadDefaults({
+  required int slot,
+  required InputAction up,
+  required InputAction down,
+  required InputAction left,
+  required InputAction right,
+  required InputAction a,
+  required InputAction b,
+  required InputAction turboA,
+  required InputAction turboB,
+  required InputAction start,
+  required InputAction select,
+}) => [
+  _gamepadButton(up, GamepadButton.dpadUp, slot: slot),
+  _gamepadButton(down, GamepadButton.dpadDown, slot: slot),
+  _gamepadButton(left, GamepadButton.dpadLeft, slot: slot),
+  _gamepadButton(right, GamepadButton.dpadRight, slot: slot),
+  _gamepadButton(b, GamepadButton.a, slot: slot),
+  _gamepadButton(a, GamepadButton.b, slot: slot),
+  _gamepadButton(turboB, GamepadButton.x, slot: slot),
+  _gamepadButton(turboA, GamepadButton.y, slot: slot),
+  _gamepadButton(start, GamepadButton.start, slot: slot),
+  _gamepadButton(select, GamepadButton.back, slot: slot),
+  _gamepadAxis(up, GamepadAxis.leftStickY, 1, slot: slot),
+  _gamepadAxis(down, GamepadAxis.leftStickY, -1, slot: slot),
+  _gamepadAxis(left, GamepadAxis.leftStickX, -1, slot: slot),
+  _gamepadAxis(right, GamepadAxis.leftStickX, 1, slot: slot),
+];
+
+final defaultGamepadBindings = [
+  ..._controllerGamepadDefaults(
+    slot: 0,
+    up: controller1Up,
+    down: controller1Down,
+    left: controller1Left,
+    right: controller1Right,
+    a: controller1A,
+    b: controller1B,
+    turboA: controller1TurboA,
+    turboB: controller1TurboB,
+    start: controller1Start,
+    select: controller1Select,
+  ),
+  ..._controllerGamepadDefaults(
+    slot: 1,
+    up: controller2Up,
+    down: controller2Down,
+    left: controller2Left,
+    right: controller2Right,
+    a: controller2A,
+    b: controller2B,
+    turboA: controller2TurboA,
+    turboB: controller2TurboB,
+    start: controller2Start,
+    select: controller2Select,
+  ),
+  _gamepadButton(openMenu, GamepadButton.leftStick, slot: 0),
+  _gamepadButton(fastForward, GamepadButton.rightBumper, slot: 0),
+  _gamepadButton(rewind, GamepadButton.leftBumper, slot: 0),
+  _gamepadButton(confirm, GamepadButton.a, slot: 0),
+  _gamepadButton(cancel, GamepadButton.b, slot: 0),
+  _gamepadButton(previousInput, GamepadButton.dpadUp, slot: 0),
+  _gamepadButton(nextInput, GamepadButton.dpadDown, slot: 0),
+  _gamepadButton(previousTab, GamepadButton.leftBumper, slot: 0),
+  _gamepadButton(nextTab, GamepadButton.rightBumper, slot: 0),
+];
 
 final defaultBindings = [
   Binding(
@@ -247,6 +345,7 @@ final defaultBindings = [
     action: nextTab,
     input: InputCombination.keyboard({LogicalKeyboardKey.tab}),
   ),
+  ...defaultGamepadBindings,
 ];
 
 Set<LogicalKeyboardKey> keysFromJson(List<dynamic> json) {

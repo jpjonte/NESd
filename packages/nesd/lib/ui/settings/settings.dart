@@ -665,9 +665,6 @@ class SettingsController extends _$SettingsController {
   Settings _loadFrom(String raw) {
     final json = jsonDecode(raw) as Map<String, dynamic>;
 
-    // Read the raw value rather than the parsed one: Settings.fromJson
-    // defaults an absent bindingsVersion to the current version, which
-    // would skip every migration for the oldest files.
     final storedVersion = (json['bindingsVersion'] as num?)?.toInt() ?? 1;
 
     if (storedVersion < 3) {
@@ -704,9 +701,13 @@ class SettingsController extends _$SettingsController {
         ? migrateGamepadBindings(bindings)
         : bindings;
 
+    final withDefaults = storedVersion < 3
+        ? _withGamepadDefaults(migrated)
+        : migrated;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: migrated,
+      bindings: withDefaults,
       bindingsVersion: 3,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
@@ -771,6 +772,21 @@ class SettingsController extends _$SettingsController {
     } on Object catch (e) {
       log.settings.error('Failed to back up unreadable settings', error: e);
     }
+  }
+
+  Bindings _withGamepadDefaults(Bindings bindings) {
+    if (bindings.any((b) => b.input is GamepadInputCombination)) {
+      return bindings;
+    }
+
+    final taken = {for (final b in bindings) (b.action, b.index)};
+
+    return [
+      ...bindings,
+      ...defaultGamepadBindings.where(
+        (b) => !taken.contains((b.action, b.index)),
+      ),
+    ];
   }
 
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {

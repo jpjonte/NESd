@@ -79,7 +79,8 @@ void main() {
   test('a binding whose input cannot be read is dropped, not the whole '
       'binding list', () {
     final controller = load({
-      'bindingsVersion': 2,
+      // the current version, so no migration adds bindings of its own
+      'bindingsVersion': 3,
       'bindings': [
         {
           'index': 0,
@@ -94,7 +95,7 @@ void main() {
           'index': 0,
           'action': 'ui.cancel',
           'type': 'hold',
-          // a newer NESd writes slot-scoped bindings with no gamepadId
+          // a gamepad input with no slot is a shape this build cannot read
           'input': {'type': 'gamepad', 'inputs': <dynamic>[]},
         },
       ],
@@ -106,7 +107,7 @@ void main() {
   test('a legacy map binding that cannot be read is dropped, not the whole '
       'map', () {
     final controller = load({
-      'bindingsVersion': 2,
+      'bindingsVersion': 3,
       'bindings': {
         'ui.openMenu': {
           'type': 'keyboard',
@@ -121,7 +122,7 @@ void main() {
 
   test('a dropped binding is surfaced rather than silently lost', () async {
     load({
-      'bindingsVersion': 2,
+      'bindingsVersion': 3,
       'bindings': [
         {
           'index': 0,

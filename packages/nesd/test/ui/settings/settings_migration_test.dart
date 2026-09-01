@@ -277,6 +277,83 @@ void main() {
     expect(controller.gamepadSlots[0], const GamepadDeviceKey(name: 'Pad'));
   });
 
+  test('gamepad defaults are added when no gamepad binding exists', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 2,
+        "bindings": [
+          {
+            "index": 0,
+            "action": "controller1.a",
+            "type": "hold",
+            "input": {"type": "keyboard", "keys": [122]}
+          }
+        ]
+      }
+    ''');
+
+    expect(
+      controller.bindings.any((b) => b.input is GamepadInputCombination),
+      isTrue,
+    );
+  });
+
+  test('gamepad defaults are not added when one already exists', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 2,
+        "bindings": [
+          {
+            "index": 0,
+            "action": "controller1.a",
+            "type": "hold",
+            "input": {
+              "type": "gamepad",
+              "gamepadId": "0",
+              "gamepadName": "Pad",
+              "inputs": [{"id": "button_a", "direction": 1}]
+            }
+          }
+        ]
+      }
+    ''');
+
+    expect(controller.bindings.length, 1);
+  });
+
+  test('gamepad defaults skip an index a profile already uses', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 2,
+        "bindings": [
+          {
+            "index": 1,
+            "action": "controller1.up",
+            "type": "hold",
+            "input": {"type": "keyboard", "keys": [119]}
+          }
+        ]
+      }
+    ''');
+
+    final atIndexOne = controller.bindings.where(
+      (b) => b.action == controller1Up && b.index == 1,
+    );
+
+    expect(
+      atIndexOne.single.input,
+      isA<KeyboardInputCombination>(),
+      reason: 'the profile the user built wins',
+    );
+    expect(
+      controller.bindings.any(
+        (b) => b.action == controller1Up && b.input is GamepadInputCombination,
+      ),
+      isTrue,
+      reason: 'the analog default at index 2 is still free',
+    );
+  });
+
   test('a bindingsVersion stored as a double still loads', () {
     final controller = load('{"bindingsVersion": 2.0}');
 

@@ -4,6 +4,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_directory.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
@@ -16,12 +17,24 @@ import 'package:nesd/ui/settings/controls/input_combination.dart';
 
 class _MockInputMapper extends Mock implements GamepadInputMapper {}
 
+GamepadSlotRegistry _emptyRegistry() => GamepadSlotRegistry(
+  directory: GamepadDeviceDirectory(lookup: () async => {}),
+);
+
 GamepadInputEvent _dpadDown(double value) => GamepadInputEvent(
   gamepadId: '0',
   gamepadName: 'Test Pad',
   inputId: 'button_dpadDown',
   value: value,
   label: 'D-Pad Down',
+);
+
+GamepadInputEvent _buttonA(double value) => GamepadInputEvent(
+  gamepadId: '0',
+  gamepadName: 'Test Pad',
+  inputId: 'button_a',
+  value: value,
+  label: 'A',
 );
 
 GamepadInputEvent _leftStickY(double value) => GamepadInputEvent(
@@ -40,7 +53,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
 
       // ignore: cascade_invocations
       registry.observe('0', const GamepadDeviceKey(name: 'Test Pad'));
@@ -135,7 +148,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
 
       // ignore: cascade_invocations
       registry.observe('0', const GamepadDeviceKey(name: 'Test Pad'));
@@ -191,7 +204,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
 
       // ignore: cascade_invocations
       registry.observe('pad-b', const GamepadDeviceKey(name: 'B'));
@@ -250,7 +263,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
       final actionStream = ActionStream();
 
       final handler = GamepadInputHandler(
@@ -301,7 +314,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
       final actionStream = ActionStream();
 
       final handler = GamepadInputHandler(
@@ -349,6 +362,47 @@ void main() {
     });
   });
 
+  test('one button drives every default action bound to it', () {
+    fakeAsync((async) {
+      final events = StreamController<GamepadInputEvent>();
+      final mapper = _MockInputMapper();
+
+      when(() => mapper.stream).thenAnswer((_) => events.stream);
+
+      final registry = _emptyRegistry();
+      final actionStream = ActionStream();
+
+      final handler = GamepadInputHandler(
+        defaultGamepadBindings,
+        actionStream: actionStream,
+        inputMapper: mapper,
+        slotRegistry: registry,
+      );
+
+      final fired = <InputAction>[];
+
+      final subscription = actionStream.stream.listen((e) {
+        if (e.value > 0.5) {
+          fired.add(e.action);
+        }
+      });
+
+      events.add(_buttonA(1));
+      async.flushMicrotasks();
+
+      expect(
+        fired,
+        containsAll([controller1B, confirm]),
+        reason: 'the same button is bound to a game and a menu action',
+      );
+
+      subscription.cancel();
+      handler.dispose();
+      events.close();
+      async.flushMicrotasks();
+    });
+  });
+
   test('an axis flip does not leave the opposite direction held', () {
     fakeAsync((async) {
       final events = StreamController<GamepadInputEvent>();
@@ -356,7 +410,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
       final actionStream = ActionStream();
 
       final handler = GamepadInputHandler(
@@ -421,7 +475,7 @@ void main() {
 
       when(() => mapper.stream).thenAnswer((_) => events.stream);
 
-      final registry = GamepadSlotRegistry(deviceLookup: () async => {});
+      final registry = _emptyRegistry();
 
       final actionStream = ActionStream();
 
