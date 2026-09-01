@@ -84,7 +84,7 @@ class UNROM512 extends Mapper {
 
   @override
   void load(Uint8List save) {
-    if (!_flashEnabled || save.length < 2 || save[0] != 0 || save[1] != id) {
+    if (!_flashEnabled || MapperState.peekId(save) != id) {
       return;
     }
 

@@ -54,6 +54,14 @@ abstract class MapperState {
     };
   }
 
+  static int? peekId(Uint8List bytes) {
+    return switch (bytes) {
+      [0, final id, ...] => id,
+      [1, final high, final low, ...] => high << 8 | low,
+      _ => null,
+    };
+  }
+
   final int id;
 
   void serialize(PayloadWriter writer) {
