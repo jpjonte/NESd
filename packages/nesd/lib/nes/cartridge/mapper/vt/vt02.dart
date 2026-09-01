@@ -30,6 +30,9 @@ abstract class VT02 extends Mapper {
   int _lastScanline = 0;
 
   @override
+  int get prgRomPageSize => 0x2000;
+
+  @override
   bool get needsExtendedPpuRegisters => true;
 
   bool get _hsyncClock => _systemRegisters[0x0b].bit(7) == 1;
@@ -79,7 +82,52 @@ abstract class VT02 extends Mapper {
     timer.reset();
 
     _lastScanline = 0;
+
+    _updatePrgBanks();
   }
+
+  void _updatePrgBanks() {
+    for (var slot = 0; slot < 4; slot++) {
+      final address = 0x8000 + slot * 0x2000;
+
+      mapCpu(address, address + 0x1fff, _prgBank(slot));
+    }
+  }
+
+  int _prgBank(int slot) {
+    final innerMask = _prgInnerMask;
+    final inner = _prgInnerBank(slot) & innerMask;
+    final middle = _pq3 & ~innerMask & 0xff;
+
+    return (_prgOuterBank << 8) | middle | inner;
+  }
+
+  int get _prgOuterBank => _systemRegisters[0x00] >> 4;
+
+  int _prgInnerBank(int slot) => switch (slot) {
+    0 => _comr6 ? _pq2 : _pq0,
+    1 => _pq1,
+    2 => _comr6 ? _pq0 : _pq2,
+    _ => 0xff,
+  };
+
+  int get _prgInnerMask {
+    final mode = _systemRegisters[0x0b] & 0x07;
+
+    return mode == 7 ? 0xff : 0x3f >> mode;
+  }
+
+  int get _pq0 => _systemRegisters[0x07];
+
+  int get _pq1 => _systemRegisters[0x08];
+
+  int get _pq2 => _pq2Enabled ? _systemRegisters[0x09] : 0xfe;
+
+  int get _pq3 => _systemRegisters[0x0a];
+
+  bool get _pq2Enabled => _systemRegisters[0x0b].bit(6) == 1;
+
+  bool get _comr6 => _systemRegisters[0x05].bit(6) == 1;
 
   @override
   void updatePpuAddress(int address) {
@@ -167,6 +215,10 @@ abstract class VT02 extends Mapper {
         _systemRegisters[address - 0x4100] = value;
       }
 
+      if (_isPrgBankRegister(address)) {
+        _updatePrgBanks();
+      }
+
       return;
     }
 
@@ -195,6 +247,11 @@ abstract class VT02 extends Mapper {
 
     _graphicsRegisters[address - 0x2010] = value;
   }
+
+  bool _isPrgBankRegister(int address) =>
+      address == 0x4100 ||
+      address == 0x4105 ||
+      (address >= 0x4107 && address <= 0x410b);
 
   bool _isReadableSystemRegister(int address) =>
       address == 0x410e || address == 0x410f || address == 0x411b;
@@ -283,5 +340,7 @@ abstract class VT02 extends Mapper {
     timer.enabled = state.timerEnabled;
 
     _lastScanline = state.lastScanline;
+
+    _updatePrgBanks();
   }
 }

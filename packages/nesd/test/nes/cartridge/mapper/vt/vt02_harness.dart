@@ -8,24 +8,28 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../../../../ui/mocks.dart';
 
+/// PRG-ROM size, multiples of 16 KB
 const vtPrgBanks = 8;
 const vtChrPages = 8;
 
-Uint8List _buildRom() {
-  const prgSize = vtPrgBanks * 0x4000;
+Uint8List _buildRom(int prgBanks) {
+  final prgSize = prgBanks * 0x4000;
   const chrSize = vtChrPages * 0x2000;
 
   final rom = Uint8List(16 + prgSize + chrSize)
-    ..setAll(0, const [
+    ..setAll(0, [
       0x4e, 0x45, 0x53, 0x1a, //
-      vtPrgBanks, vtChrPages, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00,
+      prgBanks & 0xff, vtChrPages, 0x00, 0x08, 0x01, prgBanks >> 8, 0x00, 0x00,
     ]);
 
   const prgStart = 16;
-  const chrStart = prgStart + prgSize;
+  final chrStart = prgStart + prgSize;
 
-  for (var bank = 0; bank < vtPrgBanks; bank++) {
-    rom[prgStart + bank * 0x4000] = bank;
+  for (var bank = 0; bank < prgSize ~/ 0x2000; bank++) {
+    final offset = prgStart + bank * 0x2000;
+
+    rom[offset] = bank & 0xff;
+    rom[offset + 1] = bank >> 8;
   }
 
   for (var page = 0; page < vtChrPages; page++) {
@@ -39,16 +43,18 @@ Uint8List _buildRom() {
   return rom;
 }
 
-final _rom = _buildRom();
+final _roms = <int, Uint8List>{};
 
-({NES nes, Mapper256 mapper}) buildVt02() {
+({NES nes, Mapper256 mapper}) buildVt02({int prgBanks = vtPrgBanks}) {
+  final rom = _roms[prgBanks] ??= _buildRom(prgBanks);
+
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(
       path: 'vt02-test.nes',
       name: 'vt02-test.nes',
       type: FilesystemFileType.file,
     ),
-    _rom,
+    rom,
   )..databaseEntry = null;
 
   final nes = NES(cartridge: cartridge, eventBus: EventBus());

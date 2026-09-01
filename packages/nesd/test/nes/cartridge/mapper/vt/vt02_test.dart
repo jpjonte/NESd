@@ -142,13 +142,6 @@ void main() {
   });
 
   group('mapper 256', () {
-    test(r'maps the last two PRG banks at $8000 and $C000', () {
-      final (:nes, :mapper) = buildVt02();
-
-      expect(mapper.cpuRead(0x8000), vtPrgBanks - 2);
-      expect(mapper.cpuRead(0xc000), vtPrgBanks - 1);
-    });
-
     test('maps CHR bank 0', () {
       final (:nes, :mapper) = buildVt02();
 

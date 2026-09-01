@@ -6,15 +6,4 @@ class Mapper256 extends VT02 {
 
   @override
   String get name => 'VT03 OneBus';
-
-  @override
-  void reset() {
-    super.reset();
-
-    final lastBank = cartridge.prgRom.length ~/ prgRomPageSize - 1;
-
-    mapCpu(0x8000, 0xbfff, lastBank - 1);
-    mapCpu(0xc000, 0xffff, lastBank);
-    mapPpu(0x0000, 0x1fff, 0);
-  }
 }
