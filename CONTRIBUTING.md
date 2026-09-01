@@ -101,7 +101,7 @@ pushd packages/nesd && fvm dart run tool/update_game_counts.dart && popd
 
 A new mapper needs its display name added to the README list by hand first, the script will tell you if one is missing. `--check` reports drift without writing, for use in CI.
 
-The script counts retail releases and multicarts, and skips homebrew, bootlegs, hacks, prototypes, bad dumps, samples, arcade boards and BIOS images.
+The script counts retail releases, multicarts and plug-and-play devices, and skips homebrew, bootlegs, hacks, prototypes, bad dumps, samples, arcade boards and BIOS images.
 
 ## Running on the web
 
