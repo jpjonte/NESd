@@ -24,6 +24,7 @@ import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
@@ -245,15 +246,18 @@ class NesController {
   bool get isOn => nesState.nes != null;
 
   Future<Uint8List> _readFile(String path) async {
-    final data = await switch (path.contains(':') && path.contains('.zip')) {
-      true => ZipFilesystem(
-        path: path.split(':').first,
-        zipData: await filesystem.read(path.split(':').first),
-      ).read(path.split(':').last),
-      false => filesystem.read(path),
-    };
+    final parts = path.split(':');
 
-    return data;
+    if (parts.length < 2 || !isZipFile(parts.first)) {
+      return filesystem.read(path);
+    }
+
+    final archive = ZipFilesystem(
+      path: parts.first,
+      zipData: await filesystem.read(parts.first),
+    );
+
+    return archive.read(parts.last);
   }
 
   void suspend() => nes?.suspend();
@@ -402,7 +406,7 @@ class NesController {
       final bytes = data ?? await _readFile(file.path);
       final extension = p.extension(file.name);
 
-      final rom = switch (extension) {
+      final rom = switch (extension.toLowerCase()) {
         '.nes' => bytes,
         '.zip' => _loadZip(file.path, bytes),
         _ => throw UnsupportedFileType(extension),
@@ -680,9 +684,7 @@ class NesController {
   Uint8List _loadZip(String path, Uint8List data) {
     final archive = ZipDecoder().decodeBytes(data);
 
-    final roms = archive.files
-        .where((file) => p.extension(file.name) == '.nes')
-        .toList();
+    final roms = archive.files.where((file) => isRomFile(file.name)).toList();
 
     if (roms.isEmpty) {
       throw EmptyArchive(path);

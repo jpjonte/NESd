@@ -11,9 +11,9 @@ import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/file_picker/file_list.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:path/path.dart' as p;
 
 enum FilePickerType { file, directory, any }
 
@@ -38,7 +38,7 @@ class FilePickerScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(filePickerStateProvider, (_, next) {
       if (next is FilePickerData &&
-          p.extension(next.directory.path) == '.zip' &&
+          isZipFile(next.directory.path) &&
           next.files.length == 1) {
         scheduleMicrotask(() {
           final file = next.files.first;

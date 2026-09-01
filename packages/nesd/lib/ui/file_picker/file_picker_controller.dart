@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
@@ -220,7 +221,7 @@ class FilePickerController {
 
   Future<void> _update(FilesystemFile directory) async {
     try {
-      if (p.extension(directory.path) == '.zip') {
+      if (isZipFile(directory.path)) {
         await _listFilesFromZip(directory);
 
         return;
