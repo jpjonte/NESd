@@ -33,6 +33,9 @@ abstract class VT02 extends Mapper {
   int get prgRomPageSize => 0x2000;
 
   @override
+  int get chrPageSize => 0x400;
+
+  @override
   bool get needsExtendedPpuRegisters => true;
 
   bool get _hsyncClock => _systemRegisters[0x0b].bit(7) == 1;
@@ -84,6 +87,7 @@ abstract class VT02 extends Mapper {
     _lastScanline = 0;
 
     _updatePrgBanks();
+    _updateChrBanks();
   }
 
   void _updatePrgBanks() {
@@ -128,6 +132,69 @@ abstract class VT02 extends Mapper {
   bool get _pq2Enabled => _systemRegisters[0x0b].bit(6) == 1;
 
   bool get _comr6 => _systemRegisters[0x05].bit(6) == 1;
+
+  void _updateChrBanks() {
+    final source = _chrSource;
+
+    for (var slot = 0; slot < 8; slot++) {
+      final address = slot * 0x400;
+
+      mapPpu(
+        address,
+        address + 0x3ff,
+        _chrBank(slot),
+        source: source,
+        type: PpuMemoryType.chrRom,
+      );
+    }
+  }
+
+  Uint8List get _chrSource =>
+      cartridge.chrRom.isEmpty ? cartridge.prgRom : cartridge.chrRom;
+
+  int _chrBank(int slot) {
+    final innerMask = _chrInnerMask;
+    final inner = _chrInnerBank(slot) & innerMask;
+    final middle = _chrMiddleBank & ~innerMask & 0xff;
+
+    return (_chrOuterBank << 11) | (_chrIntermediateBank << 8) | middle | inner;
+  }
+
+  int get _chrOuterBank => _systemRegisters[0x00] & 0x0f;
+
+  int get _chrIntermediateBank => (_graphicsRegisters[0x08] >> 4) & 0x07;
+
+  int get _chrMiddleBank => _graphicsRegisters[0x0a];
+
+  /// Modes 3 and 7 are undocumented. FCEUX treats them as mode 0.
+  static const _chrInnerMasks = [
+    0xff,
+    0x7f,
+    0x3f,
+    0xff,
+    0x1f,
+    0x0f,
+    0x07,
+    0xff,
+  ];
+
+  int get _chrInnerMask => _chrInnerMasks[_graphicsRegisters[0x0a] & 0x07];
+
+  int _chrInnerBank(int slot) {
+    final source = _comr7 ? slot ^ 4 : slot;
+
+    return switch (source) {
+      0 => _rv(4) & 0xfe,
+      1 => _rv(4) | 0x01,
+      2 => _rv(5) & 0xfe,
+      3 => _rv(5) | 0x01,
+      _ => _rv(source - 4),
+    };
+  }
+
+  int _rv(int n) => _graphicsRegisters[0x02 + n];
+
+  bool get _comr7 => _systemRegisters[0x05].bit(7) == 1;
 
   @override
   void updatePpuAddress(int address) {
@@ -219,6 +286,10 @@ abstract class VT02 extends Mapper {
         _updatePrgBanks();
       }
 
+      if (_isChrControlRegister(address)) {
+        _updateChrBanks();
+      }
+
       return;
     }
 
@@ -246,12 +317,22 @@ abstract class VT02 extends Mapper {
     }
 
     _graphicsRegisters[address - 0x2010] = value;
+
+    if (_isChrBankRegister(address)) {
+      _updateChrBanks();
+    }
   }
 
   bool _isPrgBankRegister(int address) =>
       address == 0x4100 ||
       address == 0x4105 ||
       (address >= 0x4107 && address <= 0x410b);
+
+  bool _isChrControlRegister(int address) =>
+      address == 0x4100 || address == 0x4105;
+
+  bool _isChrBankRegister(int address) =>
+      (address >= 0x2012 && address <= 0x2018) || address == 0x201a;
 
   bool _isReadableSystemRegister(int address) =>
       address == 0x410e || address == 0x410f || address == 0x411b;
@@ -342,5 +423,6 @@ abstract class VT02 extends Mapper {
     _lastScanline = state.lastScanline;
 
     _updatePrgBanks();
+    _updateChrBanks();
   }
 }
