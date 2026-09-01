@@ -315,7 +315,53 @@ abstract class VT02 extends Mapper {
       return;
     }
 
+    if (address >= 0x8000 && !_forwardingDisabled) {
+      _forwardMmc3Write(address, value);
+
+      return;
+    }
+
     super.cpuWrite(address, value);
+  }
+
+  bool get _forwardingDisabled => _systemRegisters[0x0b].bit(3) == 1;
+
+  void _forwardMmc3Write(int address, int value) {
+    switch (address & 0xe001) {
+      case 0x8000:
+        cpuWrite(0x4105, (_systemRegisters[0x05] & 0x20) | (value & 0xdf));
+      case 0x8001:
+        _writeRegister(_mmc3BankTargets[_systemRegisters[0x05] & 0x07], value);
+      case 0xa000:
+        cpuWrite(0x4106, (_systemRegisters[0x06] & 0xfe) | (value & 0x01));
+      case 0xc000:
+        cpuWrite(0x4101, value);
+      case 0xc001:
+        cpuWrite(0x4102, value);
+      case 0xe000:
+        cpuWrite(0x4103, value);
+      case 0xe001:
+        cpuWrite(0x4104, value);
+    }
+  }
+
+  static const _mmc3BankTargets = [
+    0x2016,
+    0x2017,
+    0x2012,
+    0x2013,
+    0x2014,
+    0x2015,
+    0x4107,
+    0x4108,
+  ];
+
+  void _writeRegister(int address, int value) {
+    if (address < 0x4000) {
+      extendedPpuWrite(address, value);
+    } else {
+      cpuWrite(address, value);
+    }
   }
 
   @override
