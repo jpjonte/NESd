@@ -24,6 +24,7 @@ import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -382,8 +383,14 @@ class NesController {
     Uint8List? data,
     bool suspended = false,
   }) async {
+    final rom = data != null ? file : await _resolveArchiveEntry(file);
+
+    if (rom == null) {
+      return false;
+    }
+
     final loaded = await loadRom(
-      file,
+      rom,
       stateBytes: stateBytes,
       data: data,
       suspended: suspended,
@@ -396,6 +403,39 @@ class NesController {
     unawaited(router.navigate(const EmulatorRoute()));
 
     return true;
+  }
+
+  Future<FilesystemFile?> _resolveArchiveEntry(FilesystemFile file) async {
+    if (!isZipFile(file.path) || !await _holdsSeveralRoms(file)) {
+      return file;
+    }
+
+    return router.push<FilesystemFile?>(
+      FilePickerRoute(
+        title: 'Select a ROM',
+        initialDirectory: file,
+        type: FilePickerType.file,
+        allowedExtensions: const ['.nes', '.zip'],
+      ),
+    );
+  }
+
+  Future<bool> _holdsSeveralRoms(FilesystemFile file) async {
+    try {
+      final archive = ZipDecoder().decodeBytes(
+        await filesystem.read(file.path),
+      );
+
+      return archive.files.where((entry) => isRomFile(entry.name)).length > 1;
+    } on Exception catch (e) {
+      log.rom.warning(
+        'Could not inspect archive',
+        context: {'path': file.path},
+        error: e,
+      );
+
+      return false;
+    }
   }
 
   Future<bool> loadRom(

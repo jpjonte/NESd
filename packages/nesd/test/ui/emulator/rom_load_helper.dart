@@ -12,9 +12,15 @@ import '../robot.dart';
 Uint8List nestestBytes() =>
     File('../../roms/test/nestest/nestest.nes').readAsBytesSync();
 
-Uint8List zipContaining(String entryName, Uint8List bytes) {
-  final archive = Archive()
-    ..addFile(ArchiveFile(entryName, bytes.length, bytes));
+Uint8List zipContaining(String entryName, Uint8List bytes) =>
+    zipOf({entryName: bytes});
+
+Uint8List zipOf(Map<String, Uint8List> entries) {
+  final archive = Archive();
+
+  for (final MapEntry(key: name, value: bytes) in entries.entries) {
+    archive.addFile(ArchiveFile(name, bytes.length, bytes));
+  }
 
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }

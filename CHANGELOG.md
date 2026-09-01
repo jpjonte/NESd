@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed color emphasis on PAL
 - ROM and archive file extensions are now matched case-insensitively, so files like `GAME.NES` and `COLLECTION.ZIP` open correctly
 - Fixed opening a ROM from inside a zip archive on Windows
+- Fixed inconsistent zip archive handling depending on how you opened it
 
 ## [0.18.0] - 2026-08-30
 
