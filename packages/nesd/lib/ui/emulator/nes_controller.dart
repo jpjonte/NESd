@@ -246,18 +246,24 @@ class NesController {
   bool get isOn => nesState.nes != null;
 
   Future<Uint8List> _readFile(String path) async {
-    final parts = path.split(':');
+    final separator = path.lastIndexOf(':');
 
-    if (parts.length < 2 || !isZipFile(parts.first)) {
+    if (separator == -1) {
+      return filesystem.read(path);
+    }
+
+    final archivePath = path.substring(0, separator);
+
+    if (!isZipFile(archivePath)) {
       return filesystem.read(path);
     }
 
     final archive = ZipFilesystem(
-      path: parts.first,
-      zipData: await filesystem.read(parts.first),
+      path: archivePath,
+      zipData: await filesystem.read(archivePath),
     );
 
-    return archive.read(parts.last);
+    return archive.read(path.substring(separator + 1));
   }
 
   void suspend() => nes?.suspend();
