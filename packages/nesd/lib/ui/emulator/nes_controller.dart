@@ -24,6 +24,7 @@ import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
@@ -245,15 +246,24 @@ class NesController {
   bool get isOn => nesState.nes != null;
 
   Future<Uint8List> _readFile(String path) async {
-    final data = await switch (path.contains(':') && path.contains('.zip')) {
-      true => ZipFilesystem(
-        path: path.split(':').first,
-        zipData: await filesystem.read(path.split(':').first),
-      ).read(path.split(':').last),
-      false => filesystem.read(path),
-    };
+    final separator = path.lastIndexOf(':');
 
-    return data;
+    if (separator == -1) {
+      return filesystem.read(path);
+    }
+
+    final archivePath = path.substring(0, separator);
+
+    if (!isZipFile(archivePath)) {
+      return filesystem.read(path);
+    }
+
+    final archive = ZipFilesystem(
+      path: archivePath,
+      zipData: await filesystem.read(archivePath),
+    );
+
+    return archive.read(path.substring(separator + 1));
   }
 
   void suspend() => nes?.suspend();
@@ -402,7 +412,7 @@ class NesController {
       final bytes = data ?? await _readFile(file.path);
       final extension = p.extension(file.name);
 
-      final rom = switch (extension) {
+      final rom = switch (extension.toLowerCase()) {
         '.nes' => bytes,
         '.zip' => _loadZip(file.path, bytes),
         _ => throw UnsupportedFileType(extension),
@@ -680,9 +690,7 @@ class NesController {
   Uint8List _loadZip(String path, Uint8List data) {
     final archive = ZipDecoder().decodeBytes(data);
 
-    final roms = archive.files
-        .where((file) => p.extension(file.name) == '.nes')
-        .toList();
+    final roms = archive.files.where((file) => isRomFile(file.name)).toList();
 
     if (roms.isEmpty) {
       throw EmptyArchive(path);

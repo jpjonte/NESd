@@ -96,6 +96,14 @@ class FilePickerScreenRobot extends BaseRobot {
     expectOne(finder);
   }
 
+  Future<void> tapFile(String name) async {
+    await goAsync(
+      find.byWidgetPredicate(
+        (widget) => widget is FileTile && widget.file.name == name,
+      ),
+    );
+  }
+
   Future<void> tapParentTile() async {
     await goAsync(find.byType(ParentTile));
   }

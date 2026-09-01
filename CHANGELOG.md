@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed sprite data getting discarded while rendering is off
 - Fixed color emphasis applying an inverted tint
 - Fixed color emphasis on PAL
+- ROM and archive file extensions are now matched case-insensitively, so files like `GAME.NES` and `COLLECTION.ZIP` open correctly
+- Fixed opening a ROM from inside a zip archive on Windows
+
 ## [0.18.0] - 2026-08-30
 
 **Two more Android testers needed!**  

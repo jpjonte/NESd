@@ -9,6 +9,7 @@ import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/letter_jump.dart';
 import 'package:path/path.dart' as p;
@@ -35,7 +36,7 @@ class FileList extends HookConsumerWidget {
   bool _enabled(FilesystemFile file) =>
       file.type == FilesystemFileType.directory ||
       allowedExtensions.isEmpty ||
-      allowedExtensions.contains(p.extension(file.path).toLowerCase());
+      allowedExtensions.contains(fileExtension(file.path));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -321,7 +322,7 @@ class FileList extends HookConsumerWidget {
       enabled: _enabled(file),
       isDirectory: file.type == FilesystemFileType.directory,
       file: file,
-      fileIsZip: p.extension(file.path) == '.zip',
+      fileIsZip: isZipFile(file.path),
       focusNode: focusNodes[index],
       onFocusChange: (hasFocus) => onTileFocusChange(index, hasFocus: hasFocus),
       onChangeDirectory: onChangeDirectory,
