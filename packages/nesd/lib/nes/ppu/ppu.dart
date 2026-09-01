@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/ppu/four_bpp_address.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
@@ -182,6 +183,9 @@ class PPU {
   int patternTableHighLatch = 0;
   int patternTableLowLatch = 0;
 
+  int patternTableHigh2Latch = 0;
+  int patternTableLow2Latch = 0;
+
   int attributeTableLatch = 0;
 
   int attribute = 0;
@@ -239,11 +243,10 @@ class PPU {
     nametableLatch: nametableLatch,
     patternTableHighLatch: patternTableHighLatch,
     patternTableLowLatch: patternTableLowLatch,
-    patternTableHighShift: _windowPatternBits(high: true),
-    patternTableLowShift: _windowPatternBits(high: false),
+    bgWindow: _normalizedWindow(),
+    patternTableLow2Latch: patternTableLow2Latch,
+    patternTableHigh2Latch: patternTableHigh2Latch,
     attributeTableLatch: attributeTableLatch,
-    attributeTableHighShift: _windowAttributeBits(high: true),
-    attributeTableLowShift: _windowAttributeBits(high: false),
     attribute: attribute,
     oamAddress: oamAddress,
     oamBuffer: oamBuffer,
@@ -288,13 +291,21 @@ class PPU {
     attributeTableLatch = state.attributeTableLatch;
     attribute = state.attribute;
 
-    _rebuildWindowFromShiftRegisters(
-      state.patternTableHighShift,
-      state.patternTableLowShift,
-      state.attributeTableHighShift,
-      state.attributeTableLowShift,
-      state.attribute,
-    );
+    if (state.bgWindow case final bgWindow?) {
+      _bgWindow.setAll(0, bgWindow);
+      _bgWindowPos = 0;
+    } else {
+      _rebuildWindowFromShiftRegisters(
+        state.patternTableHighShift,
+        state.patternTableLowShift,
+        state.attributeTableHighShift,
+        state.attributeTableLowShift,
+        state.attribute,
+      );
+    }
+
+    patternTableLow2Latch = state.patternTableLow2Latch;
+    patternTableHigh2Latch = state.patternTableHigh2Latch;
 
     oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
@@ -369,6 +380,8 @@ class PPU {
     nametableLatch = 0;
     patternTableHighLatch = 0;
     patternTableLowLatch = 0;
+    patternTableHigh2Latch = 0;
+    patternTableLow2Latch = 0;
     attributeTableLatch = 0;
     attribute = 0;
 
@@ -949,13 +962,31 @@ class PPU {
 
     final low = patternTableLowLatch;
     final high = patternTableHighLatch;
-    final attrBits = attributeTableLatch << 2;
 
-    for (var i = 0; i < 8; i++) {
-      final shift = 7 - i;
-      final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
+    if (bgFourBpp) {
+      final low2 = patternTableLow2Latch;
+      final high2 = patternTableHigh2Latch;
+      final attrBits = attributeTableLatch << 5;
 
-      _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      for (var i = 0; i < 8; i++) {
+        final shift = 7 - i;
+        final pattern =
+            ((high2 >> shift) & 0x1) << 3 |
+            ((low2 >> shift) & 0x1) << 2 |
+            ((high >> shift) & 0x1) << 1 |
+            ((low >> shift) & 0x1);
+
+        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      }
+    } else {
+      final attrBits = attributeTableLatch << 2;
+
+      for (var i = 0; i < 8; i++) {
+        final shift = 7 - i;
+        final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
+
+        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      }
     }
 
     _bgWindowPos = 0;
@@ -963,38 +994,16 @@ class PPU {
     attribute = attributeTableLatch;
   }
 
-  int _windowPatternBits({required bool high}) {
-    final bitIndex = high ? 1 : 0;
-    var bits = 0;
+  Uint8List _normalizedWindow() {
+    final window = Uint8List(16);
 
     for (var i = 0; i < 16; i++) {
-      final position = i - _bgWindowPos;
+      final from = i + _bgWindowPos;
 
-      if (position < 0 || position > 15) {
-        continue;
-      }
-
-      bits |= ((_bgWindow[i] >> bitIndex) & 0x1) << (15 - position);
+      window[i] = from < 16 ? _bgWindow[from] : 0;
     }
 
-    return bits & 0xffff;
-  }
-
-  int _windowAttributeBits({required bool high}) {
-    final bitIndex = high ? 3 : 2;
-    var bits = 0;
-
-    for (var i = 0; i < 8; i++) {
-      final slot = _bgWindowPos + i;
-
-      if (slot > 15) {
-        continue;
-      }
-
-      bits |= ((_bgWindow[slot] >> bitIndex) & 0x1) << (7 - i);
-    }
-
-    return bits & 0xff;
+    return window;
   }
 
   void _rebuildWindowFromShiftRegisters(
@@ -1168,9 +1177,23 @@ class PPU {
   }
 
   @pragma('vm:prefer-inline')
+  int _fourBppAddress(int address, int planeHi) => wideVideoBus
+      ? fourBppWideAddress(address, planeHi)
+      : fourBppPlanarAddress(address, planeHi);
+
+  @pragma('vm:prefer-inline')
   void _fetchPatternTableLow() {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | fineY;
+
+    if (bgFourBpp) {
+      _updateBusAddress(address);
+
+      patternTableLowLatch = readFourBpp(_fourBppAddress(address, 0));
+      patternTableLow2Latch = readFourBpp(_fourBppAddress(address, 1));
+
+      return;
+    }
 
     patternTableLowLatch = readPpuMemory(address);
   }
@@ -1179,6 +1202,15 @@ class PPU {
   void _fetchPatternTableHigh() {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | (fineY + 8);
+
+    if (bgFourBpp) {
+      _updateBusAddress(address);
+
+      patternTableHighLatch = readFourBpp(_fourBppAddress(address, 0));
+      patternTableHigh2Latch = readFourBpp(_fourBppAddress(address, 1));
+
+      return;
+    }
 
     patternTableHighLatch = readPpuMemory(address);
   }
