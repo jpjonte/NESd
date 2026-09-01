@@ -50,4 +50,101 @@ void main() {
       expect(nes.ppu.readFourBpp(0x0000), 0);
     });
   });
+
+  group(r'$2010 video mode', () {
+    test('pushes the mode bits to the PPU', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x42);
+
+      expect(nes.ppu.bgFourBpp, isTrue);
+      expect(nes.ppu.spriteFourBpp, isFalse);
+      expect(nes.ppu.wideVideoBus, isTrue);
+    });
+
+    test('enabling 4bpp maps the pattern space at 2 KiB granularity', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2016, 4);
+      nes.bus.cpuWrite(0x2012, 5);
+      nes.bus.cpuWrite(0x2010, 0x02);
+
+      expect(bankAt4bpp(mapper, 0x0000), 8); // RV4 pair, 2 KiB page 4
+      expect(bankAt4bpp(mapper, 0x2000), 10); // RV0 slot, 2 KiB page 5
+      expect(ppuBankAt4bpp(nes, 0x0000), 8);
+    });
+
+    test('bank writes keep the 4bpp table current while active', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x04);
+      nes.bus.cpuWrite(0x2017, 6);
+
+      expect(bankAt4bpp(mapper, 0x1000), 12);
+    });
+
+    test(r'$4105 bit 7 swaps the pattern tables in the 4bpp space', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x02);
+      nes.bus.cpuWrite(0x2016, 2);
+      nes.bus.cpuWrite(0x4105, 0x80);
+
+      expect(bankAt4bpp(mapper, 0x2000), 4); // RV4 pair now above $1000
+    });
+
+    test('the 4bpp table stays empty while both modes are 2bpp', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2016, 4);
+
+      expect(mapper.fourBppRead(0x0000), 0);
+      expect(nes.ppu.readFourBpp(0x0000), 0);
+    });
+
+    test(r'the $201A middle bank masks the 4bpp inner bank', () {
+      final (:nes, :mapper) = buildVt02(chrPages: 64); // 512 KiB
+
+      nes.bus.cpuWrite(0x2010, 0x02);
+      nes.bus.cpuWrite(0x2016, 0x07);
+      nes.bus.cpuWrite(0x201a, 0xc2);
+
+      expect(bankAt4bpp(mapper, 0x0000), 0x18c);
+    });
+
+    test('OneBus images map the 4bpp space over PRG-ROM', () {
+      final (:nes, :mapper) = buildVt02(chrPages: 0);
+
+      nes.bus.cpuWrite(0x2016, 0x10);
+      nes.bus.cpuWrite(0x2010, 0x02);
+
+      expect(bankAt4bpp(mapper, 0x0000), 4);
+    });
+
+    test('reset clears the mode', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x46);
+      mapper.reset();
+
+      expect(nes.ppu.bgFourBpp, isFalse);
+      expect(nes.ppu.wideVideoBus, isFalse);
+    });
+
+    test('restoring mapper state re-pushes mode and mapping', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2016, 4);
+      nes.bus.cpuWrite(0x2010, 0x06);
+
+      final state = mapper.state;
+      final (nes: nes2, mapper: mapper2) = buildVt02();
+
+      mapper2.state = state;
+
+      expect(nes2.ppu.bgFourBpp, isTrue);
+      expect(nes2.ppu.spriteFourBpp, isTrue);
+      expect(bankAt4bpp(mapper2, 0x0000), 8);
+    });
+  });
 }

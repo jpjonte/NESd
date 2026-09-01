@@ -87,6 +87,7 @@ abstract class VT02 extends Mapper {
 
     _lastScanline = 0;
 
+    _pushVideoMode();
     _updatePrgBanks();
     _updateChrBanks();
     _updateMirroring();
@@ -135,6 +136,17 @@ abstract class VT02 extends Mapper {
 
   bool get _comr6 => _systemRegisters[0x05].bit(6) == 1;
 
+  bool get _fourBppActive => _graphicsRegisters[0x00] & 0x06 != 0;
+
+  void _pushVideoMode() {
+    final control = _graphicsRegisters[0x00];
+
+    bus.ppu
+      ..bgFourBpp = control.bit(1) == 1
+      ..spriteFourBpp = control.bit(2) == 1
+      ..wideVideoBus = control.bit(6) == 1;
+  }
+
   void _updateChrBanks() {
     final source = _chrSource;
 
@@ -148,6 +160,14 @@ abstract class VT02 extends Mapper {
         source: source,
         type: PpuMemoryType.chrRom,
       );
+    }
+
+    if (_fourBppActive) {
+      for (var slot = 0; slot < 8; slot++) {
+        final address = slot * 0x800;
+
+        mapPpu4bpp(address, address + 0x7ff, _chrBank(slot), source: source);
+      }
     }
   }
 
@@ -374,7 +394,17 @@ abstract class VT02 extends Mapper {
       return;
     }
 
+    final previous = _graphicsRegisters[address - 0x2010];
+
     _graphicsRegisters[address - 0x2010] = value;
+
+    if (address == 0x2010) {
+      _pushVideoMode();
+
+      if ((previous ^ value) & 0x06 != 0) {
+        _updateChrBanks();
+      }
+    }
 
     if (_isChrBankRegister(address)) {
       _updateChrBanks();
@@ -480,6 +510,7 @@ abstract class VT02 extends Mapper {
 
     _lastScanline = state.lastScanline;
 
+    _pushVideoMode();
     _updatePrgBanks();
     _updateChrBanks();
     _updateMirroring();

@@ -160,6 +160,10 @@ class PPU {
 
   bool mapperNeedsExtendedPpuRegisters = false;
 
+  bool bgFourBpp = false;
+  bool spriteFourBpp = false;
+  bool wideVideoBus = false;
+
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -397,6 +401,10 @@ class PPU {
 
     decay = 0;
     decayRefreshedAt.fillRange(0, 8, 0);
+
+    bgFourBpp = false;
+    spriteFourBpp = false;
+    wideVideoBus = false;
 
     frameBuffer.resetBuffers();
 
