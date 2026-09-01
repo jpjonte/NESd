@@ -170,6 +170,13 @@ abstract class Mapper {
 
   final MappingCache _ppuMappingCache = {};
 
+  late final List<MemoryMapping?> _ppuFourBppMapping = List.filled(
+    _ppuBlockCount,
+    null,
+  );
+
+  final MappingCache _ppuFourBppMappingCache = {};
+
   MemoryMapping? _cachedMapping(
     MappingCache cache,
     Uint8List source,
@@ -432,6 +439,57 @@ abstract class Mapper {
       );
 
       bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
+    }
+  }
+
+  int fourBppRead(int address) {
+    final mapping =
+        _ppuFourBppMapping[(address >> _ppuBlockAddressWidth) & 0xf];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  void mapPpu4bpp(
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? 2 * chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = address >> _ppuBlockAddressWidth;
+
+      if (source.isEmpty) {
+        _ppuFourBppMapping[block] = null;
+
+        bus.ppu.updateFourBppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuFourBppMapping[block] = _cachedMapping(
+        _ppuFourBppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateFourBppMapping(block, _ppuFourBppMapping[block]?.source);
     }
   }
 }

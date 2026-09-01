@@ -129,6 +129,12 @@ class PPU {
     null,
   );
 
+  /// Block table for the VT03+ 16 KiB 4bpp pattern space.
+  final List<Uint8List?> _fourBppBlocks = List<Uint8List?>.filled(
+    _ppuBlockCount,
+    null,
+  );
+
   bool _showBackground = false;
   bool _showSprites = false;
 
@@ -379,6 +385,7 @@ class PPU {
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
     _ppuBlocks.fillRange(0, _ppuBlocks.length, null);
+    _fourBppBlocks.fillRange(0, _fourBppBlocks.length, null);
 
     _pixelBase = 0;
 
@@ -1481,5 +1488,24 @@ class PPU {
     }
 
     _ppuBlocks[block] = source;
+  }
+
+  void updateFourBppMapping(int block, Uint8List? source) {
+    if (block < 0 || block >= _fourBppBlocks.length) {
+      return;
+    }
+
+    _fourBppBlocks[block] = source;
+  }
+
+  @pragma('vm:prefer-inline')
+  int readFourBpp(int address) {
+    final source = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
   }
 }
