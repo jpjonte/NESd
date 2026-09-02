@@ -40,7 +40,7 @@ const endMarker = '<!-- game-counts:end -->';
 
 /// Mappers that aren't fully implemented yet. Ignored in README.md and
 /// `supportedGameCount`.
-const inProgressMapperIds = {256};
+const inProgressMapperIds = <int>{};
 
 void main(List<String> args) {
   final checkOnly = args.contains('--check');
