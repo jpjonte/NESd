@@ -71,6 +71,7 @@ flutter:
   shaders:
     - shaders/crt.frag
     - shaders/smooth.frag
+    - shaders/xbr.frag
 
   fonts:
     - family: Inter
