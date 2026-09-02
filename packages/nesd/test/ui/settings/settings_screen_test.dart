@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
+import 'package:nesd/ui/settings/audio/mixer_sliders.dart';
 import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_settings.dart';
@@ -57,6 +58,10 @@ void main() {
       find.byType(SwapDutyCyclesSwitch),
       getValue: () => r.settings.swapDutyCycles,
     );
+
+    expect(find.text('Output'), findsOneWidget);
+    expect(find.text('Mixer'), findsOneWidget);
+    expect(find.byType(MixerSliders), findsOneWidget);
   });
 
   testWidgets('Test Controls settings tab', (tester) async {

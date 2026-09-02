@@ -83,15 +83,9 @@ void main() {
     });
 
     test('a muted channel contributes exactly as if it were idle', () {
-      const loud = MixerSettings();
-
       expect(
-        _mix(
-          pulse1: 12,
-          pulse2: 9,
-          mixer: const MixerSettings(pulse1: 0),
-        ),
-        _mix(pulse2: 9, mixer: loud),
+        _mix(pulse1: 12, pulse2: 9, mixer: const MixerSettings(pulse1: 0)),
+        _mix(pulse2: 9),
       );
 
       expect(
@@ -101,12 +95,12 @@ void main() {
           dmc: 40,
           mixer: const MixerSettings(triangle: 0),
         ),
-        _mix(noise: 7, dmc: 40, mixer: loud),
+        _mix(noise: 7, dmc: 40),
       );
 
       expect(
         _mix(triangle: 4, dmc: 90, mixer: const MixerSettings(dmc: 0)),
-        _mix(triangle: 4, mixer: loud),
+        _mix(triangle: 4),
       );
     });
 

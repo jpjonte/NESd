@@ -18,10 +18,10 @@ typedef _DmcRun = ({int level, double sample});
 
 _DmcRun _dmcLevelAtGain(double gain) {
   final mapper = buildMmc5();
-  final apu = mapper.bus.apu..reset();
-
-  apu.mixer = MixerSettings(dmc: gain);
-  apu.writeRegister(0x4011, 0x7f);
+  final apu = mapper.bus.apu
+    ..reset()
+    ..mixer = MixerSettings(dmc: gain)
+    ..writeRegister(0x4011, 0x7f);
 
   _run(apu, mapper.step);
 
@@ -54,9 +54,10 @@ void main() {
   group('expansion gains are routed per chip', () {
     test('the MMC5 gain mutes MMC5 audio', () {
       final mapper = buildMmc5();
-      final apu = mapper.bus.apu..reset();
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(mmc5: 0);
 
-      apu.mixer = const MixerSettings(mmc5: 0);
       mapper.cpuWrite(0x5011, 0xff);
 
       _run(apu, mapper.step);
@@ -66,9 +67,10 @@ void main() {
 
     test('the Namco 163 gain leaves MMC5 audio alone', () {
       final mapper = buildMmc5();
-      final apu = mapper.bus.apu..reset();
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(namco163: 0);
 
-      apu.mixer = const MixerSettings(namco163: 0);
       mapper.cpuWrite(0x5011, 0xff);
 
       _run(apu, mapper.step);
@@ -78,9 +80,9 @@ void main() {
 
     test('the Namco 163 gain mutes Namco 163 audio', () {
       final mapper = buildNamco163();
-      final apu = mapper.bus.apu..reset();
-
-      apu.mixer = const MixerSettings(namco163: 0);
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(namco163: 0);
 
       mapper.audio.ram[0x7f] = 0x0f;
       mapper.audio.ram[0x7c] = 0xfc;
@@ -94,9 +96,9 @@ void main() {
 
     test('the MMC5 gain leaves Namco 163 audio alone', () {
       final mapper = buildNamco163();
-      final apu = mapper.bus.apu..reset();
-
-      apu.mixer = const MixerSettings(mmc5: 0);
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(mmc5: 0);
 
       mapper.audio.ram[0x7f] = 0x0f;
       mapper.audio.ram[0x7c] = 0xfc;
@@ -111,11 +113,9 @@ void main() {
 
   test('a mixer set before reset survives it', () {
     final mapper = buildMmc5();
-    final apu = mapper.bus.apu;
-
-    apu.mixer = const MixerSettings(mmc5: 0);
-
-    apu.reset();
+    final apu = mapper.bus.apu
+      ..mixer = const MixerSettings(mmc5: 0)
+      ..reset();
 
     mapper.cpuWrite(0x5011, 0xff);
 

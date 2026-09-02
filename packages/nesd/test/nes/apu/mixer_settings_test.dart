@@ -20,7 +20,7 @@ void main() {
       pulse2: 0.25,
       triangle: 0.5,
       noise: 0.75,
-      dmc: 1.0,
+      dmc: 0.875,
       mmc5: 0.125,
       namco163: 0.625,
     );

@@ -11,7 +11,6 @@ import 'package:nesd/nes/apu/channel/triangle_channel.dart';
 import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
-import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/region.dart';
