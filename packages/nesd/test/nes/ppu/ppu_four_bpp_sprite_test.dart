@@ -102,5 +102,76 @@ void main() {
         );
       }
     });
+
+    test('horizontal flip reverses a 4bpp sprite', () {
+      final nes = buildNes(buildFourBppRom());
+
+      nes.bus.cpuWrite(0x2010, 0x04);
+
+      for (var i = 1; i < 16; i++) {
+        nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      nes.ppu.oam.fillRange(0, 256, 0xff);
+      nes.ppu.oam.setAll(0, [9, 0, 0x40, 64]); // flip H
+
+      nes.bus.cpuWrite(0x2001, 0x1e);
+
+      runFrames(nes, 2);
+
+      for (var xOffset = 1; xOffset < 8; xOffset++) {
+        expect(
+          pixelAt(nes.ppu, 64 + xOffset, 10),
+          nes.ppu.paletteLut[0x10 | expectedPattern[7 - xOffset]],
+          reason: 'xOffset=$xOffset',
+        );
+      }
+    });
+
+    test('vertical flip keeps row-constant 4bpp data intact', () {
+      final nes = buildNes(buildFourBppRom());
+
+      nes.bus.cpuWrite(0x2010, 0x04);
+
+      for (var i = 1; i < 16; i++) {
+        nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      nes.ppu.oam.fillRange(0, 256, 0xff);
+      nes.ppu.oam.setAll(0, [9, 0, 0x80, 64]); // flip V
+
+      nes.bus.cpuWrite(0x2001, 0x1e);
+
+      runFrames(nes, 2);
+
+      for (var xOffset = 0; xOffset < 7; xOffset++) {
+        expect(
+          pixelAt(nes.ppu, 64 + xOffset, 10),
+          nes.ppu.paletteLut[0x10 | expectedPattern[xOffset]],
+          reason: 'xOffset=$xOffset',
+        );
+      }
+    });
+
+    test('8x16 4bpp sprites fetch the second tile', () {
+      final nes = buildNes(buildFourBppRom(stampTileOne: true));
+
+      nes.bus.cpuWrite(0x2010, 0x04);
+      nes.bus.cpuWrite(0x2000, 0x20); // 8x16 sprites
+
+      for (var i = 1; i < 16; i++) {
+        nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      nes.ppu.oam.fillRange(0, 256, 0xff);
+      nes.ppu.oam.setAll(0, [9, 0, 0x00, 64]); // tile pair 0/1
+
+      nes.bus.cpuWrite(0x2001, 0x1e);
+
+      runFrames(nes, 2);
+
+      expect(pixelAt(nes.ppu, 64, 10), nes.ppu.paletteLut[0x10 | 7]);
+      expect(pixelAt(nes.ppu, 64 + 4, 18), nes.ppu.paletteLut[0x10 | 4]);
+    });
   });
 }

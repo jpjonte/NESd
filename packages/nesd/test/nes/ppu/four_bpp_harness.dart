@@ -8,7 +8,10 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../../ui/mocks.dart';
 
-Uint8List buildFourBppRom({bool wideLayout = false}) {
+Uint8List buildFourBppRom({
+  bool wideLayout = false,
+  bool stampTileOne = false,
+}) {
   const prgBanks = 2; // 32 KiB
   const prgSize = prgBanks * 0x4000;
   const chrSize = 0x2000;
@@ -39,6 +42,10 @@ Uint8List buildFourBppRom({bool wideLayout = false}) {
       rom[chrStart + 8 + row] = 0xcc;
       rom[chrStart + 16 + row] = 0xf0;
       rom[chrStart + 24 + row] = 0x00;
+
+      if (stampTileOne) {
+        rom[chrStart + 32 + 16 + row] = 0x0f; // tile 1, plane 2
+      }
     }
   }
 

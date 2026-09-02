@@ -54,5 +54,15 @@ void main() {
 
       expect(nes.ppu.paletteLut[0x10], nes.ppu.paletteLut[0x00]);
     });
+
+    test(r'$3F90 does not mirror $3F80', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.ppuWrite(0x3f80, 0x11);
+      nes.bus.ppuWrite(0x3f90, 0x2c);
+
+      expect(nes.bus.ppuRead(0x3f90), 0x2c);
+      expect(nes.bus.ppuRead(0x3f80), 0x11);
+    });
   });
 }
