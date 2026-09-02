@@ -173,6 +173,13 @@ class PPU {
   bool spriteFourBpp = false;
   bool wideVideoBus = false;
 
+  bool bgExtension = false;
+  bool spriteExtension = false;
+  bool spriteSixteenPixels = false;
+
+  int bgEvaBit2 = 0;
+  int vrwb = 0;
+
   int cycles = 0;
   int cycle = 0;
   int scanline = 0;
@@ -430,6 +437,13 @@ class PPU {
     bgFourBpp = false;
     spriteFourBpp = false;
     wideVideoBus = false;
+
+    bgExtension = false;
+    spriteExtension = false;
+    spriteSixteenPixels = false;
+
+    bgEvaBit2 = 0;
+    vrwb = 0;
 
     frameBuffer.resetBuffers();
 

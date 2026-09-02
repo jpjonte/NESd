@@ -145,11 +145,19 @@ abstract class VT02 extends Mapper {
 
   void _pushVideoMode() {
     final control = _graphicsRegisters[0x00];
+    final eva12s = _graphicsRegisters[0x01].bit(0) == 1;
 
     bus.ppu
       ..bgFourBpp = control.bit(1) == 1
       ..spriteFourBpp = control.bit(2) == 1
-      ..wideVideoBus = control.bit(6) == 1;
+      ..wideVideoBus = control.bit(6) == 1
+      ..spriteSixteenPixels = control.bit(0) == 1
+      ..spriteExtension = control.bit(3) == 1
+      ..bgExtension = control.bit(4) == 1
+      ..bgEvaBit2 = eva12s
+          ? _systemRegisters[0x06].bit(0)
+          : _graphicsRegisters[0x08].bit(3)
+      ..vrwb = _graphicsRegisters[0x08] & 0x07;
   }
 
   void _updateChrBanks() {
@@ -383,6 +391,7 @@ abstract class VT02 extends Mapper {
 
       if (target == 0x4106) {
         _updateMirroring();
+        _pushVideoMode();
       }
 
       return;
@@ -493,12 +502,12 @@ abstract class VT02 extends Mapper {
 
     _graphicsRegisters[address - 0x2010] = value;
 
-    if (address == 0x2010) {
+    if (address == 0x2010 || address == 0x2011 || address == 0x2018) {
       _pushVideoMode();
+    }
 
-      if ((previous ^ value) & 0x1e != 0) {
-        _updateChrBanks();
-      }
+    if (address == 0x2010 && (previous ^ value) & 0x1e != 0) {
+      _updateChrBanks();
     }
 
     if (_isChrBankRegister(address)) {

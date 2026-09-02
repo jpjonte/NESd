@@ -146,5 +146,77 @@ void main() {
       expect(nes2.ppu.spriteFourBpp, isTrue);
       expect(bankAt4bpp(mapper2, 0x0000), 8);
     });
+
+    test('pushes the extension bits to the PPU', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x19); // BKEXTEN | SPEXTEN | PIX16EN
+
+      expect(nes.ppu.bgExtension, isTrue);
+      expect(nes.ppu.spriteExtension, isTrue);
+      expect(nes.ppu.spriteSixteenPixels, isTrue);
+    });
+
+    test(r'EVA12S selects the bgEvaBit2 source', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.cpuWrite(0x2018, 0x08); // BKPAGE = 1
+
+      expect(nes.ppu.bgEvaBit2, 1);
+
+      nes.bus.cpuWrite(0x2011, 0x01); // EVA12S = 1 -> $4106.0
+
+      expect(nes.ppu.bgEvaBit2, 0);
+
+      nes.bus.cpuWrite(0x4106, 0x01);
+
+      expect(nes.ppu.bgEvaBit2, 1);
+    });
+
+    test(r'$2018 pushes VRWB', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.cpuWrite(0x2018, 0x05);
+
+      expect(nes.ppu.vrwb, 5);
+    });
+
+    test('reset clears the extension state', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus.cpuWrite(0x2010, 0x19);
+      nes.bus.cpuWrite(0x2018, 0x0f);
+      mapper.reset();
+
+      expect(nes.ppu.bgExtension, isFalse);
+      expect(nes.ppu.spriteExtension, isFalse);
+      expect(nes.ppu.spriteSixteenPixels, isFalse);
+      expect(nes.ppu.bgEvaBit2, 0);
+      expect(nes.ppu.vrwb, 0);
+    });
+
+    test('restoring mapper state re-pushes extension state and banks', () {
+      final (:nes, :mapper) = buildVt02(chrPages: 64);
+
+      nes.bus.cpuWrite(0x2016, 4);
+      nes.bus.cpuWrite(0x2011, 0x01);
+      nes.bus.cpuWrite(0x4106, 0x01);
+      nes.bus.cpuWrite(0x2018, 0x03);
+      nes.bus.cpuWrite(0x2010, 0x18);
+
+      final state = mapper.state;
+      final (nes: nes2, mapper: mapper2) = buildVt02(chrPages: 64);
+
+      mapper2.state = state;
+
+      expect(nes2.ppu.bgExtension, isTrue);
+      expect(nes2.ppu.spriteExtension, isTrue);
+      expect(nes2.ppu.bgEvaBit2, 1);
+      expect(nes2.ppu.vrwb, 3);
+      expect(
+        mapper2.eva2bppRead(5, 0x0000) | (mapper2.eva2bppRead(5, 0x0001) << 8),
+        37,
+      );
+    });
   });
 }
