@@ -1450,7 +1450,8 @@ class PPU {
       final attribute = spriteOutput.attribute;
       final flipH = (attribute >> 6) & 1;
       final priorityBit = ((attribute >> 5) & 1) << 4;
-      final attrBits = fourBpp
+      final sixteenPixels = fourBpp && spriteSixteenPixels;
+      final attrBits = fourBpp && !sixteenPixels
           ? (attribute & 0x3) << 5
           : (attribute & 0x3) << 2;
       final base = priorityBit | attrBits;
@@ -1460,21 +1461,35 @@ class PPU {
       final patternLow2 = spriteOutput.patternLow2;
       final patternHigh2 = spriteOutput.patternHigh2;
 
-      for (var xOffset = 0; xOffset < 8; xOffset++) {
+      final width = sixteenPixels ? 16 : 8;
+
+      for (var xOffset = 0; xOffset < width; xOffset++) {
         final x = spriteOutput.x + xOffset;
 
         if (x > 255) {
           break;
         }
 
-        final fineX = flipH == 1 ? xOffset : 7 - xOffset;
-        var pattern =
-            (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+        int pattern;
 
-        if (fourBpp) {
-          pattern |=
-              (((patternHigh2 >> fineX) & 1) << 3) |
-              (((patternLow2 >> fineX) & 1) << 2);
+        if (sixteenPixels) {
+          final half = (flipH == 1 ? 15 - xOffset : xOffset) >> 3;
+          final fineX = flipH == 1 ? xOffset & 0x7 : 7 - (xOffset & 0x7);
+          final low = half == 0 ? patternLow : patternLow2;
+          final high = half == 0 ? patternHigh : patternHigh2;
+
+          pattern = (((high >> fineX) & 1) << 1) | (low >> fineX) & 1;
+        } else {
+          final fineX = flipH == 1 ? xOffset : 7 - xOffset;
+
+          pattern =
+              (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+
+          if (fourBpp) {
+            pattern |=
+                (((patternHigh2 >> fineX) & 1) << 3) |
+                (((patternLow2 >> fineX) & 1) << 2);
+          }
         }
 
         if (pattern == 0) {
