@@ -9,6 +9,7 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/ppu/four_bpp_address.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/nes/ppu/palette/vt_palette.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
 import 'package:nesd/nes/region.dart';
@@ -168,6 +169,20 @@ class PPU {
   bool mapperNeedsExtendedPpuRegisters = false;
 
   bool extendedPalette = false;
+
+  bool _extendedColors = false;
+
+  bool get extendedColors => _extendedColors;
+
+  set extendedColors(bool value) {
+    if (value == _extendedColors) {
+      return;
+    }
+
+    _extendedColors = value;
+
+    _rebuildPaletteLut();
+  }
 
   bool bgFourBpp = false;
   bool spriteFourBpp = false;
@@ -372,6 +387,8 @@ class PPU {
   }
 
   void reset() {
+    _extendedColors = false;
+
     consoleCycles = 0;
     cycles = 0;
     cycle = 0;
@@ -1619,13 +1636,15 @@ class PPU {
   }
 
   void onPaletteWrite(int index) {
+    final entry = _extendedColors ? index & 0x7f : index;
+
     final limit = extendedPalette ? 0x80 : 0x20;
 
-    if (index < 0 || index >= limit) {
+    if (entry < 0 || entry >= limit) {
       return;
     }
 
-    final rem = _remapPaletteIndex(index);
+    final rem = _remapPaletteIndex(entry);
     final val = _computePaletteEntry(rem);
 
     _setPaletteEntry(rem, val);
@@ -1668,6 +1687,13 @@ class PPU {
   }
 
   int _computePaletteEntry(int index) {
+    if (_extendedColors) {
+      final low = palette[index & 0x7f] & 0x3f;
+      final high = palette[(index & 0x7f) | 0x80] & 0x3f;
+
+      return vtPalette[low | (high << 6)];
+    }
+
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
     return _systemPalette[_emphasisBase | (palette[index & 0x7f] & greyMask)];

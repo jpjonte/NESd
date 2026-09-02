@@ -151,6 +151,7 @@ abstract class VT02 extends Mapper {
       ..bgFourBpp = control.bit(1) == 1
       ..spriteFourBpp = control.bit(2) == 1
       ..wideVideoBus = control.bit(6) == 1
+      ..extendedColors = control.bit(7) == 1
       ..spriteSixteenPixels = control.bit(0) == 1
       ..spriteExtension = control.bit(3) == 1
       ..bgExtension = control.bit(4) == 1
