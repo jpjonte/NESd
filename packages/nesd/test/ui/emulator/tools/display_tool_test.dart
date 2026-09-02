@@ -58,6 +58,7 @@ void main() {
   testWidgets('shows no CRT sliders while the filter is off', (tester) async {
     await pump(tester, '{}');
 
+    expect(find.text('Upscaling (xBR)'), findsOneWidget);
     expect(find.text('Smoothing'), findsOneWidget);
     expect(find.text('CRT effect'), findsOneWidget);
     expect(find.byType(ScanlineIntensitySlider), findsNothing);

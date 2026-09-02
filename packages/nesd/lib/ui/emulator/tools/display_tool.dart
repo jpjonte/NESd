@@ -31,6 +31,7 @@ class DisplayToolWidget extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const UpscalingFilterSwitch(),
         const SmoothingFilterSwitch(),
         const CrtFilterSwitch(),
         if (videoFilters.contains(VideoFilter.crt)) ...[
