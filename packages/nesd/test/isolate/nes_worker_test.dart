@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -507,6 +508,23 @@ void main() {
     expect(nes.apu.swapDutyCycles, isTrue);
     expect(nes.apu.pulse1.swapDutyCycles, isTrue);
     expect(nes.apu.pulse2.swapDutyCycles, isTrue);
+  });
+
+  test('SetMixerCommand reaches the APU', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.apu.mixer, const MixerSettings());
+
+    await worker.handleCommand(
+      const SetMixerCommand(mixer: MixerSettings(triangle: 0, mmc5: 0.5)),
+    );
+
+    expect(nes.apu.mixer.triangle, 0);
+    expect(nes.apu.mixer.mmc5, 0.5);
+    expect(nes.apu.mixer.pulse1, 1.0);
   });
 
   test('load applies the rewind capture interval to the NES', () async {

@@ -120,6 +120,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(swapDutyCyclesSubscription.close);
 
+  final mixerSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.mixer),
+    (_, mixer) => controller.nes?.mixer = mixer,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(mixerSubscription.close);
+
   final paletteSubscription = ref.listen(
     nesPaletteProvider,
     (_, palette) => controller.systemPalette = palette,
@@ -542,6 +550,7 @@ class NesController {
         ..fastForwardSpeed = settingsController.fastForwardSpeed
         ..turboSpeed = settingsController.turboSpeed
         ..swapDutyCycles = settingsController.swapDutyCycles
+        ..mixer = settingsController.mixer
         ..systemPalette = _systemPalette;
 
       nesState.set(remote);

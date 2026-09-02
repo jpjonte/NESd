@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/log/log_level.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/database/database.dart';
@@ -178,6 +179,12 @@ class SetSwapDutyCyclesCommand extends NesCommand {
   const SetSwapDutyCyclesCommand({required this.enabled});
 
   final bool enabled;
+}
+
+class SetMixerCommand extends NesCommand {
+  const SetMixerCommand({required this.mixer});
+
+  final MixerSettings mixer;
 }
 
 class SetPaletteCommand extends NesCommand {

@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
@@ -193,6 +194,9 @@ class RemoteNes {
   // ignore: avoid_setters_without_getters
   set swapDutyCycles(bool enabled) =>
       _send(SetSwapDutyCyclesCommand(enabled: enabled));
+
+  // ignore: avoid_setters_without_getters
+  set mixer(MixerSettings mixer) => _send(SetMixerCommand(mixer: mixer));
 
   // ignore: avoid_setters_without_getters
   set systemPalette(Uint32List palette) =>
