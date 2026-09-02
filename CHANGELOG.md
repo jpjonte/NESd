@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Implemented open bus for the CPU and PPU
 - Added multiple color palettes, selectable in Graphics settings
 - Implemented UNROM 512 (mapper 30)
+- ROMs can now be loaded from `.7z` archives
 - Added an xBR-style upscaling video filter
 - Added an audio mixer to Audio settings, with a volume control per channel
 

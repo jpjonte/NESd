@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:path/path.dart' as p;
@@ -75,4 +76,4 @@ class WebRomImporter implements RomImporter {
 }
 
 Future<PlatformFile?> _pickRomFile(PickFile pickFile) =>
-    pickFile(type: FileType.custom, allowedExtensions: ['nes', 'zip']);
+    pickFile(type: FileType.custom, allowedExtensions: romFileTypeExtensions);

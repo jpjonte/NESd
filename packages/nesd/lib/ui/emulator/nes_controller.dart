@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
@@ -25,10 +24,10 @@ import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/file_picker/file_system/archive_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -255,7 +254,7 @@ class NesController {
   bool get isOn => nesState.nes != null;
 
   Future<Uint8List> _readFile(String path) async {
-    final separator = path.lastIndexOf(':');
+    final separator = path.lastIndexOf(archiveSeparator);
 
     if (separator == -1) {
       return filesystem.read(path);
@@ -263,13 +262,13 @@ class NesController {
 
     final archivePath = path.substring(0, separator);
 
-    if (!isZipFile(archivePath)) {
+    if (!isArchiveFile(archivePath)) {
       return filesystem.read(path);
     }
 
-    final archive = ZipFilesystem(
+    final archive = await ArchiveFilesystem.open(
       path: archivePath,
-      zipData: await filesystem.read(archivePath),
+      data: await filesystem.read(archivePath),
     );
 
     return archive.read(path.substring(separator + 1));
@@ -414,7 +413,7 @@ class NesController {
   }
 
   Future<FilesystemFile?> _resolveArchiveEntry(FilesystemFile file) async {
-    if (!isZipFile(file.path) || !await _holdsSeveralRoms(file)) {
+    if (!isArchiveFile(file.path) || !await _holdsSeveralRoms(file)) {
       return file;
     }
 
@@ -423,18 +422,19 @@ class NesController {
         title: 'Select a ROM',
         initialDirectory: file,
         type: FilePickerType.file,
-        allowedExtensions: const ['.nes', '.zip'],
+        allowedExtensions: romPickerExtensions,
       ),
     );
   }
 
   Future<bool> _holdsSeveralRoms(FilesystemFile file) async {
     try {
-      final archive = ZipDecoder().decodeBytes(
-        await filesystem.read(file.path),
+      final archive = await ArchiveFilesystem.open(
+        path: file.path,
+        data: await filesystem.read(file.path),
       );
 
-      return archive.files.where((entry) => isRomFile(entry.name)).length > 1;
+      return archive.entries.where((entry) => isRomFile(entry.name)).length > 1;
     } on Exception catch (e) {
       log.rom.warning(
         'Could not inspect archive',
@@ -462,7 +462,7 @@ class NesController {
 
       final rom = switch (extension.toLowerCase()) {
         '.nes' => bytes,
-        '.zip' => _loadZip(file.path, bytes),
+        '.zip' || '.7z' => await _loadArchive(file.path, bytes),
         _ => throw UnsupportedFileType(extension),
       };
 
@@ -736,10 +736,12 @@ class NesController {
     }
   }
 
-  Uint8List _loadZip(String path, Uint8List data) {
-    final archive = ZipDecoder().decodeBytes(data);
+  Future<Uint8List> _loadArchive(String path, Uint8List data) async {
+    final archive = await ArchiveFilesystem.open(path: path, data: data);
 
-    final roms = archive.files.where((file) => isRomFile(file.name)).toList();
+    final roms = archive.entries
+        .where((entry) => isRomFile(entry.name))
+        .toList();
 
     if (roms.isEmpty) {
       throw EmptyArchive(path);
@@ -749,7 +751,7 @@ class NesController {
       throw TooManyRoms(path);
     }
 
-    return Uint8List.fromList(roms.single.content as List<int>);
+    return archive.readEntry(roms.single.name);
   }
 
   // ignore: avoid_setters_without_getters

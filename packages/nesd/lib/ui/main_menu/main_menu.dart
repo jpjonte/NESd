@@ -12,6 +12,7 @@ import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
+import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/main_menu/recent_rom_list.dart';
@@ -135,7 +136,7 @@ class OpenRomButton extends ConsumerWidget {
             title: 'Select a ROM',
             initialDirectory: directory,
             type: FilePickerType.file,
-            allowedExtensions: const ['.nes', '.zip'],
+            allowedExtensions: romPickerExtensions,
             onChangeDirectory: (directory) =>
                 settingsController.lastRomPath = directory,
           ),
