@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/apu_channel_samples.dart';
+import 'package:nesd/nes/apu/apu_mix.dart';
 import 'package:nesd/nes/apu/apu_state.dart';
 import 'package:nesd/nes/apu/channel/dmc_channel.dart';
 import 'package:nesd/nes/apu/channel/noise_channel.dart';
@@ -9,7 +10,7 @@ import 'package:nesd/nes/apu/channel/pulse_channel.dart';
 import 'package:nesd/nes/apu/channel/triangle_channel.dart';
 import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter.dart';
-import 'package:nesd/nes/apu/tables.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/region.dart';
@@ -58,11 +59,23 @@ class APU {
     pulse2.swapDutyCycles = value;
   }
 
+  MixerSettings _mixer = const MixerSettings();
+
+  MixerSettings get mixer => _mixer;
+
+  set mixer(MixerSettings value) {
+    _mixer = value;
+
+    _updateExpansionGain();
+  }
+
   ExpansionAudio? _expansion;
 
   /// The cached expansion chip, for debug consumers that need it outside the
   /// hot path.
   ExpansionAudio? get expansionAudio => _expansion;
+
+  double _expansionGain = 1;
 
   double _expansionSamples = 0;
 
@@ -233,6 +246,8 @@ class APU {
     _expansion = bus.cartridge.mapper.expansionAudio;
     _expansionSamples = 0;
 
+    _updateExpansionGain();
+
     _dmcIrqAsserted = false;
 
     _frameCounter.reset();
@@ -336,12 +351,17 @@ class APU {
     // already a step function at the sample rate.
     final noiseSample = noise.output;
 
-    final pulseOut = pulseTable[pulse1Sample + pulse2Sample];
-    final tndOut = tndTable[3 * triangleSample + 2 * noiseSample + dmcSample];
-
     final expansionSample = _expansionSamples * inv;
 
-    sampleBuffer[sampleIndex] = pulseOut + tndOut + expansionSample;
+    sampleBuffer[sampleIndex] = mixSample(
+      pulse1: pulse1Sample,
+      pulse2: pulse2Sample,
+      triangle: triangleSample,
+      noise: noiseSample,
+      dmc: dmcSample,
+      expansion: expansionSample * _expansionGain,
+      mixer: _mixer,
+    );
 
     if (_channelSamples case final channelSamples?) {
       channelSamples.pulse1[sampleIndex] = pulse1Sample;
@@ -373,5 +393,13 @@ class APU {
     _triangleSamples = 0;
     _dmcSamples = 0;
     _expansionSamples = 0;
+  }
+
+  void _updateExpansionGain() {
+    _expansionGain = switch (_expansion?.kind) {
+      ExpansionAudioKind.mmc5 => _mixer.mmc5,
+      ExpansionAudioKind.namco163 => _mixer.namco163,
+      null => 1,
+    };
   }
 }

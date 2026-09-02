@@ -1,18 +1,15 @@
-import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
-import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -26,23 +23,7 @@ class _MockToaster extends Mock implements Toaster {}
 
 class _MockRomManager extends Mock implements RomManager {}
 
-class _GatedDatabase implements NesDatabase {
-  final _completer = Completer<void>();
-
-  int findCalls = 0;
-
-  @override
-  Future<void> get ready => _completer.future;
-
-  @override
-  NesDatabaseEntry? find(RomInfo info) {
-    findCalls++;
-
-    return null;
-  }
-
-  void finishLoading() => _completer.complete();
-}
+class _MockFilesystem extends Mock implements Filesystem {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -57,14 +38,11 @@ void main() {
         ),
       ),
     );
-    registerFallbackValue(Uint8List(0));
   });
 
-  test('waits for the ROM database before building the cartridge', () async {
+  Future<FakeNesIsolateHandle> loadWith(MixerSettings mixer) async {
     final container = ProviderContainer();
-
     addTearDown(container.dispose);
-
     container.listen(nesStateProvider, (_, _) {});
 
     final settings = _MockSettingsController();
@@ -76,30 +54,22 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
-    when(() => settings.mixer).thenReturn(const MixerSettings());
+    when(() => settings.mixer).thenReturn(mixer);
+    when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.autoSave).thenReturn(false);
     when(() => settings.autoSaveInterval).thenReturn(5);
     when(() => settings.autoLoad).thenReturn(false);
     when(() => settings.logLevel).thenReturn(LogLevel.info);
-    when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
 
     final romManager = _MockRomManager();
 
     when(() => romManager.load(any())).thenAnswer((_) async => null);
-    when(() => romManager.save(any(), any())).thenAnswer((_) async {});
 
-    final database = _GatedDatabase();
+    final database = MockNesDatabase();
 
     final handle = FakeNesIsolateHandle();
-
     addTearDown(handle.dispose);
-
-    final filesystem = MockFileSystem()
-      ..addFile(
-        '/test/roms/nestest.nes',
-        File('../../roms/test/nestest/nestest.nes').readAsBytesSync(),
-      );
 
     final controller = NesController(
       nesState: container.read(nesStateProvider.notifier),
@@ -108,33 +78,40 @@ void main() {
       settingsController: settings,
       toaster: _MockToaster(),
       romManager: romManager,
-      filesystem: filesystem,
+      filesystem: _MockFilesystem(),
       database: database,
       cartridgeFactory: CartridgeFactory(database: database),
       romImporter: FakeRomImporter(),
     );
 
-    final loading = controller.loadRom(
-      const FilesystemFile(
-        path: '/test/roms/nestest.nes',
-        name: 'nestest.nes',
-        type: FilesystemFileType.file,
-      ),
+    const file = FilesystemFile(
+      path: '/test/test.nes',
+      name: 'test.nes',
+      type: FilesystemFileType.file,
     );
 
-    await pumpEventQueue();
+    final loaded = await controller.loadRom(file, data: minimalValidRom());
 
-    expect(
-      database.findCalls,
-      0,
-      reason:
-          'the cartridge was built before the database had finished '
-          'loading, so no entry could be found for it',
-    );
+    expect(loaded, isTrue);
 
-    database.finishLoading();
+    return handle;
+  }
 
-    expect(await loading, isTrue);
-    expect(database.findCalls, greaterThan(0));
+  test('loadRom sends the stored mixer to the worker', () async {
+    const mixer = MixerSettings(pulse1: 0.25, noise: 0, namco163: 0.5);
+
+    final handle = await loadWith(mixer);
+
+    final sent = handle.sentCommands.whereType<SetMixerCommand>().single;
+
+    expect(sent.mixer, mixer);
+  });
+
+  test('loadRom sends the default mixer when nothing is customised', () async {
+    final handle = await loadWith(const MixerSettings());
+
+    final sent = handle.sentCommands.whereType<SetMixerCommand>().single;
+
+    expect(sent.mixer, const MixerSettings());
   });
 }

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/apu/apu_channel_samples.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
 import '../../test_roms/rom_robot.dart';
@@ -30,6 +31,8 @@ void main() {
   test('captured channel samples reproduce the mixed output exactly', () {
     final robot = RomRobot(_romPath);
     final apu = robot.nes.apu..debugSamplingEnabled = true;
+
+    expect(apu.mixer, const MixerSettings());
 
     final target = robot.nes.ppu.frames + 60;
     final rounded = Float32List(1);

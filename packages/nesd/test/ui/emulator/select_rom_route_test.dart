@@ -11,6 +11,7 @@ import 'package:idb_shim/idb_client_memory.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -253,6 +254,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.mixer).thenReturn(const MixerSettings());
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
@@ -353,6 +355,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.mixer).thenReturn(const MixerSettings());
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
@@ -410,6 +413,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.mixer).thenReturn(const MixerSettings());
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);
@@ -488,6 +492,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.mixer).thenReturn(const MixerSettings());
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.turboSpeed).thenReturn(TurboSpeed.x1);
     when(() => settings.autoSave).thenReturn(false);

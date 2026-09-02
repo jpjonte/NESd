@@ -51,6 +51,9 @@ class Namco163Audio implements ExpansionAudio {
   }
 
   @override
+  ExpansionAudioKind get kind => ExpansionAudioKind.namco163;
+
+  @override
   double get output => soundDisabled ? 0.0 : channelOutput[7 - slot] * _scale;
 
   @override

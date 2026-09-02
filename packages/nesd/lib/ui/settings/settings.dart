@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
@@ -99,6 +100,12 @@ Overscan _overscanFromJson(dynamic json) => json == null
     ? const Overscan()
     : Overscan.fromJson(json as Map<String, dynamic>);
 
+Map<String, dynamic> _mixerToJson(MixerSettings mixer) => mixer.toJson();
+
+MixerSettings _mixerFromJson(dynamic json) => json == null
+    ? const MixerSettings()
+    : MixerSettings.fromJson(json as Map<String, dynamic>).clamped();
+
 Map<String, dynamic> _ntscPaletteToJson(NtscPaletteSettings settings) =>
     settings.toJson();
 
@@ -112,6 +119,9 @@ sealed class Settings with _$Settings {
     @Default(1.0) double volume,
     @Default(false) bool lowPassFilter,
     @Default(false) bool swapDutyCycles,
+    @JsonKey(toJson: _mixerToJson, fromJson: _mixerFromJson)
+    @Default(MixerSettings())
+    MixerSettings mixer,
     @Default(FastForwardSpeed.x2) FastForwardSpeed fastForwardSpeed,
     @Default(TurboSpeed.x1) TurboSpeed turboSpeed,
     @Default(true) bool stretch,
@@ -199,6 +209,12 @@ class SettingsController extends _$SettingsController {
 
   set swapDutyCycles(bool swapDutyCycles) {
     _update(state.copyWith(swapDutyCycles: swapDutyCycles));
+  }
+
+  MixerSettings get mixer => state.mixer;
+
+  set mixer(MixerSettings mixer) {
+    _update(state.copyWith(mixer: mixer.clamped()));
   }
 
   FastForwardSpeed get fastForwardSpeed => state.fastForwardSpeed;
