@@ -648,6 +648,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.14.1"
+  koni_archive_core:
+    dependency: transitive
+    description:
+      name: koni_archive_core
+      sha256: f323296866d6224725839e2b8ef25dfeba5e0c2476877fa7726f4b966a4c7a84
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0"
+  koni_codecs:
+    dependency: transitive
+    description:
+      name: koni_codecs
+      sha256: "0a0ffa23f62f627bc50db6de79e88a6a41e019d3a21c6a455ac5ae7c1677a8bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0"
+  koni_sevenz:
+    dependency: transitive
+    description:
+      name: koni_sevenz
+      sha256: "058428e9328361849aea9f4b1f75803473248b33dbdc434ffbcc205c83c82d4b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0"
   leak_tracker:
     dependency: transitive
     description:
