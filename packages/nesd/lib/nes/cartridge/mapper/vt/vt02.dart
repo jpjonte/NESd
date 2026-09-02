@@ -141,6 +141,8 @@ abstract class VT02 extends Mapper {
 
   bool get _fourBppActive => _graphicsRegisters[0x00] & 0x06 != 0;
 
+  bool get _extensionActive => _graphicsRegisters[0x00] & 0x18 != 0;
+
   void _pushVideoMode() {
     final control = _graphicsRegisters[0x00];
 
@@ -172,6 +174,46 @@ abstract class VT02 extends Mapper {
         mapPpu4bpp(address, address + 0x7ff, _chrBank(slot), source: source);
       }
     }
+
+    if (_extensionActive) {
+      _updateEvaBanks();
+    }
+  }
+
+  void _updateEvaBanks() {
+    final source = _chrSource;
+
+    for (var eva = 0; eva < 8; eva++) {
+      for (var slot = 0; slot < 8; slot++) {
+        final bank = _evaBank(slot) | eva;
+        final address2bpp = slot * 0x400;
+        final address4bpp = slot * 0x800;
+
+        mapPpuEva2bpp(
+          eva,
+          address2bpp,
+          address2bpp + 0x3ff,
+          bank,
+          source: source,
+        );
+
+        mapPpuEva4bpp(
+          eva,
+          address4bpp,
+          address4bpp + 0x7ff,
+          bank,
+          source: source,
+        );
+      }
+    }
+  }
+
+  int _evaBank(int slot) {
+    final innerMask = _chrInnerMask;
+    final inner = _chrInnerBank(slot) & innerMask;
+    final middle = _chrMiddleBank & ~innerMask & 0xff;
+
+    return ((inner | middle) << 3) | (_chrOuterBank << 11);
   }
 
   Uint8List get _chrSource =>
@@ -454,7 +496,7 @@ abstract class VT02 extends Mapper {
     if (address == 0x2010) {
       _pushVideoMode();
 
-      if ((previous ^ value) & 0x06 != 0) {
+      if ((previous ^ value) & 0x1e != 0) {
         _updateChrBanks();
       }
     }
