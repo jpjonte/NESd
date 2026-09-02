@@ -828,7 +828,7 @@ class PPU {
     var value = PPUDATA;
 
     if (!disableSideEffects) {
-      PPUDATA = readPpuMemory(v);
+      PPUDATA = _readPpuData(v);
     }
 
     // always return current palette data
@@ -849,6 +849,18 @@ class PPU {
     }
 
     return _readWithDecay(value, isPalette ? 0x3f : 0xff);
+  }
+
+  int _readPpuData(int address) {
+    final masked = address & 0x3fff;
+
+    if ((bgExtension || spriteExtension) && masked < 0x2000) {
+      _updateBusAddress(masked);
+
+      return readEva2bpp(vrwb, masked);
+    }
+
+    return readPpuMemory(address);
   }
 
   void _writePPUCTRL(int value) {

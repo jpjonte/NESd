@@ -204,4 +204,60 @@ void main() {
       expect(evaBankAt2bpp(mapper, 0, 0x0000), 2);
     });
   });
+
+  group(r'$2007 access extension', () {
+    test('reads pattern data through VRWB while extension is on', () {
+      final (:nes, mapper: _) = buildVt02(chrPages: 64);
+
+      nes.bus.cpuWrite(0x2010, 0x10); // BKEXTEN
+      nes.bus.cpuWrite(0x2018, 0x03); // VRWB = 3
+
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuRead(0x2007); // prime the buffer
+
+      // slot 0 base bank 0 | EVA 3 -> stamp 3
+      expect(nes.bus.cpuRead(0x2007), 3);
+    });
+
+    test(r'sprite extension alone also reroutes $2007', () {
+      final (:nes, mapper: _) = buildVt02(chrPages: 64);
+
+      nes.bus.cpuWrite(0x2010, 0x08); // SPEXTEN
+      nes.bus.cpuWrite(0x2018, 0x01); // VRWB = 1
+
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuRead(0x2007);
+
+      expect(nes.bus.cpuRead(0x2007), 1);
+    });
+
+    test(r'$2007 uses the normal mapping while extension is off', () {
+      final (:nes, mapper: _) = buildVt02(chrPages: 64);
+
+      nes.bus.cpuWrite(0x2018, 0x03); // VRWB set but extension off
+
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuWrite(0x2006, 0x00);
+      nes.bus.cpuRead(0x2007);
+
+      expect(nes.bus.cpuRead(0x2007), 0);
+    });
+
+    test('nametable reads are unaffected by extension', () {
+      final (:nes, mapper: _) = buildVt02(chrPages: 64);
+
+      nes.bus.ppuWrite(0x2005, 0x42);
+
+      nes.bus.cpuWrite(0x2010, 0x10);
+      nes.bus.cpuWrite(0x2018, 0x03);
+
+      nes.bus.cpuWrite(0x2006, 0x20);
+      nes.bus.cpuWrite(0x2006, 0x05);
+      nes.bus.cpuRead(0x2007);
+
+      expect(nes.bus.cpuRead(0x2007), 0x42);
+    });
+  });
 }
