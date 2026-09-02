@@ -55,6 +55,36 @@ void main() {
     ]);
   });
 
+  testWidgets('upscaling runs before smoothing and crt', (tester) async {
+    await tester.pumpWidget(
+      wrap(
+        const Column(
+          children: [
+            UpscalingFilterSwitch(),
+            SmoothingFilterSwitch(),
+            CrtFilterSwitch(),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('CRT effect'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Upscaling (xBR)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Smoothing'));
+    await tester.pumpAndSettle();
+
+    final element = tester.element(find.byType(CrtFilterSwitch));
+    final container = ProviderScope.containerOf(element);
+
+    expect(container.read(settingsControllerProvider).videoFilters, [
+      VideoFilter.xbr,
+      VideoFilter.smooth,
+      VideoFilter.crt,
+    ]);
+  });
+
   testWidgets('toggling CRT off removes only crt', (tester) async {
     await tester.pumpWidget(
       wrap(
