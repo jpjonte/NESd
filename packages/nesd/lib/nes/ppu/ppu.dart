@@ -1524,6 +1524,30 @@ class PPU {
 
     final output = _spriteOutputs[sprite];
 
+    if (spriteExtension) {
+      final eva = (attribute >> 2) & 0x7;
+
+      _updateBusAddress(lowAddress);
+
+      if (spriteFourBpp) {
+        output.patternLow = readEva4bpp(eva, _fourBppAddress(lowAddress, 0));
+        output.patternLow2 = readEva4bpp(eva, _fourBppAddress(lowAddress, 1));
+      } else {
+        output.patternLow = readEva2bpp(eva, lowAddress);
+      }
+
+      _updateBusAddress(highAddress);
+
+      if (spriteFourBpp) {
+        output.patternHigh = readEva4bpp(eva, _fourBppAddress(highAddress, 0));
+        output.patternHigh2 = readEva4bpp(eva, _fourBppAddress(highAddress, 1));
+      } else {
+        output.patternHigh = readEva2bpp(eva, highAddress);
+      }
+
+      return;
+    }
+
     if (spriteFourBpp) {
       _updateBusAddress(lowAddress);
 
