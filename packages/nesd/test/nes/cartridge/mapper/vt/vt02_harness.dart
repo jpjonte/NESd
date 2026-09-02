@@ -14,14 +14,15 @@ const vtPrgBanks = 8;
 /// CHR-ROM size, multiples of 8 KB
 const vtChrPages = 8;
 
-Uint8List _buildRom(int prgBanks, int chrPages) {
+Uint8List _buildRom(int prgBanks, int chrPages, int subMapperId) {
   final prgSize = prgBanks * 0x4000;
   final chrSize = chrPages * 0x2000;
 
   final rom = Uint8List(16 + prgSize + chrSize)
     ..setAll(0, [
       0x4e, 0x45, 0x53, 0x1a, //
-      prgBanks & 0xff, chrPages & 0xff, 0x00, 0x08, 0x01,
+      prgBanks & 0xff, chrPages & 0xff, 0x00, 0x08,
+      (subMapperId << 4) | 0x01,
       ((chrPages >> 8) << 4) | (prgBanks >> 8), 0x00, 0x00,
     ]);
 
@@ -43,13 +44,18 @@ void _stampBanks(Uint8List rom, int start, int size, int bankSize) {
   }
 }
 
-final _roms = <(int, int), Uint8List>{};
+final _roms = <(int, int, int), Uint8List>{};
 
 ({NES nes, Mapper256 mapper}) buildVt02({
   int prgBanks = vtPrgBanks,
   int chrPages = vtChrPages,
+  int subMapperId = 0,
 }) {
-  final rom = _roms[(prgBanks, chrPages)] ??= _buildRom(prgBanks, chrPages);
+  final rom = _roms[(prgBanks, chrPages, subMapperId)] ??= _buildRom(
+    prgBanks,
+    chrPages,
+    subMapperId,
+  );
 
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(

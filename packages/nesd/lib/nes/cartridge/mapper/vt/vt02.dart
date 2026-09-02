@@ -290,10 +290,24 @@ abstract class VT02 extends Mapper {
     };
   }
 
+  int _scrambledSystemAddress(int address) {
+    if (subMapperId != 2) {
+      return address;
+    }
+
+    return switch (address) {
+      0x4107 => 0x4108,
+      0x4108 => 0x4107,
+      _ => address,
+    };
+  }
+
   @override
   void cpuWrite(int address, int value) {
     if (address >= 0x4100 && address <= 0x411b) {
-      switch (address) {
+      final target = _scrambledSystemAddress(address);
+
+      switch (target) {
         case 0x4101:
           timer.preload = value;
         case 0x4102:
@@ -309,19 +323,19 @@ abstract class VT02 extends Mapper {
           }
       }
 
-      if (_isWritableSystemRegister(address)) {
-        _systemRegisters[address - 0x4100] = value;
+      if (_isWritableSystemRegister(target)) {
+        _systemRegisters[target - 0x4100] = value;
       }
 
-      if (_isPrgBankRegister(address)) {
+      if (_isPrgBankRegister(target)) {
         _updatePrgBanks();
       }
 
-      if (_isChrControlRegister(address)) {
+      if (_isChrControlRegister(target)) {
         _updateChrBanks();
       }
 
-      if (address == 0x4106) {
+      if (target == 0x4106) {
         _updateMirroring();
       }
 
@@ -354,7 +368,7 @@ abstract class VT02 extends Mapper {
       case 0x8000:
         cpuWrite(0x4105, (_systemRegisters[0x05] & 0x20) | (value & 0xdf));
       case 0x8001:
-        _writeRegister(_mmc3BankTargets[_systemRegisters[0x05] & 0x07], value);
+        _writeRegister(_mmc3BankTarget(_systemRegisters[0x05] & 0x07), value);
       case 0xa000:
         cpuWrite(0x4106, (_systemRegisters[0x06] & 0xfe) | (value & 0x01));
       case 0xc000:
@@ -379,12 +393,40 @@ abstract class VT02 extends Mapper {
     0x4108,
   ];
 
+  static const _scrambledMmc3BankTargets = <int, List<int>>{
+    1: [0x2015, 0x2014, 0x2013, 0x2012, 0x2017, 0x2016, 0x4107, 0x4108],
+  };
+
+  int _mmc3BankTarget(int register) =>
+      (_scrambledMmc3BankTargets[subMapperId] ?? _mmc3BankTargets)[register];
+
   void _writeRegister(int address, int value) {
     if (address < 0x4000) {
-      extendedPpuWrite(address, value);
+      _storeGraphicsRegister(address, value);
     } else {
       cpuWrite(address, value);
     }
+  }
+
+  static const _nativeChrScrambles = <int, List<int>>{
+    1: [0x2013, 0x2012, 0x2017, 0x2016, 0x2015, 0x2014],
+    3: [0x2017, 0x2016, 0x2015, 0x2014, 0x2012, 0x2013],
+    4: [0x2014, 0x2017, 0x2012, 0x2016, 0x2015, 0x2013],
+    5: [0x2013, 0x2012, 0x2017, 0x2016, 0x2016, 0x2017],
+  };
+
+  int _scrambledGraphicsAddress(int address) {
+    if (address < 0x2012 || address > 0x2017) {
+      return address;
+    }
+
+    final scramble = _nativeChrScrambles[subMapperId];
+
+    if (scramble == null) {
+      return address;
+    }
+
+    return scramble[address - 0x2012];
   }
 
   @override
@@ -397,6 +439,10 @@ abstract class VT02 extends Mapper {
       return;
     }
 
+    _storeGraphicsRegister(_scrambledGraphicsAddress(address), value);
+  }
+
+  void _storeGraphicsRegister(int address, int value) {
     final previous = _graphicsRegisters[address - 0x2010];
 
     _graphicsRegisters[address - 0x2010] = value;
