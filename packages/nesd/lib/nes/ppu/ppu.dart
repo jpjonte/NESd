@@ -816,7 +816,9 @@ class PPU {
   int _readOAMDATA() {
     final value = oam[OAMADDR];
 
-    final driven = OAMADDR & 0x3 == 2 ? value & 0xe3 : value;
+    final driven = !mapperNeedsExtendedPpuRegisters && OAMADDR & 0x3 == 2
+        ? value & 0xe3
+        : value;
 
     return _readWithDecay(driven, 0xff);
   }
