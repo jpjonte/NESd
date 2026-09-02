@@ -104,7 +104,7 @@ Map<String, dynamic> _mixerToJson(MixerSettings mixer) => mixer.toJson();
 
 MixerSettings _mixerFromJson(dynamic json) => json == null
     ? const MixerSettings()
-    : MixerSettings.fromJson(json as Map<String, dynamic>);
+    : MixerSettings.fromJson(json as Map<String, dynamic>).clamped();
 
 Map<String, dynamic> _ntscPaletteToJson(NtscPaletteSettings settings) =>
     settings.toJson();
@@ -214,7 +214,7 @@ class SettingsController extends _$SettingsController {
   MixerSettings get mixer => state.mixer;
 
   set mixer(MixerSettings mixer) {
-    _update(state.copyWith(mixer: mixer));
+    _update(state.copyWith(mixer: mixer.clamped()));
   }
 
   FastForwardSpeed get fastForwardSpeed => state.fastForwardSpeed;

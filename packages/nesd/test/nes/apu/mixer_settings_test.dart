@@ -28,6 +28,34 @@ void main() {
     expect(MixerSettings.fromJson(settings.toJson()), settings);
   });
 
+  test('clamped pulls every gain into the usable range', () {
+    const settings = MixerSettings(
+      pulse1: -1.2,
+      pulse2: 2,
+      triangle: -0.0001,
+      noise: 1.5,
+      dmc: double.nan,
+      mmc5: double.infinity,
+      namco163: double.negativeInfinity,
+    );
+
+    final clamped = settings.clamped();
+
+    expect(clamped.pulse1, 0.0);
+    expect(clamped.pulse2, 1.0);
+    expect(clamped.triangle, 0.0);
+    expect(clamped.noise, 1.0);
+    expect(clamped.dmc, isNot(isNaN));
+    expect(clamped.mmc5, 1.0);
+    expect(clamped.namco163, 0.0);
+  });
+
+  test('clamped leaves usable gains untouched', () {
+    const settings = MixerSettings(pulse1: 0, pulse2: 0.5, triangle: 0.25);
+
+    expect(settings.clamped(), settings);
+  });
+
   test('fills in unity gain for keys missing from stored settings', () {
     final settings = MixerSettings.fromJson(const {'pulse1': 0.5});
 

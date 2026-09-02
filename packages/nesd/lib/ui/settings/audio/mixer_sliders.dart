@@ -120,7 +120,7 @@ class _MixerSlider extends ConsumerWidget {
     final current = value(mixer);
 
     void set(double newValue) {
-      controller.mixer = update(mixer, newValue.clamp(0.0, 1.0));
+      controller.mixer = update(mixer, newValue);
     }
 
     return Actions(

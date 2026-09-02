@@ -214,8 +214,8 @@ return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_
 /// @nodoc
 @JsonSerializable()
 
-class _MixerSettings implements MixerSettings {
-  const _MixerSettings({this.pulse1 = 1.0, this.pulse2 = 1.0, this.triangle = 1.0, this.noise = 1.0, this.dmc = 1.0, this.mmc5 = 1.0, this.namco163 = 1.0});
+class _MixerSettings extends MixerSettings {
+  const _MixerSettings({this.pulse1 = 1.0, this.pulse2 = 1.0, this.triangle = 1.0, this.noise = 1.0, this.dmc = 1.0, this.mmc5 = 1.0, this.namco163 = 1.0}): super._();
   factory _MixerSettings.fromJson(Map<String, dynamic> json) => _$MixerSettingsFromJson(json);
 
 @override@JsonKey() final  double pulse1;

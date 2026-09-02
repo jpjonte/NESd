@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/audio/mixer_sliders.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -99,6 +101,32 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(readMixer(tester, NoiseGainSlider).noise, 1.0);
+  });
+
+  testWidgets('holding increase stops at 100%', (tester) async {
+    await pump(tester, const DmcGainSlider());
+
+    final context = tester.element(find.byType(SliderSettingsTile));
+
+    for (var i = 0; i < 40; i++) {
+      Actions.invoke(context, const IncreaseIntent());
+      await tester.pump();
+    }
+
+    expect(readMixer(tester, DmcGainSlider).dmc, 1.0);
+  });
+
+  testWidgets('holding decrease stops at silence', (tester) async {
+    await pump(tester, const DmcGainSlider());
+
+    final context = tester.element(find.byType(SliderSettingsTile));
+
+    for (var i = 0; i < 40; i++) {
+      Actions.invoke(context, const DecreaseIntent());
+      await tester.pump();
+    }
+
+    expect(readMixer(tester, DmcGainSlider).dmc, 0.0);
   });
 
   testWidgets('each expansion slider drives its own chip', (tester) async {
