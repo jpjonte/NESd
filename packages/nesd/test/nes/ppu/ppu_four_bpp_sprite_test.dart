@@ -9,8 +9,12 @@ void main() {
 
       nes.bus.cpuWrite(0x2010, 0x04); // sprites 4bpp, background 2bpp
 
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < 4; i++) {
         nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      for (var i = 0; i < 4; i++) {
+        nes.bus.ppuWrite(0x3f30 + i, 0x30 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);
@@ -23,7 +27,7 @@ void main() {
       for (var xOffset = 0; xOffset < 7; xOffset++) {
         expect(
           pixelAt(nes.ppu, 64 + xOffset, 10),
-          nes.ppu.paletteLut[0x10 | expectedPattern[xOffset]],
+          nes.ppu.paletteLut[0x10 | expectedIndices[xOffset]],
           reason: 'xOffset=$xOffset',
         );
       }
@@ -34,11 +38,9 @@ void main() {
 
       nes.bus.cpuWrite(0x2010, 0x06); // both 4bpp
 
-      for (var i = 0; i < 16; i++) {
+      for (var i = 0; i < 4; i++) {
         nes.bus.ppuWrite(0x3f00 + i, i);
-        if (i > 0) {
-          nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
-        }
+        nes.bus.ppuWrite(0x3f20 + i, 0x10 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);
@@ -48,7 +50,7 @@ void main() {
 
       runFrames(nes, 2);
 
-      expect(pixelAt(nes.ppu, 64, 10), nes.ppu.paletteLut[7]);
+      expect(pixelAt(nes.ppu, 64, 10), nes.ppu.paletteLut[0x23]);
       expect(pixelAt(nes.ppu, 64 + 7, 10), nes.ppu.paletteLut[0]);
     });
 
@@ -108,8 +110,12 @@ void main() {
 
       nes.bus.cpuWrite(0x2010, 0x04);
 
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < 4; i++) {
         nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      for (var i = 0; i < 4; i++) {
+        nes.bus.ppuWrite(0x3f30 + i, 0x30 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);
@@ -122,7 +128,7 @@ void main() {
       for (var xOffset = 1; xOffset < 8; xOffset++) {
         expect(
           pixelAt(nes.ppu, 64 + xOffset, 10),
-          nes.ppu.paletteLut[0x10 | expectedPattern[7 - xOffset]],
+          nes.ppu.paletteLut[0x10 | expectedIndices[7 - xOffset]],
           reason: 'xOffset=$xOffset',
         );
       }
@@ -133,8 +139,12 @@ void main() {
 
       nes.bus.cpuWrite(0x2010, 0x04);
 
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < 4; i++) {
         nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      for (var i = 0; i < 4; i++) {
+        nes.bus.ppuWrite(0x3f30 + i, 0x30 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);
@@ -147,7 +157,7 @@ void main() {
       for (var xOffset = 0; xOffset < 7; xOffset++) {
         expect(
           pixelAt(nes.ppu, 64 + xOffset, 10),
-          nes.ppu.paletteLut[0x10 | expectedPattern[xOffset]],
+          nes.ppu.paletteLut[0x10 | expectedIndices[xOffset]],
           reason: 'xOffset=$xOffset',
         );
       }
@@ -159,8 +169,12 @@ void main() {
       nes.bus.cpuWrite(0x2010, 0x04);
       nes.bus.cpuWrite(0x2000, 0x20); // 8x16 sprites
 
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < 4; i++) {
         nes.bus.ppuWrite(0x3f10 + i, 0x20 + i);
+      }
+
+      for (var i = 0; i < 4; i++) {
+        nes.bus.ppuWrite(0x3f30 + i, 0x30 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);
@@ -170,8 +184,8 @@ void main() {
 
       runFrames(nes, 2);
 
-      expect(pixelAt(nes.ppu, 64, 10), nes.ppu.paletteLut[0x10 | 7]);
-      expect(pixelAt(nes.ppu, 64 + 4, 18), nes.ppu.paletteLut[0x10 | 4]);
+      expect(pixelAt(nes.ppu, 64, 10), nes.ppu.paletteLut[0x10 | 0x23]);
+      expect(pixelAt(nes.ppu, 64 + 4, 18), nes.ppu.paletteLut[0x10 | 0x20]);
     });
   });
 }

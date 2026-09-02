@@ -79,8 +79,9 @@ void main() {
 
       nes.bus.cpuWrite(0x2010, 0x07); // BK16EN | SP16EN | PIX16EN
 
-      for (var i = 0; i < 16; i++) {
+      for (var i = 0; i < 4; i++) {
         nes.bus.ppuWrite(0x3f00 + i, i);
+        nes.bus.ppuWrite(0x3f20 + i, 0x10 + i);
       }
 
       nes.ppu.oam.fillRange(0, 256, 0xff);

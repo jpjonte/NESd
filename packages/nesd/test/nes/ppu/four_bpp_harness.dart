@@ -11,6 +11,7 @@ import '../../ui/mocks.dart';
 Uint8List buildFourBppRom({
   bool wideLayout = false,
   bool stampTileOne = false,
+  List<int>? planeRows,
 }) {
   const prgBanks = 2; // 32 KiB
   const prgSize = prgBanks * 0x4000;
@@ -32,7 +33,11 @@ Uint8List buildFourBppRom({
   rom[prgStart + prgSize - 3] = 0x80;
 
   for (var row = 0; row < 8; row++) {
-    if (wideLayout) {
+    if (planeRows != null) {
+      for (var plane = 0; plane < 4; plane++) {
+        rom[chrStart + plane * 8 + row] = planeRows[plane];
+      }
+    } else if (wideLayout) {
       rom[chrStart + 2 * row] = 0xaa;
       rom[chrStart + 2 * row + 1] = 0xf0;
       rom[chrStart + 16 + 2 * row] = 0xcc;
@@ -122,4 +127,4 @@ int pixelAt(PPU ppu, int x, int y) {
       pixels[i];
 }
 
-const expectedPattern = [7, 6, 5, 4, 3, 2, 1, 0];
+const expectedIndices = [0x23, 0x22, 0x21, 0x20, 3, 2, 1, 0];

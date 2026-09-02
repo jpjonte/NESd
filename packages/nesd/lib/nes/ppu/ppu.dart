@@ -242,9 +242,10 @@ class PPU {
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
   /// Sprite data for each pixel of the current scanline (built in cycle 321)
-  /// bits 0-3 = pattern
+  /// bits 0-1 = planes 0/1
+  /// bits 2-3 = OAM palette
   /// bit 4 = priority
-  /// bits 5-6 = attribute in the 4bpp position (zero in 2bpp entries)
+  /// bits 5-6 = planes 2/3 (4bpp only)
   /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
 
@@ -1021,13 +1022,13 @@ class PPU {
     if (bgFourBpp) {
       final low2 = patternTableLow2Latch;
       final high2 = patternTableHigh2Latch;
-      final attrBits = bgExtension ? 0 : attributeTableLatch << 5;
+      final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
 
       for (var i = 0; i < 8; i++) {
         final shift = 7 - i;
         final pattern =
-            ((high2 >> shift) & 0x1) << 3 |
-            ((low2 >> shift) & 0x1) << 2 |
+            ((high2 >> shift) & 0x1) << 6 |
+            ((low2 >> shift) & 0x1) << 5 |
             ((high >> shift) & 0x1) << 1 |
             ((low >> shift) & 0x1);
 
@@ -1482,9 +1483,7 @@ class PPU {
       final flipH = (attribute >> 6) & 1;
       final priorityBit = ((attribute >> 5) & 1) << 4;
       final sixteenPixels = fourBpp && spriteSixteenPixels;
-      final attrBits = fourBpp && !sixteenPixels
-          ? (attribute & 0x3) << 5
-          : (attribute & 0x3) << 2;
+      final attrBits = (attribute & 0x3) << 2;
       final base = priorityBit | attrBits;
       final sprite0Bit = i == 0 ? 0x80 : 0;
       final patternLow = spriteOutput.patternLow;
@@ -1518,8 +1517,8 @@ class PPU {
 
           if (fourBpp) {
             pattern |=
-                (((patternHigh2 >> fineX) & 1) << 3) |
-                (((patternLow2 >> fineX) & 1) << 2);
+                (((patternHigh2 >> fineX) & 1) << 6) |
+                (((patternLow2 >> fineX) & 1) << 5);
           }
         }
 
