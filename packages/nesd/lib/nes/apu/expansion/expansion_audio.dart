@@ -10,4 +10,8 @@ abstract class ExpansionAudio {
   double get output;
 
   List<int> get debugOutputs;
+
+  ExpansionAudioKind get kind;
 }
+
+enum ExpansionAudioKind { mmc5, namco163 }

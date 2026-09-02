@@ -50,6 +50,9 @@ class Mmc5Audio implements ExpansionAudio {
   }
 
   @override
+  ExpansionAudioKind get kind => ExpansionAudioKind.mmc5;
+
+  @override
   double get output =>
       (pulse1.output + pulse2.output) * mmc5PulseScale +
       pcmLevel * mmc5PcmScale;
