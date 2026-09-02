@@ -233,6 +233,10 @@ abstract class VT02 extends Mapper {
       return;
     }
 
+    if (bus.ppu.PPUMASK & 0x18 == 0) {
+      return;
+    }
+
     if (!a12Detector.detect(address, bus.cpu.cycles)) {
       return;
     }

@@ -74,6 +74,8 @@ final _roms = <(int, int, int), Uint8List>{};
 }
 
 void clockA12(Mapper256 mapper, NES nes, int count) {
+  nes.ppu.PPUMASK = 0x18;
+
   for (var i = 0; i < count; i++) {
     nes.cpu.cycles += 4;
     mapper.updatePpuAddress(0x0000);

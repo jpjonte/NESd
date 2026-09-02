@@ -192,6 +192,8 @@ void main() {
     test('does not fabricate an edge across a clock source toggle', () {
       final (:nes, :mapper) = buildVt02();
 
+      nes.ppu.PPUMASK = 0x18;
+
       nes.bus
         ..cpuWrite(0x410b, 0x00) // TSYNEN = 0, AD12 clock
         ..cpuWrite(0x4101, 0) // preload: the first edge fires
@@ -254,6 +256,28 @@ void main() {
       clockA12(mapper, nes, 1);
 
       expect(nes.cpu.irq & IrqSource.mapper.value, isNot(0));
+    });
+  });
+
+  group('rendering gate', () {
+    test('AD12 edges do not clock the timer while rendering is off', () {
+      final (:nes, :mapper) = buildVt02();
+
+      nes.bus
+        ..cpuWrite(0x4101, 0)
+        ..cpuWrite(0x4104, 0)
+        ..cpuWrite(0x4102, 0);
+
+      nes.ppu.PPUMASK = 0x00;
+
+      for (var i = 0; i < 4; i++) {
+        nes.cpu.cycles += 4;
+        mapper.updatePpuAddress(0x0000);
+        nes.cpu.cycles += 4;
+        mapper.updatePpuAddress(0x1000);
+      }
+
+      expect(nes.cpu.irq & IrqSource.mapper.value, 0);
     });
   });
 }
