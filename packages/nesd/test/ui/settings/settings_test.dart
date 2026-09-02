@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/turbo_speed.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 void main() {
@@ -26,5 +27,13 @@ void main() {
 
   test('turboSpeed defaults to the fastest pulse for missing keys', () {
     expect(Settings.fromJson(const {}).turboSpeed, TurboSpeed.x1);
+  });
+
+  test('videoFilters round-trip through JSON', () {
+    final settings = Settings(videoFilters: [VideoFilter.xbr, VideoFilter.crt]);
+
+    final restored = Settings.fromJson(settings.toJson());
+
+    expect(restored.videoFilters, [VideoFilter.xbr, VideoFilter.crt]);
   });
 }

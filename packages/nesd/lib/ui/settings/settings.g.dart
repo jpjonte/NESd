@@ -209,6 +209,7 @@ const _$VideoFilterEnumMap = {
   VideoFilter.none: 'none',
   VideoFilter.crt: 'crt',
   VideoFilter.smooth: 'smooth',
+  VideoFilter.xbr: 'xbr',
 };
 
 const _$NesPaletteIdEnumMap = {

@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 
-enum VideoFilter { none, crt, smooth }
+enum VideoFilter { none, crt, smooth, xbr }
 
-const videoFilterOrder = [VideoFilter.smooth, VideoFilter.crt];
+const videoFilterOrder = [VideoFilter.xbr, VideoFilter.smooth, VideoFilter.crt];
 
 List<VideoFilter> normalizeVideoFilters(Iterable<VideoFilter> filters) {
   final enabled = filters.toSet();
@@ -69,11 +69,12 @@ const videoFilterDefinitions = <VideoFilter, VideoFilterDefinition>{
     ],
   ),
   VideoFilter.smooth: VideoFilterDefinition(asset: 'shaders/smooth.frag'),
+  VideoFilter.xbr: VideoFilterDefinition(asset: 'shaders/xbr.frag'),
 };
 
 List<double> videoFilterUniforms(VideoFilter filter, CrtFilterSettings crt) {
   return switch (filter) {
-    VideoFilter.none || VideoFilter.smooth => const [],
+    VideoFilter.none || VideoFilter.smooth || VideoFilter.xbr => const [],
     VideoFilter.crt => [crt.scanlineIntensity, crt.maskStrength, crt.curvature],
   };
 }
