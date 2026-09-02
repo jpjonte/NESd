@@ -177,22 +177,19 @@ class Bus {
   }
 
   void ppuWrite(int address, int value) {
+    address = address & 0x3fff;
+
     if (address < 0x3f00) {
       cartridge.ppuWrite(address, value);
 
       return;
     }
 
-    if (address < 0x3fff) {
-      final idx = _paletteAddress(address);
+    final idx = _paletteAddress(address);
 
-      ppu.palette[idx] = value;
-      // notify PPU to refresh LUT entry for this palette index
-      // (safe even if LUT is not used yet)
-      ppu.onPaletteWrite(idx);
+    ppu.palette[idx] = value;
 
-      return;
-    }
+    ppu.onPaletteWrite(idx);
   }
 
   void buttonDown(int controller, NesButton button, {bool turbo = false}) {

@@ -64,5 +64,15 @@ void main() {
       expect(nes.bus.ppuRead(0x3f90), 0x2c);
       expect(nes.bus.ppuRead(0x3f80), 0x11);
     });
+
+    test(r'$3FFF is a real entry, distinct from $3F7F', () {
+      final (:nes, mapper: _) = buildVt02();
+
+      nes.bus.ppuWrite(0x3f7f, 0x11);
+      nes.bus.ppuWrite(0x3fff, 0x22);
+
+      expect(nes.bus.ppuRead(0x3f7f), 0x11);
+      expect(nes.bus.ppuRead(0x3fff), 0x22);
+    });
   });
 }
