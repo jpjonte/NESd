@@ -5,7 +5,9 @@ class A12EdgeDetector {
 
   bool detect(int address, int cycles) {
     if (address.bit(12) == 1) {
-      final cyclesHaveElapsed = lowStart > 0 && (cycles - lowStart) >= 3;
+      // in our implementation, the NT/AT fetch low at the end of a scanline
+      // measures exactly 3 CPU cycles -> require at least 4 low cycles
+      final cyclesHaveElapsed = lowStart > 0 && (cycles - lowStart) >= 4;
 
       lowStart = 0;
 
