@@ -52,6 +52,39 @@ Uint8List buildFourBppRom({
   return rom;
 }
 
+Uint8List buildEvaRom({bool fourBpp = false}) {
+  const prgBanks = 2; // 32 KiB
+  const prgSize = prgBanks * 0x4000;
+  const chrSize = 0x8000; // 32 KiB
+
+  final rom = Uint8List(16 + prgSize + chrSize)
+    ..setAll(0, [
+      0x4e, 0x45, 0x53, 0x1a, //
+      prgBanks, 4, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00,
+    ]);
+
+  const prgStart = 16;
+  const chrStart = prgStart + prgSize;
+
+  rom[prgStart] = 0x4c;
+  rom[prgStart + 1] = 0x00;
+  rom[prgStart + 2] = 0x80;
+  rom[prgStart + prgSize - 4] = 0x00;
+  rom[prgStart + prgSize - 3] = 0x80;
+
+  final bankSize = fourBpp ? 0x800 : 0x400;
+
+  for (var bank = 0; bank < chrSize ~/ bankSize; bank++) {
+    final base = chrStart + bank * bankSize;
+
+    for (var row = 0; row < 8; row++) {
+      rom[base + row] = 0x80 >> (bank & 7);
+    }
+  }
+
+  return rom;
+}
+
 NES buildNes(Uint8List rom) {
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(

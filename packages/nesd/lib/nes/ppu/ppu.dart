@@ -990,7 +990,7 @@ class PPU {
     if (bgFourBpp) {
       final low2 = patternTableLow2Latch;
       final high2 = patternTableHigh2Latch;
-      final attrBits = attributeTableLatch << 5;
+      final attrBits = bgExtension ? 0 : attributeTableLatch << 5;
 
       for (var i = 0; i < 8; i++) {
         final shift = 7 - i;
@@ -1003,7 +1003,7 @@ class PPU {
         _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
       }
     } else {
-      final attrBits = attributeTableLatch << 2;
+      final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
 
       for (var i = 0; i < 8; i++) {
         final shift = 7 - i;
@@ -1047,11 +1047,12 @@ class PPU {
       if (i < 8) {
         final attrShift = 7 - i;
 
-        attrBits =
-            (((attributeHigh >> attrShift) & 0x1) << 3) |
-            (((attributeLow >> attrShift) & 0x1) << 2);
+        attrBits = bgExtension
+            ? 0
+            : (((attributeHigh >> attrShift) & 0x1) << 3) |
+                  (((attributeLow >> attrShift) & 0x1) << 2);
       } else {
-        attrBits = (attributeLatchValue & 0x3) << 2;
+        attrBits = bgExtension ? 0 : (attributeLatchValue & 0x3) << 2;
       }
 
       _bgWindow[i] = pattern == 0 ? 0 : attrBits | pattern;
@@ -1210,6 +1211,21 @@ class PPU {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | fineY;
 
+    if (bgExtension) {
+      _updateBusAddress(address);
+
+      final eva = attributeTableLatch | (bgEvaBit2 << 2);
+
+      if (bgFourBpp) {
+        patternTableLowLatch = readEva4bpp(eva, _fourBppAddress(address, 0));
+        patternTableLow2Latch = readEva4bpp(eva, _fourBppAddress(address, 1));
+      } else {
+        patternTableLowLatch = readEva2bpp(eva, address);
+      }
+
+      return;
+    }
+
     if (bgFourBpp) {
       _updateBusAddress(address);
 
@@ -1226,6 +1242,21 @@ class PPU {
   void _fetchPatternTableHigh() {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | (fineY + 8);
+
+    if (bgExtension) {
+      _updateBusAddress(address);
+
+      final eva = attributeTableLatch | (bgEvaBit2 << 2);
+
+      if (bgFourBpp) {
+        patternTableHighLatch = readEva4bpp(eva, _fourBppAddress(address, 0));
+        patternTableHigh2Latch = readEva4bpp(eva, _fourBppAddress(address, 1));
+      } else {
+        patternTableHighLatch = readEva2bpp(eva, address);
+      }
+
+      return;
+    }
 
     if (bgFourBpp) {
       _updateBusAddress(address);
