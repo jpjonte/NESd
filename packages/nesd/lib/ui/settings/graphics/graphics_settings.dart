@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/features.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/ui/common/settings_section_header.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/graphics/border_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
@@ -41,11 +42,14 @@ class GraphicsSettings extends ConsumerWidget {
             if (Features.gpuRenderer) const RendererSelector(),
             const BorderSwitch(),
             const ScalingDropdown(),
+            const SettingsSectionHeader(title: 'Pixel Aspect Ratio'),
             const PixelAspectRatioDropdown(),
             PixelAspectRatioSlider(
               enabled: pixelAspectRatio == PixelAspectRatio.custom,
             ),
+            const SettingsSectionHeader(title: 'Overscan'),
             const OverscanSliders(),
+            const SettingsSectionHeader(title: 'Palettes'),
             const PaletteDropdown(),
             const PalettePreview(),
             if (paletteId == NesPaletteId.generated) ...[
@@ -55,6 +59,7 @@ class GraphicsSettings extends ConsumerWidget {
               const BrightnessSlider(),
               const GammaSlider(),
             ],
+            const SettingsSectionHeader(title: 'Filters'),
             if (Features.videoFilters) ...[
               const UpscalingFilterSwitch(),
               const SmoothingFilterSwitch(),
