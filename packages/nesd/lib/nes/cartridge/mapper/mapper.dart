@@ -177,6 +177,14 @@ abstract class Mapper {
 
   final MappingCache _ppuFourBppMappingCache = {};
 
+  late final List<MemoryMapping?> _ppuEva2bppMapping = List.filled(64, null);
+
+  final MappingCache _ppuEva2bppMappingCache = {};
+
+  late final List<MemoryMapping?> _ppuEva4bppMapping = List.filled(128, null);
+
+  final MappingCache _ppuEva4bppMappingCache = {};
+
   MemoryMapping? _cachedMapping(
     MappingCache cache,
     Uint8List source,
@@ -492,6 +500,112 @@ abstract class Mapper {
       );
 
       bus.ppu.updateFourBppMapping(block, _ppuFourBppMapping[block]?.source);
+    }
+  }
+
+  int eva2bppRead(int eva, int address) {
+    final mapping =
+        _ppuEva2bppMapping[(eva << 3) |
+            ((address >> _ppuBlockAddressWidth) & 0x7)];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  int eva4bppRead(int eva, int address) {
+    final mapping =
+        _ppuEva4bppMapping[(eva << 4) |
+            ((address >> _ppuBlockAddressWidth) & 0xf)];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  void mapPpuEva2bpp(
+    int eva,
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = (eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7);
+
+      if (source.isEmpty) {
+        _ppuEva2bppMapping[block] = null;
+
+        bus.ppu.updateEva2bppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuEva2bppMapping[block] = _cachedMapping(
+        _ppuEva2bppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateEva2bppMapping(block, _ppuEva2bppMapping[block]?.source);
+    }
+  }
+
+  void mapPpuEva4bpp(
+    int eva,
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? 2 * chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = (eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf);
+
+      if (source.isEmpty) {
+        _ppuEva4bppMapping[block] = null;
+
+        bus.ppu.updateEva4bppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuEva4bppMapping[block] = _cachedMapping(
+        _ppuEva4bppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateEva4bppMapping(block, _ppuEva4bppMapping[block]?.source);
     }
   }
 }

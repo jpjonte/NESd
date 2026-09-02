@@ -136,6 +136,12 @@ class PPU {
     null,
   );
 
+  /// EVA pattern space, 2bpp view: 8 EVA x 8 blocks.
+  final List<Uint8List?> _evaBlocks2bpp = List<Uint8List?>.filled(64, null);
+
+  /// EVA pattern space, 4bpp view: 8 EVA x 16 blocks.
+  final List<Uint8List?> _evaBlocks4bpp = List<Uint8List?>.filled(128, null);
+
   bool _showBackground = false;
   bool _showSprites = false;
 
@@ -407,6 +413,8 @@ class PPU {
     palette.fillRange(0, palette.length, 0);
     _ppuBlocks.fillRange(0, _ppuBlocks.length, null);
     _fourBppBlocks.fillRange(0, _fourBppBlocks.length, null);
+    _evaBlocks2bpp.fillRange(0, _evaBlocks2bpp.length, null);
+    _evaBlocks4bpp.fillRange(0, _evaBlocks4bpp.length, null);
 
     _pixelBase = 0;
 
@@ -1606,6 +1614,46 @@ class PPU {
   @pragma('vm:prefer-inline')
   int readFourBpp(int address) {
     final source = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
+  }
+
+  void updateEva2bppMapping(int index, Uint8List? source) {
+    if (index < 0 || index >= _evaBlocks2bpp.length) {
+      return;
+    }
+
+    _evaBlocks2bpp[index] = source;
+  }
+
+  void updateEva4bppMapping(int index, Uint8List? source) {
+    if (index < 0 || index >= _evaBlocks4bpp.length) {
+      return;
+    }
+
+    _evaBlocks4bpp[index] = source;
+  }
+
+  @pragma('vm:prefer-inline')
+  int readEva2bpp(int eva, int address) {
+    final source =
+        _evaBlocks2bpp[(eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7)];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
+  }
+
+  @pragma('vm:prefer-inline')
+  int readEva4bpp(int eva, int address) {
+    final source =
+        _evaBlocks4bpp[(eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf)];
 
     if (source == null) {
       return 0;
