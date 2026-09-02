@@ -254,24 +254,18 @@ class NesController {
   bool get isOn => nesState.nes != null;
 
   Future<Uint8List> _readFile(String path) async {
-    final separator = path.lastIndexOf(archiveSeparator);
+    final split = splitArchivePath(path);
 
-    if (separator == -1) {
-      return filesystem.read(path);
-    }
-
-    final archivePath = path.substring(0, separator);
-
-    if (!isArchiveFile(archivePath)) {
+    if (split == null) {
       return filesystem.read(path);
     }
 
     final archive = await ArchiveFilesystem.open(
-      path: archivePath,
-      data: await filesystem.read(archivePath),
+      path: split.archivePath,
+      data: await filesystem.read(split.archivePath),
     );
 
-    return archive.read(path.substring(separator + 1));
+    return archive.read(split.entryPath);
   }
 
   void suspend() => nes?.suspend();

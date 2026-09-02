@@ -74,7 +74,7 @@ class FilePickerController {
     }
 
     if (notifier.current case final FilePickerData data) {
-      return p.isWithin(entryPath, data.directory.path);
+      return isWithinDirectory(entryPath, data.directory.path);
     }
 
     return false;
@@ -102,7 +102,9 @@ class FilePickerController {
     final FilesystemFile? parent;
 
     try {
-      parent = await filesystem.parent(directory.path);
+      parent =
+          archiveParent(directory.path) ??
+          await filesystem.parent(directory.path);
     } on NesdException catch (e) {
       log.storage.warning(
         'Could not resolve the parent directory',
@@ -159,9 +161,12 @@ class FilePickerController {
   }
 
   Future<void> _listFilesFromArchive(FilesystemFile directory) async {
+    final archivePath =
+        splitArchivePath(directory.path)?.archivePath ?? directory.path;
+
     final archive = await ArchiveFilesystem.open(
-      path: directory.path,
-      data: await filesystem.read(directory.path),
+      path: archivePath,
+      data: await filesystem.read(archivePath),
     );
 
     _listFilesFromFileSystem(archive, directory);
@@ -223,7 +228,8 @@ class FilePickerController {
 
   Future<void> _update(FilesystemFile directory) async {
     try {
-      if (isArchiveFile(directory.path)) {
+      if (isArchiveFile(directory.path) ||
+          splitArchivePath(directory.path) != null) {
         await _listFilesFromArchive(directory);
 
         return;
