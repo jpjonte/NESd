@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'ppu_four_bpp_bg_test.dart';
+import 'four_bpp_harness.dart';
 
 void main() {
   group('4bpp sprites', () {
