@@ -56,6 +56,7 @@ class GraphicsSettings extends ConsumerWidget {
               const GammaSlider(),
             ],
             if (Features.videoFilters) ...[
+              const UpscalingFilterSwitch(),
               const SmoothingFilterSwitch(),
               const CrtFilterSwitch(),
               if (videoFilters.contains(VideoFilter.crt)) ...[

@@ -5,6 +5,18 @@ import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
+class UpscalingFilterSwitch extends StatelessWidget {
+  const UpscalingFilterSwitch({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _VideoFilterSwitch(
+      filter: VideoFilter.xbr,
+      title: 'Upscaling (xBR)',
+    );
+  }
+}
+
 class SmoothingFilterSwitch extends StatelessWidget {
   const SmoothingFilterSwitch({super.key});
 
