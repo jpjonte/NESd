@@ -97,6 +97,7 @@ class NES {
     }
 
     _rewindCaptureInterval = value;
+    _rewindBuffer.dispose();
     _rewindBuffer = _createRewindBuffer();
   }
 
@@ -122,6 +123,10 @@ class NES {
 
   @visibleForTesting
   int get rewindItemCapacity => _rewindBuffer.itemCapacity;
+
+  void dispose() {
+    _rewindBuffer.dispose();
+  }
 
   int frameRate = 60;
 
@@ -346,9 +351,9 @@ class NES {
       return;
     }
 
-    final rewindState = _rewindBuffer.pop();
+    final snapshot = _rewindBuffer.pop();
 
-    if (rewindState == null) {
+    if (snapshot == null) {
       // The setter zeroes _rewindHold on this false transition.
       rewind = false;
 
@@ -357,7 +362,11 @@ class NES {
 
     _rewindHold = _rewindCaptureInterval - 1;
 
-    _applyState(rewindState);
+    _applyState(snapshot.state);
+
+    if (snapshot.frame case final frame?) {
+      ppu.frameBuffer.setPixels(frame);
+    }
 
     ppu.frameBuffer.swap();
 

@@ -298,6 +298,7 @@ class NesWorker {
       _apuDebug?.dispose();
       _apuDebug = null;
 
+      _nes?.dispose();
       _nes = nes;
       _disassembler = null;
 
@@ -362,6 +363,7 @@ class NesWorker {
     _apuDebug?.dispose();
     _apuDebug = null;
     _disassembler = null;
+    _nes?.dispose();
     _nes = null;
 
     log.emulator.info('Emulator stopped');

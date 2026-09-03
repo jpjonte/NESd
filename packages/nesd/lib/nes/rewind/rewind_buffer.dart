@@ -4,26 +4,38 @@ import 'dart:typed_data';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
+import 'package:nesd/nes/rewind/rewind_frame_lane.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
 sealed class RewindItem {
-  RewindItem(this.compressed);
+  RewindItem({required this.state, required this.frame});
 
-  final Uint8List compressed;
+  final Uint8List state;
+
+  final Uint8List frame;
+
+  int get length => state.length + frame.length;
 }
 
 /// Marks the first state of a diff chain; carries no payload because
 /// popping it only signals that the chain is exhausted.
 class ChainStartRewindItem extends RewindItem {
-  ChainStartRewindItem() : super(Uint8List(0));
+  ChainStartRewindItem() : super(state: Uint8List(0), frame: Uint8List(0));
 }
 
-/// LZ4-compressed XOR diff that recovers the previous state from the
-/// state that follows it in the chain.
+/// LZ4-compressed XOR diffs that recover the previous snapshot from the
+/// snapshot that follows it in the chain.
 class DiffRewindItem extends RewindItem {
-  DiffRewindItem(super.compressed);
+  DiffRewindItem({required super.state, required super.frame});
+}
+
+class RewindSnapshot {
+  const RewindSnapshot({required this.state, required this.frame});
+
+  final NESState state;
+  final Uint8List? frame;
 }
 
 class RewindBuffer {
@@ -39,6 +51,8 @@ class RewindBuffer {
   int _currentLength = 0;
   bool _hasCurrent = false;
 
+  RewindFrameLane? _frameLane;
+
   Uint8List? get _currentView => _hasCurrent
       ? Uint8List.view(_currentPool.buffer, 0, _currentLength)
       : null;
@@ -51,16 +65,24 @@ class RewindBuffer {
 
   void clear() {
     _buffer.clear();
+    _frameLane?.clear();
 
     _hasCurrent = false;
     _bytes = 0;
+  }
+
+  void dispose() {
+    clear();
+
+    _frameLane?.dispose();
+    _frameLane = null;
   }
 
   void add(NESState state) {
     scheduleMicrotask(() => _addState(state));
   }
 
-  NESState? pop() {
+  RewindSnapshot? pop() {
     final current = _currentView;
 
     if (current == null) {
@@ -70,24 +92,29 @@ class RewindBuffer {
     final item = _buffer.popEnd();
 
     if (item != null) {
-      _bytes -= item.compressed.length;
+      _bytes -= item.length;
     }
 
     try {
-      final reconstruction = switch (item) {
-        DiffRewindItem() => item.compressed.decompress().diffWith(current),
-        ChainStartRewindItem() || null => null,
-      };
+      final state = NESState.fromBytes(current);
+      final lane = _frameLane;
+      final Uint8List? frame;
 
-      final result = NESState.fromBytes(current);
+      switch (item) {
+        case DiffRewindItem():
+          _setCurrent(item.state.decompress().diffWith(current));
 
-      if (reconstruction == null) {
-        _hasCurrent = false;
-      } else {
-        _setCurrent(reconstruction);
+          frame = lane != null && lane.hasCurrent && item.frame.isNotEmpty
+              ? lane.restore(item.frame)
+              : null;
+        case ChainStartRewindItem() || null:
+          frame = lane != null && lane.hasCurrent ? lane.current : null;
+
+          _hasCurrent = false;
+          lane?.clear();
       }
 
-      return result;
+      return RewindSnapshot(state: state, frame: frame);
     } on NesdException catch (e) {
       // a corrupted chain must not crash the emulator
       log.emulator.warning('Rewind chain corrupted; buffer cleared', error: e);
@@ -114,25 +141,28 @@ class RewindBuffer {
       final evicted = _buffer.popFront();
 
       if (evicted != null) {
-        _bytes -= evicted.compressed.length;
+        _bytes -= evicted.length;
       }
     }
 
     final profiler = _profiler;
     final watch = profiler == null ? null : (Stopwatch()..start());
 
-    final serialized = state.serialize();
+    final serialized = state.serialize(includeFrame: false);
 
     if (profiler != null) {
       profiler.addSerialize(watch!.elapsedMicroseconds);
       watch.reset();
     }
 
+    final presented = state.ppuState.frameBuffer?.presentedPixels;
     final previous = _currentView;
 
     final RewindItem item;
 
     if (previous == null) {
+      _captureFrame(presented);
+
       item = ChainStartRewindItem();
     } else {
       final diff = previous.diffWith(serialized);
@@ -142,7 +172,9 @@ class RewindBuffer {
         watch.reset();
       }
 
-      item = DiffRewindItem(diff.compress());
+      final frame = _captureFrame(presented);
+
+      item = DiffRewindItem(state: diff.compress(), frame: frame);
 
       if (profiler != null) {
         profiler.addCompress(watch!.elapsedMicroseconds);
@@ -151,9 +183,28 @@ class RewindBuffer {
 
     _buffer.append(item);
 
-    _bytes += item.compressed.length;
+    _bytes += item.length;
 
     _setCurrent(serialized);
+  }
+
+  RewindFrameLane _laneFor(Uint8List presented) =>
+      _frameLane ??= RewindFrameLane(size: presented.length);
+
+  Uint8List _captureFrame(Uint8List? presented) {
+    if (presented == null) {
+      return Uint8List(0);
+    }
+
+    final lane = _laneFor(presented);
+
+    if (!lane.hasCurrent) {
+      lane.setCurrent(presented);
+
+      return Uint8List(0);
+    }
+
+    return lane.captureDiff(presented);
   }
 
   void _setCurrent(Uint8List serialized) {
