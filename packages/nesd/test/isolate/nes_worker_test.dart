@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/audio/audio_setpoint.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
@@ -430,6 +431,41 @@ void main() {
       // epoch start; the warmup window was skipped; the first emitted
       // window must be clean.
       expect(stats.first.exhaustDelta, 0);
+    },
+  );
+
+  test('the pacing setpoint stays at the default on a non-Android host '
+      'even after a large device read', () async {
+    final stream = FakeNesdAudio()..popMaxValue = 956;
+
+    worker = NesWorker(
+      send: events.add,
+      audioFactory: () => stream,
+      audioStatsInterval: Duration.zero,
+    );
+
+    await worker.handleCommand(_loadRomCommand());
+
+    await waitForCount<AudioStatsEvent>(2);
+
+    expect(
+      worker.nesForTesting!.governor.setpointSamples,
+      defaultAudioSetpointSamples,
+    );
+  });
+
+  test(
+    'a second LoadRomCommand seeds the new NES with the learned setpoint',
+    () async {
+      await worker.handleCommand(_loadRomCommand());
+      await waitFor<RomLoadedEvent>();
+
+      worker.audioSetpointSamplesForTesting = 2390;
+
+      await worker.handleCommand(_loadRomCommand());
+      await waitForCount<RomLoadedEvent>(2);
+
+      expect(worker.nesForTesting!.governor.setpointSamples, 2390);
     },
   );
 

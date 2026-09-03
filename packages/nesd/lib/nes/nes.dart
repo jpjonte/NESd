@@ -52,7 +52,7 @@ class NES {
 
   final EventBus eventBus;
 
-  final PacingGovernor governor;
+  PacingGovernor governor;
   final AudioFillProbe? audioFillProbe;
 
   bool on = false;

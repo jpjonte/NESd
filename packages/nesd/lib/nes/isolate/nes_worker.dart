@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/audio/audio_setpoint.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/features.dart';
@@ -22,6 +23,7 @@ import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
@@ -72,6 +74,9 @@ class NesWorker {
   final EventBus eventBus = EventBus();
 
   NES? _nes;
+
+  @visibleForTesting
+  NES? get nes => _nes;
 
   @visibleForTesting
   NES? get nesForTesting => _nes;
@@ -268,6 +273,9 @@ class NesWorker {
         cartridge: cartridge,
         eventBus: eventBus,
         audioFillProbe: () => _audioOutput?.bufferStatus,
+        governor: const PacingGovernor(
+          setpointSamples: kIsWeb ? null : defaultAudioSetpointSamples,
+        ),
       )..reset();
 
       if (command.sram case final sram?) {
@@ -506,6 +514,8 @@ class NesWorker {
 
     final stats = audio.takeStats();
 
+    _adaptAudioSetpoint(stats.popMax, audio.audio.capacity);
+
     if (_audioStatsWarmup || oversized) {
       _audioStatsWarmup = oversized;
 
@@ -524,6 +534,30 @@ class NesWorker {
     send(event);
 
     log.telemetry.emit(event.logLine);
+  }
+
+  void _adaptAudioSetpoint(int popMax, int capacity) {
+    // kIsWeb first: dart:io's Platform throws on web.
+    if (kIsWeb || !Platform.isAndroid) {
+      return;
+    }
+
+    if (nes case final nes?) {
+      final target = audioSetpointFor(popMax: popMax, capacity: capacity);
+      final current = nes.governor.setpointSamples ??
+          defaultAudioSetpointSamples;
+
+      if (target <= current) {
+        return;
+      }
+
+      nes.governor = nes.governor.copyWith(setpointSamples: target);
+
+      log.audio.info(
+        'Audio setpoint raised',
+        context: {'popMax': popMax, 'setpoint': target},
+      );
+    }
   }
 
   void _startPcmDump(String path) {

@@ -88,4 +88,32 @@ void main() {
 
     expect(sleep, Duration.zero);
   });
+
+  test('setpointSamples overrides the ratio-based setpoint', () {
+    const absolute = PacingGovernor(setpointSamples: 1200);
+
+    final sleep = absolute.sleepFor(
+      samplesProduced: 800,
+      elapsed: const Duration(microseconds: 10000),
+      audio: (fill: 1200, capacity: 4800),
+    );
+
+    expect(sleep, const Duration(microseconds: 6667));
+  });
+
+  test('copyWith changes the setpoint and keeps the other fields', () {
+    const original = PacingGovernor(
+      gain: 0.2,
+      maxSleep: Duration(milliseconds: 30),
+    );
+
+    final raised = original.copyWith(setpointSamples: 2390);
+
+    expect(raised.setpointSamples, 2390);
+    expect(raised.gain, 0.2);
+    expect(raised.maxSleep, const Duration(milliseconds: 30));
+    expect(raised.setpointRatio, original.setpointRatio);
+    expect(raised.drainThresholdRatio, original.drainThresholdRatio);
+    expect(raised.sampleRate, original.sampleRate);
+  });
 }
