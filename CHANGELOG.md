@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - ROM and archive file extensions are now matched case-insensitively, so files like `GAME.NES` and `COLLECTION.ZIP` open correctly
 - Fixed opening a ROM from inside a zip archive on Windows
 - Fixed inconsistent zip archive handling depending on how you opened it
+- Fixed broken settings crashing NESd on start, the broken configuration is backed up
 
 ## [0.18.0] - 2026-08-30
 
