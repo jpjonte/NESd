@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -64,11 +65,9 @@ Bindings bindingsFromJson(dynamic json) {
 
           bindings.add(Binding(index: i, input: input, action: action));
         }
-
-        // catch errors to ignore invalid actions
-        // ignore: avoid_catching_errors
-      } on StateError {
-        // ignore invalid actions
+      } on Object catch (e) {
+        // drop unparseable bindings
+        _logDropped(code, e);
       }
     }
 
@@ -88,13 +87,20 @@ Bindings bindingsFromJson(dynamic json) {
       if (binding != null) {
         bindings.add(binding);
       }
-    } on Exception {
-      // ignore invalid bindings
+    } on Object catch (error) {
+      // drop unparseable bindings
+      _logDropped(e is Map ? '${e['action']}' : '$e', error);
     }
   }
 
   return bindings;
 }
+
+void _logDropped(String action, Object error) => log.input.warning(
+  'Dropped a binding that could not be read',
+  context: {'action': action},
+  error: error,
+);
 
 Binding? _bindingFromJson(Map<String, dynamic> json) {
   final action = InputAction.fromCode(json['action'] as String?);

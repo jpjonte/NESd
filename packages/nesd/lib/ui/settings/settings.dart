@@ -179,6 +179,7 @@ sealed class Settings with _$Settings {
 @riverpod
 class SettingsController extends _$SettingsController {
   static const settingsKey = 'settings';
+  static const settingsBackupKey = 'settings.backup';
 
   @override
   Settings build() {
@@ -597,11 +598,7 @@ class SettingsController extends _$SettingsController {
     final raw = _prefs.getString(settingsKey);
 
     if (raw == null) {
-      final settings = Settings(
-        bindings: defaultBindings,
-        narrowTouchInputConfig: defaultPortraitConfig,
-        wideTouchInputConfig: defaultLandscapeConfig,
-      );
+      final settings = _defaultSettings();
 
       log.settings.info('Settings initialised', context: {'firstRun': true});
 
@@ -610,14 +607,54 @@ class SettingsController extends _$SettingsController {
       return settings;
     }
 
-    final json = jsonDecode(raw) as Map<String, dynamic>;
+    try {
+      final settings = _loadFrom(raw);
 
-    log.settings.info('Settings loaded', context: {'firstRun': false});
+      log.settings.info('Settings loaded', context: {'firstRun': false});
+
+      return settings;
+    } on Object catch (e, stackTrace) {
+      log.settings.error(
+        'Settings could not be read and were reset to defaults',
+        context: {'settings': raw},
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      _recover(raw, 'Your settings could not be read and were reset');
+
+      return _defaultSettings();
+    }
+  }
+
+  Settings _defaultSettings() => Settings(
+    bindings: defaultBindings,
+    narrowTouchInputConfig: defaultPortraitConfig,
+    wideTouchInputConfig: defaultLandscapeConfig,
+  );
+
+  Settings _loadFrom(String raw) {
+    final json = jsonDecode(raw) as Map<String, dynamic>;
 
     _migrateOpenTools(json);
     _migrateVideoFilters(json);
 
-    final loaded = Settings.fromJson(json);
+    final dropped = <String, String>{};
+    final loaded = _parse(json, dropped);
+    final droppedBindings = _droppedBindingCount(json['bindings'], loaded);
+
+    if (dropped.isNotEmpty || droppedBindings > 0) {
+      log.settings.warning(
+        'Some settings could not be read and were reset to defaults',
+        context: {
+          if (dropped.isNotEmpty) 'dropped': dropped,
+          if (droppedBindings > 0) 'droppedBindings': droppedBindings,
+          'settings': raw,
+        },
+      );
+
+      _recover(raw, 'Some settings could not be read and were reset');
+    }
 
     final recentRoms = _migrateRecentRoms(loaded.recentRomPaths);
 
@@ -632,6 +669,67 @@ class SettingsController extends _$SettingsController {
           : migrateGamepadBindings(bindings),
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
+  }
+
+  Settings _parse(Map<String, dynamic> json, Map<String, String> dropped) {
+    try {
+      return Settings.fromJson(json);
+    } on Object {
+      json.removeWhere((key, value) {
+        try {
+          Settings.fromJson({key: value});
+
+          return false;
+        } on Object catch (e) {
+          dropped[key] = e.toString();
+
+          return true;
+        }
+      });
+
+      // try parsing the whole object, caller handles throw
+      return Settings.fromJson(json);
+    }
+  }
+
+  int _droppedBindingCount(dynamic json, Settings loaded) =>
+      json is List ? max(0, json.length - loaded.bindings.length) : 0;
+
+  void _recover(String raw, String message) {
+    unawaited(_backUp(raw));
+
+    unawaited(
+      Future.microtask(() {
+        if (ref.mounted) {
+          ref
+              .read(toasterProvider)
+              .send(Toast.warning('$message; a backup was kept'));
+        }
+      }),
+    );
+  }
+
+  Future<void> _backUp(String raw) async {
+    try {
+      if (_prefs.getString(settingsBackupKey) != null) {
+        return;
+      }
+
+      await _prefs.setString(
+        settingsBackupKey,
+        jsonEncode({
+          'savedAt': DateTime.now().toIso8601String(),
+          'settings': raw,
+        }),
+      );
+
+      log.settings.info(
+        'Unreadable settings backed up',
+        context: {'key': settingsBackupKey},
+      );
+    } on Object catch (e) {
+      log.settings.error('Failed to back up unreadable settings', error: e);
+    }
   }
 
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {
