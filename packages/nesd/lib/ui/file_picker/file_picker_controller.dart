@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_system/archive_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:nesd/ui/file_picker/file_system/zip_filesystem.dart';
 import 'package:nesd/ui/file_picker/fuzzy_matcher.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
@@ -74,7 +74,7 @@ class FilePickerController {
     }
 
     if (notifier.current case final FilePickerData data) {
-      return p.isWithin(entryPath, data.directory.path);
+      return isWithinDirectory(entryPath, data.directory.path);
     }
 
     return false;
@@ -102,7 +102,9 @@ class FilePickerController {
     final FilesystemFile? parent;
 
     try {
-      parent = await filesystem.parent(directory.path);
+      parent =
+          archiveParent(directory.path) ??
+          await filesystem.parent(directory.path);
     } on NesdException catch (e) {
       log.storage.warning(
         'Could not resolve the parent directory',
@@ -158,11 +160,16 @@ class FilePickerController {
     _listFilesFromFileSystem(filesystem, directory);
   }
 
-  Future<void> _listFilesFromZip(FilesystemFile directory) async {
-    final zipData = await filesystem.read(directory.path);
-    final zipFileSystem = ZipFilesystem(path: directory.path, zipData: zipData);
+  Future<void> _listFilesFromArchive(FilesystemFile directory) async {
+    final archivePath =
+        splitArchivePath(directory.path)?.archivePath ?? directory.path;
 
-    _listFilesFromFileSystem(zipFileSystem, directory);
+    final archive = await ArchiveFilesystem.open(
+      path: archivePath,
+      data: await filesystem.read(archivePath),
+    );
+
+    _listFilesFromFileSystem(archive, directory);
   }
 
   Future<void> _listFilesFromFileSystem(
@@ -221,8 +228,9 @@ class FilePickerController {
 
   Future<void> _update(FilesystemFile directory) async {
     try {
-      if (isZipFile(directory.path)) {
-        await _listFilesFromZip(directory);
+      if (isArchiveFile(directory.path) ||
+          splitArchivePath(directory.path) != null) {
+        await _listFilesFromArchive(directory);
 
         return;
       }
@@ -249,7 +257,7 @@ class FilePickerController {
     }
 
     notifier.update(
-      FilePickerError('${directory.path} is not a valid directory or zip file'),
+      FilePickerError('${directory.path} is not a valid directory or archive'),
     );
   }
 }

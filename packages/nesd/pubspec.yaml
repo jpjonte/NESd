@@ -32,6 +32,8 @@ dependencies:
   image: ^4.9.2
   intl: ^0.20.3
   json_annotation: ^4.12.0
+  koni_archive_core: ^0.9.0
+  koni_sevenz: ^0.9.0
   nesd_audio: ^0.1.0
   nesd_texture: ^0.0.1
   package_info_plus: ^10.2.1

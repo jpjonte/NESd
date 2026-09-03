@@ -322,7 +322,7 @@ class FileList extends HookConsumerWidget {
       enabled: _enabled(file),
       isDirectory: file.type == FilesystemFileType.directory,
       file: file,
-      fileIsZip: isZipFile(file.path),
+      fileIsArchive: isArchiveFile(file.path),
       focusNode: focusNodes[index],
       onFocusChange: (hasFocus) => onTileFocusChange(index, hasFocus: hasFocus),
       onChangeDirectory: onChangeDirectory,
@@ -384,7 +384,7 @@ class FileTile extends ConsumerWidget {
     required this.isDirectory,
     required this.enabled,
     required this.file,
-    required this.fileIsZip,
+    required this.fileIsArchive,
     this.focusNode,
     this.onFocusChange,
     this.onChangeDirectory,
@@ -394,7 +394,7 @@ class FileTile extends ConsumerWidget {
   final bool isDirectory;
   final bool enabled;
   final FilesystemFile file;
-  final bool fileIsZip;
+  final bool fileIsArchive;
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocusChange;
   final void Function(FilesystemFile)? onChangeDirectory;
@@ -432,7 +432,7 @@ class FileTile extends ConsumerWidget {
                 controller.go(file);
 
                 onChangeDirectory?.call(file);
-              } else if (fileIsZip) {
+              } else if (fileIsArchive) {
                 controller.go(file);
               } else {
                 await context.router.maybePop(file);

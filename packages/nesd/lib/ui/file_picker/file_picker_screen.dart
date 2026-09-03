@@ -38,7 +38,7 @@ class FilePickerScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(filePickerStateProvider, (_, next) {
       if (next is FilePickerData &&
-          isZipFile(next.directory.path) &&
+          isArchiveFile(next.directory.path) &&
           next.files.length == 1) {
         scheduleMicrotask(() {
           final file = next.files.first;

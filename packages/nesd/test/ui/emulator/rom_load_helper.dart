@@ -15,6 +15,9 @@ Uint8List nestestBytes() =>
 Uint8List zipContaining(String entryName, Uint8List bytes) =>
     zipOf({entryName: bytes});
 
+Uint8List sevenZipFixture(String name) =>
+    File('test/fixtures/archive/$name').readAsBytesSync();
+
 Uint8List zipOf(Map<String, Uint8List> entries) {
   final archive = Archive();
 
