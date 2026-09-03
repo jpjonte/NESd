@@ -22,6 +22,7 @@ import 'package:nesd/nes/isolate/execution_log_backend.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/isolate/thread_affinity.dart';
 import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
@@ -76,10 +77,16 @@ class NesWorker {
   NES? _nes;
 
   @visibleForTesting
-  NES? get nes => _nes;
+  NES? get nesForTesting => _nes;
+
+  int _audioSetpointSamples = defaultAudioSetpointSamples;
 
   @visibleForTesting
-  NES? get nesForTesting => _nes;
+  int get audioSetpointSamplesForTesting => _audioSetpointSamples;
+
+  @visibleForTesting
+  set audioSetpointSamplesForTesting(int value) =>
+      _audioSetpointSamples = value;
 
   AudioOutput? _audioOutput;
   DebuggerBackend? _debugger;
@@ -273,8 +280,8 @@ class NesWorker {
         cartridge: cartridge,
         eventBus: eventBus,
         audioFillProbe: () => _audioOutput?.bufferStatus,
-        governor: const PacingGovernor(
-          setpointSamples: kIsWeb ? null : defaultAudioSetpointSamples,
+        governor: PacingGovernor(
+          setpointSamples: kIsWeb ? null : _audioSetpointSamples,
         ),
       )..reset();
 
@@ -382,6 +389,7 @@ class NesWorker {
   void _handleNesEvent(NesEvent event) {
     switch (event) {
       case FrameNesEvent():
+        ThreadAffinity.pinCurrentThread();
         _audioOutput?.processSamples(event.samples);
         _maybeEmitAudioStats();
         _sendReadyFrame(event);
@@ -542,16 +550,17 @@ class NesWorker {
       return;
     }
 
-    if (nes case final nes?) {
+    if (_nes case final nes?) {
       final target = audioSetpointFor(popMax: popMax, capacity: capacity);
-      final current = nes.governor.setpointSamples ??
-          defaultAudioSetpointSamples;
+      final current =
+          nes.governor.setpointSamples ?? defaultAudioSetpointSamples;
 
       if (target <= current) {
         return;
       }
 
       nes.governor = nes.governor.copyWith(setpointSamples: target);
+      _audioSetpointSamples = target;
 
       log.audio.info(
         'Audio setpoint raised',

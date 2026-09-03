@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added an audio mixer to Audio settings, with a volume control per channel
 - Folders inside an archive can now be browsed like any other folder
 
+### Changed
+- The emulator now runs on the fastest CPU cores on Android
+
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
