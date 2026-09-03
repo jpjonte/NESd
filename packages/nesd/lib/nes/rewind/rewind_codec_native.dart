@@ -1,19 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:es_compression/lz4.dart';
+import 'package:nesd/nes/rewind/lz4_native.dart';
 
-final _lz4 = Lz4Codec(level: -1);
+Uint8List rewindCompress(Uint8List data) => Lz4.instance.compressBytes(data);
 
-Uint8List rewindCompress(Uint8List data) => _asUint8List(_lz4.encode(data));
-
-Uint8List rewindDecompress(Uint8List data) => _asUint8List(_lz4.decode(data));
+Uint8List rewindDecompress(Uint8List data) =>
+    Lz4.instance.decompressBytes(data);
 
 void setRewindCodecLibraryPath(String path) {
-  Lz4Codec.libraryPath = path;
+  Lz4.libraryPath = path;
 }
 
 /// The current override, so hosts can forward it to worker isolates.
-String? get rewindCodecLibraryPath => Lz4Codec.libraryPath;
-
-Uint8List _asUint8List(List<int> list) =>
-    list is Uint8List ? list : Uint8List.fromList(list);
+String? get rewindCodecLibraryPath => Lz4.libraryPath;

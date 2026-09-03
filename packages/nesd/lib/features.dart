@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 
 /// Compile-time capability flags, const so disabled features aren't compiled.
 abstract final class Features {
-  /// Rewind compresses states with es_compression's LZ4, which is FFI-only.
+  /// Rewind compresses states with the bundled LZ4 library, which is
+  /// FFI-only.
   static const bool rewind = !kIsWeb;
 
   /// The debug tools are desktop-only for now.

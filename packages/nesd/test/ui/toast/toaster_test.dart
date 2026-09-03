@@ -62,8 +62,8 @@ void main() {
         '#0      _open (dart:ffi-patch/ffi_dynamic_library_patch.dart:11)\n'
         '#1      new DynamicLibrary.open '
         '(dart:ffi-patch/ffi_dynamic_library_patch.dart:22)\n'
-        '#2      Lz4Library._instance '
-        '(package:es_compression/src/lz4/ffi/library.dart:34)',
+        '#2      Lz4.instance '
+        '(package:nesd/nes/rewind/lz4_native.dart:34)',
       );
 
       expect(
