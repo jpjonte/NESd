@@ -60,6 +60,7 @@ class PPUState {
       1 => PPUState.version1(reader),
       2 => PPUState.version2(reader),
       3 => PPUState.version3(reader),
+      4 => PPUState.version4(reader),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -190,7 +191,19 @@ class PPUState {
     );
   }
 
-  factory PPUState.version3(PayloadReader reader) {
+  factory PPUState.version3(PayloadReader reader) =>
+      PPUState._widened(reader, readFrame: FrameBuffer.deserialize);
+
+  factory PPUState.version4(PayloadReader reader) => PPUState._widened(
+    reader,
+    readFrame: (reader) =>
+        reader.get(uint8) == 1 ? FrameBuffer.deserialize(reader) : null,
+  );
+
+  factory PPUState._widened(
+    PayloadReader reader, {
+    required FrameBuffer? Function(PayloadReader reader) readFrame,
+  }) {
     return PPUState(
       PPUCTRL: reader.get(uint8),
       PPUMASK: reader.get(uint8),
@@ -207,7 +220,7 @@ class PPUState {
       oam: reader.get(uint8List(lengthType: uint32)),
       secondaryOam: reader.get(uint8List(lengthType: uint32)),
       palette: reader.get(uint8List(lengthType: uint32)),
-      frameBuffer: FrameBuffer.deserialize(reader),
+      frameBuffer: readFrame(reader),
       consoleCycles: reader.get(nesdUint64),
       cycles: reader.get(nesdUint64),
       cycle: reader.get(uint16),
@@ -252,7 +265,7 @@ class PPUState {
   final Uint8List secondaryOam;
   final Uint8List palette;
 
-  final FrameBuffer frameBuffer;
+  final FrameBuffer? frameBuffer;
 
   final int consoleCycles;
   final int cycles;
@@ -292,9 +305,11 @@ class PPUState {
   /// Frame each decay bit was last refreshed in.
   final List<int> decayRefreshedAt;
 
-  void serialize(PayloadWriter writer) {
+  void serialize(PayloadWriter writer, {bool includeFrame = true}) {
+    final frame = includeFrame ? frameBuffer : null;
+
     writer
-      ..set(uint8, 3) // version
+      ..set(uint8, 4) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -309,9 +324,10 @@ class PPUState {
       ..set(uint8List(lengthType: uint32), ram)
       ..set(uint8List(lengthType: uint32), oam)
       ..set(uint8List(lengthType: uint32), secondaryOam)
-      ..set(uint8List(lengthType: uint32), palette);
+      ..set(uint8List(lengthType: uint32), palette)
+      ..set(uint8, frame == null ? 0 : 1);
 
-    frameBuffer.serialize(writer);
+    frame?.serialize(writer);
 
     writer
       ..set(nesdUint64, consoleCycles)

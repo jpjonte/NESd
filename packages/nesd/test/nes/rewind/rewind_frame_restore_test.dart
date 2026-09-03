@@ -188,7 +188,7 @@ void main() {
     final restored = NESState.fromBytes(nes.state!.serialize());
 
     expect(
-      _checksum(restored.ppuState.frameBuffer.pixels),
+      _checksum(restored.ppuState.frameBuffer!.pixels),
       _checksum(presented),
     );
   });
