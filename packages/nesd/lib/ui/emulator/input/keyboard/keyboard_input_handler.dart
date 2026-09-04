@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/bound_action.dart';
+import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -19,7 +20,20 @@ KeyboardInputHandler keyboardInputHandler(Ref ref) {
 
   final actionStream = ref.watch(actionStreamProvider);
 
-  return KeyboardInputHandler(bindings: bindings, actionStream: actionStream);
+  final handler = KeyboardInputHandler(
+    bindings: bindings,
+    actionStream: actionStream,
+  );
+
+  final scrubSubscription = ref.listen(
+    rewindScrubControllerProvider,
+    (_, state) => handler.scrubOpen = state.open,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(scrubSubscription.close);
+
+  return handler;
 }
 
 class KeyboardInputHandler {
@@ -34,9 +48,15 @@ class KeyboardInputHandler {
 
   late final KeyMap _bindings;
 
+  bool scrubOpen = false;
+
   bool handleKeyEvent(KeyEvent event) {
     if (event is KeyRepeatEvent) {
-      return true;
+      if (!scrubOpen) {
+        return true;
+      }
+
+      return _handleKeyRepeat();
     }
 
     final key = event.logicalKey;
@@ -65,6 +85,13 @@ class KeyboardInputHandler {
     }
 
     return false;
+  }
+
+  bool _handleKeyRepeat() {
+    final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
+    final currentActions = _getActions(pressedKeys);
+
+    return _addActions(1.0, currentActions, const [], highesPriorityOnly: true);
   }
 
   // get actions that match the pressed keys, sorted by highest priority first

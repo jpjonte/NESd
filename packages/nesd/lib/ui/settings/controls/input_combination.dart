@@ -211,6 +211,16 @@ final defaultBindings = [
   ),
   Binding(
     index: 0,
+    action: inputLeft,
+    input: InputCombination.keyboard({LogicalKeyboardKey.arrowLeft}),
+  ),
+  Binding(
+    index: 0,
+    action: inputRight,
+    input: InputCombination.keyboard({LogicalKeyboardKey.arrowRight}),
+  ),
+  Binding(
+    index: 0,
     action: confirm,
     input: InputCombination.keyboard({LogicalKeyboardKey.enter}),
   ),
