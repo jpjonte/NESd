@@ -116,6 +116,9 @@ class RewindBuffer {
 
     if (item != null) {
       _bytes -= item.length;
+
+      _sequence--;
+      _thumbnails?.truncateAfter(newestSequence);
     }
 
     try {

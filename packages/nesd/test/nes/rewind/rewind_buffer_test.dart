@@ -278,6 +278,29 @@ void main() {
     expect(buffer.oldestSequence, 3);
   });
 
+  test('popping rewinds the sequence with the buffer', () async {
+    final buffer = RewindBuffer(size: 16, thumbnailStride: 1);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 10; i++) {
+      buffer.add(factory.capture(i + 1));
+
+      await flushMicrotasks();
+    }
+
+    expect(buffer.newestSequence, 9);
+
+    for (var i = 0; i < 3; i++) {
+      buffer.pop();
+    }
+
+    expect(buffer.itemCount, 7);
+    expect(buffer.newestSequence, 6);
+    expect(buffer.oldestSequence, 0);
+
+    expect(buffer.thumbnails().last.sequence, 6);
+  });
+
   test('clear resets the sequence', () async {
     final buffer = RewindBuffer(size: 4);
     addTearDown(buffer.dispose);
