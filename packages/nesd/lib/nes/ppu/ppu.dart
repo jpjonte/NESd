@@ -260,7 +260,9 @@ class PPU {
     oam.setAll(0, state.oam);
     secondaryOam.setAll(0, state.secondaryOam);
     palette.setAll(0, state.palette);
-    frameBuffer.setPixels(state.frameBuffer.presentedPixels);
+    if (state.frameBuffer case final frame?) {
+      frameBuffer.setPixels(frame.presentedPixels);
+    }
     consoleCycles = state.consoleCycles;
     cycles = state.cycles;
     cycle = state.cycle;

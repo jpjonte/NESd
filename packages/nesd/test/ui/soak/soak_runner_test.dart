@@ -98,6 +98,12 @@ void main() {
     );
   }
 
+  test('keeps the emulator running when the window loses focus', () async {
+    await runner(pcm: false).run();
+
+    verify(() => controller.lifeCycleListenerEnabled = false).called(1);
+  });
+
   test('a second runner instance in the same process does not run', () async {
     await runner(pcm: false).run();
 

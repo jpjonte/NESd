@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:nesd/audio/audio_output.dart';
+import 'package:nesd/audio/audio_setpoint.dart';
 import 'package:nesd/audio/pcm_recorder.dart';
 import 'package:nesd/extension/string_extension.dart';
 import 'package:nesd/features.dart';
@@ -21,7 +22,9 @@ import 'package:nesd/nes/isolate/execution_log_backend.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/nes/isolate/thread_affinity.dart';
 import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
@@ -75,6 +78,15 @@ class NesWorker {
 
   @visibleForTesting
   NES? get nesForTesting => _nes;
+
+  int _audioSetpointSamples = defaultAudioSetpointSamples;
+
+  @visibleForTesting
+  int get audioSetpointSamplesForTesting => _audioSetpointSamples;
+
+  @visibleForTesting
+  set audioSetpointSamplesForTesting(int value) =>
+      _audioSetpointSamples = value;
 
   AudioOutput? _audioOutput;
   DebuggerBackend? _debugger;
@@ -268,6 +280,9 @@ class NesWorker {
         cartridge: cartridge,
         eventBus: eventBus,
         audioFillProbe: () => _audioOutput?.bufferStatus,
+        governor: PacingGovernor(
+          setpointSamples: kIsWeb ? null : _audioSetpointSamples,
+        ),
       )..reset();
 
       if (command.sram case final sram?) {
@@ -298,6 +313,7 @@ class NesWorker {
       _apuDebug?.dispose();
       _apuDebug = null;
 
+      _nes?.dispose();
       _nes = nes;
       _disassembler = null;
 
@@ -362,6 +378,7 @@ class NesWorker {
     _apuDebug?.dispose();
     _apuDebug = null;
     _disassembler = null;
+    _nes?.dispose();
     _nes = null;
 
     log.emulator.info('Emulator stopped');
@@ -372,6 +389,7 @@ class NesWorker {
   void _handleNesEvent(NesEvent event) {
     switch (event) {
       case FrameNesEvent():
+        ThreadAffinity.pinCurrentThread();
         _audioOutput?.processSamples(event.samples);
         _maybeEmitAudioStats();
         _sendReadyFrame(event);
@@ -504,6 +522,8 @@ class NesWorker {
 
     final stats = audio.takeStats();
 
+    _adaptAudioSetpoint(stats.popMax, audio.audio.capacity);
+
     if (_audioStatsWarmup || oversized) {
       _audioStatsWarmup = oversized;
 
@@ -522,6 +542,31 @@ class NesWorker {
     send(event);
 
     log.telemetry.emit(event.logLine);
+  }
+
+  void _adaptAudioSetpoint(int popMax, int capacity) {
+    // kIsWeb first: dart:io's Platform throws on web.
+    if (kIsWeb || !Platform.isAndroid) {
+      return;
+    }
+
+    if (_nes case final nes?) {
+      final target = audioSetpointFor(popMax: popMax, capacity: capacity);
+      final current =
+          nes.governor.setpointSamples ?? defaultAudioSetpointSamples;
+
+      if (target <= current) {
+        return;
+      }
+
+      nes.governor = nes.governor.copyWith(setpointSamples: target);
+      _audioSetpointSamples = target;
+
+      log.audio.info(
+        'Audio setpoint raised',
+        context: {'popMax': popMax, 'setpoint': target},
+      );
+    }
   }
 
   void _startPcmDump(String path) {

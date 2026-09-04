@@ -23,6 +23,9 @@ class StateFactory {
       ..clear()
       ..addAll(List.generate(callStackDepth, (i) => 0x8000 + i));
 
+    nes.ppu.frameBuffer.pixels[0] = marker;
+    nes.ppu.frameBuffer.swap();
+
     return NESState(
       cpuState: nes.cpu.state,
       ppuState: nes.ppu.state,
@@ -47,12 +50,14 @@ void main() {
 
   test('pop returns added states newest-first', () async {
     final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
+
     final expected = <Uint8List>[];
 
     for (var i = 0; i < 3; i++) {
       final state = factory.capture(i + 1, callStackDepth: i * 3);
 
-      expected.add(state.serialize());
+      expected.add(state.serialize(includeFrame: false));
       buffer.add(state);
 
       await flushMicrotasks();
@@ -62,7 +67,11 @@ void main() {
       final popped = buffer.pop();
 
       expect(popped, isNotNull, reason: 'pop $i');
-      expect(popped!.serialize(), expected[i], reason: 'pop $i');
+      expect(
+        popped!.state.serialize(includeFrame: false),
+        expected[i],
+        reason: 'pop $i',
+      );
     }
 
     expect(buffer.pop(), isNull);
@@ -70,23 +79,24 @@ void main() {
 
   test('handles states whose serialized length differs', () async {
     final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
 
     final small = factory.capture(1);
-    final smallBytes = small.serialize();
+    final smallBytes = small.serialize(includeFrame: false);
 
     buffer.add(small);
 
     await flushMicrotasks();
 
     final large = factory.capture(2, callStackDepth: 40);
-    final largeBytes = large.serialize();
+    final largeBytes = large.serialize(includeFrame: false);
 
     buffer.add(large);
 
     await flushMicrotasks();
 
     final shrunk = factory.capture(3);
-    final shrunkBytes = shrunk.serialize();
+    final shrunkBytes = shrunk.serialize(includeFrame: false);
 
     buffer.add(shrunk);
 
@@ -94,9 +104,9 @@ void main() {
 
     expect(largeBytes.length, isNot(equals(smallBytes.length)));
     expect(shrunkBytes.length, lessThan(largeBytes.length));
-    expect(buffer.pop()!.serialize(), shrunkBytes);
-    expect(buffer.pop()!.serialize(), largeBytes);
-    expect(buffer.pop()!.serialize(), smallBytes);
+    expect(buffer.pop()!.state.serialize(includeFrame: false), shrunkBytes);
+    expect(buffer.pop()!.state.serialize(includeFrame: false), largeBytes);
+    expect(buffer.pop()!.state.serialize(includeFrame: false), smallBytes);
     expect(buffer.pop(), isNull);
   });
 
@@ -106,12 +116,14 @@ void main() {
     // recoverable as the final dangling working copy, so 4 of 5 states
     // come back.
     final buffer = RewindBuffer(size: 4);
+    addTearDown(buffer.dispose);
+
     final expected = <Uint8List>[];
 
     for (var i = 0; i < 5; i++) {
       final state = factory.capture(i + 1, callStackDepth: i);
 
-      expected.add(state.serialize());
+      expected.add(state.serialize(includeFrame: false));
       buffer.add(state);
 
       await flushMicrotasks();
@@ -121,7 +133,12 @@ void main() {
       final popped = buffer.pop();
 
       expect(popped, isNotNull, reason: 'pop $i');
-      expect(popped!.serialize(), expected[i], reason: 'pop $i');
+      expect(
+        popped!.state.serialize(includeFrame: false),
+        expected[i],
+        reason: 'pop $i',
+      );
+      expect(popped.frame![0], i + 1, reason: 'frame $i');
     }
 
     expect(buffer.pop(), isNull);
@@ -129,6 +146,7 @@ void main() {
 
   test('size tracks compressed bytes across add, pop, and clear', () async {
     final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
 
     expect(buffer.size, 0);
 
@@ -160,12 +178,14 @@ void main() {
     // chain). Corruption from aliasing the pool would break byte
     // equality on the SECOND pop, not the first.
     final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
+
     final expected = <Uint8List>[];
 
     for (var i = 0; i < 6; i++) {
       final state = factory.capture(i + 1);
 
-      expected.add(state.serialize());
+      expected.add(state.serialize(includeFrame: false));
       buffer.add(state);
 
       await flushMicrotasks();
@@ -175,7 +195,11 @@ void main() {
       final popped = buffer.pop();
 
       expect(popped, isNotNull, reason: 'pop $i');
-      expect(popped!.serialize(), expected[i], reason: 'pop $i');
+      expect(
+        popped!.state.serialize(includeFrame: false),
+        expected[i],
+        reason: 'pop $i',
+      );
     }
 
     expect(buffer.pop(), isNull);
@@ -184,6 +208,7 @@ void main() {
   test('add after popping everything starts a fresh chain', () async {
     // cascaded to satisfy the enforced cascade_invocations lint
     final buffer = RewindBuffer(size: 16)..add(factory.capture(1));
+    addTearDown(buffer.dispose);
 
     await flushMicrotasks();
 
@@ -192,12 +217,49 @@ void main() {
     expect(buffer.pop(), isNull);
 
     final state = factory.capture(9);
-    final bytes = state.serialize();
+    final bytes = state.serialize(includeFrame: false);
 
     buffer.add(state);
 
     await flushMicrotasks();
 
-    expect(buffer.pop()!.serialize(), bytes);
+    expect(buffer.pop()!.state.serialize(includeFrame: false), bytes);
+  });
+
+  test('pop returns the frame that was presented at capture', () async {
+    final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
+
+    for (var i = 1; i <= 3; i++) {
+      buffer.add(factory.capture(i));
+
+      await flushMicrotasks();
+    }
+
+    for (var i = 3; i >= 1; i--) {
+      final popped = buffer.pop();
+
+      expect(popped, isNotNull, reason: 'pop $i');
+      expect(popped!.frame, isNotNull, reason: 'pop $i');
+      expect(popped.frame![0], i, reason: 'pop $i');
+      expect(popped.state.ppuState.frameBuffer, isNull);
+    }
+
+    expect(buffer.pop(), isNull);
+  });
+
+  test('size counts both the state and the frame lane', () async {
+    final buffer = RewindBuffer(size: 16);
+    addTearDown(buffer.dispose);
+
+    buffer.add(factory.capture(1));
+
+    await flushMicrotasks();
+
+    buffer.add(factory.capture(2));
+
+    await flushMicrotasks();
+
+    expect(buffer.size, greaterThan(NESState.headerBytes.length + 4));
   });
 }

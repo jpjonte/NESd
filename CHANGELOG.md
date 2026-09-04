@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added an audio mixer to Audio settings, with a volume control per channel
 - Folders inside an archive can now be browsed like any other folder
 
+### Changed
+- The emulator now runs on the fastest CPU cores on Android
+
 ### Fixed
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
@@ -28,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed opening a ROM from inside a zip archive on Windows
 - Fixed inconsistent zip archive handling depending on how you opened it
 - Fixed broken settings crashing NESd on start, the broken configuration is backed up
+- Fixed audio underruns on devices that read audio in large bursts
+- Fixed audio underruns and slowdown with rewind enabled on lower-end devices
 - Fixed the logo being cut off on the Android splash screen
 
 ## [0.18.0] - 2026-08-30

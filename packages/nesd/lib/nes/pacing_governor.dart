@@ -17,6 +17,7 @@ class PacingGovernor {
     this.sampleRate = apuSampleRate,
     this.gain = 0.1,
     this.setpointRatio = 0.5,
+    this.setpointSamples,
     this.drainThresholdRatio = 0.85,
     this.maxSleep = const Duration(milliseconds: 50),
   });
@@ -24,8 +25,19 @@ class PacingGovernor {
   final int sampleRate;
   final double gain;
   final double setpointRatio;
+  final int? setpointSamples;
+
   final double drainThresholdRatio;
   final Duration maxSleep;
+
+  PacingGovernor copyWith({int? setpointSamples}) => PacingGovernor(
+    sampleRate: sampleRate,
+    gain: gain,
+    setpointRatio: setpointRatio,
+    setpointSamples: setpointSamples ?? this.setpointSamples,
+    drainThresholdRatio: drainThresholdRatio,
+    maxSleep: maxSleep,
+  );
 
   Duration sleepFor({
     required int samplesProduced,
@@ -38,7 +50,8 @@ class PacingGovernor {
     var sleepMicros = targetMicros - elapsed.inMicroseconds;
 
     if (audio != null && audio.capacity > 0) {
-      final setpoint = audio.capacity * setpointRatio;
+      final setpoint =
+          setpointSamples?.toDouble() ?? audio.capacity * setpointRatio;
       final error = audio.fill - setpoint;
       final drainThreshold = audio.capacity * drainThresholdRatio;
 

@@ -17,11 +17,10 @@ typedef AudioStats = ({
   int popMax,
 });
 
-/// Native ring capacity: 50 ms at the APU sample rate.
-const audioBufferSamples = 2400;
-
-/// Web ring capacity: 100 ms to prevent underruns from JavaScript GC.
-const webAudioBufferSamples = 4800;
+/// Native ring capacity: 100 ms at the APU sample rate. The pacing setpoint
+/// (defaultAudioSetpointSamples in audio_setpoint.dart) decides the actual
+/// latency.
+const audioBufferSamples = 4800;
 
 /// Underrun recovery margin (on top of the largest device read): 20 ms.
 const audioRecoverSamples = 960;
@@ -31,7 +30,7 @@ const lowPassCutoff = 14000.0;
 NesdAudio defaultNesdAudio({bool nullDevice = false}) => NesdAudio.open(
   sampleRate: apuSampleRate,
   channels: 1,
-  bufferSamples: kIsWeb ? webAudioBufferSamples : audioBufferSamples,
+  bufferSamples: audioBufferSamples,
   recoverSamples: audioRecoverSamples,
   nullDevice: nullDevice,
 );

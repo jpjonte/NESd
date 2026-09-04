@@ -301,6 +301,10 @@ class RomManager {
   Future<ui.Image> _getStateThumbnail(NESState state) async {
     final frameBuffer = state.ppuState.frameBuffer;
 
+    if (frameBuffer == null) {
+      throw NesdException('Save state carries no frame');
+    }
+
     return await convertFrameBufferToImage(frameBuffer);
   }
 

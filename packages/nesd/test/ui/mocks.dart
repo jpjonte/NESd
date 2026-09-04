@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeNesdAudio implements NesdAudio {
   int underrunsValue = 0;
+  int popMaxValue = 0;
 
   // Half full for proper emulation pacing
   int filledValue = 96000;
@@ -35,7 +36,7 @@ class FakeNesdAudio implements NesdAudio {
   int get overruns => 0;
 
   @override
-  int get popMax => 0;
+  int get popMax => popMaxValue;
 
   @override
   int get restarts => 0;

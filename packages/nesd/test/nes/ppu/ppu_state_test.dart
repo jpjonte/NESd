@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
+import 'package:nesd/nes/serialization/nesd_uint64.dart';
+
+import '../../test_roms/rom_robot.dart';
 
 FrameBuffer buildFrameBuffer() {
   return FrameBuffer(width: 4, height: 4)
@@ -127,9 +132,17 @@ void expectStatesEqual(PPUState actual, PPUState expected) {
   expect(actual.oam, expected.oam);
   expect(actual.secondaryOam, expected.secondaryOam);
   expect(actual.palette, expected.palette);
-  expect(actual.frameBuffer.width, expected.frameBuffer.width);
-  expect(actual.frameBuffer.height, expected.frameBuffer.height);
-  expect(actual.frameBuffer.pixels, expected.frameBuffer.pixels);
+  final actualFrame = actual.frameBuffer;
+  final expectedFrame = expected.frameBuffer;
+
+  if (expectedFrame == null) {
+    expect(actualFrame, isNull);
+  } else {
+    expect(actualFrame, isNotNull);
+    expect(actualFrame!.width, expectedFrame.width);
+    expect(actualFrame.height, expectedFrame.height);
+    expect(actualFrame.pixels, expectedFrame.pixels);
+  }
   expect(actual.consoleCycles, expected.consoleCycles);
   expect(actual.cycles, expected.cycles);
   expect(actual.cycle, expected.cycle);
@@ -187,7 +200,57 @@ void writeLegacyBody(PayloadWriter writer, PPUState state) {
     ..set(uint8List(lengthType: uint32), state.secondaryOam)
     ..set(uint8List(lengthType: uint32), state.palette);
 
-  state.frameBuffer.serialize(writer);
+  state.frameBuffer!.serialize(writer);
+}
+
+void writeVersion3(PayloadWriter writer, PPUState state) {
+  writer
+    ..set(uint8, 3)
+    ..set(uint8, state.PPUCTRL)
+    ..set(uint8, state.PPUMASK)
+    ..set(uint8, state.PPUSTATUS)
+    ..set(uint8, state.OAMADDR)
+    ..set(uint8, state.OAMDATA)
+    ..set(uint8, state.PPUSCROLL)
+    ..set(uint8, state.PPUDATA)
+    ..set(uint16, state.v)
+    ..set(uint16, state.t)
+    ..set(uint8, state.x)
+    ..set(uint8, state.w)
+    ..set(uint8List(lengthType: uint32), state.ram)
+    ..set(uint8List(lengthType: uint32), state.oam)
+    ..set(uint8List(lengthType: uint32), state.secondaryOam)
+    ..set(uint8List(lengthType: uint32), state.palette);
+
+  state.frameBuffer!.serialize(writer);
+
+  writer
+    ..set(nesdUint64, state.consoleCycles)
+    ..set(nesdUint64, state.cycles)
+    ..set(uint16, state.cycle)
+    ..set(uint16, state.scanline)
+    ..set(uint32, state.frames)
+    ..set(uint8, state.nametableLatch)
+    ..set(uint8, state.patternTableHighLatch)
+    ..set(uint8, state.patternTableLowLatch)
+    ..set(uint16, state.patternTableHighShift)
+    ..set(uint16, state.patternTableLowShift)
+    ..set(uint8, state.attributeTableLatch)
+    ..set(uint8, state.attributeTableHighShift)
+    ..set(uint8, state.attributeTableLowShift)
+    ..set(uint8, state.attribute)
+    ..set(uint16, state.oamAddress)
+    ..set(uint8, state.oamBuffer)
+    ..set(uint8, state.spriteCount)
+    ..set(uint8, state.secondarySpriteCount)
+    ..set(boolean, state.sprite0OnNextLine)
+    ..set(boolean, state.sprite0OnCurrentLine);
+
+  SpriteOutputState.serializeList(writer, state.spriteOutputs);
+
+  writer
+    ..set(uint8, state.decay)
+    ..set(uint32List(), Uint32List.fromList(state.decayRefreshedAt));
 }
 
 void writeLegacyTail(PayloadWriter writer, PPUState state) {
@@ -216,16 +279,56 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
 }
 
 void main() {
-  test('serialize writes version 3 and round-trips adversarial values', () {
+  test('serialize writes version 4 and round-trips adversarial values', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 3, reason: 'PPUState version');
+    expect(bytes[0], 4, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
+
+    expectStatesEqual(decoded, original);
+  });
+
+  test('omits the frame when asked and restores it as null', () {
+    final original = buildState();
+
+    final writer = Payload.write();
+    original.serialize(writer, includeFrame: false);
+    final bytes = binarize(writer);
+
+    final decoded = PPUState.deserialize(Payload.read(bytes));
+
+    expect(decoded.frameBuffer, isNull);
+    expect(decoded.ram, original.ram);
+    expect(decoded.decayRefreshedAt, original.decayRefreshedAt);
+  });
+
+  test('a frameless payload is much smaller than one with the frame', () {
+    final original = buildState();
+
+    final withFrame = Payload.write();
+    original.serialize(withFrame);
+
+    final withoutFrame = Payload.write();
+    original.serialize(withoutFrame, includeFrame: false);
+
+    expect(
+      binarize(withoutFrame).length,
+      lessThan(binarize(withFrame).length - 64),
+    );
+  });
+
+  test('still reads version 3 payloads', () {
+    final original = buildState();
+
+    final writer = Payload.write();
+    writeVersion3(writer, original);
+
+    final decoded = PPUState.deserialize(Payload.read(binarize(writer)));
 
     expectStatesEqual(decoded, original);
   });
@@ -259,5 +362,21 @@ void main() {
     final decoded = PPUState.deserialize(Payload.read(binarize(writer)));
 
     expectStatesEqual(decoded, original);
+  });
+
+  test('restoring a frameless state leaves the live pixels alone', () {
+    final robot = RomRobot('../../roms/test/nestest/nestest.nes');
+    final ppu = robot.nes.ppu;
+
+    ppu.frameBuffer.pixels[0] = 0xab;
+
+    final writer = Payload.write();
+    ppu.state.serialize(writer, includeFrame: false);
+    final frameless = PPUState.deserialize(Payload.read(binarize(writer)));
+
+    ppu.frameBuffer.pixels[0] = 0xcd;
+    ppu.state = frameless;
+
+    expect(ppu.frameBuffer.pixels[0], 0xcd);
   });
 }
