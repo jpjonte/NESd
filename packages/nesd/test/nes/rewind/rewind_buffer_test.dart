@@ -322,4 +322,123 @@ void main() {
 
     expect(buffer.thumbnails(), isEmpty);
   });
+
+  test('commitWalk leaves the buffer as N pops would', () async {
+    final oracle = RewindBuffer(size: 12);
+    addTearDown(oracle.dispose);
+
+    final committed = RewindBuffer(size: 12);
+    addTearDown(committed.dispose);
+
+    for (var i = 0; i < 8; i++) {
+      final state = factory.capture(i + 1, callStackDepth: i % 3);
+
+      oracle.add(state);
+      committed.add(state);
+
+      await flushMicrotasks();
+    }
+
+    for (var i = 0; i < 4; i++) {
+      oracle.pop();
+    }
+
+    final walk = committed.beginWalk()!..seekTo(4, budget: 100);
+
+    committed.commitWalk(walk);
+
+    expect(committed.itemCount, oracle.itemCount);
+    expect(committed.size, oracle.size);
+
+    expect(
+      committed.pop()!.state.serialize(includeFrame: false),
+      oracle.pop()!.state.serialize(includeFrame: false),
+    );
+  });
+
+  test('commitWalk at position zero is a no-op', () async {
+    final oracle = RewindBuffer(size: 12);
+    addTearDown(oracle.dispose);
+
+    final buffer = RewindBuffer(size: 12);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 4; i++) {
+      final state = factory.capture(i + 1);
+
+      oracle.add(state);
+      buffer.add(state);
+
+      await flushMicrotasks();
+    }
+
+    final itemsBefore = buffer.itemCount;
+    final bytesBefore = buffer.size;
+
+    buffer.commitWalk(buffer.beginWalk()!);
+
+    expect(buffer.itemCount, itemsBefore);
+    expect(buffer.size, bytesBefore);
+
+    expect(
+      buffer.pop()!.state.serialize(includeFrame: false),
+      oracle.pop()!.state.serialize(includeFrame: false),
+    );
+  });
+
+  test('commitWalk takes the frame before disposing the walk', () async {
+    final buffer = RewindBuffer(size: 12);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 6; i++) {
+      buffer.add(factory.capture(i + 1));
+
+      await flushMicrotasks();
+    }
+
+    final walk = buffer.beginWalk()!..seekTo(3, budget: 100);
+
+    final expectedFrameMarker = walk.frame![0];
+
+    buffer.commitWalk(walk);
+
+    expect(buffer.pop()!.frame![0], expectedFrameMarker);
+  });
+
+  test('commitWalk truncates thumbnails past the committed point so '
+      'resumed play stays monotonic', () async {
+    final buffer = RewindBuffer(size: 40, thumbnailStride: 2);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 10; i++) {
+      buffer.add(factory.capture(i + 1));
+
+      await flushMicrotasks();
+    }
+
+    final walk = buffer.beginWalk()!..seekTo(6, budget: 100);
+
+    buffer.commitWalk(walk);
+
+    for (var i = 0; i < 6; i++) {
+      buffer.add(factory.capture(i + 11));
+
+      await flushMicrotasks();
+    }
+
+    final sequences = buffer.thumbnails().map((t) => t.sequence).toList();
+
+    expect(sequences.toSet().length, sequences.length, reason: 'no dups');
+
+    for (var i = 1; i < sequences.length; i++) {
+      expect(
+        sequences[i],
+        greaterThan(sequences[i - 1]),
+        reason: 'must be strictly increasing',
+      );
+    }
+
+    expect(sequences.every((s) => s <= buffer.newestSequence), isTrue);
+    expect(sequences, [0, 2, 4, 6, 8]);
+  });
 }

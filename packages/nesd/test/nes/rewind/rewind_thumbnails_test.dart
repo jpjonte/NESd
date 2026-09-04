@@ -98,4 +98,80 @@ void main() {
     expect(thumbnails.length, 0);
     expect(thumbnails.snapshot(), isEmpty);
   });
+
+  test('truncateAfter drops entries above the cut', () {
+    final thumbnails = RewindThumbnails(
+      capacity: 5,
+      sourceWidth: 8,
+      sourceHeight: 4,
+    );
+
+    for (var sequence = 0; sequence < 5; sequence++) {
+      thumbnails.add(sequence * 10, _source());
+    }
+
+    thumbnails.truncateAfter(25);
+
+    expect(thumbnails.length, 3);
+    expect(thumbnails.snapshot().map((t) => t.sequence), [0, 10, 20]);
+  });
+
+  test('truncateAfter keeps entries exactly at the cut', () {
+    final thumbnails = RewindThumbnails(
+      capacity: 3,
+      sourceWidth: 8,
+      sourceHeight: 4,
+    );
+
+    for (var sequence = 0; sequence < 3; sequence++) {
+      thumbnails.add(sequence * 10, _source());
+    }
+
+    thumbnails.truncateAfter(20);
+
+    expect(thumbnails.length, 3);
+    expect(thumbnails.snapshot().map((t) => t.sequence), [0, 10, 20]);
+  });
+
+  test('truncateAfter on a wrapped ring only trims the newest end', () {
+    final thumbnails = RewindThumbnails(
+      capacity: 3,
+      sourceWidth: 8,
+      sourceHeight: 4,
+    );
+
+    for (var sequence = 0; sequence < 5; sequence++) {
+      thumbnails.add(sequence * 10, _source());
+    }
+
+    thumbnails.truncateAfter(25);
+
+    expect(thumbnails.length, 1);
+    expect(thumbnails.snapshot().map((t) => t.sequence), [20]);
+  });
+
+  test('truncateAfter reuses buffers instead of reallocating', () {
+    final thumbnails = RewindThumbnails(
+      capacity: 3,
+      sourceWidth: 8,
+      sourceHeight: 4,
+    );
+
+    for (var sequence = 0; sequence < 3; sequence++) {
+      thumbnails.add(sequence * 10, _source());
+    }
+
+    final droppedPixels = thumbnails.snapshot().last.pixels;
+
+    thumbnails.truncateAfter(10);
+
+    expect(thumbnails.length, 2);
+
+    thumbnails.add(999, _source());
+
+    expect(
+      thumbnails.snapshot().any((t) => identical(t.pixels, droppedPixels)),
+      isTrue,
+    );
+  });
 }

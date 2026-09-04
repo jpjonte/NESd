@@ -178,6 +178,30 @@ class RewindBuffer {
     );
   }
 
+  void commitWalk(RewindWalk walk) {
+    for (var i = 0; i < walk.position; i++) {
+      final item = _buffer.popEnd();
+
+      if (item == null) {
+        break;
+      }
+
+      _bytes -= item.length;
+    }
+
+    _sequence -= walk.position;
+
+    _thumbnails?.truncateAfter(newestSequence);
+
+    _setCurrent(walk.stateBytes);
+
+    if (walk.frame case final frame?) {
+      _laneFor(frame).setCurrent(frame);
+    }
+
+    walk.dispose();
+  }
+
   RewindItem? _itemFromEnd(int position) {
     final index = _buffer.current - 1 - position;
 

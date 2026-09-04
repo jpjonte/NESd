@@ -58,6 +58,18 @@ class RewindThumbnails {
     _length = 0;
   }
 
+  void truncateAfter(int sequence) {
+    while (_length > 0) {
+      final newestIndex = (_start + _length - 1) % capacity;
+
+      if (_sequences[newestIndex] <= sequence) {
+        break;
+      }
+
+      _length--;
+    }
+  }
+
   List<RewindThumbnail> snapshot() =>
       List<RewindThumbnail>.generate(_length, (i) {
         final index = (_start + i) % capacity;
