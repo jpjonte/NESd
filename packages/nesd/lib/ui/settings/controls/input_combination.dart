@@ -188,6 +188,14 @@ final defaultBindings = [
   ),
   Binding(
     index: 0,
+    action: rewindTimeline,
+    input: InputCombination.keyboard({
+      LogicalKeyboardKey.shift,
+      LogicalKeyboardKey.backspace,
+    }),
+  ),
+  Binding(
+    index: 0,
     action: openMenu,
     input: InputCombination.keyboard({LogicalKeyboardKey.escape}),
   ),

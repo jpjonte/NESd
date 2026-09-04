@@ -24,6 +24,7 @@ const emulatorActions = [
   stop,
   fastForward,
   rewind,
+  rewindTimeline,
   decreaseVolume,
   increaseVolume,
 ];

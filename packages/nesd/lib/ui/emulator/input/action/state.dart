@@ -29,6 +29,10 @@ class Rewind extends InputAction {
     : super(toggleable: true);
 }
 
+class RewindTimelineAction extends InputAction {
+  const RewindTimelineAction({required super.title, required super.code});
+}
+
 class DecreaseVolume extends InputAction {
   const DecreaseVolume({required super.title, required super.code});
 }
@@ -60,6 +64,11 @@ const fastForward = FastForward(
 );
 
 const rewind = Rewind(title: 'Rewind', code: 'state.rewind');
+
+const rewindTimeline = RewindTimelineAction(
+  title: 'Rewind Timeline',
+  code: 'state.rewindTimeline',
+);
 
 const decreaseVolume = DecreaseVolume(
   title: 'Decrease Volume',

@@ -44,7 +44,7 @@ class ControlsSettings extends StatelessWidget {
 
   static bool _isBindable(InputAction action) => switch (action) {
     ToggleTool(:final tool) => Features.debugger || !tool.requiresDebugger,
-    Rewind() => Features.rewind,
+    Rewind() || RewindTimelineAction() => Features.rewind,
     _ => true,
   };
 }
