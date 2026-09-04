@@ -72,7 +72,17 @@ class RewindScrubController extends _$RewindScrubController {
 
   @override
   RewindScrubState build() {
+    ref.listen(nesStateProvider, (_, nes) {
+      if (_nes == null || identical(nes, _nes)) {
+        return;
+      }
+
+      _close();
+    });
+
     ref.onDispose(() {
+      _nes?.cancelRewindScrub();
+
       unawaited(_subscription?.cancel());
 
       _disposeThumbnails();
@@ -99,6 +109,10 @@ class RewindScrubController extends _$RewindScrubController {
     final response = await nes.beginRewindScrub();
 
     if (response == null) {
+      nes.cancelRewindScrub();
+
+      _reportUnavailable();
+
       return false;
     }
 
@@ -113,12 +127,30 @@ class RewindScrubController extends _$RewindScrubController {
         stackTrace: stackTrace,
       );
 
+      nes.cancelRewindScrub();
+
+      return false;
+    }
+
+    if (!ref.mounted) {
+      _disposeImages(thumbnails);
+
+      nes.cancelRewindScrub();
+
+      return false;
+    }
+
+    if (!identical(ref.read(nesStateProvider), nes)) {
+      _disposeImages(thumbnails);
+
+      nes.cancelRewindScrub();
+
       return false;
     }
 
     _nes = nes;
     _thumbnails = thumbnails;
-    _subscription = nes.events.listen(_handlePositionEvent);
+    _subscription = nes.events.listen(_handleEvent);
 
     state = RewindScrubState(
       open: true,
@@ -131,6 +163,14 @@ class RewindScrubController extends _$RewindScrubController {
       thumbnailSequences: response.thumbnailSequences,
       settled: true,
     );
+
+    if (!nes.scrubbing) {
+      nes.cancelRewindScrub();
+
+      _close();
+
+      return false;
+    }
 
     return true;
   }
@@ -204,12 +244,27 @@ class RewindScrubController extends _$RewindScrubController {
     return sequence;
   }
 
-  void _handlePositionEvent(NesIsolateEvent event) {
-    if (event is! RewindScrubPositionEvent) {
+  void _handleEvent(NesIsolateEvent event) {
+    if (!state.open) {
       return;
     }
 
-    state = state.copyWith(settled: event.settled);
+    switch (event) {
+      case RewindScrubPositionEvent():
+        final settled = _nes?.scrubSettled ?? state.settled;
+
+        if (settled == state.settled) {
+          return;
+        }
+
+        state = state.copyWith(settled: settled);
+
+      case StatusEvent(scrubbing: false):
+        _close();
+
+      default:
+        break;
+    }
   }
 
   void _close() {
@@ -224,11 +279,15 @@ class RewindScrubController extends _$RewindScrubController {
   }
 
   void _disposeThumbnails() {
-    for (final image in _thumbnails) {
-      image.dispose();
-    }
+    _disposeImages(_thumbnails);
 
     _thumbnails = const [];
+  }
+
+  void _disposeImages(List<ui.Image> images) {
+    for (final image in images) {
+      image.dispose();
+    }
   }
 
   Future<List<ui.Image>> _decodeThumbnails(

@@ -21,6 +21,7 @@ import 'package:nesd/ui/emulator/cartridge_info.dart';
 import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/nes_palette_provider.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
+import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/emulator/rom_importer.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
@@ -94,6 +95,14 @@ NesController nesController(Ref ref) {
   );
 
   ref.onDispose(autoSaveSubscription.close);
+
+  final scrubSubscription = ref.listen(
+    rewindScrubControllerProvider.select((scrub) => scrub.open),
+    (_, open) => controller.setScrubOpen(open: open),
+    fireImmediately: true,
+  );
+
+  ref.onDispose(scrubSubscription.close);
 
   final volumeSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.volume),
@@ -244,6 +253,8 @@ class NesController {
   Uint32List _systemPalette = defaultPalette;
 
   Timer? _autoSaveTimer;
+
+  bool _scrubOpen = false;
 
   NesIsolateHandle? _isolate;
 
@@ -721,13 +732,27 @@ class NesController {
 
   void setAutoSave({required bool enabled, required int? interval}) {
     _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
 
-    if (enabled && interval != null) {
+    if (enabled && interval != null && !_scrubOpen) {
       _autoSaveTimer = Timer.periodic(
         Duration(minutes: interval),
         (_) => unawaited(_autoSave()),
       );
     }
+  }
+
+  void setScrubOpen({required bool open}) {
+    if (open == _scrubOpen) {
+      return;
+    }
+
+    _scrubOpen = open;
+
+    setAutoSave(
+      enabled: settingsController.autoSave,
+      interval: settingsController.autoSaveInterval,
+    );
   }
 
   Future<Uint8List> _loadArchive(String path, Uint8List data) async {
