@@ -202,6 +202,25 @@ void main() {
     await _quitGame(r);
   });
 
+  testWidgets('tapping left of the cursor seeks back to that cell', (
+    tester,
+  ) async {
+    final r = _robot(tester);
+
+    await _startGame(r);
+    await _openScrubber(r);
+
+    final before = _scrubState(r).cursorSequence;
+    final strip = tester.getRect(find.byType(RewindFilmstrip));
+
+    await tester.tapAt(Offset(strip.center.dx - 300, strip.center.dy));
+    await tester.pump();
+
+    expect(_scrubState(r).cursorSequence, lessThan(before));
+
+    await _quitGame(r);
+  });
+
   testWidgets('the emulator keeps running behind the overlay', (tester) async {
     final r = _robot(tester);
 

@@ -314,12 +314,23 @@ class _RewindFilmstripState extends State<RewindFilmstrip> {
                       SizedBox(
                         width: double.infinity,
                         height: filmHeight + rewindFilmstripRulerHeight,
-                        child: CustomPaint(
-                          painter: RewindFilmstripPainter(
-                            state: state,
-                            secondsBack: widget.secondsBack,
-                            labelStyle: labelStyle,
-                          ),
+                        child: LayoutBuilder(
+                          builder: (context, filmConstraints) =>
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTapUp: (details) => _jumpTo(
+                                  details.localPosition.dx,
+                                  filmConstraints.maxWidth,
+                                  filmHeight,
+                                ),
+                                child: CustomPaint(
+                                  painter: RewindFilmstripPainter(
+                                    state: state,
+                                    secondsBack: widget.secondsBack,
+                                    labelStyle: labelStyle,
+                                  ),
+                                ),
+                              ),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -340,6 +351,25 @@ class _RewindFilmstripState extends State<RewindFilmstrip> {
         );
       },
     );
+  }
+
+  void _jumpTo(double x, double width, double filmHeight) {
+    final cellWidth = rewindFilmstripCellWidth(filmHeight);
+
+    if (cellWidth <= 0) {
+      return;
+    }
+
+    final stride = rewindFilmstripSlotStride(widget.state);
+    final captures = ((x - width / 2) * stride / cellWidth).round();
+
+    if (captures == 0) {
+      return;
+    }
+
+    _pendingCaptures = 0;
+
+    widget.onScrubBy(captures);
   }
 
   void _scrub(double dx, double filmHeight) {
