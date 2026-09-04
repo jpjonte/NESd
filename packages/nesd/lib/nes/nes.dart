@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:nesd/exception/nesd_exception.dart';
+import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
@@ -19,10 +20,14 @@ import 'package:nesd/nes/ppu/ppu.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/rewind/rewind_buffer.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
+import 'package:nesd/nes/rewind/rewind_timeline.dart';
+import 'package:nesd/nes/rewind/rewind_walk.dart';
 import 'package:nesd/nes/sample_decimator.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/util/wait.dart';
+
+const scrubStepBudget = 96;
 
 class NES {
   NES({
@@ -96,6 +101,8 @@ class NES {
       throw ArgumentError.value(value, 'rewindCaptureInterval', '>= 1');
     }
 
+    cancelScrub();
+
     _rewindCaptureInterval = value;
     _rewindBuffer.dispose();
     _rewindBuffer = _createRewindBuffer();
@@ -118,13 +125,181 @@ class NES {
   RewindBuffer _createRewindBuffer() => RewindBuffer(
     // Must be at least 2, because a RingBuffer of size 1 has a usable size of 0
     size: max(2, 3600 ~/ _rewindCaptureInterval),
+    thumbnailStride: max(1, 60 ~/ _rewindCaptureInterval),
     profiler: _rewindProfiler,
   );
 
   @visibleForTesting
   int get rewindItemCapacity => _rewindBuffer.itemCapacity;
 
+  @visibleForTesting
+  int get rewindBufferBytes => _rewindBuffer.size;
+
+  @visibleForTesting
+  void replaceRewindBuffer(RewindBuffer buffer) {
+    cancelScrub();
+
+    _rewindBuffer.dispose();
+    _rewindBuffer = buffer;
+  }
+
+  RewindWalk? _scrubWalk;
+  Uint8List? _scrubEntryFrame;
+  int _scrubTarget = 0;
+  int _scrubNewestSequence = 0;
+  bool _scrubSettled = true;
+
+  int _scrubPresentedPosition = -1;
+
+  bool get scrubbing => _scrubWalk != null;
+
+  int get scrubSequence => _scrubTarget;
+
+  bool get scrubSettled => _scrubSettled;
+
+  RewindTimeline? beginScrub() {
+    if (scrubbing || !rewindEnabled) {
+      return null;
+    }
+
+    final walk = _rewindBuffer.beginWalk();
+
+    if (walk == null || _rewindBuffer.itemCount == 0) {
+      walk?.dispose();
+
+      return null;
+    }
+
+    final entryFrame = walk.frame;
+
+    _scrubWalk = walk;
+    _scrubNewestSequence = _rewindBuffer.newestSequence;
+    _scrubTarget = _scrubNewestSequence;
+    _scrubSettled = true;
+    _scrubPresentedPosition = -1;
+    _scrubEntryFrame = entryFrame == null
+        ? null
+        : Uint8List.fromList(entryFrame);
+
+    return RewindTimeline(
+      oldestSequence: _rewindBuffer.oldestSequence,
+      newestSequence: _scrubNewestSequence,
+      captureInterval: _rewindCaptureInterval,
+      frameRate: frameRate,
+      thumbnails: _rewindBuffer.thumbnails(),
+      thumbnailWidth: _rewindBuffer.thumbnailWidth,
+      thumbnailHeight: _rewindBuffer.thumbnailHeight,
+    );
+  }
+
+  void scrubTo(int sequence) {
+    if (!scrubbing) {
+      return;
+    }
+
+    _scrubTarget = sequence.clamp(
+      _rewindBuffer.oldestSequence,
+      _scrubNewestSequence,
+    );
+
+    _scrubSettled = false;
+  }
+
+  bool advanceScrub() {
+    final walk = _scrubWalk;
+
+    if (walk == null) {
+      return true;
+    }
+
+    final settled = _guardScrub(
+      () => walk.seekTo(
+        _scrubNewestSequence - _scrubTarget,
+        budget: scrubStepBudget,
+      ),
+    );
+
+    return _scrubSettled = settled ?? true;
+  }
+
+  void commitScrub() {
+    final walk = _scrubWalk;
+
+    if (walk == null) {
+      return;
+    }
+
+    final state = _guardScrub(() {
+      walk.seekTo(_scrubNewestSequence - _scrubTarget, budget: walk.itemCount);
+
+      return walk.buildState();
+    });
+
+    if (state == null) {
+      return;
+    }
+
+    _applyState(state);
+
+    if (walk.frame case final frame?) {
+      ppu.frameBuffer.setPixels(frame);
+    }
+
+    _rewindBuffer.commitWalk(walk);
+
+    _endScrub();
+
+    _resetPacing();
+  }
+
+  void cancelScrub() {
+    final walk = _scrubWalk;
+
+    if (walk == null) {
+      return;
+    }
+
+    if (_scrubEntryFrame case final frame?) {
+      ppu.frameBuffer.setPixels(frame);
+    }
+
+    walk.dispose();
+
+    _endScrub();
+  }
+
+  T? _guardScrub<T>(T Function() action) {
+    try {
+      return action();
+    } on NesdException catch (e, s) {
+      _abortScrub('Rewind chain corrupted; scrub aborted', e, s);
+      // binarize throws RangeError on truncated payloads
+      // ignore: avoid_catching_errors
+    } on RangeError catch (e, s) {
+      _abortScrub('Rewind payload truncated; scrub aborted', e, s);
+    }
+
+    return null;
+  }
+
+  void _abortScrub(String message, Object error, StackTrace stackTrace) {
+    log.emulator.warning(message, error: error, stackTrace: stackTrace);
+
+    cancelScrub();
+
+    _rewindBuffer.clear();
+  }
+
+  void _endScrub() {
+    _scrubWalk = null;
+    _scrubEntryFrame = null;
+    _scrubSettled = true;
+    _scrubPresentedPosition = -1;
+  }
+
   void dispose() {
+    cancelScrub();
+
     _rewindBuffer.dispose();
   }
 
@@ -255,6 +430,8 @@ class NES {
 
     fastForward = false;
 
+    cancelScrub();
+
     bus.cartridge.reset();
 
     cpu.reset();
@@ -287,6 +464,12 @@ class NES {
       while (on) {
         if (!running) {
           await _sleep(const Duration(milliseconds: 10));
+
+          continue;
+        }
+
+        if (scrubbing) {
+          await _handleScrub();
 
           continue;
         }
@@ -386,6 +569,48 @@ class NES {
 
     final sleepTime = governor.sleepFor(
       samplesProduced: apu.sampleIndex,
+      elapsed: workTime,
+      audio: audioFillProbe?.call(),
+    );
+
+    await _closeFrameWindow(sleepTime);
+  }
+
+  Future<void> _handleScrub() async {
+    advanceScrub();
+
+    final walk = _scrubWalk;
+
+    if (walk == null) {
+      return;
+    }
+
+    if (walk.position != _scrubPresentedPosition) {
+      if (walk.frame case final frame?) {
+        ppu.frameBuffer.setPixels(frame);
+      }
+
+      ppu.frameBuffer.swap();
+
+      _scrubPresentedPosition = walk.position;
+    }
+
+    final workTime = _openFrameWindow();
+
+    final samples = Float32List(apuSampleRate ~/ frameRate);
+
+    eventBus.add(
+      FrameNesEvent(
+        samples: samples,
+        frameTime: _frameTime,
+        frame: ppu.frames,
+        sleepTime: Duration.zero,
+        rewindSize: _rewindBuffer.size,
+      ),
+    );
+
+    final sleepTime = governor.sleepFor(
+      samplesProduced: samples.length,
       elapsed: workTime,
       audio: audioFillProbe?.call(),
     );
@@ -509,6 +734,8 @@ class NES {
     rewind = rewindEnabled && !rewind;
 
     if (!rewind) {
+      cancelScrub();
+
       _rewindBuffer.clear();
     }
   }
