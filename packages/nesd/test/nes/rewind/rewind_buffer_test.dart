@@ -262,4 +262,64 @@ void main() {
 
     expect(buffer.size, greaterThan(NESState.headerBytes.length + 4));
   });
+
+  test('tracks sequence numbers across eviction', () async {
+    final buffer = RewindBuffer(size: 4);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 6; i++) {
+      buffer.add(factory.capture(i + 1));
+
+      await flushMicrotasks();
+    }
+
+    expect(buffer.itemCount, 3);
+    expect(buffer.newestSequence, 5);
+    expect(buffer.oldestSequence, 3);
+  });
+
+  test('clear resets the sequence', () async {
+    final buffer = RewindBuffer(size: 4);
+    addTearDown(buffer.dispose);
+
+    buffer.add(factory.capture(1));
+
+    await flushMicrotasks();
+
+    buffer
+      ..clear()
+      ..add(factory.capture(2));
+
+    await flushMicrotasks();
+
+    expect(buffer.newestSequence, 0);
+  });
+
+  test('captures one thumbnail per stride', () async {
+    final buffer = RewindBuffer(size: 16, thumbnailStride: 3);
+    addTearDown(buffer.dispose);
+
+    for (var i = 0; i < 7; i++) {
+      buffer.add(factory.capture(i + 1));
+
+      await flushMicrotasks();
+    }
+
+    expect(buffer.thumbnails().map((t) => t.sequence), [0, 3, 6]);
+    expect(buffer.thumbnailWidth, 64);
+    expect(buffer.thumbnailHeight, 60);
+  });
+
+  test('clear empties the thumbnails', () async {
+    final buffer = RewindBuffer(size: 16, thumbnailStride: 1);
+    addTearDown(buffer.dispose);
+
+    buffer.add(factory.capture(1));
+
+    await flushMicrotasks();
+
+    buffer.clear();
+
+    expect(buffer.thumbnails(), isEmpty);
+  });
 }
