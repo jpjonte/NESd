@@ -78,12 +78,55 @@ class StatusEvent extends NesIsolateEvent {
     required this.paused,
     required this.fastForward,
     required this.rewind,
+    required this.scrubbing,
   });
 
   final bool running;
   final bool paused;
   final bool fastForward;
   final bool rewind;
+  final bool scrubbing;
+}
+
+class RewindScrubBeganResponse extends NesIsolateEvent {
+  const RewindScrubBeganResponse({
+    required this.requestId,
+    required this.available,
+    required this.oldestSequence,
+    required this.newestSequence,
+    required this.captureInterval,
+    required this.frameRate,
+    required this.thumbnailSequences,
+    required this.thumbnails,
+    required this.thumbnailWidth,
+    required this.thumbnailHeight,
+  });
+
+  final int requestId;
+
+  final bool available;
+
+  final int oldestSequence;
+  final int newestSequence;
+  final int captureInterval;
+  final int frameRate;
+
+  final List<int> thumbnailSequences;
+
+  final NesBytes thumbnails;
+  final int thumbnailWidth;
+  final int thumbnailHeight;
+}
+
+class RewindScrubPositionEvent extends NesIsolateEvent {
+  const RewindScrubPositionEvent({
+    required this.sequence,
+    required this.settled,
+  });
+
+  final int sequence;
+
+  final bool settled;
 }
 
 /// Once-per-second audio-path health sample from the worker. `logLine`

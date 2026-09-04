@@ -171,6 +171,7 @@ void main() {
           paused: true,
           fastForward: true,
           rewind: true,
+          scrubbing: false,
         ),
       );
 
@@ -612,6 +613,7 @@ void main() {
             paused: false,
             fastForward: false,
             rewind: false,
+            scrubbing: false,
           ),
         );
 

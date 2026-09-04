@@ -163,6 +163,11 @@ class NesWorker {
         _sendStatus();
       case SetRewindEnabledCommand():
         _nes?.rewindEnabled = rewindSupported && command.enabled;
+      case BeginRewindScrubCommand():
+      case ScrubToCommand():
+      case CommitRewindScrubCommand():
+      case CancelRewindScrubCommand():
+        break;
       case SetRegionCommand():
         _applyRegion(command.region);
       case SetCheatsCommand():
@@ -477,6 +482,7 @@ class NesWorker {
         paused: status.paused,
         fastForward: status.fastForward,
         rewind: status.rewind,
+        scrubbing: false,
       ),
     );
   }

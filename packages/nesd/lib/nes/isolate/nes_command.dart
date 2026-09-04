@@ -138,6 +138,26 @@ class SetRewindCommand extends NesCommand {
   final bool enabled;
 }
 
+class BeginRewindScrubCommand extends NesCommand {
+  const BeginRewindScrubCommand({required this.requestId});
+
+  final int requestId;
+}
+
+class ScrubToCommand extends NesCommand {
+  const ScrubToCommand({required this.sequence});
+
+  final int sequence;
+}
+
+class CommitRewindScrubCommand extends NesCommand {
+  const CommitRewindScrubCommand();
+}
+
+class CancelRewindScrubCommand extends NesCommand {
+  const CancelRewindScrubCommand();
+}
+
 class SetRegionCommand extends NesCommand {
   const SetRegionCommand({required this.region});
 
