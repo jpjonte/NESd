@@ -107,6 +107,9 @@ class SoakRunner {
 
       unawaited(router.navigate(const EmulatorRoute()));
 
+      // make sure the emulator isn't suspended when the window loses focus
+      controller.lifeCycleListenerEnabled = false;
+
       final nes = controller.nes!
         ..rewindEnabled = true
         ..volume = 1.0;
