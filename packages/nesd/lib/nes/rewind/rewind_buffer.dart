@@ -7,6 +7,7 @@ import 'package:nesd/nes/rewind/rewind_extension.dart';
 import 'package:nesd/nes/rewind/rewind_frame_lane.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
 import 'package:nesd/nes/rewind/rewind_thumbnails.dart';
+import 'package:nesd/nes/rewind/rewind_walk.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
@@ -156,6 +157,35 @@ class RewindBuffer {
 
       return null;
     }
+  }
+
+  RewindWalk? beginWalk() {
+    final current = _currentView;
+
+    if (current == null) {
+      return null;
+    }
+
+    final lane = _frameLane;
+
+    return RewindWalk(
+      itemAt: _itemFromEnd,
+      itemCount: _buffer.current,
+      seedState: current,
+      seedFrame: lane != null && lane.hasCurrent
+          ? Uint8List.fromList(lane.current)
+          : null,
+    );
+  }
+
+  RewindItem? _itemFromEnd(int position) {
+    final index = _buffer.current - 1 - position;
+
+    if (index < 0) {
+      return null;
+    }
+
+    return _buffer.peek(index);
   }
 
   void _addState(NESState state) {
