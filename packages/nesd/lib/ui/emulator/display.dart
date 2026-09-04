@@ -14,6 +14,7 @@ import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/shader_frame_painter.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_chain.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -101,10 +102,11 @@ class DisplayBuilder extends ConsumerWidget {
       builder: (_, constraints) {
         final region = settings.region ?? Region.ntsc;
         final overscan = settings.overscan;
-        final pixelAspectRatio = _calculatePixelAspectRatio(
-          settings,
-          constraints,
-          region,
+        final pixelAspectRatio = calculatePixelAspectRatio(
+          pixelAspectRatio: settings.pixelAspectRatio,
+          customPixelAspectRatio: settings.customPixelAspectRatio,
+          region: region,
+          constraints: constraints,
         );
 
         final geometry = calculateDisplayGeometry(
@@ -113,24 +115,12 @@ class DisplayBuilder extends ConsumerWidget {
           visibleHeight: overscan.visibleHeight(imageHeight),
           pixelAspectRatio: pixelAspectRatio,
           scaling: settings.scaling,
+          showTouchControls: settings.showTouchControls,
         );
 
         final scale = geometry.scale;
         final scaledSize = geometry.scaledSize;
-
-        final narrow = constraints.maxWidth < constraints.maxHeight;
-
-        final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
-
-        final anchorAtTop = settings.showTouchControls && narrow;
-
-        final center = Offset(
-          canvasSize.width / 2,
-          anchorAtTop ? (canvasSize.height / 4 + 40) : canvasSize.height / 2,
-        );
-
-        final topLeft =
-            center - Offset(scaledSize.width / 2, scaledSize.height / 2);
+        final topLeft = geometry.topLeft;
 
         Offset? nesPosition(Offset localPosition) => nesPositionFromDisplay(
           displayPosition: localPosition - topLeft,
@@ -242,24 +232,6 @@ class DisplayBuilder extends ConsumerWidget {
       },
     );
   }
-
-  double _calculatePixelAspectRatio(
-    Settings settings,
-    BoxConstraints constraints,
-    Region region,
-  ) {
-    return switch (settings.pixelAspectRatio) {
-      .auto => switch (region) {
-        .ntsc => 8 / 7,
-        .pal => 11 / 8,
-      },
-      .ntsc => 8 / 7,
-      .pal => 11 / 8,
-      .square => 1,
-      .stretch => constraints.maxWidth / constraints.maxHeight,
-      .custom => settings.customPixelAspectRatio,
-    };
-  }
 }
 
 Widget frameTextureLayer({
@@ -282,45 +254,23 @@ Widget frameTextureLayer({
     ),
   );
 
-  if (!shaderFilterSupported) {
+  final chain = composeVideoFilterChain(
+    filters: filters,
+    shaders: shaders,
+    crtFilter: crtFilter,
+    shaderFilterSupported: shaderFilterSupported,
+    imageFilterFactory: imageFilterFactory,
+    sourceWidth: overscan.visibleWidth(imageWidth),
+    sourceHeight: overscan.visibleHeight(imageHeight),
+  );
+
+  if (chain == null) {
     return texture;
   }
-
-  final chain = [
-    for (final filter in filters)
-      if (shaders[filter] case final shader?) (filter: filter, shader: shader),
-  ];
-
-  if (chain.isEmpty) {
-    return texture;
-  }
-
-  final visibleWidth = overscan.visibleWidth(imageWidth);
-  final visibleHeight = overscan.visibleHeight(imageHeight);
-
-  ui.ImageFilter? composed;
-
-  for (final stage in chain) {
-    configureVideoFilterShader(
-      stage.shader,
-      filter: stage.filter,
-      sourceWidth: visibleWidth.toDouble(),
-      sourceHeight: visibleHeight.toDouble(),
-      crtFilter: crtFilter,
-    );
-
-    final stageFilter = imageFilterFactory(stage.shader);
-
-    composed = composed == null
-        ? stageFilter
-        : ui.ImageFilter.compose(outer: stageFilter, inner: composed);
-  }
-
-  final chainKey = chain.map((stage) => stage.filter.name).join('+');
 
   return ImageFiltered(
-    key: ValueKey((chainKey, crtFilter, visibleWidth, visibleHeight)),
-    imageFilter: composed!,
+    key: ValueKey(chain.key),
+    imageFilter: chain.filter,
     child: texture,
   );
 }

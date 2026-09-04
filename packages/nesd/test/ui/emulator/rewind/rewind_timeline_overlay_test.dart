@@ -171,7 +171,7 @@ void main() {
 
     final before = _scrubState(r).cursorSequence;
 
-    await tester.drag(find.byType(RewindTimelineOverlay), const Offset(200, 0));
+    await tester.drag(find.byType(RewindFilmstrip), const Offset(200, 0));
     await tester.pump();
 
     expect(_scrubState(r).cursorSequence, lessThan(before));
@@ -189,7 +189,7 @@ void main() {
     final before = _scrubState(r).cursorSequence;
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(RewindTimelineOverlay)),
+      tester.getCenter(find.byType(RewindFilmstrip)),
     );
 
     await tester.pump();

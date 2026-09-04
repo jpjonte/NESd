@@ -1,7 +1,16 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/emulator/display_geometry.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
+import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_filmstrip_painter.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_chain.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 const _maxFilmHeight = 120.0;
 const _minFilmHeight = 60.0;
@@ -14,31 +23,212 @@ const _textColor = Colors.white;
 const _labelColor = Colors.white70;
 const _labelFontSize = 11.0;
 
-class RewindTimelineOverlay extends ConsumerWidget {
+const _hintFillColor = Colors.white12;
+const _hintBorderRadius = BorderRadius.all(Radius.circular(6));
+const _hintPadding = EdgeInsets.symmetric(horizontal: 10, vertical: 4);
+const _hintMinHeight = 32.0;
+const _touchHintMinHeight = 44.0;
+const _hintIconSize = 16.0;
+const _hintSpacing = 12.0;
+const _hintRunSpacing = 6.0;
+
+const _frameWidth = 256;
+const _frameHeight = 240;
+
+const _dragPreviewFadeDuration = Duration(milliseconds: 200);
+
+class RewindTimelineOverlay extends ConsumerStatefulWidget {
   const RewindTimelineOverlay({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RewindTimelineOverlay> createState() =>
+      _RewindTimelineOverlayState();
+}
+
+class _RewindTimelineOverlayState extends ConsumerState<RewindTimelineOverlay> {
+  bool _showPreview = false;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(rewindScrubControllerProvider);
 
     if (!state.open) {
       return const SizedBox.shrink();
     }
 
+    if (!state.settled) {
+      _showPreview = true;
+    }
+
     final controller = ref.read(rewindScrubControllerProvider.notifier);
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: RewindFilmstrip(
-        state: state,
-        secondsBack: controller.secondsBack,
-        onScrubBy: controller.moveBy,
-        onCommit: controller.commit,
-        onCancel: controller.cancel,
+    final touchHints = ref.watch(
+      settingsControllerProvider.select(
+        (settings) => settings.showTouchControls,
       ),
     );
+
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          if (_showPreview)
+            AnimatedOpacity(
+              opacity: state.settled ? 0 : 1,
+              duration: _dragPreviewFadeDuration,
+              onEnd: () {
+                if (state.settled) {
+                  setState(() => _showPreview = false);
+                }
+              },
+              child: RewindDragPreview(state: state),
+            ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: RewindFilmstrip(
+              state: state,
+              secondsBack: controller.secondsBack,
+              onScrubBy: controller.moveBy,
+              onCommit: controller.commit,
+              onCancel: controller.cancel,
+              touchHints: touchHints,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class RewindDragPreview extends ConsumerWidget {
+  const RewindDragPreview({
+    required this.state,
+    this.shaderFilterSupported,
+    this.imageFilterFactory,
+    super.key,
+  });
+
+  static const previewKey = Key('rewind-drag-preview');
+
+  static const imageKey = Key('rewind-drag-preview-image');
+
+  final RewindScrubState state;
+
+  final bool? shaderFilterSupported;
+  final ui.ImageFilter Function(ui.FragmentShader shader)? imageFilterFactory;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final image = _nearestThumbnail();
+
+    if (image == null) {
+      return const SizedBox.shrink();
+    }
+
+    final settings = ref.watch(settingsControllerProvider);
+    final region = settings.region ?? Region.ntsc;
+    final overscan = settings.overscan;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final geometry = calculateDisplayGeometry(
+          constraints: constraints,
+          visibleWidth: overscan.visibleWidth(_frameWidth),
+          visibleHeight: overscan.visibleHeight(_frameHeight),
+          pixelAspectRatio: calculatePixelAspectRatio(
+            pixelAspectRatio: settings.pixelAspectRatio,
+            customPixelAspectRatio: settings.customPixelAspectRatio,
+            region: region,
+            constraints: constraints,
+          ),
+          scaling: settings.scaling,
+          showTouchControls: settings.showTouchControls,
+        );
+
+        return Stack(
+          children: [
+            Positioned(
+              left: geometry.topLeft.dx,
+              top: geometry.topLeft.dy,
+              width: geometry.scaledSize.width,
+              height: geometry.scaledSize.height,
+              child: KeyedSubtree(
+                key: previewKey,
+                child: _filtered(
+                  ref,
+                  overscan: overscan,
+                  child: OverscanCrop(
+                    overscan: overscan,
+                    imageWidth: _frameWidth,
+                    imageHeight: _frameHeight,
+                    child: SizedBox.expand(
+                      child: RawImage(
+                        key: imageKey,
+                        image: image,
+                        fit: BoxFit.fill,
+                        filterQuality: FilterQuality.low,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _filtered(
+    WidgetRef ref, {
+    required Overscan overscan,
+    required Widget child,
+  }) {
+    final settings = ref.watch(settingsControllerProvider);
+    final chain = composeVideoFilterChain(
+      filters: settings.videoFilters,
+      shaders: ref.watch(videoFilterRegistryProvider).shaders,
+      crtFilter: settings.crtFilter,
+      shaderFilterSupported:
+          shaderFilterSupported ?? ui.ImageFilter.isShaderFilterSupported,
+      imageFilterFactory: imageFilterFactory ?? ui.ImageFilter.shader,
+      sourceWidth: overscan.visibleWidth(_frameWidth),
+      sourceHeight: overscan.visibleHeight(_frameHeight),
+    );
+
+    if (chain == null) {
+      return child;
+    }
+
+    return ImageFiltered(
+      key: ValueKey(chain.key),
+      imageFilter: chain.filter,
+      child: child,
+    );
+  }
+
+  ui.Image? _nearestThumbnail() {
+    final thumbnails = state.thumbnails;
+
+    if (thumbnails.isEmpty) {
+      return null;
+    }
+
+    final sequences = state.thumbnailSequences;
+    var nearest = 0;
+    var nearestDistance = (sequences[0] - state.cursorSequence).abs();
+
+    for (var i = 1; i < sequences.length; i++) {
+      final distance = (sequences[i] - state.cursorSequence).abs();
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = i;
+      }
+    }
+
+    return thumbnails[nearest];
   }
 }
 
