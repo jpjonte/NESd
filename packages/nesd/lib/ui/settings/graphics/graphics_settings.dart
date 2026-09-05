@@ -9,7 +9,9 @@ import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/overscan_sliders.dart';
 import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette_import_button.dart';
 import 'package:nesd/ui/settings/graphics/palette_preview.dart';
+import 'package:nesd/ui/settings/graphics/palette_remove_button.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
@@ -52,6 +54,8 @@ class GraphicsSettings extends ConsumerWidget {
             const SettingsSectionHeader(title: 'Palettes'),
             const PaletteDropdown(),
             const PalettePreview(),
+            const PaletteImportButton(),
+            const PaletteRemoveButton(),
             if (paletteId == NesPaletteId.generated) ...[
               const HueSlider(),
               const SaturationSlider(),

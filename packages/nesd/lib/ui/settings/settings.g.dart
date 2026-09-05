@@ -114,6 +114,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   ntscPalette: json['ntscPalette'] == null
       ? const NtscPaletteSettings()
       : _ntscPaletteFromJson(json['ntscPalette']),
+  userPalette: json['userPalette'] as String? ?? null,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -158,6 +159,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'overscan': _overscanToJson(instance.overscan),
   'paletteId': _$NesPaletteIdEnumMap[instance.paletteId]!,
   'ntscPalette': _ntscPaletteToJson(instance.ntscPalette),
+  'userPalette': instance.userPalette,
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -226,6 +228,7 @@ const _$NesPaletteIdEnumMap = {
   NesPaletteId.cool: 'cool',
   NesPaletteId.flat: 'flat',
   NesPaletteId.generated: 'generated',
+  NesPaletteId.user: 'user',
 };
 
 const _$EmulatorToolEnumMap = {
@@ -278,7 +281,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'e310e6bf259ccb010d1e804a1242f583a9a7fbc7';
+    r'fc44c3f506c85b0d72feddea9a495ed4f68bcc4f';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/emulator/tools/display_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
@@ -40,7 +43,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          storageFilesystemProvider.overrideWithValue(
+            MemoryStorageFilesystem(),
+          ),
+        ],
         child: MaterialApp(
           theme: nesdThemeLight,
           home: const Scaffold(
@@ -105,7 +113,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          storageFilesystemProvider.overrideWithValue(
+            MemoryStorageFilesystem(),
+          ),
+        ],
         child: MaterialApp(
           theme: nesdThemeLight,
           home: const Scaffold(
@@ -129,7 +142,7 @@ void main() {
       greaterThan(400),
     );
     expect(
-      tester.getSize(find.byType(Dropdown<NesPaletteId>)).width,
+      tester.getSize(find.byType(Dropdown<PaletteSelection>)).width,
       greaterThan(400),
     );
   });
