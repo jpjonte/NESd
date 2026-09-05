@@ -42,6 +42,7 @@ void main() {
 
     expect(find.text('Display'), findsWidgets);
     expect(find.text('Aspect & Overscan'), findsWidgets);
+    expect(find.text('Palette'), findsWidgets);
     expect(find.text('Filters'), findsWidgets);
   });
 
