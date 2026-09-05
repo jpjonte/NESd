@@ -23,12 +23,13 @@ void main() {
     ),
   );
 
+  late StorageFilesystem storage;
   late RomManager manager;
 
   setUpAll(() => registerFallbackValue(Toast.info('fallback')));
 
   setUp(() async {
-    final storage = await WebStorageFilesystem.open(newIdbFactoryMemory());
+    storage = await WebStorageFilesystem.open(newIdbFactoryMemory());
 
     manager = RomManager(baseDirectory: '/nesd', storage: storage);
   });
@@ -57,7 +58,94 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 5));
     await manager.saveState(romInfo, 2, [2]);
 
-    expect(await manager.loadLatestState(romInfo), [2]);
+    final latest = await manager.loadLatestState(romInfo);
+
+    expect(latest?.slot, 2);
+    expect(latest?.data, [2]);
+  });
+
+  test('loadLatestState returns null without any state', () async {
+    expect(await manager.loadLatestState(romInfo), isNull);
+  });
+
+  test('backupUnreadableState copies the state next to the original', () async {
+    await manager.saveState(romInfo, 0, [4, 2]);
+
+    final name = await manager.backupUnreadableState(
+      romInfo,
+      LatestSaveState(
+        slot: 0,
+        data: Uint8List.fromList([4, 2]),
+        modified: DateTime(2026, 9, 4, 18, 30, 12),
+      ),
+    );
+
+    expect(name, 'game.0.20260904-183012.state.unreadable');
+    expect(await storage.read('/nesd/states/$name'), [4, 2]);
+    expect(await manager.loadState(romInfo, 0), [4, 2]);
+  });
+
+  test('backing up the same file again keeps a single copy', () async {
+    final state = LatestSaveState(
+      slot: 0,
+      data: Uint8List.fromList([4, 2]),
+      modified: DateTime(2026, 9, 4, 18, 30, 12),
+    );
+
+    await manager.backupUnreadableState(romInfo, state);
+    await manager.backupUnreadableState(romInfo, state);
+
+    final copies = (await storage.list(
+      '/nesd/states',
+    )).where((path) => path.endsWith('.unreadable'));
+
+    expect(copies, hasLength(1));
+  });
+
+  test('a later unreadable file in the same slot gets its own copy', () async {
+    await manager.backupUnreadableState(
+      romInfo,
+      LatestSaveState(
+        slot: 0,
+        data: Uint8List.fromList([1]),
+        modified: DateTime(2026, 9, 4, 18, 30, 12),
+      ),
+    );
+    await manager.backupUnreadableState(
+      romInfo,
+      LatestSaveState(
+        slot: 0,
+        data: Uint8List.fromList([2]),
+        modified: DateTime(2026, 9, 5, 9),
+      ),
+    );
+
+    expect(
+      await storage.read(
+        '/nesd/states/game.0.20260904-183012.state.unreadable',
+      ),
+      [1],
+    );
+    expect(
+      await storage.read(
+        '/nesd/states/game.0.20260905-090000.state.unreadable',
+      ),
+      [2],
+    );
+  });
+
+  test('backup copies are invisible to the slot lookups', () async {
+    await manager.backupUnreadableState(
+      romInfo,
+      LatestSaveState(
+        slot: 0,
+        data: Uint8List.fromList([1]),
+        modified: DateTime(2026, 9, 4, 18, 30, 12),
+      ),
+    );
+
+    expect(await manager.loadLatestState(romInfo), isNull);
+    expect(await manager.getRomTileDataForSlot(romInfo, 0), isNull);
   });
 
   test('thumbnails are decodable and re-saving replaces them', () async {

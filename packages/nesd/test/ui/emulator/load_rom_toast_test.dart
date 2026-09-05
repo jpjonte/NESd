@@ -33,6 +33,14 @@ const _file = FilesystemFile(
   type: FilesystemFileType.file,
 );
 
+const _backupName = 'toast.0.20260904-183012.state.unreadable';
+
+LatestSaveState _latest(Uint8List data, {int slot = 0}) => LatestSaveState(
+  slot: slot,
+  data: data,
+  modified: DateTime(2026, 9, 4, 18, 30, 12),
+);
+
 class _Harness {
   factory _Harness() {
     final container = ProviderContainer();
@@ -63,6 +71,9 @@ class _Harness {
     when(() => romManager.load(any())).thenAnswer((_) async => null);
     when(() => romManager.loadLatestState(any())).thenAnswer((_) async => null);
     when(() => romManager.save(any(), any())).thenAnswer((_) async {});
+    when(
+      () => romManager.backupUnreadableState(any(), any()),
+    ).thenAnswer((_) async => _backupName);
 
     final database = MockNesDatabase();
     final handle = FakeNesIsolateHandle();
@@ -131,6 +142,7 @@ void main() {
       ),
     );
     registerFallbackValue(Uint8List(0));
+    registerFallbackValue(_latest(Uint8List(0)));
   });
 
   test('loading a state alongside SRAM does not announce the SRAM', () async {
@@ -142,7 +154,7 @@ void main() {
     ).thenAnswer((_) async => Uint8List(0x2000));
     when(
       () => harness.romManager.loadLatestState(any()),
-    ).thenAnswer((_) async => state);
+    ).thenAnswer((_) async => _latest(state));
 
     clearInteractions(harness.toaster);
 
@@ -171,7 +183,7 @@ void main() {
 
     when(
       () => harness.romManager.loadLatestState(any()),
-    ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3, 4, 5]));
+    ).thenAnswer((_) async => _latest(Uint8List.fromList([1, 2, 3, 4, 5])));
 
     final loaded = await harness.controller.loadRom(
       _file,
@@ -195,7 +207,7 @@ void main() {
     ).thenAnswer((_) async => Uint8List(0x2000));
     when(
       () => harness.romManager.loadLatestState(any()),
-    ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3, 4, 5]));
+    ).thenAnswer((_) async => _latest(Uint8List.fromList([1, 2, 3, 4, 5])));
 
     await harness.controller.loadRom(_file, data: minimalValidRom());
 
@@ -215,5 +227,69 @@ void main() {
 
     expect(messages, contains(startsWith('Failed to load save state')));
     expect(messages, isNot(contains(contains('latest'))));
+  });
+
+  test(
+    'an unreadable latest state is copied aside and the copy named',
+    () async {
+      final harness = _Harness();
+      final broken = Uint8List.fromList([1, 2, 3, 4, 5]);
+
+      when(
+        () => harness.romManager.loadLatestState(any()),
+      ).thenAnswer((_) async => _latest(broken, slot: 3));
+
+      await harness.controller.loadRom(_file, data: minimalValidRom());
+
+      final copied =
+          verify(
+                () => harness.romManager.backupUnreadableState(
+                  any(),
+                  captureAny(),
+                ),
+              ).captured.single
+              as LatestSaveState;
+
+      expect(copied.slot, 3);
+      expect(copied.data, broken);
+      expect(
+        harness.takeMessages(),
+        contains(contains('Kept a copy as $_backupName')),
+      );
+    },
+  );
+
+  test('an unreadable explicit state is not copied aside', () async {
+    final harness = _Harness();
+
+    await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+      stateBytes: Uint8List.fromList([1, 2, 3, 4, 5]),
+    );
+
+    verifyNever(() => harness.romManager.backupUnreadableState(any(), any()));
+  });
+
+  test('a failed backup is reported without stopping the game', () async {
+    final harness = _Harness();
+
+    when(
+      () => harness.romManager.loadLatestState(any()),
+    ).thenAnswer((_) async => _latest(Uint8List.fromList([1, 2, 3, 4, 5])));
+    when(
+      () => harness.romManager.backupUnreadableState(any(), any()),
+    ).thenAnswer((_) async => throw Exception('disk full'));
+
+    final loaded = await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+    );
+
+    expect(loaded, isTrue);
+    expect(
+      harness.takeMessages(),
+      contains(contains('Could not keep a copy: Exception: disk full')),
+    );
   });
 }
