@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
-import 'package:nesd/ui/settings/audio/mixer_sliders.dart';
 import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
-import 'package:nesd/ui/settings/debug/debug_settings.dart';
+import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../robot.dart';
 
 void main() {
-  testWidgets('Settings screen can be opened and all tabs are present', (
+  testWidgets('Settings screen opens on General with every category listed', (
     tester,
   ) async {
     final r = Robot(tester);
@@ -17,11 +17,11 @@ void main() {
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
     r.settingsScreen.expectSettingsScreenFound();
-    r.settingsScreen.expectTabHeadersFound();
-    r.settingsScreen.expectGeneralTabFound();
+    r.settingsScreen.expectCategoriesListed();
+    r.settingsScreen.expectCategoryShown(SettingsCategory.general);
   });
 
-  testWidgets('About dialog can be opened from the General settings tab', (
+  testWidgets('About dialog can be opened from the settings navigation', (
     tester,
   ) async {
     final r = Robot(tester);
@@ -32,22 +32,25 @@ void main() {
     r.settingsScreen.expectAboutDialogFound();
   });
 
-  testWidgets('Test Graphics settings tab', (tester) async {
+  testWidgets('Video category shows its four sections', (tester) async {
     final r = Robot(tester);
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapGraphicsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.video);
+    r.settingsScreen.expectCategoryShown(SettingsCategory.video);
 
-    // TODO
+    expect(find.text('Display'), findsWidgets);
+    expect(find.text('Aspect & Overscan'), findsWidgets);
+    expect(find.text('Filters'), findsWidgets);
   });
 
-  testWidgets('Test Audio settings tab', (tester) async {
+  testWidgets('Audio category', (tester) async {
     final r = Robot(tester);
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapAudioTab();
+    await r.settingsScreen.openCategory(SettingsCategory.audio);
 
     await r.expectSwitch(
       find.byType(LowPassFilterSwitch),
@@ -59,31 +62,25 @@ void main() {
       getValue: () => r.settings.swapDutyCycles,
     );
 
-    expect(find.text('Output'), findsOneWidget);
-    expect(find.text('Mixer'), findsOneWidget);
-    expect(find.byType(MixerSliders), findsOneWidget);
+    expect(find.text('Pulse 1'), findsOneWidget);
+    expect(find.text('Namco 163'), findsOneWidget);
   });
 
-  testWidgets('Test Controls settings tab', (tester) async {
+  testWidgets('Controls category', (tester) async {
     final r = Robot(tester);
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
     r.settingsScreen.controls.expectControlsSettingsFound();
-
-    // await r.expectSwitch(
-    //   find.byType(ShowTouchControlsSwitch),
-    //   getValue: () => r.settings.showTouchControls,
-    // );
   });
 
-  testWidgets('Test Debug settings tab', (tester) async {
+  testWidgets('Advanced category', (tester) async {
     final r = Robot(tester);
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapDebugTab();
+    await r.settingsScreen.openCategory(SettingsCategory.advanced);
     r.settingsScreen.debug.expectDebugSettingsFound();
 
     await r.expectSwitch(
@@ -93,7 +90,11 @@ void main() {
 
     expect(
       find.descendant(
-        of: find.byType(DebugSettings),
+        of: find.byWidgetPredicate(
+          (w) =>
+              w is SettingsCategoryContent &&
+              w.category == SettingsCategory.advanced,
+        ),
         matching: find.byType(SwitchSettingsTile),
       ),
       findsOneWidget,

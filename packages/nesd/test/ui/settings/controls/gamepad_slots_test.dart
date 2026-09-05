@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../../robot.dart';
 
@@ -11,7 +12,7 @@ void main() {
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
 
     return r;
   }

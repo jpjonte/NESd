@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart' hide AboutDialog;
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
@@ -10,12 +7,19 @@ import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/settings/graphics/palette_import_button.dart';
+import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
+import 'package:nesd/ui/settings/navigation/settings_category_list.dart';
+import 'package:nesd/ui/settings/navigation/settings_category_page.dart';
+import 'package:nesd/ui/settings/navigation/settings_group_tile.dart';
+import 'package:nesd/ui/settings/navigation/settings_nav_pane.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:riverpod/misc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/fonts.dart';
 import '../base_robot.dart';
 import 'controls/controls_settings_robot.dart';
 import 'debug/debug_settings_robot.dart';
@@ -33,10 +37,7 @@ class SettingsScreenRobot extends BaseRobot {
         const Size(1920, 1080) * tester.view.devicePixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
 
-    await _loadFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
-    await _loadFont('MaterialIcons', [
-      '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-    ]);
+    await loadAppFonts();
 
     SharedPreferences.setMockInitialValues({});
 
@@ -64,30 +65,6 @@ class SettingsScreenRobot extends BaseRobot {
     expect(find.byType(SettingsScreen), findsOneWidget);
   }
 
-  void expectTabHeadersFound() {
-    expect(find.byKey(SettingsScreen.generalKey), findsOneWidget);
-    expect(find.byKey(SettingsScreen.graphicsKey), findsOneWidget);
-    expect(find.byKey(SettingsScreen.audioKey), findsOneWidget);
-    expect(find.byKey(SettingsScreen.controlsKey), findsOneWidget);
-    expect(find.byKey(SettingsScreen.debugKey), findsOneWidget);
-  }
-
-  void expectGeneralTabFound() {
-    expect(find.byKey(SettingsScreen.generalKey), findsOneWidget);
-  }
-
-  void expectGraphicsTabFound() {
-    expect(find.byKey(SettingsScreen.graphicsKey), findsOneWidget);
-  }
-
-  void expectAudioTabFound() {
-    expect(find.byKey(SettingsScreen.audioKey), findsOneWidget);
-  }
-
-  void expectControlsTabFound() {
-    expect(find.byKey(SettingsScreen.controlsKey), findsOneWidget);
-  }
-
   void expectAboutDialogFound() {
     expectOne(find.byType(AboutDialog));
   }
@@ -96,20 +73,51 @@ class SettingsScreenRobot extends BaseRobot {
     await go(find.text('About NESd'));
   }
 
-  Future<void> tapGraphicsTab() async {
-    await go(find.byKey(SettingsScreen.graphicsKey));
+  Future<void> openCategory(SettingsCategory category) async {
+    final navItem = find.byKey(SettingsNavPane.itemKey(category));
+
+    if (navItem.evaluate().isNotEmpty) {
+      await go(navItem);
+
+      return;
+    }
+
+    await go(find.byKey(SettingsCategoryList.rowKey(category)));
   }
 
-  Future<void> tapAudioTab() async {
-    await go(find.byKey(SettingsScreen.audioKey));
+  void expectCategoryShown(SettingsCategory category) {
+    expectOne(
+      find.byWidgetPredicate(
+        (w) => w is SettingsCategoryContent && w.category == category,
+      ),
+    );
   }
 
-  Future<void> tapControlsTab() async {
-    await go(find.byKey(SettingsScreen.controlsKey));
+  void expectCategoriesListed() {
+    for (final category in SettingsCategory.values) {
+      final navItem = find.byKey(SettingsNavPane.itemKey(category));
+      final row = find.byKey(SettingsCategoryList.rowKey(category));
+
+      expect(
+        navItem.evaluate().isNotEmpty || row.evaluate().isNotEmpty,
+        isTrue,
+        reason: '${category.name} is neither a nav item nor a list row',
+      );
+    }
   }
 
-  Future<void> tapDebugTab() async {
-    await go(find.byKey(SettingsScreen.debugKey));
+  Future<void> expandBindingGroup(String groupId) async {
+    final header = find.byKey(SettingsGroupTile.headerKey(groupId));
+
+    await tester.ensureVisible(header);
+    await go(header);
+  }
+
+  Future<void> tapSectionChip(String sectionId) async {
+    final chip = find.byKey(SettingsCategoryPage.chipKey(sectionId));
+
+    await tester.ensureVisible(chip);
+    await go(chip);
   }
 
   Future<void> selectPalette(NesPaletteId id) async {
@@ -134,17 +142,5 @@ class SettingsScreenRobot extends BaseRobot {
 
     await tester.ensureVisible(finder);
     await go(finder);
-  }
-
-  Future<void> _loadFont(String family, List<String> fontFiles) async {
-    final fontLoader = FontLoader(family);
-
-    for (final fontFile in fontFiles) {
-      final fontData = rootBundle.load(fontFile);
-
-      fontLoader.addFont(fontData);
-    }
-
-    await fontLoader.load();
   }
 }

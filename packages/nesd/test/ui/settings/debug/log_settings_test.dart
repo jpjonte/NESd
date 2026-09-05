@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/router/router.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../../robot.dart';
 
@@ -43,7 +44,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await robot.settingsScreen.tapDebugTab();
+    await robot.settingsScreen.openCategory(SettingsCategory.advanced);
 
     robot.settingsScreen.debug.expectLogLevelDropdownFound();
   });
@@ -62,7 +63,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await robot.settingsScreen.tapDebugTab();
+    await robot.settingsScreen.openCategory(SettingsCategory.advanced);
 
     expect(tester.takeException(), isNull);
   });

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../ui/robot.dart';
 
@@ -89,7 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
 
     tester.takeException();
 

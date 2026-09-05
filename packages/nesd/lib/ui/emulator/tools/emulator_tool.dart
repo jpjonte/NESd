@@ -60,6 +60,8 @@ const _minDisplayWidth = 512.0;
 
 const dockedToolsMinWidth = dockedToolColumnWidth + _minDisplayWidth;
 
+const settingsTwoPaneMinWidth = 720.0;
+
 Set<EmulatorTool> openToolsFromJson(dynamic json) {
   if (json is! List) {
     return const {};

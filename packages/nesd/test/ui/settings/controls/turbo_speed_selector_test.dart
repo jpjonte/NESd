@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/settings/controls/turbo_speed_selector.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../../robot.dart';
 
@@ -10,7 +11,7 @@ void main() {
 
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
 
     expect(find.byType(TurboSpeedSelector), findsOneWidget);
     expect(r.settings.turboSpeed, TurboSpeed.x1);
