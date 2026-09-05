@@ -46,11 +46,11 @@ PPUState buildState({int decay = 0x5a}) {
     nametableLatch: 0x24,
     patternTableHighLatch: 0x5a,
     patternTableLowLatch: 0xa5,
-    patternTableHighShift: 0xabcd,
-    patternTableLowShift: 0x1234,
+    patternTableHighShift: 0,
+    patternTableLowShift: 0,
     attributeTableLatch: 2,
-    attributeTableHighShift: 0xf0,
-    attributeTableLowShift: 0x0f,
+    attributeTableHighShift: 0,
+    attributeTableLowShift: 0,
     attribute: 3,
     oamAddress: 257, // sprite evaluation may stop as high as 257
     oamBuffer: 0x77,
@@ -62,6 +62,9 @@ PPUState buildState({int decay = 0x5a}) {
       SpriteOutputState(patternLow: 1, patternHigh: 2, attribute: 3, x: 4),
       SpriteOutputState(patternLow: 5, patternHigh: 6, attribute: 7, x: 8),
     ],
+    bgWindow: Uint8List.fromList(List.generate(16, (i) => 0x60 | i)),
+    patternTableLow2Latch: 0xf0,
+    patternTableHigh2Latch: 0x0f,
   );
 }
 
@@ -253,6 +256,57 @@ void writeVersion3(PayloadWriter writer, PPUState state) {
     ..set(uint32List(), Uint32List.fromList(state.decayRefreshedAt));
 }
 
+void writeVersion4(PayloadWriter writer, PPUState state) {
+  writer
+    ..set(uint8, 4)
+    ..set(uint8, state.PPUCTRL)
+    ..set(uint8, state.PPUMASK)
+    ..set(uint8, state.PPUSTATUS)
+    ..set(uint8, state.OAMADDR)
+    ..set(uint8, state.OAMDATA)
+    ..set(uint8, state.PPUSCROLL)
+    ..set(uint8, state.PPUDATA)
+    ..set(uint16, state.v)
+    ..set(uint16, state.t)
+    ..set(uint8, state.x)
+    ..set(uint8, state.w)
+    ..set(uint8List(lengthType: uint32), state.ram)
+    ..set(uint8List(lengthType: uint32), state.oam)
+    ..set(uint8List(lengthType: uint32), state.secondaryOam)
+    ..set(uint8List(lengthType: uint32), state.palette)
+    ..set(uint8, 1);
+
+  state.frameBuffer!.serialize(writer);
+
+  writer
+    ..set(nesdUint64, state.consoleCycles)
+    ..set(nesdUint64, state.cycles)
+    ..set(uint16, state.cycle)
+    ..set(uint16, state.scanline)
+    ..set(uint32, state.frames)
+    ..set(uint8, state.nametableLatch)
+    ..set(uint8, state.patternTableHighLatch)
+    ..set(uint8, state.patternTableLowLatch)
+    ..set(uint16, state.patternTableHighShift)
+    ..set(uint16, state.patternTableLowShift)
+    ..set(uint8, state.attributeTableLatch)
+    ..set(uint8, state.attributeTableHighShift)
+    ..set(uint8, state.attributeTableLowShift)
+    ..set(uint8, state.attribute)
+    ..set(uint16, state.oamAddress)
+    ..set(uint8, state.oamBuffer)
+    ..set(uint8, state.spriteCount)
+    ..set(uint8, state.secondarySpriteCount)
+    ..set(boolean, state.sprite0OnNextLine)
+    ..set(boolean, state.sprite0OnCurrentLine);
+
+  SpriteOutputState.serializeList(writer, state.spriteOutputs);
+
+  writer
+    ..set(uint8, state.decay)
+    ..set(uint32List(), Uint32List.fromList(state.decayRefreshedAt));
+}
+
 void writeLegacyTail(PayloadWriter writer, PPUState state) {
   writer
     ..set(uint64, state.cycles)
@@ -279,14 +333,14 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
 }
 
 void main() {
-  test('serialize writes version 4 and round-trips adversarial values', () {
+  test('serialize writes version 5 and round-trips adversarial values', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 4, reason: 'PPUState version');
+    expect(bytes[0], 5, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
 
@@ -331,6 +385,30 @@ void main() {
     final decoded = PPUState.deserialize(Payload.read(binarize(writer)));
 
     expectStatesEqual(decoded, original);
+  });
+
+  test('still reads version 4 payloads', () {
+    final original = buildState();
+
+    final writer = Payload.write();
+    writeVersion4(writer, original);
+
+    final decoded = PPUState.deserialize(Payload.read(binarize(writer)));
+
+    expectStatesEqual(decoded, original);
+  });
+
+  test('v5 round-trips the 7-bit background window and plane latches', () {
+    final state = buildState();
+
+    final writer = Payload.write();
+    state.serialize(writer);
+
+    final restored = PPUState.deserialize(Payload.read(binarize(writer)));
+
+    expect(restored.bgWindow, state.bgWindow);
+    expect(restored.patternTableLow2Latch, state.patternTableLow2Latch);
+    expect(restored.patternTableHigh2Latch, state.patternTableHigh2Latch);
   });
 
   test('still reads legacy version 1 payloads', () {
@@ -378,5 +456,26 @@ void main() {
     ppu.state = frameless;
 
     expect(ppu.frameBuffer.pixels[0], 0xcd);
+  });
+
+  test('sprite outputs round-trip the 4bpp plane bytes', () {
+    const state = SpriteOutputState(
+      patternLow: 1,
+      patternHigh: 2,
+      patternLow2: 0xa5,
+      patternHigh2: 0x5a,
+      attribute: 3,
+      x: 4,
+    );
+
+    final writer = Payload.write();
+    state.serialize(writer);
+
+    final restored = SpriteOutputState.deserialize(
+      Payload.read(binarize(writer)),
+    );
+
+    expect(restored.patternLow2, 0xa5);
+    expect(restored.patternHigh2, 0x5a);
   });
 }

@@ -83,11 +83,6 @@ class CartridgeFactory {
 
   Uint8List _parseChr(Uint8List rom, RomFormat romFormat) {
     final chrRomSize = _chrRomSize(rom, romFormat);
-
-    if (chrRomSize == 0) {
-      return Uint8List(0x10000);
-    }
-
     final trainerSize = (rom[6] & 0x04) != 0 ? 512 : 0;
     final start = 16 + trainerSize + _prgRomSize(rom, romFormat);
 

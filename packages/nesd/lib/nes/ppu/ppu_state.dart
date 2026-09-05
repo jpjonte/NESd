@@ -35,11 +35,7 @@ class PPUState {
     required this.nametableLatch,
     required this.patternTableHighLatch,
     required this.patternTableLowLatch,
-    required this.patternTableHighShift,
-    required this.patternTableLowShift,
     required this.attributeTableLatch,
-    required this.attributeTableHighShift,
-    required this.attributeTableLowShift,
     required this.attribute,
     required this.oamAddress,
     required this.oamBuffer,
@@ -48,8 +44,15 @@ class PPUState {
     required this.sprite0OnNextLine,
     required this.sprite0OnCurrentLine,
     required this.spriteOutputs,
+    this.patternTableHighShift = 0,
+    this.patternTableLowShift = 0,
+    this.attributeTableHighShift = 0,
+    this.attributeTableLowShift = 0,
     this.decay = 0,
     List<int>? decayRefreshedAt,
+    this.bgWindow,
+    this.patternTableLow2Latch = 0,
+    this.patternTableHigh2Latch = 0,
   }) : decayRefreshedAt = decayRefreshedAt ?? const [0, 0, 0, 0, 0, 0, 0, 0];
 
   factory PPUState.deserialize(PayloadReader reader) {
@@ -61,6 +64,7 @@ class PPUState {
       2 => PPUState.version2(reader),
       3 => PPUState.version3(reader),
       4 => PPUState.version4(reader),
+      5 => PPUState.version5(reader),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -247,6 +251,51 @@ class PPUState {
     );
   }
 
+  factory PPUState.version5(PayloadReader reader) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
+      frameBuffer: reader.get(uint8) == 1
+          ? FrameBuffer.deserialize(reader)
+          : null,
+      consoleCycles: reader.get(nesdUint64),
+      cycles: reader.get(nesdUint64),
+      cycle: reader.get(uint16),
+      scanline: reader.get(uint16),
+      frames: reader.get(uint32),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHigh2Latch: reader.get(uint8),
+      patternTableLow2Latch: reader.get(uint8),
+      bgWindow: reader.get(uint8List(lengthType: uint32)),
+      attributeTableLatch: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamAddress: reader.get(uint16),
+      oamBuffer: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+      decay: reader.get(uint8),
+      decayRefreshedAt: reader.get(uint32List()),
+    );
+  }
+
   final int PPUCTRL;
   final int PPUMASK;
   final int PPUSTATUS;
@@ -281,6 +330,11 @@ class PPUState {
   final int patternTableHighShift;
   final int patternTableLowShift;
 
+  final Uint8List? bgWindow;
+
+  final int patternTableLow2Latch;
+  final int patternTableHigh2Latch;
+
   final int attributeTableLatch;
 
   final int attributeTableHighShift;
@@ -309,7 +363,7 @@ class PPUState {
     final frame = includeFrame ? frameBuffer : null;
 
     writer
-      ..set(uint8, 4) // version
+      ..set(uint8, 5) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -338,11 +392,10 @@ class PPUState {
       ..set(uint8, nametableLatch)
       ..set(uint8, patternTableHighLatch)
       ..set(uint8, patternTableLowLatch)
-      ..set(uint16, patternTableHighShift)
-      ..set(uint16, patternTableLowShift)
+      ..set(uint8, patternTableHigh2Latch)
+      ..set(uint8, patternTableLow2Latch)
+      ..set(uint8List(lengthType: uint32), bgWindow ?? Uint8List(16))
       ..set(uint8, attributeTableLatch)
-      ..set(uint8, attributeTableHighShift)
-      ..set(uint8, attributeTableLowShift)
       ..set(uint8, attribute)
       ..set(uint16, oamAddress)
       ..set(uint8, oamBuffer)

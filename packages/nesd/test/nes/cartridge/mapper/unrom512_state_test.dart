@@ -19,9 +19,10 @@ void main() {
 
     final bytes = binarize(writer);
 
-    expect(bytes[0], 0, reason: 'MapperState envelope version');
-    expect(bytes[1], 30, reason: 'mapper id');
-    expect(bytes[2], 0, reason: 'UNROM512State version');
+    expect(bytes[0], 1, reason: 'MapperState envelope version');
+    expect(bytes[1], 0, reason: 'mapper id high byte');
+    expect(bytes[2], 30, reason: 'mapper id low byte');
+    expect(bytes[3], 0, reason: 'UNROM512State version');
 
     final decoded =
         MapperState.deserialize(Payload.read(bytes)) as UNROM512State;

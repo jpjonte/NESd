@@ -6,8 +6,10 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/ppu/four_bpp_address.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/nes/ppu/palette/vt_palette.dart';
 import 'package:nesd/nes/ppu/ppu_state.dart';
 import 'package:nesd/nes/ppu/sprite_output.dart';
 import 'package:nesd/nes/region.dart';
@@ -93,10 +95,10 @@ class PPU {
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
   late final Uint32List _secondaryOamWords = secondaryOam.buffer.asUint32List();
-  final Uint8List palette = Uint8List(0x20);
+  final Uint8List palette = Uint8List(0x100);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
-  final Uint32List _paletteLut = Uint32List(0x20);
+  final Uint32List _paletteLut = Uint32List(0x80);
 
   Uint32List _systemPalette = defaultPalette;
 
@@ -129,6 +131,18 @@ class PPU {
     null,
   );
 
+  /// Block table for the VT03+ 16 KiB 4bpp pattern space.
+  final List<Uint8List?> _fourBppBlocks = List<Uint8List?>.filled(
+    _ppuBlockCount,
+    null,
+  );
+
+  /// EVA pattern space, 2bpp view: 8 EVA x 8 blocks.
+  final List<Uint8List?> _evaBlocks2bpp = List<Uint8List?>.filled(64, null);
+
+  /// EVA pattern space, 4bpp view: 8 EVA x 16 blocks.
+  final List<Uint8List?> _evaBlocks4bpp = List<Uint8List?>.filled(128, null);
+
   bool _showBackground = false;
   bool _showSprites = false;
 
@@ -150,9 +164,36 @@ class PPU {
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
 
-  /// Set by NES at power-on; when true, fetches bypass the block cache so the
-  /// mapper can observe and answer them. See `Mapper.needsPpuReads`.
   bool mapperNeedsPpuReads = false;
+
+  bool mapperNeedsExtendedPpuRegisters = false;
+
+  bool extendedPalette = false;
+
+  bool _extendedColors = false;
+
+  bool get extendedColors => _extendedColors;
+
+  set extendedColors(bool value) {
+    if (value == _extendedColors) {
+      return;
+    }
+
+    _extendedColors = value;
+
+    _rebuildPaletteLut();
+  }
+
+  bool bgFourBpp = false;
+  bool spriteFourBpp = false;
+  bool wideVideoBus = false;
+
+  bool bgExtension = false;
+  bool spriteExtension = false;
+  bool spriteSixteenPixels = false;
+
+  int bgEvaBit2 = 0;
+  int vrwb = 0;
 
   int cycles = 0;
   int cycle = 0;
@@ -169,6 +210,9 @@ class PPU {
 
   int patternTableHighLatch = 0;
   int patternTableLowLatch = 0;
+
+  int patternTableHigh2Latch = 0;
+  int patternTableLow2Latch = 0;
 
   int attributeTableLatch = 0;
 
@@ -197,9 +241,12 @@ class PPU {
 
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
-  /// Per-scanline sprite coverage, built once after sprite fetch
-  /// (cycle 321): bits 0-4 = priority/palette/pattern exactly as
-  /// _getSpritePixelColor returns, bit 5 = opaque pixel of sprite 0.
+  /// Sprite data for each pixel of the current scanline (built in cycle 321)
+  /// bits 0-1 = planes 0/1
+  /// bits 2-3 = OAM palette
+  /// bit 4 = priority
+  /// bits 5-6 = planes 2/3 (4bpp only)
+  /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
 
   PPUState get state => PPUState(
@@ -227,11 +274,10 @@ class PPU {
     nametableLatch: nametableLatch,
     patternTableHighLatch: patternTableHighLatch,
     patternTableLowLatch: patternTableLowLatch,
-    patternTableHighShift: _windowPatternBits(high: true),
-    patternTableLowShift: _windowPatternBits(high: false),
+    bgWindow: _normalizedWindow(),
+    patternTableLow2Latch: patternTableLow2Latch,
+    patternTableHigh2Latch: patternTableHigh2Latch,
     attributeTableLatch: attributeTableLatch,
-    attributeTableHighShift: _windowAttributeBits(high: true),
-    attributeTableLowShift: _windowAttributeBits(high: false),
     attribute: attribute,
     oamAddress: oamAddress,
     oamBuffer: oamBuffer,
@@ -276,13 +322,21 @@ class PPU {
     attributeTableLatch = state.attributeTableLatch;
     attribute = state.attribute;
 
-    _rebuildWindowFromShiftRegisters(
-      state.patternTableHighShift,
-      state.patternTableLowShift,
-      state.attributeTableHighShift,
-      state.attributeTableLowShift,
-      state.attribute,
-    );
+    if (state.bgWindow case final bgWindow?) {
+      _bgWindow.setAll(0, bgWindow);
+      _bgWindowPos = 0;
+    } else {
+      _rebuildWindowFromShiftRegisters(
+        state.patternTableHighShift,
+        state.patternTableLowShift,
+        state.attributeTableHighShift,
+        state.attributeTableLowShift,
+        state.attribute,
+      );
+    }
+
+    patternTableLow2Latch = state.patternTableLow2Latch;
+    patternTableHigh2Latch = state.patternTableHigh2Latch;
 
     oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
@@ -334,6 +388,8 @@ class PPU {
   }
 
   void reset() {
+    _extendedColors = false;
+
     consoleCycles = 0;
     cycles = 0;
     cycle = 0;
@@ -357,6 +413,8 @@ class PPU {
     nametableLatch = 0;
     patternTableHighLatch = 0;
     patternTableLowLatch = 0;
+    patternTableHigh2Latch = 0;
+    patternTableLow2Latch = 0;
     attributeTableLatch = 0;
     attribute = 0;
 
@@ -379,6 +437,9 @@ class PPU {
     secondaryOam.fillRange(0, secondaryOam.length, 0);
     palette.fillRange(0, palette.length, 0);
     _ppuBlocks.fillRange(0, _ppuBlocks.length, null);
+    _fourBppBlocks.fillRange(0, _fourBppBlocks.length, null);
+    _evaBlocks2bpp.fillRange(0, _evaBlocks2bpp.length, null);
+    _evaBlocks4bpp.fillRange(0, _evaBlocks4bpp.length, null);
 
     _pixelBase = 0;
 
@@ -390,6 +451,17 @@ class PPU {
 
     decay = 0;
     decayRefreshedAt.fillRange(0, 8, 0);
+
+    bgFourBpp = false;
+    spriteFourBpp = false;
+    wideVideoBus = false;
+
+    bgExtension = false;
+    spriteExtension = false;
+    spriteSixteenPixels = false;
+
+    bgEvaBit2 = 0;
+    vrwb = 0;
 
     frameBuffer.resetBuffers();
 
@@ -438,10 +510,37 @@ class PPU {
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
-    return switch (address) {
-      0x2002 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
-      0x2004 => _readOAMDATA(),
-      0x2007 => _readPPUDATA(disableSideEffects: disableSideEffects),
+    if (mapperNeedsExtendedPpuRegisters) {
+      final register = address & 0x1f;
+
+      if (register >= 0x10) {
+        return bus.cartridge.mapper.extendedPpuRead(
+          0x2000 | register,
+          disableSideEffects: disableSideEffects,
+        );
+      }
+
+      if (register >= 0x08) {
+        return _decayValue;
+      }
+
+      return _readStockRegister(
+        register,
+        disableSideEffects: disableSideEffects,
+      );
+    }
+
+    return _readStockRegister(
+      address & 0x07,
+      disableSideEffects: disableSideEffects,
+    );
+  }
+
+  int _readStockRegister(int register, {bool disableSideEffects = false}) {
+    return switch (register) {
+      2 => _readPPUSTATUS(disableSideEffects: disableSideEffects),
+      4 => _readOAMDATA(),
+      7 => _readPPUDATA(disableSideEffects: disableSideEffects),
       _ => _decayValue,
     };
   }
@@ -478,11 +577,31 @@ class PPU {
   }
 
   void writeRegister(int address, int value) {
-    final wrapped = address & 0x7;
+    if (mapperNeedsExtendedPpuRegisters) {
+      final register = address & 0x1f;
 
+      if (register >= 0x10) {
+        bus.cartridge.mapper.extendedPpuWrite(0x2000 | register, value);
+
+        return;
+      }
+
+      if (register >= 0x08) {
+        return;
+      }
+
+      _writeStockRegister(register, value);
+
+      return;
+    }
+
+    _writeStockRegister(address & 0x07, value);
+  }
+
+  void _writeStockRegister(int register, int value) {
     _refreshDecay(value, 0xff);
 
-    switch (wrapped) {
+    switch (register) {
       case 0:
         _writePPUCTRL(value);
       case 1:
@@ -715,7 +834,9 @@ class PPU {
   int _readOAMDATA() {
     final value = oam[OAMADDR];
 
-    final driven = OAMADDR & 0x3 == 2 ? value & 0xe3 : value;
+    final driven = !mapperNeedsExtendedPpuRegisters && OAMADDR & 0x3 == 2
+        ? value & 0xe3
+        : value;
 
     return _readWithDecay(driven, 0xff);
   }
@@ -725,7 +846,7 @@ class PPU {
     var value = PPUDATA;
 
     if (!disableSideEffects) {
-      PPUDATA = readPpuMemory(v);
+      PPUDATA = _readPpuData(v);
     }
 
     // always return current palette data
@@ -746,6 +867,18 @@ class PPU {
     }
 
     return _readWithDecay(value, isPalette ? 0x3f : 0xff);
+  }
+
+  int _readPpuData(int address) {
+    final masked = address & 0x3fff;
+
+    if ((bgExtension || spriteExtension) && masked < 0x2000) {
+      _updateBusAddress(masked);
+
+      return readEva2bpp(vrwb, masked);
+    }
+
+    return readPpuMemory(address);
   }
 
   void _writePPUCTRL(int value) {
@@ -885,13 +1018,31 @@ class PPU {
 
     final low = patternTableLowLatch;
     final high = patternTableHighLatch;
-    final attrBits = attributeTableLatch << 2;
 
-    for (var i = 0; i < 8; i++) {
-      final shift = 7 - i;
-      final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
+    if (bgFourBpp) {
+      final low2 = patternTableLow2Latch;
+      final high2 = patternTableHigh2Latch;
+      final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
 
-      _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      for (var i = 0; i < 8; i++) {
+        final shift = 7 - i;
+        final pattern =
+            ((high2 >> shift) & 0x1) << 6 |
+            ((low2 >> shift) & 0x1) << 5 |
+            ((high >> shift) & 0x1) << 1 |
+            ((low >> shift) & 0x1);
+
+        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      }
+    } else {
+      final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
+
+      for (var i = 0; i < 8; i++) {
+        final shift = 7 - i;
+        final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
+
+        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
+      }
     }
 
     _bgWindowPos = 0;
@@ -899,38 +1050,16 @@ class PPU {
     attribute = attributeTableLatch;
   }
 
-  int _windowPatternBits({required bool high}) {
-    final bitIndex = high ? 1 : 0;
-    var bits = 0;
+  Uint8List _normalizedWindow() {
+    final window = Uint8List(16);
 
     for (var i = 0; i < 16; i++) {
-      final position = i - _bgWindowPos;
+      final from = i + _bgWindowPos;
 
-      if (position < 0 || position > 15) {
-        continue;
-      }
-
-      bits |= ((_bgWindow[i] >> bitIndex) & 0x1) << (15 - position);
+      window[i] = from < 16 ? _bgWindow[from] : 0;
     }
 
-    return bits & 0xffff;
-  }
-
-  int _windowAttributeBits({required bool high}) {
-    final bitIndex = high ? 3 : 2;
-    var bits = 0;
-
-    for (var i = 0; i < 8; i++) {
-      final slot = _bgWindowPos + i;
-
-      if (slot > 15) {
-        continue;
-      }
-
-      bits |= ((_bgWindow[slot] >> bitIndex) & 0x1) << (7 - i);
-    }
-
-    return bits & 0xff;
+    return window;
   }
 
   void _rebuildWindowFromShiftRegisters(
@@ -950,11 +1079,12 @@ class PPU {
       if (i < 8) {
         final attrShift = 7 - i;
 
-        attrBits =
-            (((attributeHigh >> attrShift) & 0x1) << 3) |
-            (((attributeLow >> attrShift) & 0x1) << 2);
+        attrBits = bgExtension
+            ? 0
+            : (((attributeHigh >> attrShift) & 0x1) << 3) |
+                  (((attributeLow >> attrShift) & 0x1) << 2);
       } else {
-        attrBits = (attributeLatchValue & 0x3) << 2;
+        attrBits = bgExtension ? 0 : (attributeLatchValue & 0x3) << 2;
       }
 
       _bgWindow[i] = pattern == 0 ? 0 : attrBits | pattern;
@@ -968,7 +1098,7 @@ class PPU {
     final color = _getPixelColor();
 
     // Use precomputed final RGB color for this palette index (with mirroring)
-    final rgb = _paletteLut[color & 0x1f];
+    final rgb = _paletteLut[color & 0x7f];
 
     frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
   }
@@ -1043,13 +1173,13 @@ class PPU {
 
     // sprite 0 hit detection
     if (sprite0OnCurrentLine &&
-        entry & 0x20 != 0 &&
+        entry & 0x80 != 0 &&
         currentX < 255 &&
-        backgroundColor & 0x3 != 0) {
+        backgroundColor != 0) {
       PPUSTATUS_S = 1;
     }
 
-    return entry & 0x1f;
+    return entry & 0x7f;
   }
 
   @pragma('vm:prefer-inline')
@@ -1104,9 +1234,38 @@ class PPU {
   }
 
   @pragma('vm:prefer-inline')
+  int _fourBppAddress(int address, int planeHi) => wideVideoBus
+      ? fourBppWideAddress(address, planeHi)
+      : fourBppPlanarAddress(address, planeHi);
+
+  @pragma('vm:prefer-inline')
   void _fetchPatternTableLow() {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | fineY;
+
+    if (bgExtension) {
+      _updateBusAddress(address);
+
+      final eva = attributeTableLatch | (bgEvaBit2 << 2);
+
+      if (bgFourBpp) {
+        patternTableLowLatch = readEva4bpp(eva, _fourBppAddress(address, 0));
+        patternTableLow2Latch = readEva4bpp(eva, _fourBppAddress(address, 1));
+      } else {
+        patternTableLowLatch = readEva2bpp(eva, address);
+      }
+
+      return;
+    }
+
+    if (bgFourBpp) {
+      _updateBusAddress(address);
+
+      patternTableLowLatch = readFourBpp(_fourBppAddress(address, 0));
+      patternTableLow2Latch = readFourBpp(_fourBppAddress(address, 1));
+
+      return;
+    }
 
     patternTableLowLatch = readPpuMemory(address);
   }
@@ -1115,6 +1274,30 @@ class PPU {
   void _fetchPatternTableHigh() {
     final fineY = (v >> 12) & 0x7;
     final address = _bgPatternBase | (nametableLatch << 4) | (fineY + 8);
+
+    if (bgExtension) {
+      _updateBusAddress(address);
+
+      final eva = attributeTableLatch | (bgEvaBit2 << 2);
+
+      if (bgFourBpp) {
+        patternTableHighLatch = readEva4bpp(eva, _fourBppAddress(address, 0));
+        patternTableHigh2Latch = readEva4bpp(eva, _fourBppAddress(address, 1));
+      } else {
+        patternTableHighLatch = readEva2bpp(eva, address);
+      }
+
+      return;
+    }
+
+    if (bgFourBpp) {
+      _updateBusAddress(address);
+
+      patternTableHighLatch = readFourBpp(_fourBppAddress(address, 0));
+      patternTableHigh2Latch = readFourBpp(_fourBppAddress(address, 1));
+
+      return;
+    }
 
     patternTableHighLatch = readPpuMemory(address);
   }
@@ -1292,25 +1475,52 @@ class PPU {
   void _rasterizeSpriteLine() {
     _spriteLine.fillRange(0, 256, 0);
 
+    final fourBpp = spriteFourBpp;
+
     for (var i = spriteCount - 1; i >= 0; i--) {
       final spriteOutput = _spriteOutputs[i];
       final attribute = spriteOutput.attribute;
       final flipH = (attribute >> 6) & 1;
-      final base = ((attribute >> 5) & 1) << 4 | (attribute & 0x3) << 2;
-      final sprite0Bit = i == 0 ? 0x20 : 0;
+      final priorityBit = ((attribute >> 5) & 1) << 4;
+      final sixteenPixels = fourBpp && spriteSixteenPixels;
+      final attrBits = (attribute & 0x3) << 2;
+      final base = priorityBit | attrBits;
+      final sprite0Bit = i == 0 ? 0x80 : 0;
       final patternLow = spriteOutput.patternLow;
       final patternHigh = spriteOutput.patternHigh;
+      final patternLow2 = spriteOutput.patternLow2;
+      final patternHigh2 = spriteOutput.patternHigh2;
 
-      for (var xOffset = 0; xOffset < 8; xOffset++) {
+      final width = sixteenPixels ? 16 : 8;
+
+      for (var xOffset = 0; xOffset < width; xOffset++) {
         final x = spriteOutput.x + xOffset;
 
         if (x > 255) {
           break;
         }
 
-        final fineX = flipH == 1 ? xOffset : 7 - xOffset;
-        final pattern =
-            (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+        int pattern;
+
+        if (sixteenPixels) {
+          final half = (flipH == 1 ? 15 - xOffset : xOffset) >> 3;
+          final fineX = flipH == 1 ? xOffset & 0x7 : 7 - (xOffset & 0x7);
+          final low = half == 0 ? patternLow : patternLow2;
+          final high = half == 0 ? patternHigh : patternHigh2;
+
+          pattern = (((high >> fineX) & 1) << 1) | (low >> fineX) & 1;
+        } else {
+          final fineX = flipH == 1 ? xOffset : 7 - xOffset;
+
+          pattern =
+              (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+
+          if (fourBpp) {
+            pattern |=
+                (((patternHigh2 >> fineX) & 1) << 6) |
+                (((patternLow2 >> fineX) & 1) << 5);
+          }
+        }
 
         if (pattern == 0) {
           continue;
@@ -1357,14 +1567,56 @@ class PPU {
     final lowAddress = base | (tile << 4) | (fineY + addressOffset);
     final highAddress = base | (tile << 4) | (fineY + 8 - addressOffset);
 
-    _spriteOutputs[sprite].patternLow = readPpuMemory(lowAddress);
-    _spriteOutputs[sprite].patternHigh = readPpuMemory(highAddress);
+    final output = _spriteOutputs[sprite];
+
+    if (spriteExtension) {
+      final eva = (attribute >> 2) & 0x7;
+
+      _updateBusAddress(lowAddress);
+
+      if (spriteFourBpp) {
+        output.patternLow = readEva4bpp(eva, _fourBppAddress(lowAddress, 0));
+        output.patternLow2 = readEva4bpp(eva, _fourBppAddress(lowAddress, 1));
+      } else {
+        output.patternLow = readEva2bpp(eva, lowAddress);
+      }
+
+      _updateBusAddress(highAddress);
+
+      if (spriteFourBpp) {
+        output.patternHigh = readEva4bpp(eva, _fourBppAddress(highAddress, 0));
+        output.patternHigh2 = readEva4bpp(eva, _fourBppAddress(highAddress, 1));
+      } else {
+        output.patternHigh = readEva2bpp(eva, highAddress);
+      }
+
+      return;
+    }
+
+    if (spriteFourBpp) {
+      _updateBusAddress(lowAddress);
+
+      output.patternLow = readFourBpp(_fourBppAddress(lowAddress, 0));
+      output.patternLow2 = readFourBpp(_fourBppAddress(lowAddress, 1));
+
+      _updateBusAddress(highAddress);
+
+      output.patternHigh = readFourBpp(_fourBppAddress(highAddress, 0));
+      output.patternHigh2 = readFourBpp(_fourBppAddress(highAddress, 1));
+
+      return;
+    }
+
+    output.patternLow = readPpuMemory(lowAddress);
+    output.patternHigh = readPpuMemory(highAddress);
   }
 
   void _rebuildPaletteLut() {
     _emphasisBase = _emphasisRow() << 6;
 
-    for (var i = 0; i < 0x20; i++) {
+    final limit = extendedPalette ? 0x80 : 0x20;
+
+    for (var i = 0; i < limit; i++) {
       final remapped = _remapPaletteIndex(i);
       final value = _computePaletteEntry(remapped);
 
@@ -1383,17 +1635,38 @@ class PPU {
   }
 
   void onPaletteWrite(int index) {
-    if (index < 0 || index >= 0x20) {
+    final entry = _extendedColors ? index & 0x7f : index;
+
+    final limit = extendedPalette ? 0x80 : 0x20;
+
+    if (entry < 0 || entry >= limit) {
       return;
     }
 
-    final rem = _remapPaletteIndex(index);
+    final rem = _remapPaletteIndex(entry);
     final val = _computePaletteEntry(rem);
 
     _setPaletteEntry(rem, val);
   }
 
   void _setPaletteEntry(int index, int value) {
+    if (extendedPalette) {
+      _paletteLut[index] = value;
+
+      switch (index) {
+        case 0x00:
+          _paletteLut[0x10] = value;
+        case 0x04:
+          _paletteLut[0x14] = value;
+        case 0x08:
+          _paletteLut[0x18] = value;
+        case 0x0c:
+          _paletteLut[0x1c] = value;
+      }
+
+      return;
+    }
+
     switch (index) {
       case 0x00:
         _paletteLut[0x00] = value;
@@ -1413,12 +1686,29 @@ class PPU {
   }
 
   int _computePaletteEntry(int index) {
+    if (_extendedColors) {
+      final low = palette[index & 0x7f] & 0x3f;
+      final high = palette[(index & 0x7f) | 0x80] & 0x3f;
+
+      return vtPalette[low | (high << 6)];
+    }
+
     final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
 
-    return _systemPalette[_emphasisBase | (palette[index & 0x1f] & greyMask)];
+    return _systemPalette[_emphasisBase | (palette[index & 0x7f] & greyMask)];
   }
 
   int _remapPaletteIndex(int index) {
+    if (extendedPalette) {
+      return switch (index & 0xff) {
+        0x10 => 0x00,
+        0x14 => 0x04,
+        0x18 => 0x08,
+        0x1c => 0x0c,
+        _ => index & 0xff,
+      };
+    }
+
     return switch (index & 0x1f) {
       0x10 => 0x00,
       0x14 => 0x04,
@@ -1434,5 +1724,64 @@ class PPU {
     }
 
     _ppuBlocks[block] = source;
+  }
+
+  void updateFourBppMapping(int block, Uint8List? source) {
+    if (block < 0 || block >= _fourBppBlocks.length) {
+      return;
+    }
+
+    _fourBppBlocks[block] = source;
+  }
+
+  @pragma('vm:prefer-inline')
+  int readFourBpp(int address) {
+    final source = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
+  }
+
+  void updateEva2bppMapping(int index, Uint8List? source) {
+    if (index < 0 || index >= _evaBlocks2bpp.length) {
+      return;
+    }
+
+    _evaBlocks2bpp[index] = source;
+  }
+
+  void updateEva4bppMapping(int index, Uint8List? source) {
+    if (index < 0 || index >= _evaBlocks4bpp.length) {
+      return;
+    }
+
+    _evaBlocks4bpp[index] = source;
+  }
+
+  @pragma('vm:prefer-inline')
+  int readEva2bpp(int eva, int address) {
+    final source =
+        _evaBlocks2bpp[(eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7)];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
+  }
+
+  @pragma('vm:prefer-inline')
+  int readEva4bpp(int eva, int address) {
+    final source =
+        _evaBlocks4bpp[(eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf)];
+
+    if (source == null) {
+      return 0;
+    }
+
+    return source[address & _ppuBlockMask];
   }
 }

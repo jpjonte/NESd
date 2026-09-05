@@ -82,6 +82,12 @@ void main() {
     expect(cartridge.chrRam[0], equals(0x42));
   });
 
+  test('iNES 1.0 with 0 CHR banks has no CHR ROM', () {
+    final cartridge = _load(_buildRom(chrBanks: 0));
+
+    expect(cartridge.chrRom, isEmpty);
+  });
+
   test('iNES 1.0 with CHR banks keeps CHR RAM empty', () {
     final factory = CartridgeFactory(database: MockNesDatabase());
 
@@ -163,6 +169,27 @@ void main() {
   });
 
   group('NES 2.0 RAM size fields', () {
+    test('neither CHR-ROM nor CHR-RAM reads pattern data as zero', () {
+      final cartridge = _load(
+        _buildNes20Rom(
+          prgLsb: 1,
+          prgMsb: 0,
+          chrLsb: 0,
+          chrMsb: 0,
+          prgBytes: 0x4000,
+          chrBytes: 0,
+        ),
+      );
+
+      NES(cartridge: cartridge, eventBus: EventBus());
+
+      cartridge.reset();
+
+      expect(cartridge.chrRom, isEmpty);
+      expect(cartridge.chrRam, isEmpty);
+      expect(cartridge.ppuRead(0x0000), 0);
+    });
+
     test('a zero CHR-RAM shift count means no CHR-RAM', () {
       final cartridge = _load(
         _buildNes20Rom(

@@ -125,9 +125,10 @@ void main() {
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 0, reason: 'MapperState envelope version');
-    expect(bytes[1], 5, reason: 'mapper id');
-    expect(bytes[2], 2, reason: 'MMC5State version');
+    expect(bytes[0], 1, reason: 'MapperState envelope version');
+    expect(bytes[1], 0, reason: 'mapper id high byte');
+    expect(bytes[2], 5, reason: 'mapper id low byte');
+    expect(bytes[3], 2, reason: 'MMC5State version');
 
     final decoded = MapperState.deserialize(Payload.read(bytes)) as MMC5State;
 

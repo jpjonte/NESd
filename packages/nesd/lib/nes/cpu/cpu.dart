@@ -341,18 +341,32 @@ class CPU {
 
   void handleOAMDMA() {
     if (cycles.isEven) {
-      // read
       _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
       _oamDmaStarted = true;
-    } else if (_oamDmaStarted) {
-      // write
-      bus.ppu.writeOAM(_oamDmaOffset++, _oamDmaValue);
 
-      if (_oamDmaOffset == 256) {
-        _oamDma = false;
-        _oamDmaOffset = 0;
-        _oamDmaStarted = false;
-      }
+      return;
+    }
+
+    if (!_oamDmaStarted) {
+      return;
+    }
+
+    final dma = bus.dmaSettings;
+    final start = dma?.start ?? 0;
+    final end = dma?.end ?? 256;
+
+    if (dma != null && dma.toPpuData) {
+      bus.cpuWrite(0x2007, _oamDmaValue);
+    } else {
+      bus.ppu.writeOAM(_oamDmaOffset - start, _oamDmaValue);
+    }
+
+    _oamDmaOffset++;
+
+    if (_oamDmaOffset >= end) {
+      _oamDma = false;
+      _oamDmaOffset = 0;
+      _oamDmaStarted = false;
     }
   }
 
@@ -417,7 +431,7 @@ class CPU {
   void triggerOamDma(int page) {
     _oamDma = true;
     _oamDmaPage = page;
-    _oamDmaOffset = 0;
+    _oamDmaOffset = bus.dmaSettings?.start ?? 0;
   }
 
   void _updateCallStack(int opcode) {

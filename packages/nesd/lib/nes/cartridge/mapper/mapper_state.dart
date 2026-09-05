@@ -16,6 +16,7 @@ import 'package:nesd/nes/cartridge/mapper/namco163_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/single_prg_bank_state.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom512_state.dart';
+import 'package:nesd/nes/cartridge/mapper/vt/vt02_state.dart';
 
 abstract class MapperState {
   const MapperState({required this.id});
@@ -24,14 +25,13 @@ abstract class MapperState {
     final version = reader.get(uint8);
 
     return switch (version) {
-      0 => MapperState._version0(reader),
+      0 => MapperState._fromId(reader, reader.get(uint8)),
+      1 => MapperState._fromId(reader, reader.get(uint16)),
       _ => throw InvalidSerializationVersion('MapperState', version),
     };
   }
 
-  factory MapperState._version0(PayloadReader reader) {
-    final id = reader.get(uint8);
-
+  factory MapperState._fromId(PayloadReader reader, int id) {
     return switch (id) {
       0 => const NROMState(),
       1 => MMC1State.deserialize(reader),
@@ -49,7 +49,16 @@ abstract class MapperState {
       71 => SinglePrgBankState.deserialize(reader, 71),
       176 => Mapper176State.deserialize(reader),
       206 => Namco108State.deserialize(reader),
+      256 => VT02State.deserialize(reader, 256),
       _ => throw UnsupportedMapper(id, 0),
+    };
+  }
+
+  static int? peekId(Uint8List bytes) {
+    return switch (bytes) {
+      [0, final id, ...] => id,
+      [1, final high, final low, ...] => high << 8 | low,
+      _ => null,
     };
   }
 
@@ -57,7 +66,7 @@ abstract class MapperState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 0) // version
-      ..set(uint8, id);
+      ..set(uint8, 1) // version
+      ..set(uint16, id);
   }
 }

@@ -8,6 +8,7 @@ import 'package:nesd/nes/cartridge/mapper/axrom.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
+import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper176.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper45.dart';
@@ -22,6 +23,7 @@ import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/txsrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom512.dart';
+import 'package:nesd/nes/cartridge/mapper/vt/mapper256.dart';
 
 enum CpuMemoryType { prgRom, prgRam, prgSaveRam }
 
@@ -84,6 +86,7 @@ abstract class Mapper {
       118 => TxSROM(),
       176 => Mapper176(subMapperId),
       206 => Namco108(),
+      256 => Mapper256(subMapperId),
       _ => throw UnsupportedMapper(mapperId, subMapperId),
     };
   }
@@ -166,6 +169,21 @@ abstract class Mapper {
   );
 
   final MappingCache _ppuMappingCache = {};
+
+  late final List<MemoryMapping?> _ppuFourBppMapping = List.filled(
+    _ppuBlockCount,
+    null,
+  );
+
+  final MappingCache _ppuFourBppMappingCache = {};
+
+  late final List<MemoryMapping?> _ppuEva2bppMapping = List.filled(64, null);
+
+  final MappingCache _ppuEva2bppMappingCache = {};
+
+  late final List<MemoryMapping?> _ppuEva4bppMapping = List.filled(128, null);
+
+  final MappingCache _ppuEva4bppMappingCache = {};
 
   MemoryMapping? _cachedMapping(
     MappingCache cache,
@@ -286,6 +304,20 @@ abstract class Mapper {
   /// Whether the PPU must route every fetch through [ppuRead] instead
   /// of serving it from its own block cache.
   bool get needsPpuReads => false;
+
+  bool get hasExtendedPalette => false;
+
+  bool get needsExtendedPpuRegisters => false;
+
+  int extendedPpuRead(int address, {bool disableSideEffects = false}) => 0;
+
+  void extendedPpuWrite(int address, int value) {}
+
+  bool get handlesDma => false;
+
+  void startDma(int page) {}
+
+  DmaSettings? get dmaSettings => null;
 
   void mapCpu(
     int fromAddress,
@@ -417,6 +449,163 @@ abstract class Mapper {
       );
 
       bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
+    }
+  }
+
+  int fourBppRead(int address) {
+    final mapping =
+        _ppuFourBppMapping[(address >> _ppuBlockAddressWidth) & 0xf];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  void mapPpu4bpp(
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? 2 * chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = address >> _ppuBlockAddressWidth;
+
+      if (source.isEmpty) {
+        _ppuFourBppMapping[block] = null;
+
+        bus.ppu.updateFourBppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuFourBppMapping[block] = _cachedMapping(
+        _ppuFourBppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateFourBppMapping(block, _ppuFourBppMapping[block]?.source);
+    }
+  }
+
+  int eva2bppRead(int eva, int address) {
+    final mapping =
+        _ppuEva2bppMapping[(eva << 3) |
+            ((address >> _ppuBlockAddressWidth) & 0x7)];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  int eva4bppRead(int eva, int address) {
+    final mapping =
+        _ppuEva4bppMapping[(eva << 4) |
+            ((address >> _ppuBlockAddressWidth) & 0xf)];
+
+    if (mapping == null || !mapping.readable) {
+      return 0;
+    }
+
+    return mapping.source[address & _ppuBlockMask];
+  }
+
+  void mapPpuEva2bpp(
+    int eva,
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = (eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7);
+
+      if (source.isEmpty) {
+        _ppuEva2bppMapping[block] = null;
+
+        bus.ppu.updateEva2bppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuEva2bppMapping[block] = _cachedMapping(
+        _ppuEva2bppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateEva2bppMapping(block, _ppuEva2bppMapping[block]?.source);
+    }
+  }
+
+  void mapPpuEva4bpp(
+    int eva,
+    int fromAddress,
+    int toAddress,
+    int page, {
+    required Uint8List source,
+    int? pageSize,
+    MemoryAccess access = MemoryAccess.read,
+  }) {
+    final resolvedPageSize = pageSize ?? 2 * chrPageSize;
+
+    for (
+      var address = fromAddress;
+      address <= toAddress;
+      address += _ppuBlockSize
+    ) {
+      final block = (eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf);
+
+      if (source.isEmpty) {
+        _ppuEva4bppMapping[block] = null;
+
+        bus.ppu.updateEva4bppMapping(block, null);
+
+        continue;
+      }
+
+      final addressDiff = address - fromAddress;
+      final offset = (page * resolvedPageSize + addressDiff) % source.length;
+
+      _ppuEva4bppMapping[block] = _cachedMapping(
+        _ppuEva4bppMappingCache,
+        source,
+        offset,
+        _ppuBlockSize,
+        access,
+      );
+
+      bus.ppu.updateEva4bppMapping(block, _ppuEva4bppMapping[block]?.source);
     }
   }
 }

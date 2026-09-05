@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:nesd/nes/apu/apu.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
+import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cheat/cheat_engine.dart';
 import 'package:nesd/nes/cpu/cpu.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
@@ -12,6 +13,7 @@ import 'package:nesd/nes/input/controller.dart';
 import 'package:nesd/nes/input/input_device.dart';
 import 'package:nesd/nes/input/zapper.dart';
 import 'package:nesd/nes/ppu/ppu.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 
 const addressNone = -1;
@@ -35,6 +37,8 @@ class Bus {
   final List<InputDevice> _inputs = [Controller(), Controller()];
 
   TurboSpeed turboSpeed = TurboSpeed.x1;
+
+  Region region = Region.ntsc;
 
   late final Zapper _zapper = Zapper(bus: this);
 
@@ -75,10 +79,7 @@ class Bus {
     }
 
     if (address < 0x4000) {
-      return ppu.readRegister(
-        0x2000 | (address & 0x07),
-        disableSideEffects: disableSideEffects,
-      );
+      return ppu.readRegister(address, disableSideEffects: disableSideEffects);
     }
 
     if (address == 0x4015) {
@@ -142,7 +143,11 @@ class Bus {
     }
 
     if (address == 0x4014) {
-      cpu.triggerOamDma(value);
+      if (cartridge.mapper.handlesDma) {
+        cartridge.mapper.startDma(value);
+      } else {
+        cpu.triggerOamDma(value);
+      }
 
       return;
     }
@@ -172,22 +177,19 @@ class Bus {
   }
 
   void ppuWrite(int address, int value) {
+    address = address & 0x3fff;
+
     if (address < 0x3f00) {
       cartridge.ppuWrite(address, value);
 
       return;
     }
 
-    if (address < 0x3fff) {
-      final idx = _paletteAddress(address);
+    final idx = _paletteAddress(address);
 
-      ppu.palette[idx] = value;
-      // notify PPU to refresh LUT entry for this palette index
-      // (safe even if LUT is not used yet)
-      ppu.onPaletteWrite(idx);
+    ppu.palette[idx] = value;
 
-      return;
-    }
+    ppu.onPaletteWrite(idx);
   }
 
   void buttonDown(int controller, NesButton button, {bool turbo = false}) {
@@ -228,6 +230,9 @@ class Bus {
 
   void triggerDmcDma() => cpu.triggerDmcDma();
 
+  DmaSettings? get dmaSettings =>
+      cartridge.mapper.handlesDma ? cartridge.mapper.dmaSettings : null;
+
   void zapperPull() => _zapper.trigger = true;
 
   void zapperRelease() => _zapper.trigger = false;
@@ -238,6 +243,16 @@ class Bus {
 
   @pragma('vm:prefer-inline')
   int _paletteAddress(int address) {
+    if (ppu.extendedPalette) {
+      return switch (address & 0xff) {
+        0x10 => 0x00,
+        0x14 => 0x04,
+        0x18 => 0x08,
+        0x1c => 0x0c,
+        _ => address & 0xff,
+      };
+    }
+
     return switch (address & 0x1f) {
       0x10 => 0x00,
       0x14 => 0x04,

@@ -17,6 +17,7 @@ class CartridgeState {
     return switch (version) {
       0 => CartridgeState._version0(reader),
       1 => CartridgeState._version1(reader),
+      2 => CartridgeState._version2(reader),
       _ => throw InvalidSerializationVersion('CartridgeState', version),
     };
   }
@@ -41,6 +42,16 @@ class CartridgeState {
     );
   }
 
+  factory CartridgeState._version2(PayloadReader reader) {
+    return CartridgeState(
+      chrRam: reader.get(uint8List(lengthType: uint32)),
+      prgRam: reader.get(uint8List(lengthType: uint32)),
+      prgSaveRam: reader.get(uint8List(lengthType: uint16)),
+      mapperId: reader.get(uint16),
+      mapperState: MapperState.deserialize(reader),
+    );
+  }
+
   final Uint8List chrRam;
 
   final Uint8List prgRam;
@@ -53,11 +64,11 @@ class CartridgeState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 1) // version
+      ..set(uint8, 2) // version
       ..set(uint8List(lengthType: uint32), chrRam)
       ..set(uint8List(lengthType: uint32), prgRam)
       ..set(uint8List(lengthType: uint16), prgSaveRam)
-      ..set(uint8, mapperId);
+      ..set(uint16, mapperId);
 
     mapperState.serialize(writer);
   }

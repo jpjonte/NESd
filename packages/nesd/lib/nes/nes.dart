@@ -48,6 +48,9 @@ class NES {
     cpu.cartridgeNeedsStep = cartridge.mapper.needsStep;
     ppu.mapperNeedsPpuAddress = cartridge.mapper.needsPpuAddressUpdates;
     ppu.mapperNeedsPpuReads = cartridge.mapper.needsPpuReads;
+    ppu.mapperNeedsExtendedPpuRegisters =
+        cartridge.mapper.needsExtendedPpuRegisters;
+    ppu.extendedPalette = cartridge.mapper.hasExtendedPalette;
   }
 
   final Bus bus;
@@ -401,6 +404,7 @@ class NES {
     cpu.region = region;
     apu.region = region;
     ppu.region = region;
+    bus.region = region;
 
     frameRate = switch (region) {
       Region.ntsc => 60,
