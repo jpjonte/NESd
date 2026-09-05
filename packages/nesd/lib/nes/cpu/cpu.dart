@@ -288,6 +288,34 @@ class CPU {
     ram.fillRange(0, ram.length, 0);
   }
 
+  void softReset() {
+    SP = (SP - 3) & 0xff;
+    I = 1;
+
+    irq = 0;
+    _doIrq = false;
+    _previousDoIrq = false;
+
+    nmi = false;
+    doNmi = false;
+    _previousNmi = false;
+    _previousDoNmi = false;
+
+    _usePreviousSample = false;
+
+    _oamDma = false;
+    _oamDmaHalted = false;
+    _oamDmaHolding = false;
+    _oamDmaOffset = 0;
+
+    _dmcDmaPhase = _dmcDmaIdle;
+    _dmcDmaHaltAt = 0;
+
+    callStack.clear();
+
+    PC = read16(resetVector);
+  }
+
   void step() {
     final opcode = read(PC);
 

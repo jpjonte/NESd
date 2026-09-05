@@ -57,6 +57,8 @@ roms/
 !roms/test/mmc3_test_2/rom_singles/4-scanline_timing.nes
 !roms/test/cpu_dummy_writes/cpu_dummy_writes_oam.nes
 !roms/test/cpu_dummy_writes/cpu_dummy_writes_ppumem.nes
+!roms/test/cpu_reset/ram_after_reset.nes
+!roms/test/cpu_reset/registers.nes
 !roms/test/cpu_exec_space/test_cpu_exec_space_apu.nes
 !roms/test/cpu_exec_space/test_cpu_exec_space_ppuio.nes
 !roms/test/ppu_open_bus/ppu_open_bus.nes
@@ -80,6 +82,12 @@ roms/
 !roms/test/apu_test/rom_singles/6-irq_flag_timing.nes
 !roms/test/apu_test/rom_singles/7-dmc_basics.nes
 !roms/test/apu_test/rom_singles/8-dmc_rates.nes
+!roms/test/apu_reset/4015_cleared.nes
+!roms/test/apu_reset/4017_timing.nes
+!roms/test/apu_reset/4017_written.nes
+!roms/test/apu_reset/irq_flag_cleared.nes
+!roms/test/apu_reset/len_ctrs_enabled.nes
+!roms/test/apu_reset/works_immediately.nes
 !roms/test/oam_read/oam_read.nes
 !roms/test/oam_stress/oam_stress.nes
 !roms/test/ppu_vbl_nmi/rom_singles/03-vbl_clear_time.nes

@@ -17,6 +17,8 @@ const palQuarter3 = 24939;
 const palFourStepEnd = 33254;
 const palFiveStepEnd = 41566;
 
+const resetDividerOffset = 7;
+
 class FrameCounter {
   FrameCounter(this.apu);
 
@@ -73,13 +75,27 @@ class FrameCounter {
   }
 
   void reset() {
-    counter = 0;
+    counter = resetDividerOffset;
     resetDelay = 0;
 
     fiveStep = false;
 
     interrupt = false;
     interruptInhibit = false;
+  }
+
+  void softReset() {
+    counter = resetDividerOffset;
+    resetDelay = 0;
+
+    interrupt = false;
+
+    apu.bus.clearIrq(IrqSource.apuFrameCounter);
+
+    if (fiveStep) {
+      _clockQuarterFrame();
+      _clockHalfFrame();
+    }
   }
 
   int getStatus({bool disableSideEffects = false}) {

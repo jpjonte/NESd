@@ -449,6 +449,28 @@ class NES {
     }
   }
 
+  void softReset() {
+    _resetPacing();
+
+    if (!_inLoop) {
+      run();
+    }
+
+    fastForward = false;
+
+    cancelScrub();
+
+    ppu.softReset();
+    cpu.softReset();
+    apu.softReset();
+
+    _rewindBuffer.clear();
+
+    if (paused) {
+      eventBus.add(DebuggerNesEvent());
+    }
+  }
+
   Future<void> run() async {
     if (_inLoop) {
       return;

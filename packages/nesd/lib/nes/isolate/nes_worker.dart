@@ -118,7 +118,7 @@ class NesWorker {
       case LoadRomCommand():
         await _loadRom(command);
       case ResetCommand():
-        _nes?.reset();
+        _nes?.softReset();
         _audioOutput?.reset();
         _sendStatus();
       case PauseCommand():

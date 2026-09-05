@@ -471,6 +471,20 @@ class PPU {
     _rebuildPaletteLut();
   }
 
+  void softReset() {
+    _writePPUCTRL(0);
+    _writePPUMASK(0);
+
+    t = 0;
+    x = 0;
+    w = 0;
+
+    PPUSCROLL = 0;
+    PPUDATA = 0;
+
+    _suppressVblank = false;
+  }
+
   int getPixelBrightness(int x, int y, {bool previousFrame = false}) {
     if (!_showBackground && !_showSprites) {
       return 0;

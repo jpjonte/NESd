@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The emulator now runs on the fastest CPU cores on Android
 - Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
+- Reset now behaves like the console's reset button
 
 ### Fixed
 - A save state that cannot be loaded no longer stops the game from starting: the game boots from power-on, the failure is reported, and a copy of the unreadable file is kept next to it

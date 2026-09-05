@@ -259,6 +259,12 @@ class APU {
     dmc.reset();
   }
 
+  void softReset() {
+    _writeStatus(0);
+
+    _frameCounter.softReset();
+  }
+
   @pragma('vm:prefer-inline')
   void step() {
     final loadDma = dmc.startDma;
