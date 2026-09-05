@@ -228,7 +228,7 @@ class Bus {
 
   void clearNmi() => cpu.clearNmi();
 
-  void triggerDmcDma() => cpu.triggerDmcDma();
+  void triggerDmcDma({required bool load}) => cpu.triggerDmcDma(load: load);
 
   DmaSettings? get dmaSettings =>
       cartridge.mapper.handlesDma ? cartridge.mapper.dmaSettings : null;

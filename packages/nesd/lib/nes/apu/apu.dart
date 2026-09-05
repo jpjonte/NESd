@@ -261,6 +261,8 @@ class APU {
 
   @pragma('vm:prefer-inline')
   void step() {
+    final loadDma = dmc.startDma;
+
     // triangle, DMC and the frame counter are stepped every CPU cycle
     triangle.step();
     dmc.step();
@@ -275,7 +277,7 @@ class APU {
 
     if (dmc.startDma) {
       dmc.startDma = false;
-      bus.triggerDmcDma();
+      bus.triggerDmcDma(load: loadDma);
     }
 
     final dmcInterrupt = dmc.interrupt;

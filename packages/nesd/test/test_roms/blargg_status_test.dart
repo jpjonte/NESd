@@ -19,6 +19,8 @@ const _passing = <String>[
   'cpu_exec_space/test_cpu_exec_space_apu.nes',
   'cpu_exec_space/test_cpu_exec_space_ppuio.nes',
   'ppu_open_bus/ppu_open_bus.nes',
+  'sprdma_and_dmc_dma/sprdma_and_dmc_dma.nes',
+  'sprdma_and_dmc_dma/sprdma_and_dmc_dma_512.nes',
   'cpu_dummy_writes/cpu_dummy_writes_oam.nes',
   'cpu_dummy_writes/cpu_dummy_writes_ppumem.nes',
   'apu_test/rom_singles/1-len_ctr.nes',

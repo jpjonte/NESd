@@ -1,8 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/cpu/cpu_state.dart';
 
-CPUState buildState({int openBus = 0xbd}) {
+CPUState buildState({
+  int openBus = 0xbd,
+  int dmcDmaPhase = 3,
+  int dmcDmaHaltAt = 123456790,
+}) {
   return CPUState(
     PC: 0xc123,
     SP: 0xfd,
@@ -21,10 +27,9 @@ CPUState buildState({int openBus = 0xbd}) {
     oamDmaStarted: false,
     oamDmaOffset: 0x45,
     oamDmaValue: 0x67,
-    dmcDma: false,
-    dmcDmaRead: true,
-    dmcDmaDummy: false,
-    dmcDmaValue: 0x89,
+    dmcDma: true,
+    dmcDmaPhase: dmcDmaPhase,
+    dmcDmaHaltAt: dmcDmaHaltAt,
     oamDmaPage: 0x02,
     cycles: 123456789,
     consoleCycles: 987654321,
@@ -53,9 +58,8 @@ void expectStatesEqual(CPUState actual, CPUState expected) {
   expect(actual.oamDmaOffset, expected.oamDmaOffset);
   expect(actual.oamDmaValue, expected.oamDmaValue);
   expect(actual.dmcDma, expected.dmcDma);
-  expect(actual.dmcDmaRead, expected.dmcDmaRead);
-  expect(actual.dmcDmaDummy, expected.dmcDmaDummy);
-  expect(actual.dmcDmaValue, expected.dmcDmaValue);
+  expect(actual.dmcDmaPhase, expected.dmcDmaPhase);
+  expect(actual.dmcDmaHaltAt, expected.dmcDmaHaltAt);
   expect(actual.oamDmaPage, expected.oamDmaPage);
   expect(actual.cycles, expected.cycles);
   expect(actual.consoleCycles, expected.consoleCycles);
@@ -63,14 +67,14 @@ void expectStatesEqual(CPUState actual, CPUState expected) {
 }
 
 void main() {
-  test('serialize writes version 4 and round-trips', () {
+  test('serialize writes version 5 and round-trips', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 4, reason: 'CPUState version');
+    expect(bytes[0], 5, reason: 'CPUState version');
 
     final decoded = CPUState.deserialize(Payload.read(bytes));
 
@@ -101,9 +105,9 @@ void main() {
       ..set(uint8, original.oamDmaOffset)
       ..set(uint8, original.oamDmaValue)
       ..set(boolean, original.dmcDma)
-      ..set(boolean, original.dmcDmaRead)
-      ..set(boolean, original.dmcDmaDummy)
-      ..set(uint8, original.dmcDmaValue)
+      ..set(boolean, true) // dmcDmaRead
+      ..set(boolean, false) // dmcDmaDummy
+      ..set(uint8, 0x89) // dmcDmaValue
       ..set(uint8, original.oamDmaPage)
       ..set(uint64, original.cycles)
       ..set(uint64, original.consoleCycles)
@@ -114,6 +118,50 @@ void main() {
     // v2 predates open bus, so it decodes to the default.
     expect(decoded.openBus, equals(0));
 
-    expectStatesEqual(decoded, buildState(openBus: 0));
+    expectStatesEqual(
+      decoded,
+      buildState(openBus: 0, dmcDmaPhase: 0, dmcDmaHaltAt: 0),
+    );
+  });
+
+  test('still reads legacy version 4 payloads', () {
+    final original = buildState();
+
+    // replicate the exact v4 wire format the previous code produced
+    final writer = Payload.write()
+      ..set(uint8, 4)
+      ..set(uint16, original.PC)
+      ..set(uint8, original.SP)
+      ..set(uint8, original.A)
+      ..set(uint8, original.X)
+      ..set(uint8, original.Y)
+      ..set(uint8, original.P)
+      ..set(uint8, original.irq)
+      ..set(boolean, original.doIrq)
+      ..set(boolean, original.previousDoIrq)
+      ..set(boolean, original.nmi)
+      ..set(boolean, original.previousNmi)
+      ..set(boolean, original.doNmi)
+      ..set(uint8List(lengthType: uint32), original.ram)
+      ..set(boolean, original.oamDma)
+      ..set(boolean, original.oamDmaStarted)
+      ..set(uint8, original.oamDmaOffset)
+      ..set(uint8, original.oamDmaValue)
+      ..set(boolean, original.dmcDma)
+      ..set(boolean, true) // dmcDmaRead
+      ..set(boolean, false) // dmcDmaDummy
+      ..set(uint8, 0x89) // dmcDmaValue
+      ..set(uint8, original.oamDmaPage)
+      ..set(uint64, original.cycles)
+      ..set(uint64, original.consoleCycles)
+      ..set(
+        uint16List(lengthType: uint32),
+        Uint16List.fromList(original.callStack),
+      )
+      ..set(uint8, original.openBus);
+
+    final decoded = CPUState.deserialize(Payload.read(binarize(writer)));
+
+    expectStatesEqual(decoded, buildState(dmcDmaPhase: 0, dmcDmaHaltAt: 0));
   });
 }

@@ -27,6 +27,11 @@ const palConsoleCyclesPerCycle = 16;
 const ntscConsoleCyclesPerDot = 4;
 const palConsoleCyclesPerDot = 5;
 
+const _dmcDmaIdle = 0;
+const _dmcDmaWaiting = 1;
+const _dmcDmaHalted = 2;
+const _dmcDmaAligning = 3;
+
 class CPU {
   CPU({required this.eventBus, required this.bus});
 
@@ -98,17 +103,17 @@ class CPU {
   int openBus = 0;
 
   bool _oamDma = false;
-  bool _oamDmaStarted = false;
+  bool _oamDmaHalted = false;
+
+  bool _oamDmaHolding = false;
 
   int _oamDmaPage = 0;
   int _oamDmaOffset = 0;
   int _oamDmaValue = 0;
 
-  bool _dmcDma = false;
-  bool _dmcDmaRead = false;
-  bool _dmcDmaDummy = false;
+  int _dmcDmaPhase = _dmcDmaIdle;
 
-  int _dmcDmaValue = 0;
+  int _dmcDmaHaltAt = 0;
 
   final List<int> callStack = [];
 
@@ -127,13 +132,12 @@ class CPU {
     doNmi: doNmi,
     ram: ram,
     oamDma: _oamDma,
-    oamDmaStarted: _oamDmaStarted,
+    oamDmaStarted: _oamDmaHolding,
     oamDmaOffset: _oamDmaOffset,
     oamDmaValue: _oamDmaValue,
-    dmcDma: _dmcDma,
-    dmcDmaRead: _dmcDmaRead,
-    dmcDmaDummy: _dmcDmaDummy,
-    dmcDmaValue: _dmcDmaValue,
+    dmcDma: _dmcDmaPhase != _dmcDmaIdle,
+    dmcDmaPhase: _dmcDmaPhase,
+    dmcDmaHaltAt: _dmcDmaHaltAt,
     oamDmaPage: _oamDmaPage,
     cycles: cycles,
     consoleCycles: consoleCycles,
@@ -163,15 +167,15 @@ class CPU {
     doNmi = state.doNmi;
 
     _oamDma = state.oamDma;
-    _oamDmaStarted = state.oamDmaStarted;
+    _oamDmaHolding = state.oamDmaStarted;
     _oamDmaOffset = state.oamDmaOffset;
     _oamDmaValue = state.oamDmaValue;
     _oamDmaPage = state.oamDmaPage;
 
-    _dmcDma = state.dmcDma;
-    _dmcDmaRead = state.dmcDmaRead;
-    _dmcDmaDummy = state.dmcDmaDummy;
-    _dmcDmaValue = state.dmcDmaValue;
+    _dmcDmaPhase = state.dmcDma && state.dmcDmaPhase == _dmcDmaIdle
+        ? _dmcDmaWaiting
+        : state.dmcDmaPhase;
+    _dmcDmaHaltAt = state.dmcDmaHaltAt;
 
     ram.setAll(0, state.ram);
 
@@ -270,15 +274,14 @@ class CPU {
     _usePreviousSample = false;
 
     _oamDma = false;
-    _oamDmaStarted = false;
+    _oamDmaHalted = false;
+    _oamDmaHolding = false;
     _oamDmaOffset = 0;
     _oamDmaValue = 0;
     _oamDmaPage = 0;
 
-    _dmcDma = false;
-    _dmcDmaRead = false;
-    _dmcDmaDummy = false;
-    _dmcDmaValue = 0;
+    _dmcDmaPhase = _dmcDmaIdle;
+    _dmcDmaHaltAt = 0;
 
     callStack.clear();
 
@@ -335,37 +338,63 @@ class CPU {
     }
   }
 
-  bool get runningDma => _oamDma || _dmcDma;
+  bool get _dmcDmaDue =>
+      _dmcDmaPhase == _dmcDmaWaiting && cycles + 1 >= _dmcDmaHaltAt;
+
+  bool get runningDma => _oamDma || _dmcDmaPhase >= _dmcDmaHalted || _dmcDmaDue;
 
   void _handleDMA() {
-    if (!_oamDma && !_dmcDma) {
+    if (!_oamDma && !_dmcDmaDue) {
       return;
-    }
-
-    if (_oamDma) {
-      _startCycle();
     }
 
     while (runningDma) {
       _startCycle();
-
-      if (_dmcDma) {
-        handleDMCDMA();
-      } else if (_oamDma) {
-        handleOAMDMA();
-      }
+      _stepDma();
     }
   }
 
-  void handleOAMDMA() {
-    if (cycles.isEven) {
-      _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
-      _oamDmaStarted = true;
+  void _stepDma() {
+    var stolen = false;
+
+    switch (_dmcDmaPhase) {
+      case _dmcDmaWaiting:
+        if (cycles >= _dmcDmaHaltAt) {
+          _dmcDmaPhase = _dmcDmaHalted;
+        }
+      case _dmcDmaHalted:
+        _dmcDmaPhase = _dmcDmaAligning;
+      case _dmcDmaAligning:
+        if (_isGetCycle) {
+          _readDmcSample();
+
+          _dmcDmaPhase = _dmcDmaIdle;
+          stolen = true;
+        }
+    }
+
+    if (_oamDma && !stolen) {
+      _stepOamDma();
+    }
+  }
+
+  bool get _isGetCycle => cycles.isEven;
+
+  void _stepOamDma() {
+    if (!_oamDmaHalted) {
+      _oamDmaHalted = true;
 
       return;
     }
 
-    if (!_oamDmaStarted) {
+    if (_isGetCycle) {
+      _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
+      _oamDmaHolding = true;
+
+      return;
+    }
+
+    if (!_oamDmaHolding) {
       return;
     }
 
@@ -379,34 +408,20 @@ class CPU {
       bus.ppu.writeOAM(_oamDmaOffset - start, _oamDmaValue);
     }
 
+    _oamDmaHolding = false;
     _oamDmaOffset++;
 
     if (_oamDmaOffset >= end) {
       _oamDma = false;
+      _oamDmaHalted = false;
       _oamDmaOffset = 0;
-      _oamDmaStarted = false;
     }
   }
 
-  void handleDMCDMA() {
-    if (!_dmcDmaDummy) {
-      _dmcDmaDummy = true;
+  void _readDmcSample() {
+    final dmc = bus.apu.dmc;
 
-      return;
-    }
-
-    if (cycles.isEven) {
-      // read
-      _dmcDmaValue = bus.cpuRead(bus.apu.dmc.address);
-      _dmcDmaRead = true;
-    } else if (_dmcDmaRead) {
-      // write
-      bus.apu.dmc.writeDma(_dmcDmaValue);
-
-      _dmcDmaRead = false;
-      _dmcDmaDummy = false;
-      _dmcDma = false;
-    }
+    dmc.writeDma(bus.cpuRead(dmc.address));
   }
 
   void _interrupt(int vector) {
@@ -448,8 +463,19 @@ class CPU {
     nmi = false;
   }
 
-  void triggerDmcDma() {
-    _dmcDma = true;
+  void triggerDmcDma({required bool load}) {
+    if (_dmcDmaPhase != _dmcDmaIdle) {
+      return;
+    }
+
+    var haltAt = cycles + (load ? 2 : 1);
+
+    if (haltAt.isEven != load) {
+      haltAt++;
+    }
+
+    _dmcDmaPhase = _dmcDmaWaiting;
+    _dmcDmaHaltAt = haltAt;
   }
 
   void triggerOamDma(int page) {
