@@ -42,6 +42,8 @@ roms/
 !roms/test/instr_timing/instr_timing.nes
 !roms/test/instr_misc/rom_singles/01-abs_x_wrap.nes
 !roms/test/instr_misc/rom_singles/02-branch_wrap.nes
+!roms/test/instr_misc/rom_singles/03-dummy_reads.nes
+!roms/test/instr_misc/rom_singles/04-dummy_reads_apu.nes
 !roms/test/cpu_interrupts_v2/rom_singles/1-cli_latency.nes
 !roms/test/mmc3_test/1-clocking.nes
 !roms/test/mmc3_test/2-details.nes

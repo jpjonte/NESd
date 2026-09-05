@@ -9,6 +9,8 @@ const _passing = <String>[
   'instr_timing/instr_timing.nes',
   'instr_misc/rom_singles/01-abs_x_wrap.nes',
   'instr_misc/rom_singles/02-branch_wrap.nes',
+  'instr_misc/rom_singles/03-dummy_reads.nes',
+  'instr_misc/rom_singles/04-dummy_reads_apu.nes',
   'cpu_interrupts_v2/rom_singles/1-cli_latency.nes',
   'cpu_exec_space/test_cpu_exec_space_apu.nes',
   'cpu_exec_space/test_cpu_exec_space_ppuio.nes',
