@@ -37,19 +37,19 @@ class ControlsSettings extends StatelessWidget {
             const GamepadSlotsSection(),
             const ProfileSelectionHeader(),
             for (final action in allActions)
-              if (_isBindable(action)) BindingTile(action: action),
+              if (isBindable(action)) BindingTile(action: action),
           ],
         ),
       ),
     );
   }
-
-  static bool _isBindable(InputAction action) => switch (action) {
-    ToggleTool(:final tool) => Features.debugger || !tool.requiresDebugger,
-    Rewind() || RewindTimelineAction() => Features.rewind,
-    _ => true,
-  };
 }
+
+bool isBindable(InputAction action) => switch (action) {
+  ToggleTool(:final tool) => Features.debugger || !tool.requiresDebugger,
+  Rewind() || RewindTimelineAction() => Features.rewind,
+  _ => true,
+};
 
 @riverpod
 int maxIndex(Ref ref) {

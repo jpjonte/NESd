@@ -11,23 +11,30 @@ import 'package:nesd/ui/toast/toaster.dart';
 class PaletteRemoveButton extends ConsumerWidget {
   const PaletteRemoveButton({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  static String? selectedUserPalette(WidgetRef ref) {
     final selection = ref.watch(
       settingsControllerProvider.select((s) => s.paletteSelection),
     );
     final loaded = ref.watch(userPalettesProvider).value ?? const {};
 
-    final effective = selection.effective(loaded.keys);
+    return switch (selection.effective(loaded.keys)) {
+      UserPaletteSelection(:final name) => name,
+      BuiltInPaletteSelection() => null,
+    };
+  }
 
-    if (effective is! UserPaletteSelection) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = selectedUserPalette(ref);
+
+    if (name == null) {
       return const SizedBox.shrink();
     }
 
     return FocusOnHover(
       child: ButtonSettingsTile(
         title: const Text('Remove palette'),
-        onPressed: () => _remove(ref, effective.name),
+        onPressed: () => _remove(ref, name),
       ),
     );
   }
