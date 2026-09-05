@@ -23,19 +23,17 @@ Map<String, dynamic> _$KeyboardInputCombinationToJson(
 GamepadInputCombination _$GamepadInputCombinationFromJson(
   Map<String, dynamic> json,
 ) => GamepadInputCombination(
-  gamepadId: json['gamepadId'] as String,
+  slot: (json['slot'] as num).toInt(),
   inputs: (json['inputs'] as List<dynamic>)
       .map((e) => GamepadInput.fromJson(e as Map<String, dynamic>))
       .toSet(),
-  gamepadName: json['gamepadName'] as String? ?? 'Unknown',
   $type: json['type'] as String?,
 );
 
 Map<String, dynamic> _$GamepadInputCombinationToJson(
   GamepadInputCombination instance,
 ) => <String, dynamic>{
-  'gamepadId': instance.gamepadId,
+  'slot': instance.slot,
   'inputs': instance.inputs.toList(),
-  'gamepadName': instance.gamepadName,
   'type': instance.$type,
 };

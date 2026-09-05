@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:gamepads/gamepads.dart';
-import 'package:nesd/log/log.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_directory.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_id.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_mapper.g.dart';
-
-typedef GamepadNamesLookup = Future<Map<String, String>> Function();
 
 /// Sensor nodes (e.g. the DualSense "Motion Sensors" joystick device on
 /// Linux) share the controller's vendor/product id, so the SDL mapping
@@ -21,35 +20,22 @@ final _sensorDevicePattern = RegExp(
 
 @riverpod
 GamepadInputMapper gamepadInputMapper(Ref ref) {
-  final inputMapper = GamepadInputMapper();
+  final inputMapper = GamepadInputMapper(
+    directory: ref.watch(gamepadDeviceDirectoryProvider),
+  );
 
   ref.onDispose(inputMapper.dispose);
 
   return inputMapper;
 }
 
-Future<Map<String, String>> defaultGamepadNamesLookup() async {
-  final controllers = await Gamepads.list();
-
-  final names = {
-    for (final controller in controllers) controller.id: controller.name,
-  };
-
-  for (final controller in controllers) {
-    unawaited(controller.dispose());
-  }
-
-  return names;
-}
-
 class GamepadInputMapper {
   GamepadInputMapper({
+    required this.directory,
     Stream<GamepadEvent>? events,
     GamepadNormalizer? normalizer,
-    GamepadNamesLookup? namesLookup,
     bool? scaleAnalogFallback,
   }) : _normalizer = normalizer ?? GamepadNormalizer(),
-       _namesLookup = namesLookup ?? defaultGamepadNamesLookup,
        _scaleAnalogFallback =
            scaleAnalogFallback ??
            (defaultTargetPlatform == TargetPlatform.linux),
@@ -60,15 +46,11 @@ class GamepadInputMapper {
   Stream<GamepadInputEvent> get stream => _streamController.stream;
 
   final GamepadNormalizer _normalizer;
-  final GamepadNamesLookup _namesLookup;
+  final GamepadDeviceDirectory directory;
   final bool _scaleAnalogFallback;
   final StreamController<GamepadInputEvent> _streamController;
 
-  final _names = <String, String>{};
-
   late final StreamSubscription<GamepadEvent> _subscription;
-
-  bool _refreshingNames = false;
 
   void dispose() {
     _subscription.cancel();
@@ -76,11 +58,13 @@ class GamepadInputMapper {
   }
 
   void _handleGamepadEvent(GamepadEvent event) {
-    if (!_names.containsKey(event.gamepadId)) {
-      unawaited(_refreshNames());
+    final device = directory.keyFor(event.gamepadId);
+
+    if (device == null) {
+      unawaited(directory.refresh());
     }
 
-    final name = _names[event.gamepadId] ?? 'Unknown';
+    final name = device?.name ?? unknownGamepadName;
 
     if (_sensorDevicePattern.hasMatch(name)) {
       return;
@@ -118,6 +102,8 @@ class GamepadInputMapper {
       inputId: inputId,
       value: event.value,
       label: label,
+      vendorId: event.rawEvent.vendorId,
+      productId: event.rawEvent.productId,
     );
   }
 
@@ -135,22 +121,8 @@ class GamepadInputMapper {
       inputId: '${event.type.name}_${event.key}',
       value: value,
       label: event.key,
+      vendorId: event.vendorId,
+      productId: event.productId,
     );
-  }
-
-  Future<void> _refreshNames() async {
-    if (_refreshingNames) {
-      return;
-    }
-
-    _refreshingNames = true;
-
-    try {
-      _names.addAll(await _namesLookup());
-    } on Exception catch (e) {
-      log.input.warning('Failed to look up gamepad names', error: e);
-    } finally {
-      _refreshingNames = false;
-    }
   }
 }

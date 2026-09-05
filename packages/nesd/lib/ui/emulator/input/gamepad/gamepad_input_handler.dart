@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/bound_action.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_directory.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_slot_registry.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_input.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -13,8 +15,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gamepad_input_handler.g.dart';
 
-typedef GamepadMap =
-    Map<({String gamepadId, Set<GamepadInput> state}), Binding>;
+typedef GamepadBindings =
+    List<({int slot, Set<GamepadInput> state, Binding binding})>;
 
 const _inputOnThreshold = 0.2;
 const _inputOffThreshold = 0.1;
@@ -25,6 +27,30 @@ const _minRepeatInterval = Duration(milliseconds: 33);
 const _repeatAcceleration = 0.9;
 
 @riverpod
+GamepadSlotRegistry gamepadSlotRegistry(Ref ref) {
+  final settingsController = ref.read(settingsControllerProvider.notifier);
+
+  final registry = GamepadSlotRegistry(
+    remembered: settingsController.gamepadSlots,
+    directory: ref.watch(gamepadDeviceDirectoryProvider),
+  );
+
+  void persist() => settingsController.gamepadSlots = registry.remembered;
+
+  registry.addListener(persist);
+
+  ref.onDispose(() {
+    registry
+      ..removeListener(persist)
+      ..dispose();
+  });
+
+  unawaited(registry.seed());
+
+  return registry;
+}
+
+@riverpod
 GamepadInputHandler gamepadInputHandler(Ref ref) {
   final bindings = ref.watch(
     settingsControllerProvider.select((settings) => settings.bindings),
@@ -32,11 +58,13 @@ GamepadInputHandler gamepadInputHandler(Ref ref) {
 
   final actionStream = ref.watch(actionStreamProvider);
   final inputMapper = ref.watch(gamepadInputMapperProvider);
+  final slotRegistry = ref.watch(gamepadSlotRegistryProvider);
 
   final input = GamepadInputHandler(
     bindings,
     actionStream: actionStream,
     inputMapper: inputMapper,
+    slotRegistry: slotRegistry,
   );
 
   ref.onDispose(input.dispose);
@@ -49,35 +77,64 @@ class GamepadInputHandler {
     Bindings bindings, {
     required this.actionStream,
     required GamepadInputMapper inputMapper,
+    required this.slotRegistry,
   }) {
-    _bindings = _buildBindingMap(bindings);
+    _bindings = _buildBindings(bindings);
+    _slots = _slotSnapshot();
     _subscription = inputMapper.stream.listen(_handleGamepadEvent);
+
+    slotRegistry.addListener(_handleRegistryChange);
   }
 
   final ActionStream actionStream;
+  final GamepadSlotRegistry slotRegistry;
 
   late final StreamSubscription<GamepadInputEvent> _subscription;
 
   final _state = <String, Set<GamepadInput>>{};
 
-  late final GamepadMap _bindings;
+  late Map<int, String> _slots;
+
+  late final GamepadBindings _bindings;
 
   Timer? _delayTimer;
   Timer? _repeatTimer;
 
   void dispose() {
     _subscription.cancel();
+    slotRegistry.removeListener(_handleRegistryChange);
     _stopRepeat();
   }
 
+  void _handleRegistryChange() {
+    final slots = _slotSnapshot();
+    final connected = slots.values.toSet();
+    final released = _state.keys.where((id) => !connected.contains(id)).toSet();
+
+    if (released.isNotEmpty) {
+      final previousActions = _getActions((slot) => _slots[slot]);
+
+      _state.removeWhere((id, _) => released.contains(id));
+
+      _addActions(0, previousActions, _getActions((slot) => _slots[slot]));
+    }
+
+    _slots = slots;
+  }
+
+  Map<int, String> _slotSnapshot() => {
+    for (final assignment in slotRegistry.assignments)
+      assignment.slot: assignment.gamepadId,
+  };
+
   void _handleGamepadEvent(GamepadInputEvent event) {
     // get actions that match the previous state
-    final previousActions = _getActions();
+    final previousActions = _getActions(slotRegistry.gamepadIdFor);
 
     _updateState(event);
 
     // get actions that match the current state
-    final currentActions = _getActions();
+    final currentActions = _getActions(slotRegistry.gamepadIdFor);
 
     final value = event.value.abs();
 
@@ -104,20 +161,26 @@ class GamepadInputHandler {
 
   // get actions that match the pressed keys, sorted by highest priority first
   // priority = number of actions
-  List<BoundAction> _getActions() {
+  List<BoundAction> _getActions(String? Function(int slot) gamepadIdFor) {
     final actions = <BoundAction>[];
 
-    for (final MapEntry(key: input, value: binding) in _bindings.entries) {
-      final gamepadState = _state[input.gamepadId];
+    for (final (:slot, :state, :binding) in _bindings) {
+      final gamepadId = gamepadIdFor(slot);
+
+      if (gamepadId == null) {
+        continue;
+      }
+
+      final gamepadState = _state[gamepadId];
 
       if (gamepadState == null) {
         continue;
       }
 
-      if (gamepadState.containsAll(input.state)) {
+      if (gamepadState.containsAll(state)) {
         actions.add(
           BoundAction(
-            priority: input.state.length,
+            priority: state.length,
             action: binding.action,
             bindingType: binding.type,
           ),
@@ -131,14 +194,17 @@ class GamepadInputHandler {
   }
 
   void _updateState(GamepadInputEvent event) {
+    slotRegistry.observe(event.gamepadId, event.deviceKey);
+
     final initialState = _state[event.gamepadId] ?? {};
     final value = event.value.abs();
 
     if (value > _inputOnThreshold) {
-      _state[event.gamepadId] = {
-        ...initialState,
-        GamepadInput(id: event.inputId, direction: event.value.sign.toInt()),
-      };
+      _state[event.gamepadId] = {...initialState}
+        ..removeWhere((button) => button.id == event.inputId)
+        ..add(
+          GamepadInput(id: event.inputId, direction: event.value.sign.toInt()),
+        );
     } else if (value < _inputOffThreshold) {
       _state[event.gamepadId] = {...initialState}
         ..removeWhere((button) => button.id == event.inputId);
@@ -172,22 +238,11 @@ class GamepadInputHandler {
     }
   }
 
-  GamepadMap _buildBindingMap(Bindings bindings) {
-    final bindingMap =
-        <({String gamepadId, Set<GamepadInput> state}), Binding>{};
-
-    for (final binding in bindings) {
-      if (binding.input case final GamepadInputCombination gamepadInput) {
-        bindingMap[(
-              gamepadId: gamepadInput.gamepadId,
-              state: gamepadInput.inputs,
-            )] =
-            binding;
-      }
-    }
-
-    return bindingMap;
-  }
+  GamepadBindings _buildBindings(Bindings bindings) => [
+    for (final binding in bindings)
+      if (binding.input case final GamepadInputCombination gamepadInput)
+        (slot: gamepadInput.slot, state: gamepadInput.inputs, binding: binding),
+  ];
 
   void _startRepeatDelay() {
     _repeatTimer?.cancel();
@@ -205,7 +260,7 @@ class GamepadInputHandler {
   void _scheduleRepeat(Duration interval) {
     _repeatTimer?.cancel();
     _repeatTimer = Timer(interval, () {
-      final actions = _getActions();
+      final actions = _getActions(slotRegistry.gamepadIdFor);
 
       if (actions.isEmpty) {
         return;

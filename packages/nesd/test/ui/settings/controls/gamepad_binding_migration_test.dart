@@ -12,8 +12,7 @@ void main() {
       index: 0,
       action: controller1A,
       input: InputCombination.gamepad(
-        gamepadId: '0',
-        gamepadName: 'Pad',
+        slot: 0,
         inputs: {GamepadInput(id: id, direction: direction)},
       ),
     );

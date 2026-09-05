@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamepads/gamepads.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_directory.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_event.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
 
@@ -29,13 +31,13 @@ void main() {
 
   GamepadInputMapper mapper(
     GamepadPlatform platform, {
-    GamepadNamesLookup? namesLookup,
+    GamepadDeviceLookup? deviceLookup,
     bool scaleAnalogFallback = false,
   }) {
     final mapper = GamepadInputMapper(
       events: events.stream,
       normalizer: GamepadNormalizer.forPlatform(platform),
-      namesLookup: namesLookup ?? () async => {},
+      directory: GamepadDeviceDirectory(lookup: deviceLookup ?? () async => {}),
       scaleAnalogFallback: scaleAnalogFallback,
     );
 
@@ -190,7 +192,9 @@ void main() {
     test('resolves names asynchronously', () async {
       final gamepadMapper = mapper(
         GamepadPlatform.android,
-        namesLookup: () async => {'0': 'Test Pad'},
+        deviceLookup: () async => {
+          '0': const GamepadDeviceKey(name: 'Test Pad'),
+        },
       );
 
       final first = await emit(gamepadMapper, [event('KEYCODE_BUTTON_A')]);
@@ -203,7 +207,7 @@ void main() {
     test('keeps emitting events when the names lookup fails', () async {
       final gamepadMapper = mapper(
         GamepadPlatform.android,
-        namesLookup: () async => throw Exception('no permission'),
+        deviceLookup: () async => throw Exception('no permission'),
       );
 
       final result = await emit(gamepadMapper, [event('KEYCODE_BUTTON_A')]);
@@ -216,9 +220,11 @@ void main() {
     test('drops events from motion-sensor devices', () async {
       final gamepadMapper = mapper(
         GamepadPlatform.linux,
-        namesLookup: () async => {
-          '0': 'DualSense Wireless Controller',
-          '1': 'DualSense Wireless Controller Motion Sensors',
+        deviceLookup: () async => {
+          '0': const GamepadDeviceKey(name: 'DualSense Wireless Controller'),
+          '1': const GamepadDeviceKey(
+            name: 'DualSense Wireless Controller Motion Sensors',
+          ),
         },
       );
 
@@ -236,7 +242,9 @@ void main() {
     test('keeps devices whose name merely contains a sensor word', () async {
       final gamepadMapper = mapper(
         GamepadPlatform.linux,
-        namesLookup: () async => {'0': 'Optimus Pad'},
+        deviceLookup: () async => {
+          '0': const GamepadDeviceKey(name: 'Optimus Pad'),
+        },
       );
 
       // Warm the name cache before asserting on the filter.
@@ -245,6 +253,60 @@ void main() {
       final result = await emit(gamepadMapper, [event('1')]);
 
       expect(result.single.inputId, 'button_b');
+    });
+  });
+
+  group('device info', () {
+    test('forwards vendor and product ids onto emitted events', () async {
+      final m = mapper(GamepadPlatform.linux);
+
+      final emitted = await emit(m, [
+        GamepadEvent(
+          gamepadId: '0',
+          timestamp: 0,
+          type: KeyType.button,
+          key: '0',
+          value: 1,
+          vendorId: 1356,
+          productId: 3302,
+        ),
+      ]);
+
+      expect(emitted.single.vendorId, 1356);
+      expect(emitted.single.productId, 3302);
+    });
+
+    test('builds a device key from the event and the lookup name', () async {
+      final m = mapper(
+        GamepadPlatform.linux,
+        deviceLookup: () async => {
+          '0': const GamepadDeviceKey(name: 'Test Pad'),
+        },
+      );
+
+      // The first event triggers the async lookup; the second sees it.
+      await emit(m, [event('0')]);
+
+      final emitted = await emit(m, [
+        GamepadEvent(
+          gamepadId: '0',
+          timestamp: 0,
+          type: KeyType.button,
+          key: '0',
+          value: 1,
+          vendorId: 1356,
+          productId: 3302,
+        ),
+      ]);
+
+      expect(
+        emitted.single.deviceKey,
+        const GamepadDeviceKey(
+          name: 'Test Pad',
+          vendorId: 1356,
+          productId: 3302,
+        ),
+      );
     });
   });
 }

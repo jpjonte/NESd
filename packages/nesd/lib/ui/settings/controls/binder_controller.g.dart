@@ -71,7 +71,7 @@ final class BinderControllerProvider
   }
 }
 
-String _$binderControllerHash() => r'681df25cb9b4b5848f9196c8fb6c7ec6441a978c';
+String _$binderControllerHash() => r'13b10bb9a59d8ece761d20d00e9002450a5ff8b4';
 
 final class BinderControllerFamily extends $Family
     with $FunctionalFamilyOverride<BinderController, InputAction> {

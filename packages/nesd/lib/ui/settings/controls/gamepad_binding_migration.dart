@@ -28,22 +28,10 @@ GamepadInput migrateGamepadInput(GamepadInput input) {
       input;
 }
 
-GamepadInput _button(GamepadButton button) => GamepadInput(
-  id: buttonInputId(button),
-  direction: 1,
-  label: buttonLabel(button),
-);
-
-GamepadInput _axis(GamepadAxis axis, int direction) => GamepadInput(
-  id: axisInputId(axis),
-  direction: direction,
-  label: axisLabel(axis),
-);
-
 GamepadInput? _migrateButtonId(GamepadInput input) {
   final button = _buttonIds[input.id];
 
-  return button == null ? null : _button(button);
+  return button == null ? null : gamepadButtonInput(button);
 }
 
 GamepadInput? _migrateAxisId(GamepadInput input) {
@@ -55,7 +43,7 @@ GamepadInput? _migrateAxisId(GamepadInput input) {
 
   final (target, flip: flip) = axis;
 
-  return _axis(target, flip ? -input.direction : input.direction);
+  return gamepadAxisInput(target, flip ? -input.direction : input.direction);
 }
 
 GamepadInput? _migrateHat(GamepadInput input) {
@@ -72,7 +60,7 @@ GamepadInput? _migrateHat(GamepadInput input) {
     _ => null,
   };
 
-  return button == null ? null : _button(button);
+  return button == null ? null : gamepadButtonInput(button);
 }
 
 GamepadInput? _migrateMacos(GamepadInput input) {
@@ -111,7 +99,7 @@ GamepadInput? _macosDpad(String key, int direction) {
     _ => null,
   };
 
-  return button == null ? null : _button(button);
+  return button == null ? null : gamepadButtonInput(button);
 }
 
 GamepadInput? _macosTrigger(String key) {
@@ -129,7 +117,7 @@ GamepadInput? _macosTrigger(String key) {
     _ => null,
   };
 
-  return axis == null ? null : _axis(axis, 1);
+  return axis == null ? null : gamepadAxisInput(axis, 1);
 }
 
 GamepadInput? _macosStickClick(String key) {
@@ -145,7 +133,7 @@ GamepadInput? _macosStickClick(String key) {
     _ => null,
   };
 
-  return button == null ? null : _button(button);
+  return button == null ? null : gamepadButtonInput(button);
 }
 
 GamepadInput? _macosStick(String key, int direction) {
@@ -165,7 +153,7 @@ GamepadInput? _macosStick(String key, int direction) {
     _ => (null, 0),
   };
 
-  return axis == null ? null : _axis(axis, newDirection);
+  return axis == null ? null : gamepadAxisInput(axis, newDirection);
 }
 
 GamepadAxis _stickX(bool left) =>
@@ -187,7 +175,7 @@ GamepadInput? _macosButton(String key) {
     }
   }
 
-  return best == null ? null : _button(best);
+  return best == null ? null : gamepadButtonInput(best);
 }
 
 const _buttonIds = <String, GamepadButton>{

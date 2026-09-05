@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
+import 'package:nesd/ui/settings/controls/gamepad_slots.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/controls/touch_editor_button.dart';
 
@@ -18,5 +19,9 @@ class ControlsSettingsRobot extends BaseRobot {
 
   Future<void> tapTouchEditorButton() async {
     await go(find.byType(TouchEditorButton));
+  }
+
+  void expectGamepadSlotsFound() {
+    expectOne(find.byType(GamepadSlotsSection));
   }
 }
