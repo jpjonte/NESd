@@ -62,6 +62,7 @@ roms/
 !roms/test/cpu_exec_space/test_cpu_exec_space_apu.nes
 !roms/test/cpu_exec_space/test_cpu_exec_space_ppuio.nes
 !roms/test/ppu_open_bus/ppu_open_bus.nes
+!roms/test/ppu_read_buffer/test_ppu_read_buffer.nes
 !roms/test/sprdma_and_dmc_dma/sprdma_and_dmc_dma.nes
 !roms/test/sprdma_and_dmc_dma/sprdma_and_dmc_dma_512.nes
 !roms/test/ppu_vbl_nmi/rom_singles/01-vbl_basics.nes

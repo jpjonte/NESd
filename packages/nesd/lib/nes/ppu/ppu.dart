@@ -494,12 +494,19 @@ class PPU {
   }
 
   @pragma('vm:prefer-inline')
+  int _foldNametableMirror(int address) {
+    final masked = address & 0x3fff;
+
+    return masked >= 0x3000 && masked < 0x3f00 ? masked & 0x2fff : masked;
+  }
+
+  @pragma('vm:prefer-inline')
   int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
 
-    final maskedAddress = address & 0x3fff;
+    final maskedAddress = _foldNametableMirror(address);
 
     if (maskedAddress < 0x3f00 && !mapperNeedsPpuReads) {
       final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
@@ -517,7 +524,7 @@ class PPU {
       _updateBusAddress(address);
     }
 
-    bus.ppuWrite(address, value);
+    bus.ppuWrite(_foldNametableMirror(address), value);
   }
 
   void _updateBusAddress(int address) {
@@ -879,22 +886,26 @@ class PPU {
   }
 
   int _readPPUDATA({bool disableSideEffects = false}) {
+    final address = v & 0x3fff;
+    final isPalette = address >= 0x3f00;
+
     // return buffer from last read
     var value = PPUDATA;
 
-    if (!disableSideEffects) {
-      PPUDATA = _readPpuData(v);
+    if (isPalette) {
+      // Palette data comes back directly, while the buffer picks up the
+      // nametable byte that sits underneath the palette on the PPU bus.
+      value = readPpuMemory(address, updateBusAddress: !disableSideEffects);
+
+      if (!disableSideEffects) {
+        PPUDATA = _readPpuData(address & 0x2fff);
+      }
+    } else if (!disableSideEffects) {
+      PPUDATA = _readPpuData(address);
     }
 
-    // always return current palette data
-    if (v >= 0x3F00) {
-      value = PPUDATA;
-    }
-
-    final isPalette = v >= 0x3f00;
-
     if (!disableSideEffects) {
-      v += PPUCTRL_I == 0 ? 1 : 32;
+      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
 
       _updateBusAddress(v & 0x3fff);
     }
@@ -992,9 +1003,9 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    writePpuMemory(v, value);
+    writePpuMemory(v & 0x3fff, value);
 
-    v += PPUCTRL_I == 0 ? 1 : 32;
+    v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
 
     _updateBusAddress(v & 0x3fff);
   }

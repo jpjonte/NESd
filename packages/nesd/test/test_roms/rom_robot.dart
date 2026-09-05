@@ -26,7 +26,7 @@ class RomRobot {
   static const _statusAddress = 0x6000;
   static const _statusRunning = 0x80;
   static const _statusNeedsReset = 0x81;
-  static const _maxResultText = 512;
+  static const _maxResultText = 4096;
 
   RomRobot(this.path) {
     final file = File(path);

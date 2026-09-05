@@ -48,6 +48,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed NMI timing
 - Fixed sprite DMA finishing one CPU cycle early
 - Fixed DMC sample fetches stalling the CPU for the wrong number of cycles
+- Fixed palette reads through PPUDATA
+- PPU addresses 0x3000-0x3eff now mirror the nametables like real hardware
 
 ## [0.18.0] - 2026-08-30
 
