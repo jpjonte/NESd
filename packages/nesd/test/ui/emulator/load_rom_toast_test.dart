@@ -165,4 +165,55 @@ void main() {
 
     expect(harness.takeMessages(), contains('SRAM save loaded'));
   });
+
+  test('an unreadable latest state boots the game and reports it', () async {
+    final harness = _Harness();
+
+    when(
+      () => harness.romManager.loadLatestState(any()),
+    ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3, 4, 5]));
+
+    final loaded = await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+    );
+
+    expect(loaded, isTrue);
+    expect(harness.controller.nes, isNotNull);
+
+    final messages = harness.takeMessages();
+
+    expect(messages, contains(startsWith('Failed to load latest save state')));
+    expect(messages, isNot(contains('Loaded latest save state')));
+  });
+
+  test('SRAM is announced when the latest state is unreadable', () async {
+    final harness = _Harness();
+
+    when(
+      () => harness.romManager.load(any()),
+    ).thenAnswer((_) async => Uint8List(0x2000));
+    when(
+      () => harness.romManager.loadLatestState(any()),
+    ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3, 4, 5]));
+
+    await harness.controller.loadRom(_file, data: minimalValidRom());
+
+    expect(harness.takeMessages(), contains('SRAM save loaded'));
+  });
+
+  test('an unreadable explicit state is not blamed on the latest', () async {
+    final harness = _Harness();
+
+    await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+      stateBytes: Uint8List.fromList([1, 2, 3, 4, 5]),
+    );
+
+    final messages = harness.takeMessages();
+
+    expect(messages, contains(startsWith('Failed to load save state')));
+    expect(messages, isNot(contains(contains('latest'))));
+  });
 }

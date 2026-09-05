@@ -396,6 +396,90 @@ void main() {
     expect(events.whereType<RomLoadedEvent>(), isEmpty);
   });
 
+  test('an unreadable initial state does not fail the ROM load', () async {
+    await worker.handleCommand(
+      _batteryRomCommand(initialState: Uint8List.fromList([1, 2, 3, 4, 5])),
+    );
+
+    await waitFor<RomLoadedEvent>();
+
+    expect(events.whereType<RomLoadFailedEvent>(), isEmpty);
+
+    await waitForCount<FrameEvent>(2);
+  });
+
+  test('an unreadable initial state is reported with the loaded ROM', () async {
+    await worker.handleCommand(
+      _batteryRomCommand(initialState: Uint8List.fromList([1, 2, 3, 4, 5])),
+    );
+
+    final loaded = await waitFor<RomLoadedEvent>();
+
+    expect(loaded.initialStateError, isNotEmpty);
+  });
+
+  test('a readable initial state is not reported as an error', () async {
+    await worker.handleCommand(_batteryRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SaveStateRequest(requestId: 1));
+
+    final response = await waitFor<SaveStateResponse>();
+    final state = response.state!.materialize().asUint8List();
+
+    await worker.handleCommand(_batteryRomCommand(initialState: state));
+
+    final loaded = (await waitForCount<RomLoadedEvent>(2)).last;
+
+    expect(loaded.initialStateError, isNull);
+  });
+
+  test('the SRAM file survives a truncated initial state', () async {
+    await worker.handleCommand(_batteryRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SaveStateRequest(requestId: 1));
+
+    final response = await waitFor<SaveStateResponse>();
+    final state = response.state!.materialize().asUint8List();
+
+    await worker.handleCommand(
+      _batteryRomCommand(
+        initialState: state.sublist(0, state.length ~/ 2),
+        sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+      ),
+    );
+
+    final loaded = (await waitForCount<RomLoadedEvent>(2)).last;
+
+    expect(loaded.initialStateError, isNotEmpty);
+
+    await worker.handleCommand(const SaveSramRequest(requestId: 2));
+
+    final sram = (await waitFor<SramResponse>()).sram!
+        .materialize()
+        .asUint8List();
+
+    expect(sram, everyElement(0x55));
+  });
+
+  test(
+    'an unreadable initial state logs a warning on the ROM channel',
+    () async {
+      await worker.handleCommand(
+        _batteryRomCommand(initialState: Uint8List.fromList([1, 2, 3, 4, 5])),
+      );
+
+      await waitFor<RomLoadedEvent>();
+
+      final warning = logged.singleWhere(
+        (record) =>
+            record.level == LogLevel.warning &&
+            record.channel == LogChannel.rom,
+      );
+
+      expect(warning.error, isNotNull);
+    },
+  );
+
   test('StopCommand stops the loop and emits StoppedEvent + status', () async {
     await worker.handleCommand(_loadRomCommand());
     await waitFor<RomLoadedEvent>();

@@ -306,9 +306,10 @@ class NesWorker {
         nes.load(sram.materialize().asUint8List());
       }
 
-      if (command.initialState case final state?) {
-        nes.state = NESState.fromBytes(state.materialize().asUint8List());
-      }
+      final initialStateError = switch (command.initialState) {
+        final state? => _restoreInitialState(nes, state, command.file.name),
+        null => null,
+      };
 
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
@@ -355,7 +356,10 @@ class NesWorker {
       );
 
       send(
-        RomLoadedEvent(hasZapper: command.databaseEntry?.hasZapper ?? false),
+        RomLoadedEvent(
+          hasZapper: command.databaseEntry?.hasZapper ?? false,
+          initialStateError: initialStateError,
+        ),
       );
 
       _sendStatus();
@@ -369,6 +373,30 @@ class NesWorker {
 
       send(RomLoadFailedEvent(message: e.toString()));
     }
+  }
+
+  /// A state that cannot be read must not cost the user the game: the ROM
+  /// keeps booting from power-on and the failure is only reported. Returns
+  /// the failure message, or null once the state is applied.
+  String? _restoreInitialState(NES nes, NesBytes state, String romName) {
+    final NESState parsed;
+
+    try {
+      parsed = NESState.fromBytes(state.materialize().asUint8List());
+    } on Object catch (e, s) {
+      log.rom.warning(
+        'Initial save state could not be loaded',
+        context: {'name': romName},
+        error: e,
+        stackTrace: s,
+      );
+
+      return e.toString();
+    }
+
+    nes.state = parsed;
+
+    return null;
   }
 
   Future<void> _stopNesLoop() async {

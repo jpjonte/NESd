@@ -560,11 +560,28 @@ class NesController {
 
       nesState.set(remote);
 
-      if (sram != null && initialState == null) {
+      final initialStateError = switch (loaded) {
+        RomLoadedEvent(:final initialStateError) => initialStateError,
+        _ => null,
+      };
+
+      if (initialStateError != null) {
+        toaster.send(
+          Toast.error(
+            stateBytes == null
+                ? 'Failed to load latest save state: $initialStateError'
+                : 'Failed to load save state: $initialStateError',
+          ),
+        );
+      }
+
+      final stateApplied = initialState != null && initialStateError == null;
+
+      if (sram != null && !stateApplied) {
         toaster.send(Toast.info('SRAM save loaded'));
       }
 
-      if (initialState != null && stateBytes == null) {
+      if (stateApplied && stateBytes == null) {
         toaster.send(Toast.info('Loaded latest save state'));
       }
 
