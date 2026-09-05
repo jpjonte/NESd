@@ -43,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed the logo being cut off on the Android splash screen
 - Fixed indexed instructions doing their page-crossing dummy read at the wrong address
 - Fixed APU frame counter timing
+- Fixed DMC samples playing one CPU cycle per bit too slowly
 
 ## [0.18.0] - 2026-08-30
 

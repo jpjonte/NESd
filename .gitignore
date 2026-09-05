@@ -66,6 +66,7 @@ roms/
 !roms/test/apu_test/rom_singles/5-len_timing.nes
 !roms/test/apu_test/rom_singles/6-irq_flag_timing.nes
 !roms/test/apu_test/rom_singles/7-dmc_basics.nes
+!roms/test/apu_test/rom_singles/8-dmc_rates.nes
 !roms/test/oam_read/oam_read.nes
 !roms/test/oam_stress/oam_stress.nes
 !roms/test/ppu_vbl_nmi/rom_singles/03-vbl_clear_time.nes

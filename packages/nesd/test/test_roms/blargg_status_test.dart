@@ -24,6 +24,7 @@ const _passing = <String>[
   'apu_test/rom_singles/5-len_timing.nes',
   'apu_test/rom_singles/6-irq_flag_timing.nes',
   'apu_test/rom_singles/7-dmc_basics.nes',
+  'apu_test/rom_singles/8-dmc_rates.nes',
   'mmc3_test/1-clocking.nes',
   'mmc3_test/2-details.nes',
   'mmc3_test/3-A12_clocking.nes',

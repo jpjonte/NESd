@@ -96,7 +96,7 @@ class DMCChannel {
     loop = false;
     silence = false;
     sampleLoaded = false;
-    rate = 0;
+    rate = dmcTable[0];
     level = 0;
     timer = 0;
     buffer = 0;
@@ -113,7 +113,8 @@ class DMCChannel {
     if (timer > 0) {
       timer--;
     } else {
-      timer = rate;
+      // reload one short so a tick lands exactly every [rate] CPU cycles
+      timer = rate - 1;
 
       if (!silence) {
         final diff = shiftRegister.bit(0) == 1 ? 2 : -2;
