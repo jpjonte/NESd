@@ -24,6 +24,9 @@ const pipelineSize = 20;
 const ntscConsoleCyclesPerCycle = 12;
 const palConsoleCyclesPerCycle = 16;
 
+const ntscConsoleCyclesPerDot = 4;
+const palConsoleCyclesPerDot = 5;
+
 class CPU {
   CPU({required this.eventBus, required this.bus});
 
@@ -42,6 +45,7 @@ class CPU {
   bool cartridgeNeedsStep = false;
 
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+  int _consoleCyclesPerDot = ntscConsoleCyclesPerDot;
 
   int cycles = 0;
 
@@ -81,10 +85,10 @@ class CPU {
   int irq = 0;
 
   bool _doIrq = false;
-  bool _previousDoIrq = false;
 
   bool nmi = false;
   bool _previousNmi = false;
+
   bool doNmi = false;
 
   int openBus = 0;
@@ -113,7 +117,7 @@ class CPU {
     P: P,
     irq: irq,
     doIrq: _doIrq,
-    previousDoIrq: _previousDoIrq,
+    previousDoIrq: false,
     nmi: nmi,
     previousNmi: _previousNmi,
     doNmi: doNmi,
@@ -148,7 +152,6 @@ class CPU {
 
     irq = state.irq;
     _doIrq = state.doIrq;
-    _previousDoIrq = state.previousDoIrq;
 
     nmi = state.nmi;
     _previousNmi = state.previousNmi;
@@ -178,8 +181,10 @@ class CPU {
     switch (region) {
       case Region.ntsc:
         _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+        _consoleCyclesPerDot = ntscConsoleCyclesPerDot;
       case Region.pal:
         _consoleCyclesPerCycle = palConsoleCyclesPerCycle;
+        _consoleCyclesPerDot = palConsoleCyclesPerDot;
     }
   }
 
@@ -188,11 +193,7 @@ class CPU {
 
     _startCycle();
 
-    final value = bus.cpuRead(address);
-
-    _endCycle();
-
-    return value;
+    return bus.cpuRead(address);
   }
 
   int read16(int address, {bool wrap = false}) {
@@ -215,8 +216,6 @@ class CPU {
     _startCycle();
 
     bus.cpuWrite(address, value);
-
-    _endCycle();
   }
 
   void pushStack(int value) {
@@ -256,7 +255,6 @@ class CPU {
 
     irq = 0;
     _doIrq = false;
-    _previousDoIrq = false;
 
     nmi = false;
     doNmi = false;
@@ -295,17 +293,18 @@ class CPU {
 
     op.execute(this);
 
-    _handleInterrupts();
+    if (opcode != 0x00) {
+      _handleInterrupts();
+    }
   }
 
-  void _triggerInterrupts() {
+  void _pollInterruptLines() {
     if (!_previousNmi && nmi) {
       doNmi = true;
     }
 
     _previousNmi = nmi;
 
-    _previousDoIrq = _doIrq;
     _doIrq = irq > 0 && I == 0;
   }
 
@@ -313,9 +312,9 @@ class CPU {
     if (doNmi) {
       doNmi = false;
 
-      _handleIrq(nmiVector);
-    } else if (_previousDoIrq) {
-      _handleIrq(irqVector);
+      _interrupt(nmiVector);
+    } else if (_doIrq) {
+      _interrupt(irqVector);
     }
   }
 
@@ -334,8 +333,6 @@ class CPU {
       } else if (_oamDma) {
         handleOAMDMA();
       }
-
-      _endCycle();
     }
   }
 
@@ -391,7 +388,7 @@ class CPU {
     }
   }
 
-  void _handleIrq(int address) {
+  void _interrupt(int vector) {
     if (callStackEnabled) {
       callStack.add(PC);
     }
@@ -401,11 +398,17 @@ class CPU {
 
     pushStack16(PC);
 
-    pushStack(P.setBit(5, 1));
+    pushStack(P.setBit(5, 1).setBit(4, 0));
+
+    final target = doNmi ? nmiVector : vector;
+
+    if (target == nmiVector) {
+      doNmi = false;
+    }
 
     I = 1;
 
-    PC = read16(address);
+    PC = read16(target);
   }
 
   void triggerIrq(IrqSource source) {
@@ -463,7 +466,13 @@ class CPU {
   void _startCycle() {
     cycles++;
 
+    final firstDotEnd = consoleCycles + _consoleCyclesPerDot;
+
     consoleCycles += _consoleCyclesPerCycle;
+
+    bus.ppu.stepUntil(firstDotEnd);
+
+    _pollInterruptLines();
 
     bus.ppu.stepUntil(consoleCycles);
 
@@ -472,9 +481,5 @@ class CPU {
     }
 
     bus.apu.step();
-  }
-
-  void _endCycle() {
-    _triggerInterrupts();
   }
 }

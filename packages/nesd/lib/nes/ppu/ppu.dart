@@ -157,6 +157,8 @@ class PPU {
   bool _showLeftSprites = false;
   bool _nmiEnabled = false;
 
+  bool _suppressVblank = false;
+
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
 
@@ -448,6 +450,7 @@ class PPU {
     _updateMaskFlags();
 
     _renderingAtSkipDecision = false;
+    _suppressVblank = false;
 
     decay = 0;
     decayRefreshedAt.fillRange(0, 8, 0);
@@ -626,17 +629,29 @@ class PPU {
   int get currentX => cycle - 1;
 
   void stepUntil(int targetCycles) {
-    // NTSC: the CPU advances consoleCycles in fixed 3-dot increments, so the
-    // common call needs exactly 3 steps. Inlining them removes per-dot
-    // loop-condition overhead (~89k calls/frame). PAL (3.2:1) keeps the generic
-    // loop below.
-    if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle &&
-        targetCycles - consoleCycles == 3 * ntscConsoleCyclesPerCycle) {
-      step();
-      step();
-      step();
+    if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle) {
+      final delta = targetCycles - consoleCycles;
 
-      return;
+      if (delta == ntscConsoleCyclesPerCycle) {
+        step();
+
+        return;
+      }
+
+      if (delta == 2 * ntscConsoleCyclesPerCycle) {
+        step();
+        step();
+
+        return;
+      }
+
+      if (delta == 3 * ntscConsoleCyclesPerCycle) {
+        step();
+        step();
+        step();
+
+        return;
+      }
     }
 
     while (consoleCycles < targetCycles) {
@@ -781,14 +796,18 @@ class PPU {
   void _stepVblankLine() {
     // Set vblank flag and trigger NMI at cycle 1
     if (cycle == 1) {
-      PPUSTATUS_V = 1;
+      if (_suppressVblank) {
+        _suppressVblank = false;
+      } else {
+        PPUSTATUS_V = 1;
+
+        _updateNmiLine();
+      }
 
       spriteCount = 0;
       secondarySpriteCount = 0;
 
       _spriteLine.fillRange(0, 256, 0);
-
-      _updateNmiLine();
     }
 
     // Cycle 0 bus address update
@@ -825,6 +844,10 @@ class PPU {
 
     PPUSTATUS_V = 0;
     w = 0;
+
+    if (scanline == vblankScanline && cycle == 1) {
+      _suppressVblank = true;
+    }
 
     _updateNmiLine();
 
