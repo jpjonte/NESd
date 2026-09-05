@@ -352,26 +352,10 @@ const tndTable = [
 
 /// The MMC5's 240 Hz frame sequencer divider, in APU cycles (two CPU
 /// cycles each).
-///
-/// `_stepSequencer` counts this down and clocks on the step *after*
-/// it reaches zero, then reloads — the same "period + 1" convention
-/// as the pulse timer. So the effective clocking period is 3729 APU
-/// cycles (7458 CPU cycles), one higher than this constant and than
-/// `ntsc4Step0` in `frame_counter.dart`, which counts up to a
-/// threshold rather than down to zero and so carries no such +1.
-/// 7458 CPU cycles is still the closer integer approximation of the
-/// true 240 Hz interval (7457.4 CPU cycles) than 7456 would be.
-///
-/// Fixed rather than region-dependent: expansion audio only ever
-/// reached the Famicom, so no PAL ROM can drive this hardware.
 const mmc5SequencerPeriod = 3728;
 
-/// MMC5 audio is mixed linearly on the cartridge — separate DACs, not
-/// the NES's nonlinear ladder — so its channels scale by constants
-/// instead of indexing [pulseTable] / [tndTable].
-///
-/// `pulseTable[30] / 30`, so the MMC5 pulse pair at full volume peaks
-/// at the same level as the internal pulse pair.
+/// MMC5 audio is mixed linearly on the cartridge, so its channels scale by
+/// constants instead of indexing [pulseTable] / [tndTable].
 const mmc5PulseScale = 0.008583752695902228;
 
 /// `tndTable[127] / 255`, so full-scale PCM sits at DMC full-scale amplitude.

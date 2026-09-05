@@ -94,7 +94,6 @@ void main() {
 
   group('timing', () {
     test('the sequencer divider is 3728 APU cycles (240 Hz)', () {
-      // Same unit and value as ntsc4Step0 in frame_counter.dart.
       expect(mmc5SequencerPeriod, 3728);
     });
 

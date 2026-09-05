@@ -4,27 +4,18 @@ import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 import 'package:nesd/nes/region.dart';
 
-const ntsc4Step0 = 3728; // 3728.5
-const ntsc4Step1 = 7456; // 7456.5
-const ntsc4Step2 = 11185; // 11185.5
-const ntsc4Step3 = 14914; // 14914.5
+// sequencer step points in CPU cycles
+const ntscQuarter1 = 7457;
+const ntscQuarter2 = 14913;
+const ntscQuarter3 = 22371;
+const ntscFourStepEnd = 29830;
+const ntscFiveStepEnd = 37282;
 
-const pal4Step0 = 4156; // 4156.5
-const pal4Step1 = 8313; // 8313.5
-const pal4Step2 = 12469; // 12469.5
-const pal4Step3 = 16626; // 16626.5
-
-const ntsc5Step0 = 3728; // 3728.5
-const ntsc5Step1 = 7456; // 7456.5
-const ntsc5Step2 = 11185; // 11185.5
-const ntsc5Step3 = 14914; // 14914.5
-const ntsc5Step4 = 18640; // 18640.5
-
-const pal5Step0 = 4156; // 4156.5
-const pal5Step1 = 8313; // 8313.5
-const pal5Step2 = 12469; // 12469.5
-const pal5Step3 = 16626; // 16626.5
-const pal5Step4 = 20782; // 20782.5
+const palQuarter1 = 8313;
+const palQuarter2 = 16627;
+const palQuarter3 = 24939;
+const palFourStepEnd = 33254;
+const palFiveStepEnd = 41566;
 
 class FrameCounter {
   FrameCounter(this.apu);
@@ -33,24 +24,22 @@ class FrameCounter {
 
   int counter = 0;
 
+  int resetDelay = 0;
+
   bool fiveStep = false;
 
   bool interrupt = false;
   bool interruptInhibit = false;
 
-  int _fourStep0 = ntsc4Step0;
-  int _fourStep1 = ntsc4Step1;
-  int _fourStep2 = ntsc4Step2;
-  int _fourStep3 = ntsc4Step3;
-
-  int _fiveStep0 = ntsc5Step0;
-  int _fiveStep1 = ntsc5Step1;
-  int _fiveStep2 = ntsc5Step2;
-  int _fiveStep3 = ntsc5Step3;
-  int _fiveStep4 = ntsc5Step4;
+  int _quarter1 = ntscQuarter1;
+  int _quarter2 = ntscQuarter2;
+  int _quarter3 = ntscQuarter3;
+  int _fourStepEnd = ntscFourStepEnd;
+  int _fiveStepEnd = ntscFiveStepEnd;
 
   FrameCounterState get state => FrameCounterState(
     counter: counter,
+    resetDelay: resetDelay,
     fiveStep: fiveStep,
     interrupt: interrupt,
     interruptInhibit: interruptInhibit,
@@ -58,6 +47,7 @@ class FrameCounter {
 
   set state(FrameCounterState value) {
     counter = value.counter;
+    resetDelay = value.resetDelay;
     fiveStep = value.fiveStep;
     interrupt = value.interrupt;
     interruptInhibit = value.interruptInhibit;
@@ -68,32 +58,23 @@ class FrameCounter {
   set region(Region region) {
     switch (region) {
       case Region.ntsc:
-        _fourStep0 = ntsc4Step0;
-        _fourStep1 = ntsc4Step1;
-        _fourStep2 = ntsc4Step2;
-        _fourStep3 = ntsc4Step3;
-
-        _fiveStep0 = ntsc5Step0;
-        _fiveStep1 = ntsc5Step1;
-        _fiveStep2 = ntsc5Step2;
-        _fiveStep3 = ntsc5Step3;
-        _fiveStep4 = ntsc5Step4;
+        _quarter1 = ntscQuarter1;
+        _quarter2 = ntscQuarter2;
+        _quarter3 = ntscQuarter3;
+        _fourStepEnd = ntscFourStepEnd;
+        _fiveStepEnd = ntscFiveStepEnd;
       case Region.pal:
-        _fourStep0 = pal4Step0;
-        _fourStep1 = pal4Step1;
-        _fourStep2 = pal4Step2;
-        _fourStep3 = pal4Step3;
-
-        _fiveStep0 = pal5Step0;
-        _fiveStep1 = pal5Step1;
-        _fiveStep2 = pal5Step2;
-        _fiveStep3 = pal5Step3;
-        _fiveStep4 = pal5Step4;
+        _quarter1 = palQuarter1;
+        _quarter2 = palQuarter2;
+        _quarter3 = palQuarter3;
+        _fourStepEnd = palFourStepEnd;
+        _fiveStepEnd = palFiveStepEnd;
     }
   }
 
   void reset() {
     counter = 0;
+    resetDelay = 0;
 
     fiveStep = false;
 
@@ -105,9 +86,6 @@ class FrameCounter {
     final value = interrupt ? 1 : 0;
 
     if (!disableSideEffects) {
-      // TODO
-      // If an interrupt flag was set at the same moment of the read,
-      // it will read back as 1 but it will not be cleared.
       interrupt = false;
 
       apu.bus.clearIrq(IrqSource.apuFrameCounter);
@@ -127,118 +105,94 @@ class FrameCounter {
       apu.bus.clearIrq(IrqSource.apuFrameCounter);
     }
 
-    // TODO Side effects
-    // After 3 or 4 CPU clock cycles*, the timer is reset.
-    // If the mode flag is set, then both "quarter frame" and "half frame"
-    // signals are also generated.
-
-    counter = 0;
-
-    // TODO
-    if (fiveStep) {
-      _doFrameCounter5Step(1);
-      _doFrameCounter5Step(2);
-    }
-
-    // * If the write occurs during an APU cycle, the effects occur 3 CPU
-    // cycles after the $4017 write cycle, and if the write occurs between
-    // APU cycles, the effects occurs 4 CPU cycles after the write cycle.
+    // The divider resets 3 CPU cycles after a write on an APU cycle and 4
+    // after a write between APU cycles, so the reset always lands on the
+    // same APU phase.
+    resetDelay = apu.cycles.isOdd ? 3 : 4;
   }
 
+  @pragma('vm:prefer-inline')
   void step() {
-    if (fiveStep) {
-      _stepFrameCounter5StepMode();
-    } else {
-      _stepFrameCounter4StepMode();
+    if (resetDelay > 0) {
+      resetDelay--;
+
+      if (resetDelay == 0) {
+        _resetDivider();
+
+        return;
+      }
     }
 
     counter++;
+
+    if (counter == _quarter1 || counter == _quarter3) {
+      _clockQuarterFrame();
+    } else if (counter == _quarter2) {
+      _clockQuarterFrame();
+      _clockHalfFrame();
+    } else if (fiveStep) {
+      _stepFiveStepEnd();
+    } else {
+      _stepFourStepEnd();
+    }
   }
 
-  void _stepFrameCounter4StepMode() {
-    if (counter == _fourStep0) {
-      _doFrameCounter4Step(0);
-    } else if (counter == _fourStep1) {
-      _doFrameCounter4Step(1);
-    } else if (counter == _fourStep2) {
-      _doFrameCounter4Step(2);
-    } else if (counter == _fourStep3) {
-      _doFrameCounter4Step(3);
+  void _resetDivider() {
+    counter = 0;
+
+    if (fiveStep) {
+      _clockQuarterFrame();
+      _clockHalfFrame();
+    }
+  }
+
+  // The frame interrupt flag is raised on the last three cycles of the
+  // 4-step sequence, which reads of $4015 observe as three consecutive sets.
+  void _stepFourStepEnd() {
+    if (counter == _fourStepEnd - 2) {
+      _raiseInterrupt();
+    } else if (counter == _fourStepEnd - 1) {
+      _raiseInterrupt();
+      _clockQuarterFrame();
+      _clockHalfFrame();
+    } else if (counter == _fourStepEnd) {
+      _raiseInterrupt();
       counter = 0;
     }
   }
 
-  void _doFrameCounter4Step(int step) {
-    switch (step) {
-      case 0:
-      case 2:
-        _stepEnvelopes();
-        apu.triangle.stepLinearCounter();
-      case 1:
-        _stepEnvelopes();
-        _stepLengthCounters();
-        _stepSweeps();
-        apu.triangle.stepLinearCounter();
-      case 3:
-        _stepEnvelopes();
-        _stepLengthCounters();
-        _stepSweeps();
-        apu.triangle.stepLinearCounter();
-
-        if (!interruptInhibit) {
-          interrupt = true;
-
-          apu.bus.triggerIrq(IrqSource.apuFrameCounter);
-        }
-    }
-  }
-
-  void _stepFrameCounter5StepMode() {
-    if (counter == _fiveStep0) {
-      _doFrameCounter5Step(0);
-    } else if (counter == _fiveStep1) {
-      _doFrameCounter5Step(1);
-    } else if (counter == _fiveStep2) {
-      _doFrameCounter5Step(2);
-    } else if (counter == _fiveStep3) {
-      _doFrameCounter5Step(3);
-    } else if (counter == _fiveStep4) {
-      _doFrameCounter5Step(4);
+  void _stepFiveStepEnd() {
+    if (counter == _fiveStepEnd - 1) {
+      _clockQuarterFrame();
+      _clockHalfFrame();
+    } else if (counter == _fiveStepEnd) {
       counter = 0;
     }
   }
 
-  void _doFrameCounter5Step(int step) {
-    switch (step) {
-      case 0:
-      case 2:
-        _stepEnvelopes();
-        apu.triangle.stepLinearCounter();
-      case 1:
-      case 4:
-        _stepEnvelopes();
-        _stepLengthCounters();
-        _stepSweeps();
-        apu.triangle.stepLinearCounter();
-      case 3:
-        break; // do nothing
+  void _raiseInterrupt() {
+    if (interruptInhibit) {
+      return;
     }
+
+    interrupt = true;
+
+    apu.bus.triggerIrq(IrqSource.apuFrameCounter);
   }
 
-  void _stepEnvelopes() {
+  void _clockQuarterFrame() {
     apu.pulse1.clockEnvelope();
     apu.pulse2.clockEnvelope();
     apu.noise.clockEnvelope();
+    apu.triangle.stepLinearCounter();
   }
 
-  void _stepLengthCounters() {
+  void _clockHalfFrame() {
     apu.pulse1.clockLengthCounter();
     apu.pulse2.clockLengthCounter();
     apu.triangle.clockLengthCounter();
     apu.noise.clockLengthCounter();
-  }
 
-  void _stepSweeps() {
     apu.pulse1.clockSweep();
     apu.pulse2.clockSweep();
   }
