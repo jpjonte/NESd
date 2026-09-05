@@ -6,6 +6,8 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/rewind/rewind_extension.dart';
 import 'package:nesd/nes/rewind/rewind_frame_lane.dart';
 import 'package:nesd/nes/rewind/rewind_profiler.dart';
+import 'package:nesd/nes/rewind/rewind_thumbnails.dart';
+import 'package:nesd/nes/rewind/rewind_walk.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/util/ring_buffer.dart';
 
@@ -39,13 +41,19 @@ class RewindSnapshot {
 }
 
 class RewindBuffer {
-  RewindBuffer({required int size, this._profiler})
+  RewindBuffer({required int size, this.thumbnailStride = 60, this._profiler})
     : _buffer = RingBuffer<RewindItem, List<RewindItem>>(
         buffer: List<RewindItem>.generate(size, (_) => ChainStartRewindItem()),
       );
 
+  final int thumbnailStride;
+
   final RewindProfiler? _profiler;
   final RingBuffer<RewindItem, List<RewindItem>> _buffer;
+
+  RewindThumbnails? _thumbnails;
+
+  int _sequence = 0;
 
   Uint8List _currentPool = Uint8List(0);
   int _currentLength = 0;
@@ -63,12 +71,26 @@ class RewindBuffer {
 
   int get itemCapacity => _buffer.size;
 
+  int get newestSequence => _sequence - 1;
+
+  int get oldestSequence => _sequence - _buffer.current;
+
+  int get itemCount => _buffer.current;
+
+  int get thumbnailWidth => _thumbnails?.width ?? 0;
+
+  int get thumbnailHeight => _thumbnails?.height ?? 0;
+
+  List<RewindThumbnail> thumbnails() => _thumbnails?.snapshot() ?? const [];
+
   void clear() {
     _buffer.clear();
     _frameLane?.clear();
+    _thumbnails?.clear();
 
     _hasCurrent = false;
     _bytes = 0;
+    _sequence = 0;
   }
 
   void dispose() {
@@ -76,6 +98,7 @@ class RewindBuffer {
 
     _frameLane?.dispose();
     _frameLane = null;
+    _thumbnails = null;
   }
 
   void add(NESState state) {
@@ -93,6 +116,9 @@ class RewindBuffer {
 
     if (item != null) {
       _bytes -= item.length;
+
+      _sequence--;
+      _thumbnails?.truncateAfter(newestSequence);
     }
 
     try {
@@ -134,6 +160,59 @@ class RewindBuffer {
 
       return null;
     }
+  }
+
+  RewindWalk? beginWalk() {
+    final current = _currentView;
+
+    if (current == null) {
+      return null;
+    }
+
+    final lane = _frameLane;
+
+    return RewindWalk(
+      itemAt: _itemFromEnd,
+      itemCount: _buffer.current,
+      seedState: current,
+      seedFrame: lane != null && lane.hasCurrent
+          ? Uint8List.fromList(lane.current)
+          : null,
+    );
+  }
+
+  void commitWalk(RewindWalk walk) {
+    for (var i = 0; i < walk.position; i++) {
+      final item = _buffer.popEnd();
+
+      if (item == null) {
+        break;
+      }
+
+      _bytes -= item.length;
+    }
+
+    _sequence -= walk.position;
+
+    _thumbnails?.truncateAfter(newestSequence);
+
+    _setCurrent(walk.stateBytes);
+
+    if (walk.frame case final frame?) {
+      _laneFor(frame).setCurrent(frame);
+    }
+
+    walk.dispose();
+  }
+
+  RewindItem? _itemFromEnd(int position) {
+    final index = _buffer.current - 1 - position;
+
+    if (index < 0) {
+      return null;
+    }
+
+    return _buffer.peek(index);
   }
 
   void _addState(NESState state) {
@@ -181,6 +260,10 @@ class RewindBuffer {
       }
     }
 
+    _captureThumbnail(_sequence, presented);
+
+    _sequence++;
+
     _buffer.append(item);
 
     _bytes += item.length;
@@ -205,6 +288,24 @@ class RewindBuffer {
     }
 
     return lane.captureDiff(presented);
+  }
+
+  RewindThumbnails _thumbnailsFor(Uint8List presented) {
+    const sourceWidth = 256;
+
+    return _thumbnails ??= RewindThumbnails(
+      capacity: _buffer.size ~/ thumbnailStride + 1,
+      sourceWidth: sourceWidth,
+      sourceHeight: presented.length ~/ (sourceWidth * 4),
+    );
+  }
+
+  void _captureThumbnail(int sequence, Uint8List? presented) {
+    if (presented == null || sequence % thumbnailStride != 0) {
+      return;
+    }
+
+    _thumbnailsFor(presented).add(sequence, presented);
   }
 
   void _setCurrent(Uint8List serialized) {

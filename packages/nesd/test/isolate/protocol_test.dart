@@ -101,6 +101,7 @@ void main() {
       paused: false,
       fastForward: false,
       rewind: false,
+      scrubbing: false,
     );
 
     expect(await _roundTrip(status), isA<StatusEvent>());
@@ -178,5 +179,69 @@ void main() {
     final result = await _roundTrip(command);
 
     expect((result! as LoadRomCommand).rewindCaptureInterval, 4);
+  });
+
+  test('BeginRewindScrubCommand round-trips through an isolate', () async {
+    final result = await _roundTrip(
+      const BeginRewindScrubCommand(requestId: 7),
+    );
+
+    expect(result, isA<BeginRewindScrubCommand>());
+    expect((result! as BeginRewindScrubCommand).requestId, 7);
+  });
+
+  test('scrub control commands round-trip through an isolate', () async {
+    expect(
+      await _roundTrip(const ScrubToCommand(sequence: 42)),
+      isA<ScrubToCommand>().having((c) => c.sequence, 'sequence', 42),
+    );
+    expect(
+      await _roundTrip(const CommitRewindScrubCommand()),
+      isA<CommitRewindScrubCommand>(),
+    );
+    expect(
+      await _roundTrip(const CancelRewindScrubCommand()),
+      isA<CancelRewindScrubCommand>(),
+    );
+  });
+
+  test('RewindScrubBeganResponse round-trips through an isolate', () async {
+    final response = RewindScrubBeganResponse(
+      requestId: 3,
+      available: true,
+      oldestSequence: 10,
+      newestSequence: 70,
+      captureInterval: 1,
+      frameRate: 60,
+      thumbnailSequences: const [10, 70],
+      thumbnails: NesBytes.fromList([
+        Uint8List.fromList([1, 2, 3, 4]),
+      ]),
+      thumbnailWidth: 64,
+      thumbnailHeight: 60,
+    );
+
+    final result = await _roundTrip(response);
+
+    expect(result, isA<RewindScrubBeganResponse>());
+
+    final decoded = result! as RewindScrubBeganResponse;
+
+    expect(decoded.newestSequence, 70);
+    expect(decoded.thumbnailSequences, [10, 70]);
+    expect(decoded.thumbnails.materialize().asUint8List(), [1, 2, 3, 4]);
+  });
+
+  test('RewindScrubPositionEvent round-trips through an isolate', () async {
+    final result = await _roundTrip(
+      const RewindScrubPositionEvent(sequence: 55, settled: false),
+    );
+
+    expect(
+      result,
+      isA<RewindScrubPositionEvent>()
+          .having((e) => e.sequence, 'sequence', 55)
+          .having((e) => e.settled, 'settled', false),
+    );
   });
 }

@@ -27,6 +27,7 @@ import 'package:nesd/nes/nes.dart';
 import 'package:nesd/nes/pacing_governor.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/nes/rewind/rewind_timeline.dart';
 import 'package:nesd/nes/serialization/nes_state.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd_audio/nesd_audio.dart';
@@ -48,6 +49,14 @@ class _FixedDatabase implements NesDatabase {
   @override
   Future<void> get ready => Future.value();
 }
+
+typedef _WorkerStatus = ({
+  bool running,
+  bool paused,
+  bool fastForward,
+  bool rewind,
+  bool scrubbing,
+});
 
 /// Plain, non-isolate command handler for the NES emulator core.
 ///
@@ -148,8 +157,7 @@ class NesWorker {
         _nes?.toggleFastForward();
         _sendStatus();
       case ToggleRewindCommand():
-        _nes?.toggleRewind();
-        _sendStatus();
+        _toggleRewind();
       case SetFastForwardCommand():
         // Plain assignment (not toggleFastForward()) mirrors the old
         // hold-mode path in ActionHandler, which set nes.fastForward
@@ -157,12 +165,19 @@ class NesWorker {
         _nes?.fastForward = command.enabled;
         _sendStatus();
       case SetRewindCommand():
-        // Plain assignment mirrors the old hold-mode path; unlike
-        // toggleRewind() it does not gate on rewindEnabled.
-        _nes?.rewind = command.enabled;
-        _sendStatus();
+        _setRewind(enabled: command.enabled);
       case SetRewindEnabledCommand():
-        _nes?.rewindEnabled = rewindSupported && command.enabled;
+        _setRewindEnabled(enabled: command.enabled);
+      case BeginRewindScrubCommand():
+        _handleBeginScrub(command.requestId);
+      case ScrubToCommand():
+        _nes?.scrubTo(command.sequence);
+      case CommitRewindScrubCommand():
+        _nes?.commitScrub();
+        _sendStatus();
+      case CancelRewindScrubCommand():
+        _nes?.cancelScrub();
+        _sendStatus();
       case SetRegionCommand():
         _applyRegion(command.region);
       case SetCheatsCommand():
@@ -245,6 +260,8 @@ class NesWorker {
   }
 
   Future<void> _loadRom(LoadRomCommand command) async {
+    _cancelScrubSession();
+
     await _stopNesLoop();
 
     // Deliberately NO in-flight clearing here: Frames the UI still holds from
@@ -369,6 +386,8 @@ class NesWorker {
   }
 
   Future<void> _stop() async {
+    _cancelScrubSession();
+
     await _stopNesLoop();
 
     _debugger?.dispose();
@@ -393,6 +412,7 @@ class NesWorker {
         _audioOutput?.processSamples(event.samples);
         _maybeEmitAudioStats();
         _sendReadyFrame(event);
+        _sendScrubPosition();
         _sendStatusIfChanged();
       case SuspendNesEvent():
         _sendStatus();
@@ -444,6 +464,21 @@ class NesWorker {
     );
   }
 
+  void _sendScrubPosition() {
+    final nes = _nes;
+
+    if (nes == null || !nes.scrubbing) {
+      return;
+    }
+
+    send(
+      RewindScrubPositionEvent(
+        sequence: nes.scrubSequence,
+        settled: nes.scrubSettled,
+      ),
+    );
+  }
+
   // NOTE: _framesInFlight is deliberately never bulk-cleared. The held
   // `Uint8List` views are what keep the frame memory alive (FrameBuffer
   // attaches a GC Finalizer); dropping them while the UI still reads a pointer
@@ -455,9 +490,9 @@ class NesWorker {
     entry?.frameBuffer.releaseDisplayBuffer(entry.buffer);
   }
 
-  ({bool running, bool paused, bool fastForward, bool rewind})? _lastStatus;
+  _WorkerStatus? _lastStatus;
 
-  ({bool running, bool paused, bool fastForward, bool rewind}) get _status {
+  _WorkerStatus get _status {
     final nes = _nes;
 
     return (
@@ -465,6 +500,7 @@ class NesWorker {
       paused: nes?.paused ?? false,
       fastForward: nes?.fastForward ?? false,
       rewind: nes?.rewind ?? false,
+      scrubbing: nes?.scrubbing ?? false,
     );
   }
 
@@ -477,14 +513,11 @@ class NesWorker {
         paused: status.paused,
         fastForward: status.fastForward,
         rewind: status.rewind,
+        scrubbing: status.scrubbing,
       ),
     );
   }
 
-  /// NES mutates status internally without emitting an event in one case:
-  /// rewind auto-stops when the buffer empties (`_handleRewind` sets
-  /// `rewind = false`, nes.dart). Poll for drift once per frame so the
-  /// UI-side mirrors (`RemoteNes.rewind` etc.) cannot go stale.
   void _sendStatusIfChanged() {
     if (_status != _lastStatus) {
       _sendStatus();
@@ -598,6 +631,8 @@ class NesWorker {
   }
 
   void _handleSaveState(int requestId) {
+    _cancelScrubSession();
+
     final data = _nes?.state?.serialize();
 
     if (data != null) {
@@ -618,6 +653,8 @@ class NesWorker {
     if (nes == null) {
       return;
     }
+
+    _cancelScrubSession();
 
     try {
       final bytes = state.materialize().asUint8List();
@@ -657,6 +694,105 @@ class NesWorker {
         sram: data == null ? null : NesBytes.fromList([data]),
       ),
     );
+  }
+
+  void _toggleRewind() {
+    final nes = _nes;
+
+    if (nes != null && !nes.scrubbing) {
+      nes.toggleRewind();
+    }
+
+    _sendStatus();
+  }
+
+  void _setRewind({required bool enabled}) {
+    final nes = _nes;
+
+    if (nes != null && !nes.scrubbing) {
+      nes.rewind = enabled;
+    }
+
+    _sendStatus();
+  }
+
+  void _setRewindEnabled({required bool enabled}) {
+    final supported = rewindSupported && enabled;
+
+    if (!supported) {
+      _cancelScrubSession();
+    }
+
+    _nes?.rewindEnabled = supported;
+  }
+
+  void _handleBeginScrub(int requestId) {
+    final nes = _nes;
+    final timeline = nes?.beginScrub();
+
+    if (nes == null || timeline == null) {
+      send(_scrubUnavailable(requestId));
+
+      return;
+    }
+
+    nes.rewind = false;
+
+    send(
+      RewindScrubBeganResponse(
+        requestId: requestId,
+        available: true,
+        oldestSequence: timeline.oldestSequence,
+        newestSequence: timeline.newestSequence,
+        captureInterval: timeline.captureInterval,
+        frameRate: timeline.frameRate,
+        thumbnailSequences: [
+          for (final thumbnail in timeline.thumbnails) thumbnail.sequence,
+        ],
+        thumbnails: NesBytes.fromList([_packThumbnails(timeline)]),
+        thumbnailWidth: timeline.thumbnailWidth,
+        thumbnailHeight: timeline.thumbnailHeight,
+      ),
+    );
+
+    _sendStatus();
+  }
+
+  RewindScrubBeganResponse _scrubUnavailable(int requestId) =>
+      RewindScrubBeganResponse(
+        requestId: requestId,
+        available: false,
+        oldestSequence: 0,
+        newestSequence: 0,
+        captureInterval: 1,
+        frameRate: 60,
+        thumbnailSequences: const [],
+        thumbnails: NesBytes.fromList([Uint8List(0)]),
+        thumbnailWidth: 0,
+        thumbnailHeight: 0,
+      );
+
+  Uint8List _packThumbnails(RewindTimeline timeline) {
+    final frameBytes = timeline.thumbnailWidth * timeline.thumbnailHeight * 4;
+    final packed = Uint8List(frameBytes * timeline.thumbnails.length);
+
+    for (var i = 0; i < timeline.thumbnails.length; i++) {
+      packed.setAll(i * frameBytes, timeline.thumbnails[i].pixels);
+    }
+
+    return packed;
+  }
+
+  void _cancelScrubSession() {
+    final nes = _nes;
+
+    if (nes == null || !nes.scrubbing) {
+      return;
+    }
+
+    nes.cancelScrub();
+
+    _sendStatus();
   }
 
   void _handleThumbnail(int requestId) {
@@ -803,6 +939,8 @@ class NesWorker {
     if (nes == null) {
       return;
     }
+
+    _cancelScrubSession();
 
     nes.region = region ?? _autoDetectRegion(nes.bus.cartridge) ?? Region.ntsc;
   }

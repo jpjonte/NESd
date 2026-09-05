@@ -7,6 +7,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
+import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
@@ -65,6 +66,7 @@ ActionHandler actionHandler(Ref ref) {
     settingsController: ref.read(settingsControllerProvider.notifier),
     toolsController: ref.watch(emulatorToolsControllerProvider.notifier),
     toolFocusController: ref.watch(toolFocusControllerProvider.notifier),
+    scrubController: ref.watch(rewindScrubControllerProvider.notifier),
     actionStream: actionStream.stream,
   );
 
@@ -86,6 +88,14 @@ ActionHandler actionHandler(Ref ref) {
 
   ref.onDispose(toolFocusSubscription.close);
 
+  final scrubSubscription = ref.listen(
+    rewindScrubControllerProvider,
+    (_, scrubState) => handler.scrubState = scrubState,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(scrubSubscription.close);
+
   return handler;
 }
 
@@ -98,6 +108,7 @@ class ActionHandler {
     required this.settingsController,
     required this.toolsController,
     required this.toolFocusController,
+    required this.scrubController,
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
@@ -110,6 +121,7 @@ class ActionHandler {
   final SettingsController settingsController;
   final EmulatorToolsController toolsController;
   final ToolFocusController toolFocusController;
+  final RewindScrubController scrubController;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
@@ -117,11 +129,19 @@ class ActionHandler {
 
   bool _focusToolsHeld = false;
 
+  bool _rewindTimelineHeld = false;
+
+  InputAction? _scrubHoldAction;
+
+  int _scrubHoldRun = 0;
+
   bool enabled = true;
 
   bool emulatorActive = false;
 
   bool toolsFocused = false;
+
+  RewindScrubState scrubState = const RewindScrubState.closed();
 
   bool get _inGame => emulatorActive;
 
@@ -162,8 +182,24 @@ class ActionHandler {
       return;
     }
 
+    if (event.action case RewindTimelineAction()) {
+      if (event.value <= 0.5) {
+        _rewindTimelineHeld = false;
+
+        return;
+      }
+
+      if (_rewindTimelineHeld) {
+        return;
+      }
+
+      _rewindTimelineHeld = true;
+    }
+
     if (event.value > 0.5) {
-      if (event.bindingType == BindingType.toggle && _inGame) {
+      if (event.bindingType == BindingType.toggle &&
+          _inGame &&
+          !scrubState.open) {
         _handleActionToggleInGame(event.action);
 
         return;
@@ -186,6 +222,12 @@ class ActionHandler {
       return;
     }
 
+    if (scrubState.open) {
+      _handleActionDownInScrub(action);
+
+      return;
+    }
+
     if (toolsFocused) {
       _handleActionDownInTools(action);
 
@@ -204,6 +246,56 @@ class ActionHandler {
       default:
         _handleActionDownInMenu(action);
     }
+  }
+
+  void _handleActionDownInScrub(InputAction action) {
+    switch (action) {
+      case InputLeft():
+        _recordScrubHold(action);
+        scrubController.moveBy(-_scrubSecondsStep());
+      case InputRight():
+        _recordScrubHold(action);
+        scrubController.moveBy(_scrubSecondsStep());
+      case InputUp() || PreviousInput():
+        _resetScrubHold();
+        scrubController.moveBy(1);
+      case InputDown() || NextInput():
+        _resetScrubHold();
+        scrubController.moveBy(-1);
+      case Confirm():
+        _resetScrubHold();
+        scrubController.commit();
+      case Cancel() || RewindTimelineAction():
+        _resetScrubHold();
+        scrubController.cancel();
+      default:
+      // every other action is swallowed: the game must not see input
+      // while the timeline owns it
+    }
+  }
+
+  void _recordScrubHold(InputAction action) {
+    _scrubHoldRun = action == _scrubHoldAction ? _scrubHoldRun + 1 : 1;
+    _scrubHoldAction = action;
+  }
+
+  int _scrubSecondsStep() => _oneSecondInCaptures() * _scrubHoldMultiplier();
+
+  int _scrubHoldMultiplier() {
+    const rampSteps = 10;
+    const maxMultiplier = 4;
+
+    final multiplier = 1 + (_scrubHoldRun - 1) ~/ rampSteps;
+
+    return multiplier > maxMultiplier ? maxMultiplier : multiplier;
+  }
+
+  int _oneSecondInCaptures() =>
+      scrubState.frameRate ~/ scrubState.captureInterval;
+
+  void _resetScrubHold() {
+    _scrubHoldAction = null;
+    _scrubHoldRun = 0;
   }
 
   void _handleActionUp(InputAction action) {
@@ -265,6 +357,10 @@ class ActionHandler {
         nes?.fastForward = true;
       case Rewind():
         nes?.rewind = true;
+      case RewindTimelineAction():
+        _resetScrubHold();
+        nes?.unpause();
+        unawaited(scrubController.open());
       case PauseAction(paused: final paused):
         if (paused) {
           nes?.pause();
@@ -370,6 +466,7 @@ class ActionHandler {
     LoadState() ||
     FastForward() ||
     Rewind() ||
+    RewindTimelineAction() ||
     PauseAction() ||
     ResetAction() ||
     StopAction() ||

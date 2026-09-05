@@ -141,6 +141,47 @@ void main() {
     Duration timeout = const Duration(seconds: 5),
   }) async => (await waitForCount<T>(1, timeout: timeout)).first;
 
+  Future<T> waitForWhere<T extends NesIsolateEvent>(
+    bool Function(T event) matches, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+
+    while (true) {
+      for (final event in events.whereType<T>()) {
+        if (matches(event)) {
+          return event;
+        }
+      }
+
+      if (DateTime.now().isAfter(deadline)) {
+        fail(
+          'Timed out waiting for a matching $T event. All events: '
+          '${events.map((e) => e.runtimeType).toList()}',
+        );
+      }
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+  }
+
+  Future<void> loadWithHistory({int frames = 20}) async {
+    await worker.handleCommand(_loadRomCommand(rewindEnabled: true));
+    await waitFor<RomLoadedEvent>();
+    await waitForCount<FrameEvent>(
+      frames,
+      timeout: Duration(milliseconds: 5000 + frames * 250),
+    );
+  }
+
+  Future<RewindScrubBeganResponse> beginScrub({required int requestId}) async {
+    await worker.handleCommand(BeginRewindScrubCommand(requestId: requestId));
+
+    return waitForWhere<RewindScrubBeganResponse>(
+      (e) => e.requestId == requestId,
+    );
+  }
+
   test('LoadRomCommand emits RomLoadedEvent and then FrameEvents', () async {
     await worker.handleCommand(_loadRomCommand());
 
@@ -612,4 +653,253 @@ void main() {
       expect(pixels, displayedPixels);
     },
   );
+
+  test('BeginRewindScrubCommand answers with the timeline', () async {
+    await loadWithHistory(frames: 80);
+
+    final response = await beginScrub(requestId: 1);
+
+    expect(response.requestId, 1);
+    expect(response.available, isTrue);
+    expect(response.newestSequence, greaterThan(response.oldestSequence));
+    expect(response.captureInterval, 1);
+    expect(response.frameRate, 60);
+    expect(response.thumbnailWidth, 64);
+    expect(response.thumbnailHeight, 60);
+    final count = response.thumbnailSequences.length;
+
+    expect(count, greaterThanOrEqualTo(2));
+    expect(response.thumbnailSequences, [
+      for (var i = 0; i < count; i++) i * 60,
+    ]);
+
+    final frameBytes = response.thumbnailWidth * response.thumbnailHeight * 4;
+    final pixels = response.thumbnails.materialize().asUint8List();
+
+    expect(pixels, hasLength(frameBytes * count));
+    expect(
+      pixels.skip(frameBytes).take(frameBytes).any((byte) => byte != 0),
+      isTrue,
+      reason: 'the second packed thumbnail is blank',
+    );
+  });
+
+  test('BeginRewindScrubCommand is unavailable without history', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await waitForCount<FrameEvent>(5);
+
+    final response = await beginScrub(requestId: 2);
+
+    expect(response.available, isFalse);
+  });
+
+  test('BeginRewindScrubCommand is unavailable without a ROM', () async {
+    final response = await beginScrub(requestId: 3);
+
+    expect(response.available, isFalse);
+    expect(response.thumbnailSequences, isEmpty);
+    expect(response.thumbnails.materialize().lengthInBytes, 0);
+  });
+
+  test('the status poll reports scrubbing', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 4);
+
+    expect(events.whereType<StatusEvent>().last.scrubbing, isTrue);
+  });
+
+  test('the drift poll catches a session that ended itself', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 5);
+
+    events.clear();
+
+    worker.nesForTesting!.cancelScrub();
+
+    expect((await waitFor<StatusEvent>()).scrubbing, isFalse);
+  });
+
+  test('a scrub session reports its cursor every frame', () async {
+    await loadWithHistory();
+
+    final response = await beginScrub(requestId: 6);
+
+    final settled = await waitForCount<RewindScrubPositionEvent>(3);
+
+    expect(settled.first.sequence, response.newestSequence);
+    expect(settled.first.settled, isTrue);
+
+    await worker.handleCommand(
+      ScrubToCommand(sequence: response.oldestSequence),
+    );
+
+    final moved = await waitForWhere<RewindScrubPositionEvent>(
+      (e) => e.sequence == response.oldestSequence && e.settled,
+    );
+
+    expect(moved.settled, isTrue);
+  });
+
+  test('CancelRewindScrubCommand ends the session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 7);
+
+    await worker.handleCommand(const CancelRewindScrubCommand());
+
+    expect(worker.nesForTesting!.scrubbing, isFalse);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isFalse);
+  });
+
+  test('CommitRewindScrubCommand ends the session', () async {
+    await loadWithHistory();
+
+    final response = await beginScrub(requestId: 8);
+
+    await worker.handleCommand(
+      ScrubToCommand(sequence: response.oldestSequence),
+    );
+
+    await waitForWhere<RewindScrubPositionEvent>(
+      (e) => e.sequence == response.oldestSequence && e.settled,
+    );
+
+    await worker.handleCommand(const CommitRewindScrubCommand());
+
+    expect(worker.nesForTesting!.scrubbing, isFalse);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isFalse);
+  });
+
+  test('beginning a scrub session stops rewind playback', () async {
+    await loadWithHistory();
+
+    await worker.handleCommand(const SetRewindCommand(enabled: true));
+
+    expect(worker.nesForTesting!.rewind, isTrue);
+
+    final response = await beginScrub(requestId: 9);
+
+    expect(response.available, isTrue);
+    expect(worker.nesForTesting!.rewind, isFalse);
+  });
+
+  test('rewind cannot be switched on behind an open session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 10);
+
+    final nes = worker.nesForTesting!;
+
+    await worker.handleCommand(const ToggleRewindCommand());
+
+    expect(nes.rewind, isFalse);
+    expect(events.whereType<StatusEvent>().last.rewind, isFalse);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isTrue);
+
+    await worker.handleCommand(const SetRewindCommand(enabled: true));
+
+    expect(nes.scrubbing, isTrue);
+    expect(nes.rewind, isFalse);
+    expect(events.whereType<StatusEvent>().last.rewind, isFalse);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isTrue);
+
+    await worker.handleCommand(const CancelRewindScrubCommand());
+
+    expect(nes.scrubbing, isFalse);
+    expect(nes.rewind, isFalse);
+  });
+
+  test('SetRegionCommand ends an open session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 19);
+
+    await worker.handleCommand(const SetRegionCommand(region: Region.pal));
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.scrubbing, isFalse);
+    expect(nes.frameRate, 50);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isFalse);
+  });
+
+  test('disabling rewind ends an open session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 11);
+
+    await worker.handleCommand(const SetRewindEnabledCommand(enabled: false));
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.scrubbing, isFalse);
+    expect(nes.rewindEnabled, isFalse);
+    expect(events.whereType<StatusEvent>().last.scrubbing, isFalse);
+  });
+
+  test('SaveStateRequest ends an open session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 12);
+
+    await worker.handleCommand(const SaveStateRequest(requestId: 13));
+
+    expect(worker.nesForTesting!.scrubbing, isFalse);
+    expect((await waitFor<SaveStateResponse>()).state, isNotNull);
+  });
+
+  test('LoadStateCommand ends an open session', () async {
+    await loadWithHistory();
+
+    await worker.handleCommand(const SaveStateRequest(requestId: 14));
+
+    final state = (await waitFor<SaveStateResponse>()).state!;
+
+    await beginScrub(requestId: 15);
+
+    await worker.handleCommand(LoadStateCommand(state: state));
+
+    expect(worker.nesForTesting!.scrubbing, isFalse);
+  });
+
+  test('StopCommand cancels an open session', () async {
+    await loadWithHistory();
+    await beginScrub(requestId: 16);
+
+    await worker.handleCommand(const StopCommand());
+    await waitFor<StoppedEvent>();
+
+    expect(events.whereType<StatusEvent>().last.scrubbing, isFalse);
+
+    final response = await beginScrub(requestId: 17);
+
+    expect(response.available, isFalse);
+  });
+
+  test('a failed ROM load ends an open session', () async {
+    await loadWithHistory();
+
+    final nes = worker.nesForTesting!;
+
+    await beginScrub(requestId: 18);
+
+    expect(nes.scrubbing, isTrue);
+
+    await worker.handleCommand(
+      LoadRomCommand(
+        rom: NesBytes.fromList([Uint8List(16)]),
+        file: const FilesystemFile(
+          path: '/tmp/bad.nes',
+          name: 'bad.nes',
+          type: FilesystemFileType.file,
+        ),
+        databaseEntry: null,
+        region: Region.ntsc,
+        rewindEnabled: true,
+        cheats: const [],
+        breakpoints: const [],
+      ),
+    );
+
+    await waitFor<RomLoadFailedEvent>();
+
+    expect(worker.nesForTesting, same(nes));
+    expect(nes.scrubbing, isFalse);
+  });
 }

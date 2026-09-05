@@ -67,6 +67,7 @@ class RemoteNes {
   bool _paused = false;
   bool _fastForward = false;
   bool _rewind = false;
+  bool _scrubbing = false;
 
   bool get running => _running;
 
@@ -75,6 +76,8 @@ class RemoteNes {
   bool get fastForward => _fastForward;
 
   bool get rewind => _rewind;
+
+  bool get scrubbing => _scrubbing;
 
   /// Forwards a hold-mode fast-forward change to the worker. The mirror is
   /// updated optimistically so an immediate read reflects the request; the
@@ -113,6 +116,10 @@ class RemoteNes {
 
     _send(SetRewindCommand(enabled: enabled));
   }
+
+  bool _scrubSettled = true;
+
+  bool get scrubSettled => _scrubSettled;
 
   /// Last position sent via [setZapperPosition], as a listenable so the
   /// crosshair painter repaints without a widget rebuild (rebuilds no
@@ -284,6 +291,24 @@ class RemoteNes {
     (requestId) => TileDebugRequest(requestId: requestId),
   );
 
+  Future<RewindScrubBeganResponse?> beginRewindScrub() async {
+    final response = await _request<RewindScrubBeganResponse>(
+      (requestId) => BeginRewindScrubCommand(requestId: requestId),
+    );
+
+    if (response == null || !response.available) {
+      return null;
+    }
+
+    return response;
+  }
+
+  void scrubTo(int sequence) => _send(ScrubToCommand(sequence: sequence));
+
+  void commitRewindScrub() => _send(const CommitRewindScrubCommand());
+
+  void cancelRewindScrub() => _send(const CancelRewindScrubCommand());
+
   Future<void> stop() async {
     _send(const StopCommand());
 
@@ -355,6 +380,9 @@ class RemoteNes {
         _paused = event.paused;
         _fastForward = event.fastForward;
         _rewind = event.rewind;
+        _scrubbing = event.scrubbing;
+      case RewindScrubPositionEvent():
+        _scrubSettled = event.settled;
       case FrameEvent():
         frameSource.addFrame(event);
       case RomLoadedEvent() || StoppedEvent():
@@ -366,6 +394,8 @@ class RemoteNes {
       case ThumbnailResponse(:final requestId):
         _complete(requestId, event);
       case TileDebugResponse(:final requestId):
+        _complete(requestId, event);
+      case RewindScrubBeganResponse(:final requestId):
         _complete(requestId, event);
       default:
         break;

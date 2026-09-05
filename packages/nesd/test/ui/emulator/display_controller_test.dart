@@ -109,6 +109,7 @@ StatusEvent _status({required bool running}) => StatusEvent(
   paused: !running,
   fastForward: false,
   rewind: false,
+  scrubbing: false,
 );
 
 void main() {

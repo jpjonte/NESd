@@ -171,6 +171,7 @@ void main() {
           paused: true,
           fastForward: true,
           rewind: true,
+          scrubbing: false,
         ),
       );
 
@@ -598,6 +599,112 @@ void main() {
       },
     );
 
+    test('beginRewindScrub resolves on the matching response', () async {
+      final remote = build();
+
+      final future = remote.beginRewindScrub();
+      final command = handle.commands
+          .whereType<BeginRewindScrubCommand>()
+          .single;
+
+      handle.emit(
+        RewindScrubBeganResponse(
+          requestId: command.requestId,
+          available: true,
+          oldestSequence: 5,
+          newestSequence: 65,
+          captureInterval: 1,
+          frameRate: 60,
+          thumbnailSequences: const [5],
+          thumbnails: NesBytes.fromList([Uint8List(4)]),
+          thumbnailWidth: 1,
+          thumbnailHeight: 1,
+        ),
+      );
+
+      final response = await future;
+
+      expect(response, isNotNull);
+      expect(response!.newestSequence, 65);
+
+      remote.dispose();
+    });
+
+    test('beginRewindScrub resolves to null when unavailable', () async {
+      final remote = build();
+
+      final future = remote.beginRewindScrub();
+      final command = handle.commands
+          .whereType<BeginRewindScrubCommand>()
+          .single;
+
+      handle.emit(
+        RewindScrubBeganResponse(
+          requestId: command.requestId,
+          available: false,
+          oldestSequence: 5,
+          newestSequence: 65,
+          captureInterval: 1,
+          frameRate: 60,
+          thumbnailSequences: const [5],
+          thumbnails: NesBytes.fromList([Uint8List(4)]),
+          thumbnailWidth: 1,
+          thumbnailHeight: 1,
+        ),
+      );
+
+      expect(await future, isNull);
+
+      remote.dispose();
+    });
+
+    test('mirrors the scrub position and status independently', () async {
+      final remote = build();
+
+      handle.emit(const RewindScrubPositionEvent(sequence: 40, settled: false));
+
+      await pumpEventQueue();
+
+      expect(remote.scrubSettled, isFalse);
+      expect(remote.scrubbing, isFalse);
+
+      handle.emit(
+        const StatusEvent(
+          running: true,
+          paused: false,
+          fastForward: false,
+          rewind: false,
+          scrubbing: true,
+        ),
+      );
+
+      await pumpEventQueue();
+
+      expect(remote.scrubbing, isTrue);
+      expect(remote.scrubSettled, isFalse);
+
+      remote.dispose();
+    });
+
+    test('scrub controls send their commands', () {
+      final remote = build()
+        ..scrubTo(12)
+        ..commitRewindScrub()
+        ..cancelRewindScrub();
+
+      expect(handle.commands.whereType<ScrubToCommand>().single.sequence, 12);
+      expect(
+        handle.commands.whereType<CommitRewindScrubCommand>(),
+        hasLength(1),
+      );
+      expect(
+        handle.commands.whereType<CancelRewindScrubCommand>(),
+        hasLength(1),
+      );
+
+      remote.dispose();
+    });
+
     test(
       'dispose cancels the subscription without sending a command',
       () async {
@@ -612,6 +719,7 @@ void main() {
             paused: false,
             fastForward: false,
             rewind: false,
+            scrubbing: false,
           ),
         );
 

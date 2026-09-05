@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/display_geometry.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 void main() {
   DisplayGeometry geometry({
@@ -10,6 +12,7 @@ void main() {
     int visibleHeight = 240,
     double pixelAspectRatio = 1,
     Scaling scaling = Scaling.autoSmooth,
+    bool showTouchControls = false,
   }) {
     return calculateDisplayGeometry(
       constraints: BoxConstraints.tight(box),
@@ -17,6 +20,7 @@ void main() {
       visibleHeight: visibleHeight,
       pixelAspectRatio: pixelAspectRatio,
       scaling: scaling,
+      showTouchControls: showTouchControls,
     );
   }
 
@@ -65,5 +69,48 @@ void main() {
     );
 
     expect(result.scale, 2);
+  });
+
+  test('centres the frame in the box', () {
+    final result = geometry(box: const Size(1000, 480));
+
+    expect(result.topLeft, const Offset(244, 0));
+  });
+
+  test('anchors above centre in portrait with touch controls', () {
+    final result = geometry(
+      box: const Size(480, 1000),
+      showTouchControls: true,
+    );
+
+    expect(result.scaledSize, const Size(480, 450));
+    expect(result.topLeft, const Offset(0, 65));
+  });
+
+  test('keeps the frame centred in landscape even with touch controls', () {
+    final result = geometry(
+      box: const Size(1000, 480),
+      showTouchControls: true,
+    );
+
+    expect(result.topLeft, const Offset(244, 0));
+  });
+
+  test('turns the pixel aspect ratio setting into a ratio', () {
+    double ratio(PixelAspectRatio setting, {Region region = Region.ntsc}) =>
+        calculatePixelAspectRatio(
+          pixelAspectRatio: setting,
+          customPixelAspectRatio: 1.5,
+          region: region,
+          constraints: BoxConstraints.tight(const Size(400, 200)),
+        );
+
+    expect(ratio(PixelAspectRatio.auto), 8 / 7);
+    expect(ratio(PixelAspectRatio.auto, region: Region.pal), 11 / 8);
+    expect(ratio(PixelAspectRatio.ntsc), 8 / 7);
+    expect(ratio(PixelAspectRatio.pal), 11 / 8);
+    expect(ratio(PixelAspectRatio.square), 1);
+    expect(ratio(PixelAspectRatio.stretch), 2);
+    expect(ratio(PixelAspectRatio.custom), 1.5);
   });
 }
