@@ -46,6 +46,7 @@ class RomTileData {
     this.thumbnail,
     this.state,
     this.slot,
+    this.error,
   });
 
   final RomInfo romInfo;
@@ -53,6 +54,9 @@ class RomTileData {
   final RomThumbnail? thumbnail;
   final NESState? state;
   final int? slot;
+
+  /// Why the slot's state cannot be loaded; null for a readable tile.
+  final String? error;
 }
 
 Future<ui.Image?> loadStoredThumbnail(Uint8List? bytes) async {
@@ -114,15 +118,17 @@ class RomTile extends ConsumerWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: switch (romTileData.thumbnail) {
-                      DecodedThumbnail(:final image) => _Thumbnail(
-                        image: image,
-                      ),
-                      StoredThumbnail() => _StoredThumbnail(
-                        romTileData: romTileData,
-                      ),
-                      null => const _Thumbnail(),
-                    },
+                    child: romTileData.error != null
+                        ? const _Unreadable()
+                        : switch (romTileData.thumbnail) {
+                            DecodedThumbnail(:final image) => _Thumbnail(
+                              image: image,
+                            ),
+                            StoredThumbnail() => _StoredThumbnail(
+                              romTileData: romTileData,
+                            ),
+                            null => const _Thumbnail(),
+                          },
                   ),
                 ),
                 Padding(
@@ -243,6 +249,31 @@ class _StoredThumbnail extends HookConsumerWidget {
       ],
     );
   }
+}
+
+class _Unreadable extends StatelessWidget {
+  const _Unreadable();
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(
+        Icons.warning_amber_rounded,
+        size: 48,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'Unreadable',
+        style: baseTextStyle.copyWith(
+          fontSize: 15,
+          fontVariations: const [FontVariation.weight(700)],
+          color: Colors.white,
+        ),
+      ),
+    ],
+  );
 }
 
 class _Thumbnail extends StatelessWidget {

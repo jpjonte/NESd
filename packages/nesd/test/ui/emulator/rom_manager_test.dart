@@ -134,12 +134,27 @@ void main() {
     );
   });
 
-  test('a truncated state is skipped by the slot picker', () async {
+  test('a truncated state shows up as an unreadable slot', () async {
     // A valid "NESd" header with nothing behind it: the reader runs off the
     // end of the buffer instead of raising a NesdException.
     await manager.saveState(romInfo, 4, [0x4e, 0x45, 0x53, 0x64, 0, 0, 0]);
 
-    expect(await manager.getRomTileDataForSlot(romInfo, 4), isNull);
+    final tile = await manager.getRomTileDataForSlot(romInfo, 4);
+
+    expect(tile?.error, 'The file is corrupt or truncated');
+    expect(tile?.state, isNull);
+    expect(tile?.thumbnail, isNull);
+    expect(tile?.slot, 4);
+    expect(tile?.title, startsWith('Slot 4 - '));
+  });
+
+  test('a state from another format version names the version', () async {
+    // "NESd", container version 0, console type 0, NESState version 9.
+    await manager.saveState(romInfo, 2, [0x4e, 0x45, 0x53, 0x64, 0, 0, 9]);
+
+    final tile = await manager.getRomTileDataForSlot(romInfo, 2);
+
+    expect(tile?.error, 'Invalid serialization version 9 for NESState');
   });
 
   test('backup copies are invisible to the slot lookups', () async {

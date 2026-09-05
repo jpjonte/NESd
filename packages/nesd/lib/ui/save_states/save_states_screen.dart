@@ -66,6 +66,35 @@ class SaveStatesScreen extends HookConsumerWidget {
       }
     }
 
+    Future<void> deleteUnreadable(
+      BuildContext context,
+      RomTileData romTileData,
+    ) async {
+      final confirmed = await ConfirmationDialog.show(
+        context,
+        title: const Text('Save state cannot be loaded'),
+        content: Text('${romTileData.title}: ${romTileData.error}. Delete it?'),
+        confirmLabel: const Text('Delete'),
+      );
+
+      if (confirmed == true) {
+        unawaited(controller.delete(romTileData));
+      }
+    }
+
+    VoidCallback onSaveStatePressed(RomTileData romTileData) {
+      if (romTileData.error != null) {
+        return () => unawaited(deleteUnreadable(context, romTileData));
+      }
+
+      return () => unawaited(
+        nesController.startRom(
+          romTileData.romInfo.file,
+          stateBytes: romTileData.state?.serialize(),
+        ),
+      );
+    }
+
     final saveRomTileData = RomTileData(
       romInfo: romInfo,
       title: 'New Save State',
@@ -100,14 +129,7 @@ class SaveStatesScreen extends HookConsumerWidget {
                 for (final romTileData in states)
                   RomTile(
                     romTileData: romTileData,
-                    onPressed: () {
-                      unawaited(
-                        nesController.startRom(
-                          romTileData.romInfo.file,
-                          stateBytes: romTileData.state?.serialize(),
-                        ),
-                      );
-                    },
+                    onPressed: onSaveStatePressed(romTileData),
                     onRemove: () async => await delete(context, romTileData),
                     contextMenuBuilder: (context, close) => [
                       ListTile(

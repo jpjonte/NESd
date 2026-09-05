@@ -262,26 +262,35 @@ class RomManager {
       return null;
     }
 
+    final lastModified = await storage.lastModified(path) ?? DateTime.now();
+    final title =
+        'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}';
+
     final NESState state;
 
     try {
       state = NESState.fromBytes(data);
     } on Object catch (e, s) {
       log.rom.warning(
-        'Skipping save state slot',
+        'Unreadable save state slot',
         context: {'slot': slot},
         error: e,
         stackTrace: s,
       );
 
-      return null;
+      return RomTileData(
+        romInfo: romInfo,
+        title: title,
+        slot: slot,
+        error: e is NesdException
+            ? e.message
+            : 'The file is corrupt or truncated',
+      );
     }
-
-    final lastModified = await storage.lastModified(path) ?? DateTime.now();
 
     return RomTileData(
       romInfo: romInfo,
-      title: 'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
+      title: title,
       thumbnail: DecodedThumbnail(await _getStateThumbnail(state)),
       state: state,
       slot: slot,
