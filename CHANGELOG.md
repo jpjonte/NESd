@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Implemented open bus for the CPU and PPU
 - Added multiple color palettes, selectable in Graphics settings
+- Palettes can now be imported from `.pal` files in Graphics settings
 - Implemented UNROM 512 (mapper 30)
 - Implemented VT03 OneBus (mapper 256), used by plug-and-play famiclones
 - Rewind now has a timeline scrubber: drag through a filmstrip of the last minute of play and jump straight to any moment

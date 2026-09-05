@@ -9,6 +9,7 @@ import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/settings/graphics/palette_import_button.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
@@ -119,6 +120,20 @@ class SettingsScreenRobot extends BaseRobot {
   Future<void> selectUserPalette(String name) async {
     await go(find.byType(DropdownButton<PaletteSelection>));
     await go(find.text(name).last);
+  }
+
+  Future<void> tapImportPalette() async {
+    final finder = find.byType(PaletteImportButton);
+
+    await tester.ensureVisible(finder);
+    await go(finder);
+  }
+
+  Future<void> tapRemovePalette() async {
+    final finder = find.text('Remove palette');
+
+    await tester.ensureVisible(finder);
+    await go(finder);
   }
 
   Future<void> _loadFont(String family, List<String> fontFiles) async {
