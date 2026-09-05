@@ -32,7 +32,11 @@ const _goldens = <String, int>{
   '$_base/sprite_hit_tests_2005.10.05/08.double_height.nes':
       -4246198069118455891,
   // PASSED
-  '$_base/sprite_hit_tests_2005.10.05/10.timing_order.nes': -355897874731065419,
+  '$_base/sprite_hit_tests_2005.10.05/09.timing_basics.nes':
+      -5418624616629182540,
+  // PASSED
+  '$_base/sprite_hit_tests_2005.10.05/10.timing_order.nes':
+      -5712493370050576132,
   // PASSED
   '$_base/sprite_hit_tests_2005.10.05/11.edge_timing.nes': 8772810262352546524,
   // Mid-scanline write test. It reports no pass/fail code, so this hash

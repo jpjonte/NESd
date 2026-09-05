@@ -342,6 +342,10 @@ class CPU {
       return;
     }
 
+    if (_oamDma) {
+      _startCycle();
+    }
+
     while (runningDma) {
       _startCycle();
 

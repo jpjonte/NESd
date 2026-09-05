@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed APU frame counter timing
 - Fixed DMC samples playing one CPU cycle per bit too slowly
 - Fixed NMI timing
+- Fixed sprite DMA finishing one CPU cycle early
 
 ## [0.18.0] - 2026-08-30
 
