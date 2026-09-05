@@ -6,7 +6,7 @@ const nesPaletteLength = 512;
 
 const emphasisAttenuation = 0.746;
 
-enum NesPaletteId { defaultPalette, warm, cool, flat, generated }
+enum NesPaletteId { defaultPalette, warm, cool, flat, generated, user }
 
 extension NesPaletteIdName on NesPaletteId {
   String get displayName => switch (this) {
@@ -15,6 +15,7 @@ extension NesPaletteIdName on NesPaletteId {
     NesPaletteId.cool => 'Cool',
     NesPaletteId.flat => 'Flat',
     NesPaletteId.generated => 'Generated (NTSC)',
+    NesPaletteId.user => 'User',
   };
 }
 

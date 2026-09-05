@@ -12,6 +12,7 @@ import 'package:nesd/nes/debugger/breakpoint.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
+import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
@@ -193,10 +194,19 @@ sealed class Settings with _$Settings {
     @JsonKey(toJson: _ntscPaletteToJson, fromJson: _ntscPaletteFromJson)
     @Default(NtscPaletteSettings())
     NtscPaletteSettings ntscPalette,
+    @Default(null) String? userPalette,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
       _$SettingsFromJson(json);
+}
+
+extension SettingsPaletteSelection on Settings {
+  PaletteSelection get paletteSelection => switch ((paletteId, userPalette)) {
+    (NesPaletteId.user, final name?) => UserPaletteSelection(name),
+    (NesPaletteId.user, null) => PaletteSelection.defaultSelection,
+    (final id, _) => BuiltInPaletteSelection(id),
+  };
 }
 
 @riverpod
@@ -586,6 +596,21 @@ class SettingsController extends _$SettingsController {
 
   set paletteId(NesPaletteId paletteId) {
     _update(state.copyWith(paletteId: paletteId));
+  }
+
+  PaletteSelection get paletteSelection => state.paletteSelection;
+
+  set paletteSelection(PaletteSelection selection) {
+    _update(switch (selection) {
+      BuiltInPaletteSelection(:final id) => state.copyWith(
+        paletteId: id,
+        userPalette: null,
+      ),
+      UserPaletteSelection(:final name) => state.copyWith(
+        paletteId: NesPaletteId.user,
+        userPalette: name,
+      ),
+    });
   }
 
   NtscPaletteSettings get ntscPalette => state.ntscPalette;
