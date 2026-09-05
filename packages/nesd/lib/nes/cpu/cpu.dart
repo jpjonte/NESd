@@ -85,11 +85,15 @@ class CPU {
   int irq = 0;
 
   bool _doIrq = false;
+  bool _previousDoIrq = false;
 
   bool nmi = false;
   bool _previousNmi = false;
 
   bool doNmi = false;
+  bool _previousDoNmi = false;
+
+  bool _usePreviousSample = false;
 
   int openBus = 0;
 
@@ -117,7 +121,7 @@ class CPU {
     P: P,
     irq: irq,
     doIrq: _doIrq,
-    previousDoIrq: false,
+    previousDoIrq: _previousDoIrq,
     nmi: nmi,
     previousNmi: _previousNmi,
     doNmi: doNmi,
@@ -152,6 +156,7 @@ class CPU {
 
     irq = state.irq;
     _doIrq = state.doIrq;
+    _previousDoIrq = state.previousDoIrq;
 
     nmi = state.nmi;
     _previousNmi = state.previousNmi;
@@ -255,10 +260,14 @@ class CPU {
 
     irq = 0;
     _doIrq = false;
+    _previousDoIrq = false;
 
     nmi = false;
     doNmi = false;
     _previousNmi = false;
+    _previousDoNmi = false;
+
+    _usePreviousSample = false;
 
     _oamDma = false;
     _oamDmaStarted = false;
@@ -299,6 +308,9 @@ class CPU {
   }
 
   void _pollInterruptLines() {
+    _previousDoNmi = doNmi;
+    _previousDoIrq = _doIrq;
+
     if (!_previousNmi && nmi) {
       doNmi = true;
     }
@@ -309,11 +321,16 @@ class CPU {
   }
 
   void _handleInterrupts() {
-    if (doNmi) {
+    final nmiPending = _usePreviousSample ? _previousDoNmi : doNmi;
+    final irqPending = _usePreviousSample ? _previousDoIrq : _doIrq;
+
+    _usePreviousSample = false;
+
+    if (nmiPending) {
       doNmi = false;
 
       _interrupt(nmiVector);
-    } else if (_doIrq) {
+    } else if (irqPending) {
       _interrupt(irqVector);
     }
   }
@@ -457,6 +474,9 @@ class CPU {
 
       if (wasPageCrossed(PC, address)) {
         read(PC); // dummy read
+      } else {
+        // A taken branch without page cross doesn't poll on its last cycle
+        _usePreviousSample = true;
       }
 
       PC = address;

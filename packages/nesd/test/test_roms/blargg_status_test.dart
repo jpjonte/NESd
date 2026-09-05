@@ -14,6 +14,7 @@ const _passing = <String>[
   'cpu_interrupts_v2/rom_singles/1-cli_latency.nes',
   'cpu_interrupts_v2/rom_singles/2-nmi_and_brk.nes',
   'cpu_interrupts_v2/rom_singles/3-nmi_and_irq.nes',
+  'cpu_interrupts_v2/rom_singles/5-branch_delays_irq.nes',
   'cpu_exec_space/test_cpu_exec_space_apu.nes',
   'cpu_exec_space/test_cpu_exec_space_ppuio.nes',
   'ppu_open_bus/ppu_open_bus.nes',

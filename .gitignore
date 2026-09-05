@@ -47,6 +47,7 @@ roms/
 !roms/test/cpu_interrupts_v2/rom_singles/1-cli_latency.nes
 !roms/test/cpu_interrupts_v2/rom_singles/2-nmi_and_brk.nes
 !roms/test/cpu_interrupts_v2/rom_singles/3-nmi_and_irq.nes
+!roms/test/cpu_interrupts_v2/rom_singles/5-branch_delays_irq.nes
 !roms/test/mmc3_test/1-clocking.nes
 !roms/test/mmc3_test/2-details.nes
 !roms/test/mmc3_test/3-A12_clocking.nes
