@@ -27,9 +27,8 @@ class CPUState {
     required this.oamDmaOffset,
     required this.oamDmaValue,
     required this.dmcDma,
-    required this.dmcDmaRead,
-    required this.dmcDmaDummy,
-    required this.dmcDmaValue,
+    required this.dmcDmaPhase,
+    required this.dmcDmaHaltAt,
     required this.oamDmaPage,
     required this.cycles,
     required this.consoleCycles,
@@ -46,6 +45,7 @@ class CPUState {
       2 => CPUState._version2(reader),
       3 => CPUState._version3(reader),
       4 => CPUState._version4(reader),
+      5 => CPUState._version5(reader),
       _ => throw InvalidSerializationVersion('CPUState', version),
     };
   }
@@ -70,9 +70,8 @@ class CPUState {
       oamDmaOffset: reader.get(uint8),
       oamDmaValue: reader.get(uint8),
       dmcDma: reader.get(boolean),
-      dmcDmaRead: reader.get(boolean),
-      dmcDmaDummy: reader.get(boolean),
-      dmcDmaValue: reader.get(uint8),
+      dmcDmaPhase: _skipLegacyDmcFields(reader),
+      dmcDmaHaltAt: 0,
       oamDmaPage: reader.get(uint8),
       cycles: reader.get(nesdUint64),
       consoleCycles: 0,
@@ -100,9 +99,8 @@ class CPUState {
       oamDmaOffset: reader.get(uint8),
       oamDmaValue: reader.get(uint8),
       dmcDma: reader.get(boolean),
-      dmcDmaRead: reader.get(boolean),
-      dmcDmaDummy: reader.get(boolean),
-      dmcDmaValue: reader.get(uint8),
+      dmcDmaPhase: _skipLegacyDmcFields(reader),
+      dmcDmaHaltAt: 0,
       oamDmaPage: reader.get(uint8),
       cycles: reader.get(nesdUint64),
       consoleCycles: 0,
@@ -130,9 +128,8 @@ class CPUState {
       oamDmaOffset: reader.get(uint8),
       oamDmaValue: reader.get(uint8),
       dmcDma: reader.get(boolean),
-      dmcDmaRead: reader.get(boolean),
-      dmcDmaDummy: reader.get(boolean),
-      dmcDmaValue: reader.get(uint8),
+      dmcDmaPhase: _skipLegacyDmcFields(reader),
+      dmcDmaHaltAt: 0,
       oamDmaPage: reader.get(uint8),
       cycles: reader.get(nesdUint64),
       consoleCycles: reader.get(nesdUint64),
@@ -160,9 +157,8 @@ class CPUState {
       oamDmaOffset: reader.get(uint8),
       oamDmaValue: reader.get(uint8),
       dmcDma: reader.get(boolean),
-      dmcDmaRead: reader.get(boolean),
-      dmcDmaDummy: reader.get(boolean),
-      dmcDmaValue: reader.get(uint8),
+      dmcDmaPhase: _skipLegacyDmcFields(reader),
+      dmcDmaHaltAt: 0,
       oamDmaPage: reader.get(uint8),
       cycles: reader.get(nesdUint64),
       consoleCycles: reader.get(nesdUint64),
@@ -190,15 +186,53 @@ class CPUState {
       oamDmaOffset: reader.get(uint8),
       oamDmaValue: reader.get(uint8),
       dmcDma: reader.get(boolean),
-      dmcDmaRead: reader.get(boolean),
-      dmcDmaDummy: reader.get(boolean),
-      dmcDmaValue: reader.get(uint8),
+      dmcDmaPhase: _skipLegacyDmcFields(reader),
+      dmcDmaHaltAt: 0,
       oamDmaPage: reader.get(uint8),
       cycles: reader.get(nesdUint64),
       consoleCycles: reader.get(nesdUint64),
       callStack: reader.get(uint16List(lengthType: uint32)),
       openBus: reader.get(uint8),
     );
+  }
+
+  factory CPUState._version5(PayloadReader reader) {
+    return CPUState(
+      PC: reader.get(uint16),
+      SP: reader.get(uint8),
+      A: reader.get(uint8),
+      X: reader.get(uint8),
+      Y: reader.get(uint8),
+      P: reader.get(uint8),
+      irq: reader.get(uint8),
+      doIrq: reader.get(boolean),
+      previousDoIrq: reader.get(boolean),
+      nmi: reader.get(boolean),
+      previousNmi: reader.get(boolean),
+      doNmi: reader.get(boolean),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oamDma: reader.get(boolean),
+      oamDmaStarted: reader.get(boolean),
+      oamDmaOffset: reader.get(uint8),
+      oamDmaValue: reader.get(uint8),
+      dmcDma: reader.get(boolean),
+      dmcDmaPhase: reader.get(uint8),
+      dmcDmaHaltAt: reader.get(nesdUint64),
+      oamDmaPage: reader.get(uint8),
+      cycles: reader.get(nesdUint64),
+      consoleCycles: reader.get(nesdUint64),
+      callStack: reader.get(uint16List(lengthType: uint32)),
+      openBus: reader.get(uint8),
+    );
+  }
+
+  static int _skipLegacyDmcFields(PayloadReader reader) {
+    reader
+      ..get(boolean)
+      ..get(boolean)
+      ..get(uint8);
+
+    return 0;
   }
 
   final int PC;
@@ -224,9 +258,11 @@ class CPUState {
   final int oamDmaValue;
 
   final bool dmcDma;
-  final bool dmcDmaRead;
-  final bool dmcDmaDummy;
-  final int dmcDmaValue;
+
+  final int dmcDmaPhase;
+
+  final int dmcDmaHaltAt;
+
   final int oamDmaPage;
 
   final int cycles;
@@ -238,7 +274,7 @@ class CPUState {
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 4) // version
+      ..set(uint8, 5) // version
       ..set(uint16, PC)
       ..set(uint8, SP)
       ..set(uint8, A)
@@ -257,9 +293,8 @@ class CPUState {
       ..set(uint8, oamDmaOffset)
       ..set(uint8, oamDmaValue)
       ..set(boolean, dmcDma)
-      ..set(boolean, dmcDmaRead)
-      ..set(boolean, dmcDmaDummy)
-      ..set(uint8, dmcDmaValue)
+      ..set(uint8, dmcDmaPhase)
+      ..set(nesdUint64, dmcDmaHaltAt)
       ..set(uint8, oamDmaPage)
       ..set(nesdUint64, cycles)
       ..set(nesdUint64, consoleCycles)

@@ -259,24 +259,31 @@ class APU {
     dmc.reset();
   }
 
+  void softReset() {
+    _writeStatus(0);
+
+    _frameCounter.softReset();
+  }
+
   @pragma('vm:prefer-inline')
   void step() {
-    // triangle and DMC are stepped every CPU cycle
+    final loadDma = dmc.startDma;
+
+    // triangle, DMC and the frame counter are stepped every CPU cycle
     triangle.step();
     dmc.step();
+    _frameCounter.step();
 
     if (cycles.isEven) {
       // other channels are stepped every other CPU cycle
       pulse1.step();
       pulse2.step();
       noise.step();
-
-      _frameCounter.step();
     }
 
     if (dmc.startDma) {
       dmc.startDma = false;
-      bus.triggerDmcDma();
+      bus.triggerDmcDma(load: loadDma);
     }
 
     final dmcInterrupt = dmc.interrupt;

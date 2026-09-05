@@ -311,10 +311,4 @@ class DebugCPU extends CPU {
 
   @override
   void write(int address, int value) {}
-
-  @override
-  void handleOAMDMA() {}
-
-  @override
-  void handleDMCDMA() {}
 }

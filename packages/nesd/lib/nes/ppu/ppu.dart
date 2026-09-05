@@ -157,6 +157,8 @@ class PPU {
   bool _showLeftSprites = false;
   bool _nmiEnabled = false;
 
+  bool _suppressVblank = false;
+
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int consoleCycles = 0;
 
@@ -448,6 +450,7 @@ class PPU {
     _updateMaskFlags();
 
     _renderingAtSkipDecision = false;
+    _suppressVblank = false;
 
     decay = 0;
     decayRefreshedAt.fillRange(0, 8, 0);
@@ -468,6 +471,20 @@ class PPU {
     _rebuildPaletteLut();
   }
 
+  void softReset() {
+    _writePPUCTRL(0);
+    _writePPUMASK(0);
+
+    t = 0;
+    x = 0;
+    w = 0;
+
+    PPUSCROLL = 0;
+    PPUDATA = 0;
+
+    _suppressVblank = false;
+  }
+
   int getPixelBrightness(int x, int y, {bool previousFrame = false}) {
     if (!_showBackground && !_showSprites) {
       return 0;
@@ -477,12 +494,19 @@ class PPU {
   }
 
   @pragma('vm:prefer-inline')
+  int _foldNametableMirror(int address) {
+    final masked = address & 0x3fff;
+
+    return masked >= 0x3000 && masked < 0x3f00 ? masked & 0x2fff : masked;
+  }
+
+  @pragma('vm:prefer-inline')
   int readPpuMemory(int address, {bool updateBusAddress = true}) {
     if (updateBusAddress) {
       _updateBusAddress(address);
     }
 
-    final maskedAddress = address & 0x3fff;
+    final maskedAddress = _foldNametableMirror(address);
 
     if (maskedAddress < 0x3f00 && !mapperNeedsPpuReads) {
       final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
@@ -500,7 +524,7 @@ class PPU {
       _updateBusAddress(address);
     }
 
-    bus.ppuWrite(address, value);
+    bus.ppuWrite(_foldNametableMirror(address), value);
   }
 
   void _updateBusAddress(int address) {
@@ -626,17 +650,29 @@ class PPU {
   int get currentX => cycle - 1;
 
   void stepUntil(int targetCycles) {
-    // NTSC: the CPU advances consoleCycles in fixed 3-dot increments, so the
-    // common call needs exactly 3 steps. Inlining them removes per-dot
-    // loop-condition overhead (~89k calls/frame). PAL (3.2:1) keeps the generic
-    // loop below.
-    if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle &&
-        targetCycles - consoleCycles == 3 * ntscConsoleCyclesPerCycle) {
-      step();
-      step();
-      step();
+    if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle) {
+      final delta = targetCycles - consoleCycles;
 
-      return;
+      if (delta == ntscConsoleCyclesPerCycle) {
+        step();
+
+        return;
+      }
+
+      if (delta == 2 * ntscConsoleCyclesPerCycle) {
+        step();
+        step();
+
+        return;
+      }
+
+      if (delta == 3 * ntscConsoleCyclesPerCycle) {
+        step();
+        step();
+        step();
+
+        return;
+      }
     }
 
     while (consoleCycles < targetCycles) {
@@ -781,14 +817,18 @@ class PPU {
   void _stepVblankLine() {
     // Set vblank flag and trigger NMI at cycle 1
     if (cycle == 1) {
-      PPUSTATUS_V = 1;
+      if (_suppressVblank) {
+        _suppressVblank = false;
+      } else {
+        PPUSTATUS_V = 1;
+
+        _updateNmiLine();
+      }
 
       spriteCount = 0;
       secondarySpriteCount = 0;
 
       _spriteLine.fillRange(0, 256, 0);
-
-      _updateNmiLine();
     }
 
     // Cycle 0 bus address update
@@ -826,6 +866,10 @@ class PPU {
     PPUSTATUS_V = 0;
     w = 0;
 
+    if (scanline == vblankScanline && cycle == 1) {
+      _suppressVblank = true;
+    }
+
     _updateNmiLine();
 
     return _readWithDecay(value, 0xe0);
@@ -842,22 +886,26 @@ class PPU {
   }
 
   int _readPPUDATA({bool disableSideEffects = false}) {
+    final address = v & 0x3fff;
+    final isPalette = address >= 0x3f00;
+
     // return buffer from last read
     var value = PPUDATA;
 
-    if (!disableSideEffects) {
-      PPUDATA = _readPpuData(v);
+    if (isPalette) {
+      // Palette data comes back directly, while the buffer picks up the
+      // nametable byte that sits underneath the palette on the PPU bus.
+      value = readPpuMemory(address, updateBusAddress: !disableSideEffects);
+
+      if (!disableSideEffects) {
+        PPUDATA = _readPpuData(address & 0x2fff);
+      }
+    } else if (!disableSideEffects) {
+      PPUDATA = _readPpuData(address);
     }
 
-    // always return current palette data
-    if (v >= 0x3F00) {
-      value = PPUDATA;
-    }
-
-    final isPalette = v >= 0x3f00;
-
     if (!disableSideEffects) {
-      v += PPUCTRL_I == 0 ? 1 : 32;
+      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
 
       _updateBusAddress(v & 0x3fff);
     }
@@ -955,9 +1003,9 @@ class PPU {
   }
 
   void _writePPUDATA(int value) {
-    writePpuMemory(v, value);
+    writePpuMemory(v & 0x3fff, value);
 
-    v += PPUCTRL_I == 0 ? 1 : 32;
+    v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
 
     _updateBusAddress(v & 0x3fff);
   }

@@ -12,6 +12,9 @@ sealed class AddressMode {
 
 bool wasPageCrossed(int from, int to) => from & 0xff00 != to & 0xff00;
 
+int uncarriedAddress(int base, int indexed) =>
+    (base & 0xff00) | (indexed & 0xff);
+
 class Implicit extends AddressMode {
   @override
   void execute(CPU cpu, {required bool isWrite}) {
@@ -130,7 +133,7 @@ class AbsoluteX extends AddressMode {
       ..PC += 2;
 
     if (isWrite || wasPageCrossed(base, cpu.address)) {
-      cpu.read(cpu.address); // dummy read
+      cpu.read(uncarriedAddress(base, cpu.address)); // dummy read
     }
   }
 
@@ -148,7 +151,7 @@ class AbsoluteY extends AddressMode {
       ..address = base + cpu.Y;
 
     if (isWrite || wasPageCrossed(base, cpu.address)) {
-      cpu.read(cpu.address); // dummy read
+      cpu.read(uncarriedAddress(base, cpu.address)); // dummy read
     }
   }
 
@@ -195,7 +198,7 @@ class IndirectIndexed extends AddressMode {
     cpu.address = (base + cpu.Y) & 0xffff;
 
     if (isWrite || wasPageCrossed(base, cpu.address)) {
-      cpu.read(cpu.address); // dummy read
+      cpu.read(uncarriedAddress(base, cpu.address)); // dummy read
     }
   }
 

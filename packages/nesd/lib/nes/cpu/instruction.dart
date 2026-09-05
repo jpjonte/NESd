@@ -226,7 +226,7 @@ class RTI extends Instruction {
   void execute(CPU cpu, AddressMode _) {
     cpu
       ..read(cpu.PC) // dummy read
-      ..P = cpu.popStack().setBit(5, 1)
+      ..P = cpu.popStack().setBit(5, 1).setBit(4, 0)
       ..PC = cpu.popStack16();
   }
 }

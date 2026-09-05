@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The emulator now runs on the fastest CPU cores on Android
 - Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
+- Reset now behaves like the console's reset button
 
 ### Fixed
 - A save state that cannot be loaded no longer stops the game from starting: the game boots from power-on, the failure is reported, and a copy of the unreadable file is kept next to it
@@ -41,6 +42,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed audio underruns on devices that read audio in large bursts
 - Fixed audio underruns and slowdown with rewind enabled on lower-end devices
 - Fixed the logo being cut off on the Android splash screen
+- Fixed indexed instructions doing their page-crossing dummy read at the wrong address
+- Fixed APU frame counter timing
+- Fixed DMC samples playing one CPU cycle per bit too slowly
+- Fixed NMI timing
+- Fixed sprite DMA finishing one CPU cycle early
+- Fixed DMC sample fetches stalling the CPU for the wrong number of cycles
+- Fixed palette reads through PPUDATA
+- PPU addresses 0x3000-0x3eff now mirror the nametables like real hardware
 
 ## [0.18.0] - 2026-08-30
 

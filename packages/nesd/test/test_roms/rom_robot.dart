@@ -25,7 +25,8 @@ class RomResult {
 class RomRobot {
   static const _statusAddress = 0x6000;
   static const _statusRunning = 0x80;
-  static const _maxResultText = 512;
+  static const _statusNeedsReset = 0x81;
+  static const _maxResultText = 4096;
 
   RomRobot(this.path) {
     final file = File(path);
@@ -100,6 +101,16 @@ class RomRobot {
 
       final status = _peek(_statusAddress);
 
+      if (status == _statusNeedsReset) {
+        if (sawRunning) {
+          _pressReset();
+
+          sawRunning = false;
+        }
+
+        continue;
+      }
+
       if (status >= _statusRunning) {
         sawRunning = true;
 
@@ -115,6 +126,12 @@ class RomRobot {
       'ROM reported no result within $maxFrames frames '
       '(status ${_peek(_statusAddress)}): ${_resultText()}',
     );
+  }
+
+  void _pressReset() {
+    runFrames(8);
+
+    nes.softReset();
   }
 
   bool _hasResultSignature() =>
