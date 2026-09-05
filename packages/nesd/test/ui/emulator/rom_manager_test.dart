@@ -134,6 +134,14 @@ void main() {
     );
   });
 
+  test('a truncated state is skipped by the slot picker', () async {
+    // A valid "NESd" header with nothing behind it: the reader runs off the
+    // end of the buffer instead of raising a NesdException.
+    await manager.saveState(romInfo, 4, [0x4e, 0x45, 0x53, 0x64, 0, 0, 0]);
+
+    expect(await manager.getRomTileDataForSlot(romInfo, 4), isNull);
+  });
+
   test('backup copies are invisible to the slot lookups', () async {
     await manager.backupUnreadableState(
       romInfo,

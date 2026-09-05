@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - A save state that cannot be loaded no longer stops the game from starting: the game boots from power-on, the failure is reported, and a copy of the unreadable file is kept next to it
+- The save state picker now skips a truncated state file instead of failing
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away
