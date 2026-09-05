@@ -302,13 +302,15 @@ class NesWorker {
         ),
       )..reset();
 
-      if (command.sram case final sram?) {
-        nes.load(sram.materialize().asUint8List());
+      // Materialized once: NesBytes can only be transferred out a single time
+      // and the recovery path below needs the same bytes again.
+      final sram = command.sram?.materialize().asUint8List();
+
+      if (sram != null) {
+        nes.load(sram);
       }
 
-      if (command.initialState case final state?) {
-        nes.state = NESState.fromBytes(state.materialize().asUint8List());
-      }
+      final initialStateError = _restoreInitialState(nes, command, sram);
 
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
@@ -355,7 +357,10 @@ class NesWorker {
       );
 
       send(
-        RomLoadedEvent(hasZapper: command.databaseEntry?.hasZapper ?? false),
+        RomLoadedEvent(
+          hasZapper: command.databaseEntry?.hasZapper ?? false,
+          initialStateError: initialStateError,
+        ),
       );
 
       _sendStatus();
@@ -368,6 +373,46 @@ class NesWorker {
       );
 
       send(RomLoadFailedEvent(message: e.toString()));
+    }
+  }
+
+  /// A state that cannot be loaded must not cost the user the game: the ROM
+  /// falls back to power-on with its SRAM file and the failure is only
+  /// reported. Returns the failure message, or null when the state was
+  /// applied or there was none.
+  String? _restoreInitialState(
+    NES nes,
+    LoadRomCommand command,
+    Uint8List? sram,
+  ) {
+    final state = command.initialState;
+
+    if (state == null) {
+      return null;
+    }
+
+    try {
+      nes.state = NESState.fromBytes(state.materialize().asUint8List());
+
+      return null;
+    } on Object catch (e, s) {
+      log.rom.warning(
+        'Initial save state could not be loaded',
+        context: {'name': command.file.name},
+        error: e,
+        stackTrace: s,
+      );
+
+      // Applying can fail half-way (a state for another mapper throws only
+      // after CPU, PPU, APU and cartridge RAM were overwritten), so go back
+      // to power-on and re-apply the SRAM file the state was meant to replace.
+      nes.reset();
+
+      if (sram != null) {
+        nes.load(sram);
+      }
+
+      return e.toString();
     }
   }
 

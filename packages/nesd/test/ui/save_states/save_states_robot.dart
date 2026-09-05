@@ -22,4 +22,17 @@ class SaveStatesRobot extends BaseRobot {
   Future<void> tapExistingSaveState() async {
     await goAsync(find.byType(RomTile).last);
   }
+
+  void expectUnreadableSaveStatesFound(int count) {
+    expect(find.text('Unreadable'), findsNWidgets(count));
+  }
+
+  void expectUnreadableDialogFound(String reason) {
+    expectOne(find.text('Save state cannot be loaded'));
+    expectOne(find.textContaining(reason));
+  }
+
+  Future<void> confirmDelete() async {
+    await go(find.text('Delete'));
+  }
 }

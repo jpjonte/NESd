@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
 
 ### Fixed
+- A save state that cannot be loaded no longer stops the game from starting: the game boots from power-on, the failure is reported, and a copy of the unreadable file is kept next to it
+- The save state picker shows a save state it cannot load as unreadable and lets you delete it, instead of failing
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away

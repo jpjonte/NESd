@@ -20,9 +20,13 @@ class IsolateReadyEvent extends NesIsolateEvent {
 }
 
 class RomLoadedEvent extends NesIsolateEvent {
-  const RomLoadedEvent({required this.hasZapper});
+  const RomLoadedEvent({required this.hasZapper, this.initialStateError});
 
   final bool hasZapper;
+
+  /// Why `LoadRomCommand.initialState` was not applied; null when it was
+  /// applied or there was none.
+  final String? initialStateError;
 }
 
 class RomLoadFailedEvent extends NesIsolateEvent {

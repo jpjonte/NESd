@@ -501,7 +501,10 @@ class NesController {
       final isolate = await _ensureIsolate();
 
       final sram = await romManager.load(romInfo);
-      final initialState = stateBytes ?? await _autoLoadBytes(romInfo);
+      final latestState = stateBytes == null
+          ? await _autoLoadState(romInfo)
+          : null;
+      final initialState = stateBytes ?? latestState?.data;
       final cheats = settingsController.cheats[_cheatsKey(romInfo)] ?? const [];
       final breakpoints =
           settingsController.breakpoints[cartridge.fileHash] ?? const [];
@@ -560,11 +563,28 @@ class NesController {
 
       nesState.set(remote);
 
-      if (sram != null && initialState == null) {
+      final initialStateError = loaded is RomLoadedEvent
+          ? loaded.initialStateError
+          : null;
+
+      if (initialStateError != null) {
+        final message = switch (latestState) {
+          final latest? =>
+            'Failed to load latest save state: $initialStateError. '
+                '${await _backupUnreadableState(romInfo, latest)}',
+          null => 'Failed to load save state: $initialStateError',
+        };
+
+        toaster.send(Toast.error(message));
+      }
+
+      final stateApplied = initialState != null && initialStateError == null;
+
+      if (sram != null && !stateApplied) {
         toaster.send(Toast.info('SRAM save loaded'));
       }
 
-      if (initialState != null && stateBytes == null) {
+      if (stateApplied && stateBytes == null) {
         toaster.send(Toast.info('Loaded latest save state'));
       }
 
@@ -798,12 +818,38 @@ class NesController {
     suspend();
   }
 
-  Future<Uint8List?> _autoLoadBytes(RomInfo romInfo) async {
+  Future<LatestSaveState?> _autoLoadState(RomInfo romInfo) async {
     if (!settingsController.autoLoad) {
       return null;
     }
 
     return romManager.loadLatestState(romInfo);
+  }
+
+  /// Copies the state the worker could not load aside, so auto-save cannot
+  /// overwrite the only copy a newer build could still read. Returns the
+  /// sentence to append to the failure toast.
+  Future<String> _backupUnreadableState(
+    RomInfo romInfo,
+    LatestSaveState state,
+  ) async {
+    try {
+      final name = await romManager.backupUnreadableState(romInfo, state);
+
+      log.rom.info(
+        'Kept a copy of the unreadable save state',
+        context: {'file': name},
+      );
+
+      return 'Kept a copy as $name';
+    } on Exception catch (e) {
+      log.rom.error(
+        'Failed to keep a copy of the unreadable save state',
+        error: e,
+      );
+
+      return 'Could not keep a copy: $e';
+    }
   }
 
   String _cheatsKey(RomInfo romInfo) =>

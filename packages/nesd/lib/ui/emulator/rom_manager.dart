@@ -72,6 +72,20 @@ class RomInfo {
   int get hashCode => Object.hash(file.name, romHash);
 }
 
+/// The newest save state on disk for a ROM and where it came from.
+@immutable
+class LatestSaveState {
+  const LatestSaveState({
+    required this.slot,
+    required this.data,
+    required this.modified,
+  });
+
+  final int slot;
+  final Uint8List data;
+  final DateTime modified;
+}
+
 class RomManager {
   static const directoryName = 'NESd';
 
@@ -126,7 +140,7 @@ class RomManager {
     await _ensureInitialized();
 
     await storage.write(
-      _getFilename('states', romInfo, '.$slot.state'),
+      _stateFilename(romInfo, slot),
       Uint8List.fromList(data),
     );
   }
@@ -134,18 +148,19 @@ class RomManager {
   Future<Uint8List?> loadState(RomInfo romInfo, int slot) async {
     await _ensureInitialized();
 
-    return storage.read(_getFilename('states', romInfo, '.$slot.state'));
+    return storage.read(_stateFilename(romInfo, slot));
   }
 
-  Future<Uint8List?> loadLatestState(RomInfo romInfo) async {
+  Future<LatestSaveState?> loadLatestState(RomInfo romInfo) async {
     await _ensureInitialized();
 
-    String? newestPath;
+    int? newestSlot;
     DateTime? newestTime;
 
     for (var slot = 0; slot < 10; slot++) {
-      final path = _getFilename('states', romInfo, '.$slot.state');
-      final modified = await storage.lastModified(path);
+      final modified = await storage.lastModified(
+        _stateFilename(romInfo, slot),
+      );
 
       if (modified == null) {
         continue;
@@ -153,15 +168,45 @@ class RomManager {
 
       if (newestTime == null || modified.isAfter(newestTime)) {
         newestTime = modified;
-        newestPath = path;
+        newestSlot = slot;
       }
     }
 
-    if (newestPath == null) {
+    if (newestSlot == null || newestTime == null) {
       return null;
     }
 
-    return storage.read(newestPath);
+    final data = await storage.read(_stateFilename(romInfo, newestSlot));
+
+    if (data == null) {
+      return null;
+    }
+
+    return LatestSaveState(slot: newestSlot, data: data, modified: newestTime);
+  }
+
+  /// Keeps a copy of a state this build cannot load next to the original, so
+  /// a build that can read it still finds it after auto-save has overwritten
+  /// the slot. The copy is named after the original's modification time, so
+  /// repeating the backup of the same file rewrites the same copy while a
+  /// later unreadable file in that slot gets its own. Returns the copy's
+  /// file name.
+  Future<String> backupUnreadableState(
+    RomInfo romInfo,
+    LatestSaveState state,
+  ) async {
+    await _ensureInitialized();
+
+    final stamp = DateFormat('yyyyMMdd-HHmmss').format(state.modified);
+    final path = _getFilename(
+      'states',
+      romInfo,
+      '.${state.slot}.$stamp.state.unreadable',
+    );
+
+    await storage.write(path, state.data);
+
+    return p.basename(path);
   }
 
   Future<void> saveThumbnail(
@@ -209,7 +254,7 @@ class RomManager {
   Future<RomTileData?> getRomTileDataForSlot(RomInfo romInfo, int slot) async {
     await _ensureInitialized();
 
-    final path = _getFilename('states', romInfo, '.$slot.state');
+    final path = _stateFilename(romInfo, slot);
 
     final data = await storage.read(path);
 
@@ -217,28 +262,39 @@ class RomManager {
       return null;
     }
 
-    try {
-      final state = NESState.fromBytes(data);
+    final lastModified = await storage.lastModified(path) ?? DateTime.now();
+    final title =
+        'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}';
 
-      final lastModified = await storage.lastModified(path) ?? DateTime.now();
+    final NESState state;
+
+    try {
+      state = NESState.fromBytes(data);
+    } on Object catch (e, s) {
+      log.rom.warning(
+        'Unreadable save state slot',
+        context: {'slot': slot},
+        error: e,
+        stackTrace: s,
+      );
 
       return RomTileData(
         romInfo: romInfo,
-        title:
-            'Slot $slot - ${DateFormat.yMd().add_jms().format(lastModified)}',
-        thumbnail: DecodedThumbnail(await _getStateThumbnail(state)),
-        state: state,
+        title: title,
         slot: slot,
+        error: e is NesdException
+            ? e.message
+            : 'The file is corrupt or truncated',
       );
-    } on NesdException catch (e) {
-      log.rom.warning(
-        'Skipping save state slot',
-        context: {'slot': slot},
-        error: e,
-      );
-
-      return null;
     }
+
+    return RomTileData(
+      romInfo: romInfo,
+      title: title,
+      thumbnail: DecodedThumbnail(await _getStateThumbnail(state)),
+      state: state,
+      slot: slot,
+    );
   }
 
   Future<void> deleteSaveState(RomTileData romTileData) async {
@@ -250,9 +306,7 @@ class RomManager {
       return;
     }
 
-    await storage.delete(
-      _getFilename('states', romTileData.romInfo, '.$slot.state'),
-    );
+    await storage.delete(_stateFilename(romTileData.romInfo, slot));
   }
 
   Future<void> _initialize() async {
@@ -309,6 +363,9 @@ class RomManager {
   }
 
   String _getDirectory(String component) => p.join(baseDirectory, component);
+
+  String _stateFilename(RomInfo romInfo, int slot) =>
+      _getFilename('states', romInfo, '.$slot.state');
 
   String _getFilename(String component, RomInfo romInfo, String extension) {
     final romName = p.basename(romInfo.file.path);
