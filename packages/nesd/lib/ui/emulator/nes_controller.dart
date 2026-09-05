@@ -560,10 +560,9 @@ class NesController {
 
       nesState.set(remote);
 
-      final initialStateError = switch (loaded) {
-        RomLoadedEvent(:final initialStateError) => initialStateError,
-        _ => null,
-      };
+      final initialStateError = loaded is RomLoadedEvent
+          ? loaded.initialStateError
+          : null;
 
       if (initialStateError != null) {
         toaster.send(

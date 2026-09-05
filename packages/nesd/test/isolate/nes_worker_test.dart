@@ -53,19 +53,23 @@ LoadRomCommand _loadRomCommand({
   );
 }
 
-Uint8List _batteryRom() {
+Uint8List _batteryRom({int mapper = 0}) {
   return Uint8List(16 + 0x4000 + 0x2000)
     // iNES header: one 16KB PRG bank, one 8KB CHR bank, battery flag set.
-    ..setAll(0, [0x4e, 0x45, 0x53, 0x1a, 1, 1, 0x02, 0])
+    ..setAll(0, [0x4e, 0x45, 0x53, 0x1a, 1, 1, (mapper << 4) | 0x02, 0])
     // The idle loop at $c000: jmp $c000.
     ..setAll(16, [0x4c, 0x00, 0xc0])
     // NMI, reset and IRQ vectors, all pointing at the idle loop.
     ..setAll(16 + 0x3ffa, [0x00, 0xc0, 0x00, 0xc0, 0x00, 0xc0]);
 }
 
-LoadRomCommand _batteryRomCommand({Uint8List? initialState, Uint8List? sram}) {
+LoadRomCommand _batteryRomCommand({
+  int mapper = 0,
+  Uint8List? initialState,
+  Uint8List? sram,
+}) {
   return LoadRomCommand(
-    rom: NesBytes.fromList([_batteryRom()]),
+    rom: NesBytes.fromList([_batteryRom(mapper: mapper)]),
     file: const FilesystemFile(
       path: '/tmp/battery.nes',
       name: 'battery.nes',
@@ -471,14 +475,46 @@ void main() {
       await waitFor<RomLoadedEvent>();
 
       final warning = logged.singleWhere(
-        (record) =>
-            record.level == LogLevel.warning &&
-            record.channel == LogChannel.rom,
+        (record) => record.message == 'Initial save state could not be loaded',
       );
 
+      expect(warning.level, LogLevel.warning);
+      expect(warning.channel, LogChannel.rom);
       expect(warning.error, isNotNull);
+      expect(warning.stackTrace, isNotNull);
     },
   );
+
+  test('a state for another mapper does not fail the ROM load', () async {
+    await worker.handleCommand(_batteryRomCommand());
+    await waitFor<RomLoadedEvent>();
+    await worker.handleCommand(const SaveStateRequest(requestId: 1));
+
+    final response = await waitFor<SaveStateResponse>();
+    final nromState = response.state!.materialize().asUint8List();
+
+    // The state parses fine; it is the apply to the MMC1 mapper that throws.
+    await worker.handleCommand(
+      _batteryRomCommand(
+        mapper: 1,
+        initialState: nromState,
+        sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+      ),
+    );
+
+    final loaded = (await waitForCount<RomLoadedEvent>(2)).last;
+
+    expect(loaded.initialStateError, isNotEmpty);
+    expect(events.whereType<RomLoadFailedEvent>(), isEmpty);
+
+    await worker.handleCommand(const SaveSramRequest(requestId: 2));
+
+    final sram = (await waitFor<SramResponse>()).sram!
+        .materialize()
+        .asUint8List();
+
+    expect(sram, everyElement(0x55));
+  });
 
   test('StopCommand stops the loop and emits StoppedEvent + status', () async {
     await worker.handleCommand(_loadRomCommand());

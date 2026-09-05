@@ -302,14 +302,15 @@ class NesWorker {
         ),
       )..reset();
 
-      if (command.sram case final sram?) {
-        nes.load(sram.materialize().asUint8List());
+      // Materialized once: NesBytes can only be transferred out a single time
+      // and the recovery path below needs the same bytes again.
+      final sram = command.sram?.materialize().asUint8List();
+
+      if (sram != null) {
+        nes.load(sram);
       }
 
-      final initialStateError = switch (command.initialState) {
-        final state? => _restoreInitialState(nes, state, command.file.name),
-        null => null,
-      };
+      final initialStateError = _restoreInitialState(nes, command, sram);
 
       nes
         ..region = command.region ?? _autoDetectRegion(cartridge) ?? Region.ntsc
@@ -375,28 +376,44 @@ class NesWorker {
     }
   }
 
-  /// A state that cannot be read must not cost the user the game: the ROM
-  /// keeps booting from power-on and the failure is only reported. Returns
-  /// the failure message, or null once the state is applied.
-  String? _restoreInitialState(NES nes, NesBytes state, String romName) {
-    final NESState parsed;
+  /// A state that cannot be loaded must not cost the user the game: the ROM
+  /// falls back to power-on with its SRAM file and the failure is only
+  /// reported. Returns the failure message, or null when the state was
+  /// applied or there was none.
+  String? _restoreInitialState(
+    NES nes,
+    LoadRomCommand command,
+    Uint8List? sram,
+  ) {
+    final state = command.initialState;
+
+    if (state == null) {
+      return null;
+    }
 
     try {
-      parsed = NESState.fromBytes(state.materialize().asUint8List());
+      nes.state = NESState.fromBytes(state.materialize().asUint8List());
+
+      return null;
     } on Object catch (e, s) {
       log.rom.warning(
         'Initial save state could not be loaded',
-        context: {'name': romName},
+        context: {'name': command.file.name},
         error: e,
         stackTrace: s,
       );
 
+      // Applying can fail half-way (a state for another mapper throws only
+      // after CPU, PPU, APU and cartridge RAM were overwritten), so go back
+      // to power-on and re-apply the SRAM file the state was meant to replace.
+      nes.reset();
+
+      if (sram != null) {
+        nes.load(sram);
+      }
+
       return e.toString();
     }
-
-    nes.state = parsed;
-
-    return null;
   }
 
   Future<void> _stopNesLoop() async {
