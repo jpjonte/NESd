@@ -57,6 +57,13 @@ roms/
 !roms/test/ppu_vbl_nmi/rom_singles/09-even_odd_frames.nes
 !roms/test/ppu_vbl_nmi/rom_singles/10-even_odd_timing.nes
 !roms/test/unrom512_flash/unrom512_flash.nes
+!roms/test/apu_test/rom_singles/1-len_ctr.nes
+!roms/test/apu_test/rom_singles/2-len_table.nes
+!roms/test/apu_test/rom_singles/3-irq_flag.nes
+!roms/test/apu_test/rom_singles/7-dmc_basics.nes
+!roms/test/oam_read/oam_read.nes
+!roms/test/oam_stress/oam_stress.nes
+!roms/test/ppu_vbl_nmi/rom_singles/03-vbl_clear_time.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/
