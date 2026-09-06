@@ -568,23 +568,4 @@ void main() {
     await _capture(r, 'android_wide', _phoneRatio);
     await _shutDown(r);
   });
-
-  testWidgets('android_menu', (tester) async {
-    final files = _fixtures([_fixKirby, _fixSmb]);
-
-    if (files == null) {
-      return;
-    }
-
-    final r = Robot(tester);
-
-    await r.pumpApp(
-      extraFiles: files,
-      logicalSize: _phonePortraitSize,
-      devicePixelRatio: _phoneRatio,
-    );
-
-    await _populateGrid(r, [_fixKirby, _fixSmb]);
-    await _capture(r, 'android_menu', _phoneRatio);
-  });
 }

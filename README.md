@@ -16,7 +16,7 @@ Runs on macOS, Windows, Linux, Android, and on the web.
 
 <p align="center">
   <img src="docs/Battletoads.png" width="49%" />
-  <img src="docs/The%20Legend%20Of%20Zelda.png" width="49%" />
+  <img src="docs/Castlevania%20III.png" width="49%" />
 </p>
 
 ## Installation
@@ -112,15 +112,17 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 ### Desktop
 
 <img src="docs/list.png" style="width: 100%;" />
-<img src="docs/Kirby's%20Adventure.png" style="width: 49%" /> <img src="docs/Mike%20Tyson's%20Punch-Out!!.png" style="width: 49%" />
+<img src="docs/Micro%20Machines.png" style="width: 49%" /> <img src="docs/Marble%20Madness.png" style="width: 49%" />
+<img src="docs/Recca.png" style="width: 49%" /> <img src="docs/filters.png" style="width: 49%" />
+<img src="docs/rewind.png" style="width: 100%;" />
+<img src="docs/controls.png" style="width: 100%;" />
 <img src="docs/save_states.png" style="width: 100%;" />
 <img src="docs/debugging.png" style="width: 100%;" />
 
 ### Android
 <img src="docs/android_wide.png" style="width: 100%;" />
-<p>
+<p align="center">
   <img src="docs/android_tall.png" style="width: 49%" />
-  <img src="docs/android_menu.png" style="width: 49%" />
 </p>
 
 ## Supported games and mappers
