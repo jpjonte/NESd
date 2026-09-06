@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'package:nesd_audio/src/audio_context_resumer.dart';
 import 'package:nesd_audio/src/nesd_audio_backend.dart';
 import 'package:nesd_audio/src/nesd_audio_state.dart';
-import 'package:nesd_audio/src/silent_audio_sink.dart';
+import 'package:nesd_audio/src/scheduled_audio_sink.dart';
 import 'package:nesd_audio/src/web_audio_queue.dart';
 import 'package:web/web.dart' as web;
 
@@ -112,20 +112,24 @@ class NesdAudio implements NesdAudioBackend {
   NesdAudio._({required int capacity, required this._nullDevice})
     : _queue = WebAudioQueue(capacity: capacity);
 
-  /// Opens an AudioWorklet-backed playback stream of f32 samples.
+  /// Opens a playback stream of f32 samples: an AudioWorklet where the
+  /// browser provides one (secure contexts only), scheduled buffers
+  /// everywhere else.
   ///
-  /// [channels] is ignored, the worklet renders mono.
+  /// [channels] is ignored, both paths render mono. [worklet] false skips
+  /// the worklet even where it is available.
   factory NesdAudio.open({
     required int sampleRate,
     required int channels,
     required int bufferSamples,
     required int recoverSamples,
     bool nullDevice = false,
+    bool worklet = true,
   }) {
     final audio = NesdAudio._(capacity: bufferSamples, nullDevice: nullDevice);
 
     if (!nullDevice) {
-      audio._initialize(sampleRate, recoverSamples);
+      audio._initialize(sampleRate, recoverSamples, worklet: worklet);
     }
 
     return audio;
@@ -138,7 +142,8 @@ class NesdAudio implements NesdAudioBackend {
   final bool _nullDevice;
   final List<Float32List> _preInit = [];
 
-  SilentAudioSink? _silentSink;
+  /// Replaces the worklet path entirely once set.
+  ScheduledAudioSink? _fallback;
 
   web.AudioContext? _context;
   AudioContextResumer? _resumer;
@@ -150,13 +155,13 @@ class NesdAudio implements NesdAudioBackend {
   int get capacity => _queue.capacity;
 
   @override
-  int get filled => _silentSink?.filled ?? _queue.estimatedFill;
+  int get filled => _fallback?.filled ?? _queue.estimatedFill;
 
   @override
-  int get underruns => _queue.underruns;
+  int get underruns => _fallback?.underruns ?? _queue.underruns;
 
   @override
-  int get overruns => _queue.overruns;
+  int get overruns => _fallback?.overruns ?? _queue.overruns;
 
   // the worklet consumes fixed 128-frame chunks, ignore
   @override
@@ -169,6 +174,10 @@ class NesdAudio implements NesdAudioBackend {
   NesdAudioState get state {
     if (_nullDevice) {
       return NesdAudioState.nullDevice;
+    }
+
+    if (_fallback case final fallback?) {
+      return fallback.state;
     }
 
     return _context?.state == 'running'
@@ -186,8 +195,8 @@ class NesdAudio implements NesdAudioBackend {
       return samples.length;
     }
 
-    if (_silentSink case final sink?) {
-      return sink.push(samples.length);
+    if (_fallback case final fallback?) {
+      return fallback.push(samples);
     }
 
     // A suspended context (autoplay policy) consumes nothing, so the
@@ -216,18 +225,24 @@ class NesdAudio implements NesdAudioBackend {
   @override
   void reset() {
     _preInit.clear();
+    _fallback?.reset();
     _node?.port.postMessage('reset'.toJS);
     _queue.reset();
   }
 
   @override
-  void resetStats() => _queue.resetStats();
+  void resetStats() {
+    _fallback?.resetStats();
+    _queue.resetStats();
+  }
 
   @override
   void close() {
     _closed = true;
 
     reset();
+
+    _fallback?.close();
 
     _node?.disconnect();
     _node = null;
@@ -240,26 +255,38 @@ class NesdAudio implements NesdAudioBackend {
     }
   }
 
-  void _initialize(int sampleRate, int recoverSamples) {
+  void _initialize(
+    int sampleRate,
+    int recoverSamples, {
+    required bool worklet,
+  }) {
     final context = web.AudioContext(
       web.AudioContextOptions(sampleRate: sampleRate),
     );
 
-    _context = context;
-    _resumer = AudioContextResumer(context);
+    if (!worklet) {
+      _useScheduledBuffers(context, recoverSamples);
+
+      return;
+    }
 
     // AudioWorklet only exists in secure contexts (https or localhost).
     // On plain HTTP the non-nullable `audioWorklet` getter would throw a
     // null check under wasm.
     if (context.getProperty('audioWorklet'.toJS).isUndefinedOrNull) {
-      _fallBackToSilentSink(
-        context,
-        sampleRate,
-        'AudioWorklet is unavailable (insecure context?)',
+      web.console.info(
+        'nesd_audio: AudioWorklet is unavailable (insecure context?); '
+                'using scheduled buffers'
+            .toJS,
       );
+
+      _useScheduledBuffers(context, recoverSamples);
 
       return;
     }
+
+    _context = context;
+    _resumer = AudioContextResumer(context);
 
     final blob = web.Blob(
       [_workletSource.toJS].toJS,
@@ -310,38 +337,38 @@ class NesdAudio implements NesdAudioBackend {
               return;
             }
 
-            // Without the fallback the queue would sit at capacity
-            // forever and stall the pacing governor.
-            _fallBackToSilentSink(
-              context,
-              sampleRate,
-              'AudioWorklet module load failed: $error',
+            web.console.warn(
+              'nesd_audio: AudioWorklet module load failed: $error; '
+                      'using scheduled buffers'
+                  .toJS,
             );
+
+            // Without a consumer the queue would sit at capacity forever
+            // and stall the pacing governor.
+            _useScheduledBuffers(context, recoverSamples);
           }),
     );
   }
 
-  /// Keeps the emulator running at full speed, just without sound.
-  void _fallBackToSilentSink(
-    web.AudioContext context,
-    int sampleRate,
-    String reason,
-  ) {
-    web.console.warn('nesd_audio: $reason; continuing without sound'.toJS);
-
-    _silentSink = SilentAudioSink(
+  void _useScheduledBuffers(web.AudioContext context, int recoverSamples) {
+    final fallback = ScheduledAudioSink(
+      context: context,
       capacity: _queue.capacity,
-      sampleRate: sampleRate,
+      recoverSamples: recoverSamples,
     );
+
+    _fallback = fallback;
 
     _context = null;
     _resumer = null;
     _node = null;
     _ready = false;
 
-    _preInit.clear();
+    for (final chunk in _preInit) {
+      fallback.push(chunk);
+    }
 
-    unawaited(context.close().toDart.catchError((_) => null));
+    _preInit.clear();
   }
 
   void _handleWorkletMessage(web.MessageEvent event) {

@@ -193,7 +193,6 @@ Any static file server works.
 Serve the directory as-is.  
 `.mjs` files must be served as JavaScript (`Content-Type: application/javascript`), otherwise browsers reject the WebAssembly runtime's module, and you get a blank page.  
 Serve `index.html` and `flutter_bootstrap.js` uncached.  
-Serve over HTTPS (or localhost): browsers only provide audio worklets in secure contexts, **so on plain HTTP NESd runs without sound.**
 
 ## Contributing
 

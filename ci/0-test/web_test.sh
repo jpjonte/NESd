@@ -22,4 +22,5 @@ $flutter test --platform chrome \
   test/audio/silent_audio_sink_test.dart \
   test/audio/audio_schedule_test.dart \
   test/audio/web_audio_queue_test.dart \
-  test/audio/web_audio_device_smoke_test.dart
+  test/audio/web_audio_device_smoke_test.dart \
+  test/audio/web_audio_fallback_smoke_test.dart
