@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/common/focus_first_descendant.dart';
 
 abstract class BaseRobot {
   BaseRobot(this.tester);
@@ -23,6 +24,28 @@ abstract class BaseRobot {
 
   Future<void> goBack() async {
     await go(find.byType(BackButton).last);
+  }
+
+  Future<void> expectAndFocus(Finder finder) async {
+    expectOne(finder);
+
+    final focus = find.descendant(of: finder, matching: find.byType(Focus));
+    final node =
+        tester.widget<Focus>(focus.first).focusNode ??
+        Focus.of(tester.element(focus.first));
+
+    focusFirstDescendant(node);
+
+    await tester.pumpAndSettle();
+  }
+
+  void showFocusHighlights() {
+    final focusManager = tester.binding.focusManager;
+    final previous = focusManager.highlightStrategy;
+
+    focusManager.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+
+    addTearDown(() => focusManager.highlightStrategy = previous);
   }
 
   Future<void> expectAndTap(Finder finder) async {

@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:nesd/ui/common/focus_first_descendant.dart';
 
 class FocusChild extends HookWidget {
   const FocusChild({required this.child, required this.autofocus, super.key});
@@ -17,11 +17,7 @@ class FocusChild extends HookWidget {
 
     useEffect(() {
       if (autofocus) {
-        scheduleMicrotask(() {
-          focusScopeNode.descendants
-              .firstWhereOrNull((d) => d.canRequestFocus)
-              ?.requestFocus();
-        });
+        scheduleMicrotask(() => focusFirstDescendant(focusScopeNode));
       }
 
       return null;

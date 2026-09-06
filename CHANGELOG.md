@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Implemented open bus for the CPU and PPU
-- Added multiple color palettes, selectable in Graphics settings
-- Palettes can now be imported from `.pal` files in Graphics settings
+- Added multiple color palettes, selectable in Video settings
+- Palettes can now be imported from `.pal` files in Video settings
 - Implemented UNROM 512 (mapper 30)
 - Implemented VT03 OneBus (mapper 256), used by plug-and-play famiclones
 - Rewind now has a timeline scrubber: drag through a filmstrip of the last minute of play and jump straight to any moment
@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Gamepads now work out of the box with a default mapping. A second gamepad automatically controls player 2
 
 ### Changed
+- Settings are reorganized into General, Video, Audio, Controls and Advanced with named sections. Wide screens show a navigation pane beside the settings, phones show a category list; controller bindings are grouped and collapsible
 - The emulator now runs on the fastest CPU cores on Android
 - Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
 - Reset now behaves like the console's reset button

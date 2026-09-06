@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../../../robot.dart';
 
@@ -9,7 +10,7 @@ void main() {
     await r.pumpApp();
     r.settings.showTouchControls = true;
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
     await r.settingsScreen.controls.tapTouchEditorButton();
   });
 }

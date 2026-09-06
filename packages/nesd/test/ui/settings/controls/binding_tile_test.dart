@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 import '../../robot.dart';
 
@@ -9,7 +10,8 @@ void main() {
   Future<(BindingTile, Finder)> openControlsTab(Robot r) async {
     await r.pumpApp();
     await r.mainMenu.tapSettingsButton();
-    await r.settingsScreen.tapControlsTab();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
+    await r.settingsScreen.expandBindingGroup('controls.bindings.menu');
 
     final tileFinder = find.byType(BindingTile).first;
     final tile = r.tester.widget<BindingTile>(tileFinder);

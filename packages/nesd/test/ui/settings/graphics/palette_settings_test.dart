@@ -11,6 +11,7 @@ import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/palette_import_button.dart';
 import 'package:nesd/ui/settings/graphics/palette_preview.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 import 'package:riverpod/misc.dart';
@@ -32,7 +33,7 @@ void main() {
     final robot = SettingsScreenRobot(tester);
 
     await robot.pumpSettingsScreen();
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
 
     expect(find.byType(PaletteDropdown), findsOneWidget);
     expect(find.byType(PalettePreview), findsOneWidget);
@@ -44,7 +45,7 @@ void main() {
     final robot = SettingsScreenRobot(tester);
 
     await robot.pumpSettingsScreen();
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
 
     expect(find.byType(HueSlider), findsNothing);
 
@@ -62,7 +63,7 @@ void main() {
     final robot = SettingsScreenRobot(tester);
 
     await robot.pumpSettingsScreen();
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
 
     final notifier = robot.container.read(userPalettesProvider.notifier);
 
@@ -115,7 +116,7 @@ void main() {
       ],
     );
     robot.container.listen(toasterProvider, (_, _) {});
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
     await robot.tapImportPalette();
 
     expect(
@@ -144,7 +145,7 @@ void main() {
       overrides: [_pickerReturning(_palFileNamed('Bad.pal', Uint8List(7)))],
     );
     robot.container.listen(toasterProvider, (_, _) {});
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
     await robot.tapImportPalette();
 
     expect(
@@ -163,7 +164,7 @@ void main() {
     final robot = SettingsScreenRobot(tester);
 
     await robot.pumpSettingsScreen(overrides: [_pickerReturning(null)]);
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
     await robot.tapImportPalette();
 
     expect(
@@ -184,7 +185,7 @@ void main() {
       ],
     );
     robot.container.listen(toasterProvider, (_, _) {});
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
     await robot.tapImportPalette();
     await robot.tapRemovePalette();
 
@@ -203,7 +204,7 @@ void main() {
     final robot = SettingsScreenRobot(tester);
 
     await robot.pumpSettingsScreen();
-    await robot.tapGraphicsTab();
+    await robot.openCategory(SettingsCategory.video);
 
     expect(find.byType(PaletteImportButton), findsOneWidget);
     expect(find.text('Remove palette'), findsNothing);

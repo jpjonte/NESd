@@ -14,6 +14,7 @@ import 'package:nesd/ui/log/log_search_field.dart';
 import 'package:nesd/ui/log/log_view_filter.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/debug/view_log_button.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:riverpod/misc.dart';
 
 import '../robot.dart';
@@ -798,7 +799,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    await robot.settingsScreen.tapDebugTab();
+    await robot.settingsScreen.openCategory(SettingsCategory.advanced);
 
     robot.settingsScreen.debug.expectViewLogButtonFound();
 
