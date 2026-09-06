@@ -5,6 +5,7 @@ import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/nes.dart';
+import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../ui/mocks.dart';
@@ -28,7 +29,7 @@ class RomRobot {
   static const _statusNeedsReset = 0x81;
   static const _maxResultText = 4096;
 
-  RomRobot(this.path) {
+  RomRobot(this.path, {Region region = Region.ntsc}) {
     final file = File(path);
 
     final cartridgeFactory = CartridgeFactory(database: MockNesDatabase());
@@ -38,7 +39,9 @@ class RomRobot {
       file.readAsBytesSync(),
     )..databaseEntry = null;
 
-    nes = NES(cartridge: cartridge, eventBus: EventBus())..reset();
+    nes = NES(cartridge: cartridge, eventBus: EventBus())
+      ..region = region
+      ..reset();
   }
 
   final String path;
