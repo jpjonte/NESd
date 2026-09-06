@@ -47,8 +47,13 @@ const _phoneLandscapeSize = Size(800, 360);
 const _phoneRatio = 3.0;
 
 const _fixBattletoads = 'Battletoads';
+const _fixCastlevania3 = 'Castlevania III';
+const _fixDuckHunt = 'Duck Hunt';
 const _fixKirby = "Kirby's Adventure";
+const _fixMarbleMadness = 'Marble Madness';
+const _fixMicroMachines = 'Micro Machines';
 const _fixPunchOut = "Mike Tyson's Punch-Out!!";
+const _fixRecca = 'Recca';
 const _fixSmb = 'Super Mario Bros';
 const _fixSmb3 = 'Super Mario Bros. 3';
 const _fixZelda = 'The Legend Of Zelda';
@@ -57,8 +62,12 @@ const _saveSlotStates = ['smb_slot0', 'smb_slot1', 'smb_slot2', 'smb_slot3'];
 
 const _overscan = {
   _fixBattletoads: Overscan(left: 8, top: 0, bottom: 0),
+  _fixCastlevania3: Overscan(top: 0, right: 8, bottom: 0),
   _fixKirby: Overscan(left: 8, top: 0),
+  _fixMarbleMadness: Overscan(),
+  _fixMicroMachines: Overscan(),
   _fixPunchOut: Overscan.none,
+  _fixRecca: Overscan(),
   _fixSmb: Overscan.none,
   _fixSmb3: Overscan(top: 0),
   _fixZelda: Overscan.none,
@@ -250,11 +259,11 @@ void main() {
       .toList();
 
   for (final name in [
-    _fixSmb,
-    _fixZelda,
-    _fixKirby,
-    _fixPunchOut,
     _fixBattletoads,
+    _fixCastlevania3,
+    _fixMicroMachines,
+    _fixMarbleMadness,
+    _fixRecca,
   ]) {
     testWidgets(name, (tester) async {
       final files = _fixtures([name]);
