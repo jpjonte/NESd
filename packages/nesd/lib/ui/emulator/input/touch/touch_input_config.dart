@@ -128,14 +128,6 @@ const defaultPortraitConfig = [
     label: '<<',
   ),
   RectangleButtonConfig(
-    width: 50,
-    height: 40,
-    x: -0.8,
-    y: -0.1,
-    action: rewindTimeline,
-    label: 'TL',
-  ),
-  RectangleButtonConfig(
     height: 40,
     x: -0.25,
     y: 0.1,
@@ -177,14 +169,6 @@ const defaultLandscapeConfig = [
     y: 0.75,
     action: rewind,
     label: '<<',
-  ),
-  RectangleButtonConfig(
-    width: 50,
-    height: 40,
-    x: -0.9,
-    y: 0.45,
-    action: rewindTimeline,
-    label: 'TL',
   ),
   RectangleButtonConfig(
     height: 40,
