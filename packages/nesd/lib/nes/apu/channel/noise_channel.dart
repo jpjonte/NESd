@@ -75,7 +75,7 @@ class NoiseChannel {
   }
 
   void writeControl(int value) {
-    lengthCounter.halt = value.bit(5) == 1;
+    lengthCounter.pendingHalt = value.bit(5) == 1;
     constantVolume = value.bit(4) == 1;
     volume = value & 0x0f;
     envelope
@@ -95,7 +95,7 @@ class NoiseChannel {
 
   void writeLength(int value) {
     if (enabled) {
-      lengthCounter.value = lengthCounterTable[value >> 3];
+      lengthCounter.writeValue(lengthCounterTable[value >> 3]);
     }
 
     envelope.start = true;
@@ -111,6 +111,12 @@ class NoiseChannel {
 
   void clockLengthCounter() {
     lengthCounter.step();
+
+    _updateOutput();
+  }
+
+  void applyPendingLengthWrites() {
+    lengthCounter.applyPendingWrites();
 
     _updateOutput();
   }
