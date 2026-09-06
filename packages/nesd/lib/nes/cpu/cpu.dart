@@ -198,7 +198,7 @@ class CPU {
   }
 
   int read(int address) {
-    _handleDMA();
+    _handleDMA(address);
 
     _startCycle();
 
@@ -371,20 +371,28 @@ class CPU {
 
   bool get runningDma => _oamDma || _dmcDmaPhase >= _dmcDmaHalted || _dmcDmaDue;
 
-  void _handleDMA() {
+  void _handleDMA(int address) {
     if (!_oamDma && !_dmcDmaDue) {
       return;
     }
 
+    final joypad = address == 0x4016 || address == 0x4017;
+    var repeated = false;
+
     while (runningDma) {
       _startCycle();
-      _stepDma();
+
+      if (_stepDma()) {
+        continue;
+      }
+
+      bus.cpuRead(address, disableSideEffects: joypad && repeated);
+
+      repeated = true;
     }
   }
 
-  void _stepDma() {
-    var stolen = false;
-
+  bool _stepDma() {
     switch (_dmcDmaPhase) {
       case _dmcDmaWaiting:
         if (cycles >= _dmcDmaHaltAt) {
@@ -397,33 +405,36 @@ class CPU {
           _readDmcSample();
 
           _dmcDmaPhase = _dmcDmaIdle;
-          stolen = true;
+
+          return true;
         }
     }
 
-    if (_oamDma && !stolen) {
-      _stepOamDma();
+    if (_oamDma) {
+      return _stepOamDma();
     }
+
+    return false;
   }
 
   bool get _isGetCycle => cycles.isEven;
 
-  void _stepOamDma() {
+  bool _stepOamDma() {
     if (!_oamDmaHalted) {
       _oamDmaHalted = true;
 
-      return;
+      return false;
     }
 
     if (_isGetCycle) {
       _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
       _oamDmaHolding = true;
 
-      return;
+      return true;
     }
 
     if (!_oamDmaHolding) {
-      return;
+      return false;
     }
 
     final dma = bus.dmaSettings;
@@ -444,6 +455,8 @@ class CPU {
       _oamDmaHalted = false;
       _oamDmaOffset = 0;
     }
+
+    return true;
   }
 
   void _readDmcSample() {

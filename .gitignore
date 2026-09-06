@@ -112,6 +112,7 @@ roms/
 !roms/test/branch_timing_tests/1.Branch_Basics.nes
 !roms/test/branch_timing_tests/2.Backward_Branch.nes
 !roms/test/branch_timing_tests/3.Forward_Branch.nes
+!roms/test/dmc_dma_during_read4/dma_2007_read.nes
 !roms/test/dmc_dma_during_read4/dma_2007_write.nes
 !roms/test/dmc_dma_during_read4/dma_4016_read.nes
 !roms/test/dmc_dma_during_read4/read_write_2007.nes
