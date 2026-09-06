@@ -77,12 +77,16 @@ class SettingsScreenRobot extends BaseRobot {
     final navItem = find.byKey(SettingsNavPane.itemKey(category));
 
     if (navItem.evaluate().isNotEmpty) {
+      await tester.ensureVisible(navItem);
       await go(navItem);
 
       return;
     }
 
-    await go(find.byKey(SettingsCategoryList.rowKey(category)));
+    final row = find.byKey(SettingsCategoryList.rowKey(category));
+
+    await tester.ensureVisible(row);
+    await go(row);
   }
 
   void expectCategoryShown(SettingsCategory category) {
@@ -142,5 +146,14 @@ class SettingsScreenRobot extends BaseRobot {
 
     await tester.ensureVisible(finder);
     await go(finder);
+  }
+
+  Future<void> focusFirstCategory() async {
+    const general = SettingsCategory.general;
+
+    final navItem = find.byKey(SettingsNavPane.itemKey(general));
+    final row = find.byKey(SettingsCategoryList.rowKey(general));
+
+    await expectAndFocus(navItem.evaluate().isNotEmpty ? navItem : row);
   }
 }

@@ -20,13 +20,14 @@ const _pixelRatio = 3.0;
 
 Future<Robot> _phoneApp(
   WidgetTester tester, {
+  Size size = _logicalSize,
   Map<String, Uint8List> extraFiles = const {},
 }) async {
   final robot = Robot(tester);
 
   await robot.pumpApp(
     extraFiles: extraFiles,
-    logicalSize: _logicalSize,
+    logicalSize: size,
     devicePixelRatio: _pixelRatio,
   );
 
@@ -56,7 +57,7 @@ void main() {
     await _capture(r, '01_main_menu');
   });
 
-  testWidgets('02_library', (tester) async {
+  testWidgets('05_library', (tester) async {
     final r = await _phoneApp(tester);
 
     r.settings.lastRomPath = const FilesystemFile(
@@ -68,19 +69,21 @@ void main() {
     await r.mainMenu.tapOpenRomButton();
     await tester.pumpAndSettle();
 
-    await _capture(r, '02_library');
+    await _capture(r, '05_library');
   });
 
-  testWidgets('03_settings', (tester) async {
+  testWidgets('04_settings', (tester) async {
     final r = await _phoneApp(tester);
 
-    await r.mainMenu.tapSettingsButton();
-    await tester.pumpAndSettle();
+    r.showFocusHighlights();
 
-    await _capture(r, '03_settings');
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.focusFirstCategory();
+
+    await _capture(r, '04_settings');
   });
 
-  testWidgets('04_touch_controls', (tester) async {
+  testWidgets('02_touch_controls_narrow', (tester) async {
     final r = await _phoneApp(tester);
 
     r.settings.showTouchControls = true;
@@ -99,6 +102,28 @@ void main() {
 
     await r.waitUntil(() => find.byType(DisplayBuilder).evaluate().isNotEmpty);
 
-    await _capture(r, '04_touch_controls');
+    await _capture(r, '02_touch_controls_narrow');
+  });
+
+  testWidgets('03_touch_controls_wide', (tester) async {
+    final r = await _phoneApp(tester, size: _logicalSize.flipped);
+
+    r.settings.showTouchControls = true;
+
+    await r.settings.resetTouchInputConfigs(Orientation.landscape);
+
+    await tester.pumpAndSettle();
+
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
+
+    tester.takeException();
+
+    await r.settingsScreen.controls.tapTouchEditorButton();
+    await tester.pumpAndSettle();
+
+    await r.waitUntil(() => find.byType(DisplayBuilder).evaluate().isNotEmpty);
+
+    await _capture(r, '03_touch_controls_wide');
   });
 }

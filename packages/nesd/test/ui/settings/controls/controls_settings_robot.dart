@@ -25,7 +25,10 @@ class ControlsSettingsRobot extends BaseRobot {
   }
 
   Future<void> tapTouchEditorButton() async {
-    await go(find.byType(TouchEditorButton));
+    final finder = find.byType(TouchEditorButton);
+
+    await tester.ensureVisible(finder);
+    await go(finder);
   }
 
   void expectGamepadSlotsFound() {

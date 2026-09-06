@@ -18,7 +18,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/file_picker/file_system/native_storage_filesystem.dart';
+import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/save_states/save_states_screen.dart';
@@ -30,8 +33,12 @@ const _romsDir = '../../roms/readme';
 const _statesDir = 'test/screenshots/states';
 const _docs = '../../docs';
 
-// NTSC NES display at 2x
-const _gameSize = Size(586, 480);
+// NTSC frame and pixel aspect ratio, shown at 2x
+const _frameWidth = 256;
+const _frameHeight = 240;
+const _pixelAspectRatio = 8 / 7;
+const _gameScale = 2.0;
+
 const _desktopSize = Size(1440, 900);
 const _desktopRatio = 2.0;
 
@@ -46,8 +53,66 @@ const _fixSmb = 'Super Mario Bros';
 const _fixSmb3 = 'Super Mario Bros. 3';
 const _fixZelda = 'The Legend Of Zelda';
 
-/// States saved into slots for the save-states screenshot.
 const _saveSlotStates = ['smb_slot0', 'smb_slot1', 'smb_slot2', 'smb_slot3'];
+
+const _overscan = {
+  _fixBattletoads: Overscan(left: 8, top: 0, bottom: 0),
+  _fixKirby: Overscan(left: 8, top: 0),
+  _fixPunchOut: Overscan.none,
+  _fixSmb: Overscan.none,
+  _fixSmb3: Overscan(top: 0),
+  _fixZelda: Overscan.none,
+};
+
+Overscan _overscanFor(String rom) => _overscan[rom] ?? const Overscan();
+
+class _PinnedTimeStorage implements StorageFilesystem {
+  _PinnedTimeStorage(this._inner);
+
+  final StorageFilesystem _inner;
+  final _modified = <String, DateTime>{};
+
+  static final _start = DateTime(2026, 9, 6, 12);
+
+  @override
+  Future<void> write(String path, Uint8List data) async {
+    await _inner.write(path, data);
+
+    if (path.endsWith('.state')) {
+      _modified[path] ??= _start.add(Duration(minutes: 5 * _modified.length));
+    }
+  }
+
+  @override
+  Future<DateTime?> lastModified(String path) async =>
+      _modified[path] ?? await _inner.lastModified(path);
+
+  @override
+  Future<void> delete(String path) async {
+    _modified.remove(path);
+
+    await _inner.delete(path);
+  }
+
+  @override
+  Future<Uint8List?> read(String path) => _inner.read(path);
+
+  @override
+  Future<bool> exists(String path) => _inner.exists(path);
+
+  @override
+  Future<List<String>> list(String directory) => _inner.list(directory);
+
+  @override
+  Future<void> createDirectory(String path) => _inner.createDirectory(path);
+}
+
+Size _gameWindow(Overscan overscan) {
+  final visible = overscan.visibleRect(_frameWidth, _frameHeight).size;
+  final width = (visible.width * _pixelAspectRatio).round();
+
+  return Size(width * _gameScale, visible.height * _gameScale);
+}
 
 Uint8List? _readOptional(String path) {
   final file = File(path);
@@ -89,6 +154,8 @@ Map<String, Uint8List>? _fixtures(List<String> roms, {List<String>? states}) {
 }
 
 Future<void> _startFromState(Robot r, String rom, {String? state}) async {
+  r.settings.overscan = _overscanFor(rom);
+
   var started = false;
 
   unawaited(
@@ -111,7 +178,6 @@ Future<void> _startFromState(Robot r, String rom, {String? state}) async {
   await r.waitUntil(
     () => r.container.read(currentRouteProvider) == EmulatorRoute.name,
   );
-  // await r.waitUntil(() => find.byType(MainMenu).evaluate().isEmpty);
 
   // let the route transition finish
   await r.pumpFrames(const Duration(milliseconds: 200));
@@ -201,7 +267,7 @@ void main() {
 
       await r.pumpApp(
         extraFiles: files,
-        logicalSize: _gameSize,
+        logicalSize: _gameWindow(_overscanFor(name)),
         devicePixelRatio: _desktopRatio,
       );
 
@@ -243,6 +309,7 @@ void main() {
       extraFiles: files,
       logicalSize: _desktopSize,
       devicePixelRatio: _desktopRatio,
+      storage: _PinnedTimeStorage(NativeStorageFilesystem()),
     );
 
     for (final (slot, state) in _saveSlotStates.indexed) {
