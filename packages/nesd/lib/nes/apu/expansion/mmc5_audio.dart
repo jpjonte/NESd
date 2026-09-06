@@ -92,17 +92,25 @@ class Mmc5Audio implements ExpansionAudio {
   void writeRegister(int address, int value) {
     switch (address) {
       case 0x5000:
-        pulse1.writeControl(value);
+        pulse1
+          ..writeControl(value)
+          ..applyPendingLengthWrites();
       case 0x5002:
         pulse1.writeTimerLow(value);
       case 0x5003:
-        pulse1.writeTimerHigh(value);
+        pulse1
+          ..writeTimerHigh(value)
+          ..applyPendingLengthWrites();
       case 0x5004:
-        pulse2.writeControl(value);
+        pulse2
+          ..writeControl(value)
+          ..applyPendingLengthWrites();
       case 0x5006:
         pulse2.writeTimerLow(value);
       case 0x5007:
-        pulse2.writeTimerHigh(value);
+        pulse2
+          ..writeTimerHigh(value)
+          ..applyPendingLengthWrites();
       case 0x5010:
         pcmIrqEnabled = value.bit(7) == 1;
         pcmReadMode = value.bit(0) == 1;
