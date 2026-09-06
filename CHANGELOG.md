@@ -4,30 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.19.0] - 2026-09-06
+
+> **One more Android tester needed!**  
+> 
+> Tell your friends, tell your mom, tell your dog!
+> Once we have twelve testers, the 14-day period begins, and we'll be on the final stretch to the Play Store.
+> 
+> Sign up in [Discussions](https://github.com/jpjonte/NESd/discussions/322)!
 
 ### Added
-- Implemented open bus for the CPU and PPU
-- Added multiple color palettes, selectable in Video settings
-- Palettes can now be imported from `.pal` files in Video settings
 - Implemented UNROM 512 (mapper 30)
-- Implemented VT03 OneBus (mapper 256), used by plug-and-play famiclones
-- Rewind now has a timeline scrubber: drag through a filmstrip of the last minute of play and jump straight to any moment
+- Implemented VT03 OneBus (mapper 256)
+- Rewind now has a timeline scrubber
+- Added multiple color palettes
+- Palettes can now be imported from `.pal` files
 - ROMs can now be loaded from `.7z` archives
-- Added an xBR-style upscaling video filter
-- Added an audio mixer to Audio settings, with a volume control per channel
-- Folders inside an archive can now be browsed like any other folder
-- Gamepads now work out of the box with a default mapping. A second gamepad automatically controls player 2
+- Added an xBR-style upscaling filter
+- Gamepads now work out of the box with a default mapping
+- Added an audio mixer
+- Folders inside an archive can now be browsed
+- Implemented open bus for the CPU and PPU
 
 ### Changed
-- Settings are reorganized into General, Video, Audio, Controls and Advanced with named sections. Wide screens show a navigation pane beside the settings, phones show a category list; controller bindings are grouped and collapsible
 - The emulator now runs on the fastest CPU cores on Android
-- Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated, and the Controls settings show which gamepad is in which slot
+- Decluttered the settings screen
+- Gamepad bindings now name a slot ("Gamepad 1") instead of a device. Existing bindings are migrated
+- Controls settings show the detected gamepads
 - Reset now behaves like the console's reset button
 
 ### Fixed
-- A save state that cannot be loaded no longer stops the game from starting: the game boots from power-on, the failure is reported, and a copy of the unreadable file is kept next to it
-- The save state picker shows a save state it cannot load as unreadable and lets you delete it, instead of failing
+- Fixed audio underruns on devices that read audio in large bursts
+- Fixed audio underruns and slowdown with rewind enabled on lower-end devices
+- Broken save states no longer stop games from starting
+- Broken save states are marked in the save state picker
+- Fixed the logo being cut off on the Android splash screen
 - Fixed a crash when a game writes a full 256 bytes to the PPU's OAM data register
 - Fixed the PPU skipping a cycle on odd frames while rendering is turned off
 - Turning NMI on while the PPU is already in vblank now triggers an NMI right away
@@ -36,14 +47,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed sprite data getting discarded while rendering is off
 - Fixed color emphasis applying an inverted tint
 - Fixed color emphasis on PAL
-- ROM and archive file extensions are now matched case-insensitively, so files like `GAME.NES` and `COLLECTION.ZIP` open correctly
+- ROM and archive file extensions are now matched case-insensitively
 - Fixed opening a ROM from inside a zip archive on Windows
 - Fixed inconsistent zip archive handling depending on how you opened it
-- Fixed broken settings crashing NESd on start, the broken configuration is backed up
-- Fixed audio underruns on devices that read audio in large bursts
-- Fixed audio underruns and slowdown with rewind enabled on lower-end devices
-- Fixed the logo being cut off on the Android splash screen
-- Fixed indexed instructions doing their page-crossing dummy read at the wrong address
+- Fixed broken settings crashing NESd on start
+- Fixed some dummy reads occurring at the wrong address
 - Fixed APU frame counter timing
 - Fixed DMC samples playing one CPU cycle per bit too slowly
 - Fixed NMI timing
