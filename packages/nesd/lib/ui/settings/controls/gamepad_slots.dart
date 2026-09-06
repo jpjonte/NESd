@@ -18,7 +18,9 @@ class GamepadSlotsSection extends ConsumerWidget {
 
         if (assignments.isEmpty) {
           return const FocusOnHover(
-            child: SettingsTile(child: Text('No gamepads detected')),
+            child: SettingsTile(
+              child: Center(child: Text('No gamepads detected')),
+            ),
           );
         }
 
