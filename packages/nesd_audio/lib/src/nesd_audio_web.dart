@@ -5,6 +5,7 @@ import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
+import 'package:nesd_audio/src/audio_context_resumer.dart';
 import 'package:nesd_audio/src/nesd_audio_backend.dart';
 import 'package:nesd_audio/src/nesd_audio_state.dart';
 import 'package:nesd_audio/src/silent_audio_sink.dart';
@@ -140,10 +141,10 @@ class NesdAudio implements NesdAudioBackend {
   SilentAudioSink? _silentSink;
 
   web.AudioContext? _context;
+  AudioContextResumer? _resumer;
   web.AudioWorkletNode? _node;
   bool _ready = false;
   bool _closed = false;
-  bool _resumeFailureLogged = false;
 
   @override
   int get capacity => _queue.capacity;
@@ -191,7 +192,7 @@ class NesdAudio implements NesdAudioBackend {
 
     // A suspended context (autoplay policy) consumes nothing, so the
     // queue saturates. Keep retrying the resume even when nothing fits.
-    _resumeIfSuspended();
+    _resumer?.resumeIfSuspended();
 
     final written = _queue.push(samples.length);
 
@@ -245,6 +246,7 @@ class NesdAudio implements NesdAudioBackend {
     );
 
     _context = context;
+    _resumer = AudioContextResumer(context);
 
     // AudioWorklet only exists in secure contexts (https or localhost).
     // On plain HTTP the non-nullable `audioWorklet` getter would throw a
@@ -299,7 +301,7 @@ class NesdAudio implements NesdAudioBackend {
 
             _preInit.clear();
 
-            _resumeIfSuspended();
+            _resumer?.resumeIfSuspended();
           })
           .catchError((Object error) {
             web.URL.revokeObjectURL(url);
@@ -333,6 +335,7 @@ class NesdAudio implements NesdAudioBackend {
     );
 
     _context = null;
+    _resumer = null;
     _node = null;
     _ready = false;
 
@@ -360,25 +363,5 @@ class NesdAudio implements NesdAudioBackend {
 
   void _post(Float32List chunk) {
     _node?.port.postMessage(chunk.toJS);
-  }
-
-  void _resumeIfSuspended() {
-    final context = _context;
-
-    if (context != null && context.state == 'suspended') {
-      unawaited(
-        context.resume().toDart.catchError((Object error) {
-          if (!_resumeFailureLogged) {
-            _resumeFailureLogged = true;
-
-            web.console.warn(
-              'nesd_audio: AudioContext.resume() failed: $error'.toJS,
-            );
-          }
-
-          return null;
-        }),
-      );
-    }
   }
 }
