@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v7
       - run: ci/check/linux/packaging.sh
 
-  check-game-counts:
+  check-readme:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
@@ -62,6 +62,8 @@ jobs:
       - uses: actions/checkout@v7
       - run: flutter pub get
       - run: dart run tool/update_game_counts.dart --check
+        working-directory: packages/nesd
+      - run: dart run tool/update_test_roms.dart --check
         working-directory: packages/nesd
 
   test:
@@ -124,7 +126,7 @@ jobs:
   publish-pages:
     if: github.ref == 'refs/heads/main' && needs.pages-gate.outputs.deploy == 'true'
     runs-on: ubuntu-24.04
-    needs: [test, test-site, pages-gate, build-web, check-game-counts]
+    needs: [test, test-site, pages-gate, build-web, check-readme]
     permissions:
       contents: read
       pages: write
@@ -143,7 +145,7 @@ jobs:
   publish-pages-release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [test, test-site, release, build-web, check-game-counts]
+    needs: [test, test-site, release, build-web, check-readme]
     permissions:
       contents: read
       pages: write
