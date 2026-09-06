@@ -15,16 +15,27 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/fast_forward_speed.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/display.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
+import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
+import 'package:nesd/ui/emulator/rewind/rewind_timeline_overlay.dart';
+import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/native_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/save_states/save_states_screen.dart';
+import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/toast/toast_overlay.dart';
 
 import '../ui/robot.dart';
@@ -71,6 +82,11 @@ const _overscan = {
   _fixSmb: Overscan.none,
   _fixSmb3: Overscan(top: 0),
   _fixZelda: Overscan.none,
+};
+
+const _gamepads = {
+  'dualsense': GamepadDeviceKey(name: 'DualSense Wireless Controller'),
+  'pro2': GamepadDeviceKey(name: '8BitDo Pro 2'),
 };
 
 Overscan _overscanFor(String rom) => _overscan[rom] ?? const Overscan();
@@ -162,7 +178,12 @@ Map<String, Uint8List>? _fixtures(List<String> roms, {List<String>? states}) {
   return files;
 }
 
-Future<void> _startFromState(Robot r, String rom, {String? state}) async {
+Future<void> _startFromState(
+  Robot r,
+  String rom, {
+  String? state,
+  bool suspended = true,
+}) async {
   r.settings.overscan = _overscanFor(rom);
 
   var started = false;
@@ -177,7 +198,7 @@ Future<void> _startFromState(Robot r, String rom, {String? state}) async {
             type: FilesystemFileType.file,
           ),
           stateBytes: _state(state ?? rom),
-          suspended: true,
+          suspended: suspended,
         )
         .then((ok) => started = ok),
   );
@@ -366,6 +387,138 @@ void main() {
 
     await _capture(r, 'save_states', _desktopRatio);
     await _shutDown(r);
+  });
+
+  testWidgets('filters', (tester) async {
+    const fixture = _fixDuckHunt;
+
+    final files = _fixtures([fixture]);
+
+    if (files == null) {
+      return;
+    }
+
+    final r = Robot(tester);
+
+    // same pixel size as the other game shots, but a 4x canvas so the CRT
+    // scanlines and mask get room to resolve
+    await r.pumpApp(
+      extraFiles: files,
+      logicalSize: _gameWindow(_overscanFor(fixture)) * _desktopRatio,
+      devicePixelRatio: 1,
+    );
+
+    r.settings
+      ..toggleVideoFilter(VideoFilter.xbr, enabled: true)
+      ..toggleVideoFilter(VideoFilter.crt, enabled: true)
+      ..crtFilter = const CrtFilterSettings(curvature: 0.1)
+      ..paletteId = NesPaletteId.warm;
+
+    await _startFromState(r, fixture);
+
+    // the display controller kicks off shader loading once a game runs
+    await r.waitUntil(() {
+      final shaders = r.container.read(videoFilterRegistryProvider);
+
+      return shaders.ready(VideoFilter.xbr) && shaders.ready(VideoFilter.crt);
+    });
+    await r.pumpFrames(const Duration(milliseconds: 200));
+
+    await _capture(r, 'filters', 1);
+    await _shutDown(r);
+  });
+
+  testWidgets('rewind', (tester) async {
+    final files = _fixtures([_fixKirby]);
+
+    if (files == null) {
+      return;
+    }
+
+    final r = Robot(tester);
+
+    await r.pumpApp(
+      extraFiles: files,
+      logicalSize: _desktopSize,
+      devicePixelRatio: _desktopRatio,
+    );
+
+    r.settings.fastForwardSpeed = FastForwardSpeed.x4;
+
+    await _startFromState(r, _fixKirby, suspended: false);
+
+    final nes = r.container.read(nesStateProvider)!..fastForward = true;
+
+    await r.pumpFrames(const Duration(milliseconds: 4200));
+
+    nes.buttonDown(0, NesButton.right);
+
+    await r.pumpFrames(const Duration(milliseconds: 33));
+
+    nes.buttonDown(0, NesButton.a);
+
+    await r.pumpFrames(const Duration(milliseconds: 8900));
+
+    nes
+      ..buttonUp(0, NesButton.a)
+      ..buttonUp(0, NesButton.right)
+      ..buttonDown(0, NesButton.left);
+
+    await r.pumpFrames(const Duration(milliseconds: 32));
+
+    nes.buttonDown(0, NesButton.a);
+
+    await r.pumpFrames(const Duration(seconds: 2));
+
+    nes
+      ..buttonUp(0, NesButton.left)
+      ..buttonUp(0, NesButton.a)
+      ..fastForward = false;
+
+    await r.fixAsync();
+
+    unawaited(r.container.read(rewindScrubControllerProvider.notifier).open());
+
+    await r.waitUntil(
+      () => r.container.read(rewindScrubControllerProvider).open,
+      maxAttempts: 40,
+    );
+
+    await r.waitUntil(
+      () => find.byType(RewindTimelineOverlay).evaluate().isNotEmpty,
+    );
+
+    r.container.read(rewindScrubControllerProvider.notifier).moveBy(-15);
+
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    await _capture(r, 'rewind', _desktopRatio);
+
+    r.container.read(rewindScrubControllerProvider.notifier).cancel();
+
+    await _shutDown(r);
+  });
+
+  testWidgets('controls', (tester) async {
+    final r = Robot(tester);
+
+    await r.pumpApp(logicalSize: _desktopSize, devicePixelRatio: _desktopRatio);
+
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
+
+    final registry = r.container.read(gamepadSlotRegistryProvider);
+
+    for (final entry in _gamepads.entries) {
+      registry.observe(entry.key, entry.value);
+    }
+
+    await r.settingsScreen.expandBindingGroup('controls.bindings.player1');
+
+    // line the Gamepads section up with the top of the page
+    await r.tester.drag(find.text('Gamepads').last, const Offset(0, -110));
+    await r.pumpFrames(const Duration(milliseconds: 300));
+    await _capture(r, 'controls', _desktopRatio);
   });
 
   testWidgets('android_tall', (tester) async {
