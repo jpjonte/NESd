@@ -16,7 +16,7 @@ FrameBuffer buildFrameBuffer() {
 
 /// Adversarial fixture: every widened field holds a value the old uint8
 /// wire format cannot represent.
-PPUState buildState({int decay = 0x5a}) {
+PPUState buildState({int decay = 0x5a, int spriteEvalPhase = 3}) {
   return PPUState(
     decay: decay,
     decayRefreshedAt: List<int>.generate(8, (i) => 1000 + i),
@@ -54,6 +54,7 @@ PPUState buildState({int decay = 0x5a}) {
     attribute: 3,
     oamAddress: 257, // sprite evaluation may stop as high as 257
     oamBuffer: 0x77,
+    spriteEvalPhase: spriteEvalPhase,
     spriteCount: 8,
     secondarySpriteCount: 8,
     sprite0OnNextLine: true,
@@ -162,6 +163,7 @@ void expectStatesEqual(PPUState actual, PPUState expected) {
   expect(actual.attribute, expected.attribute);
   expect(actual.oamAddress, expected.oamAddress);
   expect(actual.oamBuffer, expected.oamBuffer);
+  expect(actual.spriteEvalPhase, expected.spriteEvalPhase);
   expect(actual.spriteCount, expected.spriteCount);
   expect(actual.secondarySpriteCount, expected.secondarySpriteCount);
   expect(actual.sprite0OnNextLine, expected.sprite0OnNextLine);
@@ -333,14 +335,14 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
 }
 
 void main() {
-  test('serialize writes version 5 and round-trips adversarial values', () {
+  test('serialize writes version 6 and round-trips adversarial values', () {
     final original = buildState();
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 5, reason: 'PPUState version');
+    expect(bytes[0], 6, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
 
@@ -377,7 +379,8 @@ void main() {
   });
 
   test('still reads version 3 payloads', () {
-    final original = buildState();
+    // Older payloads carry no evaluation phase and restore it as 0.
+    final original = buildState(spriteEvalPhase: 0);
 
     final writer = Payload.write();
     writeVersion3(writer, original);
@@ -388,7 +391,7 @@ void main() {
   });
 
   test('still reads version 4 payloads', () {
-    final original = buildState();
+    final original = buildState(spriteEvalPhase: 0);
 
     final writer = Payload.write();
     writeVersion4(writer, original);
