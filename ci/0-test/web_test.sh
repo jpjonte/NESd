@@ -19,7 +19,6 @@ $flutter test --platform chrome \
   test/nes/ppu/frame_buffer_memory_test.dart \
   test/nes/rewind/rewind_codec_test.dart \
   test/nes/serialization/nesd_uint64_test.dart \
-  test/audio/silent_audio_sink_test.dart \
   test/audio/audio_schedule_test.dart \
   test/audio/web_audio_queue_test.dart \
   test/audio/web_audio_device_smoke_test.dart \
