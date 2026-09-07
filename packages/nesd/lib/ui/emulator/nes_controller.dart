@@ -423,6 +423,8 @@ class NesController {
       return false;
     }
 
+    router.popUntil((route) => route.settings.name != FilePickerRoute.name);
+
     unawaited(router.navigate(const EmulatorRoute()));
 
     return true;

@@ -131,7 +131,7 @@ class OpenRomButton extends ConsumerWidget {
           return;
         }
 
-        final file = await AutoRouter.of(context).push<FilesystemFile?>(
+        await AutoRouter.of(context).push(
           FilePickerRoute(
             title: 'Select a ROM',
             initialDirectory: directory,
@@ -139,12 +139,9 @@ class OpenRomButton extends ConsumerWidget {
             allowedExtensions: romPickerExtensions,
             onChangeDirectory: (directory) =>
                 settingsController.lastRomPath = directory,
+            onSelect: controller.startRom,
           ),
         );
-
-        if (file != null) {
-          await controller.startRom(file);
-        }
       },
       child: const Text('Open ROM'),
     );

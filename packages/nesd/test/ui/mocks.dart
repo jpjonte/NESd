@@ -179,6 +179,16 @@ Uint8List minimalValidRom() {
   return rom;
 }
 
+Uint8List unsupportedMapperRom() {
+  final rom = minimalValidRom();
+
+  // mapper id 99
+  rom[6] = 0x30;
+  rom[7] = 0x60;
+
+  return rom;
+}
+
 /// In-process [NesIsolateHandle] for widget tests.
 ///
 /// Runs a real [NesWorker] on the test isolate with [FakeNesdAudio] instead of
