@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/focus_first_descendant.dart';
+import 'package:nesd/ui/common/rom_tile.dart';
 
 abstract class BaseRobot {
   BaseRobot(this.tester);
@@ -11,6 +12,11 @@ abstract class BaseRobot {
   void expectOne(Finder finder) {
     expect(finder, findsOneWidget);
   }
+
+  List<String> visibleRomTitles() => tester
+      .widgetList<RomTile>(find.byType(RomTile))
+      .map((tile) => tile.romTileData.title)
+      .toList();
 
   Future<void> go(Finder finder) async {
     await expectAndTap(finder);

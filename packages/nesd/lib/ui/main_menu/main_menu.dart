@@ -10,6 +10,8 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
+import 'package:nesd/ui/common/paginated_grid.dart';
+import 'package:nesd/ui/common/paginated_grid_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
@@ -51,6 +53,7 @@ class MainMenu extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final startingRom = useState<RomInfo?>(null);
+    final gridController = usePaginatedGridController();
 
     useEffect(() {
       final subscription = ref.listenManual(initialRomProvider, (
@@ -75,26 +78,34 @@ class MainMenu extends HookConsumerWidget {
           key: dimKey,
           opacity: starting ? 0.5 : 1,
           duration: dimDuration,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(child: RecentRomList(startingRom: startingRom)),
-                OverflowBar(
-                  alignment: MainAxisAlignment.center,
-                  overflowAlignment: OverflowBarAlignment.center,
-                  spacing: 16,
-                  overflowSpacing: 16,
-                  children: [
-                    const OpenRomButton(key: openRomKey),
-                    const SettingsButton(key: settingsKey),
-                    if (!kIsWeb &&
-                        defaultTargetPlatform != TargetPlatform.android)
-                      const QuitButton(key: quitKey),
-                  ],
-                ),
-              ],
+          child: PaginatedGridActions(
+            controller: gridController,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: RecentRomList(
+                      gridController: gridController,
+                      startingRom: startingRom,
+                    ),
+                  ),
+                  OverflowBar(
+                    alignment: MainAxisAlignment.center,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    spacing: 16,
+                    overflowSpacing: 16,
+                    children: [
+                      const OpenRomButton(key: openRomKey),
+                      const SettingsButton(key: settingsKey),
+                      if (!kIsWeb &&
+                          defaultTargetPlatform != TargetPlatform.android)
+                        const QuitButton(key: quitKey),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 
 import '../../robot.dart';
 
@@ -99,6 +100,41 @@ void main() {
 
     r.mainMenu.expectPaginatedGridFound();
     r.mainMenu.expectRomTileCount(8);
+  });
+
+  testWidgets('The tab actions page the recent ROM grid', (tester) async {
+    final r = Robot(tester)
+      ..initSettings({
+        'recentRoms': [
+          for (var i = 0; i < 12; i++)
+            {
+              'file': {
+                'path': '/test/roms/rom$i.nes',
+                'name': 'rom$i.nes',
+                'type': 'file',
+              },
+            },
+        ],
+      });
+
+    await r.pumpApp(logicalSize: const Size(1280, 720));
+
+    final firstPage = r.mainMenu.visibleRomTitles();
+
+    expect(firstPage, isNotEmpty);
+
+    r.sendInputAction(nextTab);
+    await tester.pumpAndSettle();
+
+    final secondPage = r.mainMenu.visibleRomTitles();
+
+    expect(secondPage, isNotEmpty);
+    expect(secondPage.toSet().intersection(firstPage.toSet()), isEmpty);
+
+    r.sendInputAction(previousTab);
+    await tester.pumpAndSettle();
+
+    expect(r.mainMenu.visibleRomTitles(), firstPage);
   });
 
   testWidgets('Main menu buttons sit directly below a short ROM grid', (
