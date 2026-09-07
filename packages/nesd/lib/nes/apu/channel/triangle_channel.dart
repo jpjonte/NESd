@@ -71,7 +71,7 @@ class TriangleChannel {
   }
 
   void writeControl(int value) {
-    lengthCounter.halt = value.bit(7) == 1;
+    lengthCounter.pendingHalt = value.bit(7) == 1;
     control = value.bit(7) == 1;
     linearCounterPeriod = value & 0x7f;
 
@@ -89,7 +89,7 @@ class TriangleChannel {
     reload = true;
 
     if (enabled) {
-      lengthCounter.value = lengthCounterTable[value >> 3];
+      lengthCounter.writeValue(lengthCounterTable[value >> 3]);
     }
 
     _updateOutput();
@@ -111,6 +111,12 @@ class TriangleChannel {
 
   void clockLengthCounter() {
     lengthCounter.step();
+
+    _updateOutput();
+  }
+
+  void applyPendingLengthWrites() {
+    lengthCounter.applyPendingWrites();
 
     _updateOutput();
   }

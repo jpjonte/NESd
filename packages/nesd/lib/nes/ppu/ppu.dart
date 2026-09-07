@@ -233,6 +233,15 @@ class PPU {
   int oamAddress = 0;
   int oamBuffer = 0;
 
+  int spriteEvalPhase = _spriteEvalDone;
+
+  static const _spriteEvalY = 1;
+  static const _spriteEvalCopy1 = 2;
+  static const _spriteEvalCopy3 = 4;
+  static const _spriteEvalScan0 = 5;
+  static const _spriteEvalScan3 = 8;
+  static const _spriteEvalDone = 9;
+
   int spriteCount = 0;
   int secondarySpriteCount = 0;
 
@@ -283,6 +292,7 @@ class PPU {
     attribute: attribute,
     oamAddress: oamAddress,
     oamBuffer: oamBuffer,
+    spriteEvalPhase: spriteEvalPhase,
     spriteCount: spriteCount,
     secondarySpriteCount: secondarySpriteCount,
     sprite0OnNextLine: sprite0OnNextLine,
@@ -342,6 +352,7 @@ class PPU {
 
     oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
+    spriteEvalPhase = state.spriteEvalPhase;
     spriteCount = state.spriteCount;
     secondarySpriteCount = state.secondarySpriteCount;
     sprite0OnNextLine = state.sprite0OnNextLine;
@@ -425,6 +436,7 @@ class PPU {
 
     oamAddress = 0;
     oamBuffer = 0;
+    spriteEvalPhase = _spriteEvalDone;
 
     spriteCount = 0;
     secondarySpriteCount = 0;
@@ -712,10 +724,14 @@ class PPU {
   void _stepVisibleScanline() {
     final renderingActive = _showBackground || _showSprites;
 
-    // Sprite evaluation always runs on visible lines
-    _evaluateSprites();
+    if (cycle == 328) {
+      sprite0OnCurrentLine = sprite0OnNextLine;
+      sprite0OnNextLine = false;
+    }
 
     if (renderingActive) {
+      _evaluateSprites();
+
       // Pixel rendering at cycles 1-256
       if (cycle >= 1 && cycle <= 256) {
         _renderPixel();
@@ -1396,7 +1412,7 @@ class PPU {
   @pragma('vm:prefer-inline')
   void _evaluateSprites() {
     // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch, 321
-    // rasterize, 328 flag
+    // rasterize
     if (cycle <= 64) {
       if (cycle >= 1) {
         _clearSecondaryOam();
@@ -1407,9 +1423,6 @@ class PPU {
       _fetchSprites();
     } else if (cycle == 321) {
       _rasterizeSpriteLine();
-    } else if (cycle == 328) {
-      sprite0OnCurrentLine = sprite0OnNextLine;
-      sprite0OnNextLine = false;
     }
   }
 
@@ -1423,11 +1436,11 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _evaluateSpriteRange() {
-    // Cycles 65-256: Sprite evaluation
     if (cycle == 65) {
       oamAddress = OAMADDR;
       secondarySpriteCount = 0;
       oamBuffer = 0;
+      spriteEvalPhase = _spriteEvalY;
       _resetSpriteEvaluationRange();
     }
 
@@ -1437,40 +1450,80 @@ class PPU {
       return;
     }
 
-    if (oamAddress > 252) {
-      return;
+    switch (spriteEvalPhase) {
+      case _spriteEvalY:
+        _judgeSpriteY();
+      case >= _spriteEvalCopy1 && <= _spriteEvalCopy3:
+        _copySpriteByte();
+      case >= _spriteEvalScan0 && <= _spriteEvalScan3:
+        _scanForOverflow();
     }
+  }
 
-    final spriteY = oamBuffer;
-    final inRange = _spriteVisibleOnScanline(spriteY);
+  void _judgeSpriteY() {
+    // The Y lands in the next free slot whether it is in range or not.
+    secondaryOam[secondarySpriteCount << 2] = oamBuffer;
 
-    if (secondarySpriteCount < 8) {
-      if (inRange) {
-        if (oamAddress == 0) {
-          sprite0OnNextLine = true;
-        }
-
-        final srcBase = oamAddress & 0xff;
-        final tile = oam[srcBase + 1];
-        final attribute = oam[srcBase + 2];
-        final x = oam[srcBase + 3];
-        final packed = spriteY | (tile << 8) | (attribute << 16) | (x << 24);
-
-        _secondaryOamWords[secondarySpriteCount] = packed;
-
-        secondarySpriteCount++;
-      }
-
-      oamAddress += 4;
+    if (!_spriteVisibleOnScanline(oamBuffer)) {
+      _advanceToNextSprite(4);
 
       return;
     }
 
-    if (inRange) {
-      PPUSTATUS_O = 1;
-      oamAddress += 4;
+    if (oamAddress == 0) {
+      sprite0OnNextLine = true;
+    }
+
+    oamAddress++;
+    spriteEvalPhase = _spriteEvalCopy1;
+  }
+
+  void _copySpriteByte() {
+    final byte = spriteEvalPhase - _spriteEvalCopy1 + 1;
+
+    secondaryOam[(secondarySpriteCount << 2) | byte] = oamBuffer;
+    oamAddress++;
+
+    if (spriteEvalPhase < _spriteEvalCopy3) {
+      spriteEvalPhase++;
+
+      return;
+    }
+
+    secondarySpriteCount++;
+    _advanceToNextSprite(0);
+  }
+
+  void _advanceToNextSprite(int stride) {
+    oamAddress += stride;
+
+    if (oamAddress > 255) {
+      spriteEvalPhase = _spriteEvalDone;
+    } else if (secondarySpriteCount == 8) {
+      spriteEvalPhase = _spriteEvalScan0;
     } else {
+      spriteEvalPhase = _spriteEvalY;
+    }
+  }
+
+  void _scanForOverflow() {
+    if (_spriteVisibleOnScanline(oamBuffer)) {
+      PPUSTATUS_O = 1;
+      spriteEvalPhase = _spriteEvalDone;
+
+      return;
+    }
+
+    if (spriteEvalPhase < _spriteEvalScan3) {
       oamAddress += 5;
+      spriteEvalPhase++;
+    } else {
+      oamAddress += 1;
+      spriteEvalPhase = _spriteEvalScan0;
+    }
+
+    if (oamAddress > 255) {
+      spriteEvalPhase = _spriteEvalDone;
     }
   }
 

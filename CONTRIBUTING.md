@@ -90,8 +90,9 @@ fvm dart format .
 pushd packages/nesd && fvm flutter analyze && fvm flutter test && popd
 FLUTTER="fvm flutter" ci/0-test/web_test.sh  # browser subset, needs Chrome
 ```
+## Documentation
 
-## Supported game counts
+### Supported game counts
 
 The mapper list and game counts in `README.md`, and `supportedGameCount` in `website/lib/content.dart`, are generated from `assets/nes20db.xml`. After adding a mapper or updating the database, regenerate them:
 
@@ -102,6 +103,16 @@ pushd packages/nesd && fvm dart run tool/update_game_counts.dart && popd
 A new mapper needs its display name added to the README list by hand first, the script will tell you if one is missing. If the mapper is registered in `Mapper.fromId` but doesn't run games yet, add its id to `inProgressMapperIds` in the script instead of a README label. Remove it once the mapper works. `--check` reports drift without writing, for use in CI.
 
 The script counts retail releases, multicarts and plug-and-play devices, and skips homebrew, bootlegs, hacks, prototypes, bad dumps, samples, arcade boards and BIOS images.
+
+### Test ROM table
+
+The test ROM table in `README.md` is generated from the ROMs that the tests in `packages/nesd/test/test_roms/` run. ROMs that report through the `$6000` protocol are listed in `blargg_status_test.dart`, ROMs that only draw `PASSED` or `FAILED #n` on screen in `screen_status_test.dart`. After pinning a new test ROM, regenerate the counts:
+
+```bash
+pushd packages/nesd && fvm dart run tool/update_test_roms.dart && popd
+```
+
+A new suite needs its row added to the table by hand first: area, author, the number of ROMs the suite ships, and any notes. The script only rewrites the passing counts and the summary sentence, and tells you when a row is missing or stale. `--check` reports drift without writing, for use in CI.
 
 ## Running on the web
 

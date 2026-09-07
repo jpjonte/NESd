@@ -66,7 +66,7 @@ abstract class PulseChannelCore {
 
   void writeControl(int value) {
     duty = (value >> 6) & 0x03;
-    lengthCounter.halt = value.bit(5) == 1;
+    lengthCounter.pendingHalt = value.bit(5) == 1;
     constantVolume = value.bit(4) == 1;
     volume = value & 0x0f;
     envelope
@@ -90,8 +90,14 @@ abstract class PulseChannelCore {
     dutyIndex = 0;
 
     if (enabled) {
-      lengthCounter.value = lengthCounterTable[value >> 3];
+      lengthCounter.writeValue(lengthCounterTable[value >> 3]);
     }
+
+    updateOutput();
+  }
+
+  void applyPendingLengthWrites() {
+    lengthCounter.applyPendingWrites();
 
     updateOutput();
   }

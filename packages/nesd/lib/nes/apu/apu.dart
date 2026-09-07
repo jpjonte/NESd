@@ -42,6 +42,21 @@ class APU {
 
   late final _frameCounter = FrameCounter(this);
 
+  /// Set by a write to a length counter register; the write is applied
+  /// after the next cycle's frame counter step.
+  bool _lengthWritePending = false;
+
+  static const _lengthRegisters = {
+    0x4000,
+    0x4003,
+    0x4004,
+    0x4007,
+    0x4008,
+    0x400b,
+    0x400c,
+    0x400f,
+  };
+
   int _pulse1Samples = 0;
   int _pulse2Samples = 0;
   int _triangleSamples = 0;
@@ -148,6 +163,12 @@ class APU {
     noise.state = state.noiseState;
     dmc.state = state.dmcState;
 
+    _lengthWritePending =
+        pulse1.lengthCounter.hasPendingWrites ||
+        pulse2.lengthCounter.hasPendingWrites ||
+        triangle.lengthCounter.hasPendingWrites ||
+        noise.lengthCounter.hasPendingWrites;
+
     _dmcIrqAsserted = dmc.interrupt;
 
     if (dmc.interrupt) {
@@ -191,6 +212,10 @@ class APU {
   }
 
   void writeRegister(int address, int value) {
+    if (_lengthRegisters.contains(address)) {
+      _lengthWritePending = true;
+    }
+
     switch (address) {
       case 0x4000:
         pulse1.writeControl(value);
@@ -252,11 +277,22 @@ class APU {
 
     _frameCounter.reset();
 
+    _lengthWritePending = false;
+
     pulse1.reset();
     pulse2.reset();
     triangle.reset();
     noise.reset();
     dmc.reset();
+  }
+
+  void _applyLengthWrites() {
+    pulse1.applyPendingLengthWrites();
+    pulse2.applyPendingLengthWrites();
+    triangle.applyPendingLengthWrites();
+    noise.applyPendingLengthWrites();
+
+    _lengthWritePending = false;
   }
 
   void softReset() {
@@ -273,6 +309,10 @@ class APU {
     triangle.step();
     dmc.step();
     _frameCounter.step();
+
+    if (_lengthWritePending) {
+      _applyLengthWrites();
+    }
 
     if (cycles.isEven) {
       // other channels are stepped every other CPU cycle

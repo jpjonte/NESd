@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - The web version now has sound on plain HTTP
+- Fixed APU length counter halt and reload write timing
+- Fixed DMC DMA idle cycle reads
+- Fixed the sprite overflow flag set timing
 
 ## [0.19.0] - 2026-09-06
 
