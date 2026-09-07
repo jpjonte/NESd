@@ -34,12 +34,14 @@ class NesdAudio implements NesdAudioBackend {
   /// seen plus [recoverSamples] of margin (capped at capacity).
   /// [nullDevice] selects a timer-driven fake device that consumes
   /// samples in real time without touching audio hardware.
+  /// [worklet] only matters on web and is ignored here.
   factory NesdAudio.open({
     required int sampleRate,
     required int channels,
     required int bufferSamples,
     required int recoverSamples,
     bool nullDevice = false,
+    bool worklet = true,
   }) {
     final bindings = _Bindings(_load());
 
