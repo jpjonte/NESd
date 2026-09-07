@@ -145,6 +145,7 @@ class FilePicker extends ConsumerWidget {
             },
             child: FocusChild(
               autofocus: true,
+              wrapAround: true,
               child: Column(
                 children: [
                   DirectoryPickerButton(onChangeDirectory: onChangeDirectory),

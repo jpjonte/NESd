@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - The main menu now dims and shows a spinner on the tile while its ROM loads
 - Keyboard and gamepad navigation now skips the back button in menus
+- Menu navigation now wraps around
 
 ### Fixed
 - Battery saves, save states and thumbnails now follow a renamed ROM file

@@ -49,6 +49,36 @@ Future<void> _quit(Robot r) async {
 }
 
 void main() {
+  testWidgets('moving up from the first entry wraps to the last', (
+    tester,
+  ) async {
+    final r = await _openMenu(tester);
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    r.sendInputAction(inputUp);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, _entries.last), isTrue);
+
+    await _quit(r);
+  });
+
+  testWidgets('moving down from the last entry wraps to the first', (
+    tester,
+  ) async {
+    final r = await _openMenu(tester);
+
+    await r.menuScreen.expectAndFocus(_entries.last);
+
+    r.sendInputAction(inputDown);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    await _quit(r);
+  });
+
   testWidgets('the back button never takes focus', (tester) async {
     final r = await _openMenu(tester);
 

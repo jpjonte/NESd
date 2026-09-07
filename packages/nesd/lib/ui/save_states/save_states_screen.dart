@@ -116,6 +116,7 @@ class SaveStatesScreen extends HookConsumerWidget {
         child: NesdMenuWrapper(
           child: FocusChild(
             autofocus: true,
+            wrapAround: true,
             child: PaginatedGrid(
               children: [
                 if (nextOpenSlot < 10 && nesController.isOn)
