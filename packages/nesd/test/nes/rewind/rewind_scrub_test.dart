@@ -423,6 +423,9 @@ void main() {
 
     await waitUntil(() => nes.scrubSettled, 'the scrub walk to settle');
 
+    // wait for a stable state
+    await flushMicrotasks();
+
     final drainedAtSettle = session.drained;
     final framesAtSettle = session.frames;
 
