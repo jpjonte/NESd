@@ -112,8 +112,12 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 ### Desktop
 
 <img src="docs/list.png" style="width: 100%;" />
-<img src="docs/Micro%20Machines.png" style="width: 49%" /> <img src="docs/Marble%20Madness.png" style="width: 49%" />
-<img src="docs/Recca.png" style="width: 49%" /> <img src="docs/filters.png" style="width: 49%" />
+<p align="center">
+    <img src="docs/Micro%20Machines.png" style="width: 49%" /> <img src="docs/Marble%20Madness.png" style="width: 49%" />
+</p>
+<p align="center">
+    <img src="docs/Recca.png" style="width: 49%" /> <img src="docs/filters.png" style="width: 49%" />
+</p>
 <img src="docs/rewind.png" style="width: 100%;" />
 <img src="docs/controls.png" style="width: 100%;" />
 <img src="docs/save_states.png" style="width: 100%;" />
