@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
@@ -24,7 +25,7 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           title,
           style: TextStyle(

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/log/log_actions.dart';
@@ -47,7 +48,7 @@ class LogScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           'Log',
           style: TextStyle(

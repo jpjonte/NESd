@@ -9,6 +9,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/dividers.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
@@ -38,7 +39,7 @@ class MenuScreen extends ConsumerWidget {
 
     return NesdScaffold(
       backgroundColor: Colors.black.withAlpha(200),
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           'NESd',
           style: TextStyle(
