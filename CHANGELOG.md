@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Auto save now also saves when quitting a game, quitting NESd, or sending it to the background
 
+### Changed
+- The main menu now dims and shows a spinner on the tile while its ROM loads
+
 ### Fixed
 - Battery saves, save states and thumbnails now follow a renamed ROM file
 - Two ROMs with the same file name no longer share their saves and save states

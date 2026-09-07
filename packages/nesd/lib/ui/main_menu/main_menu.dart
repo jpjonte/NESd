@@ -11,6 +11,7 @@ import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -40,12 +41,17 @@ class InitialRom extends _$InitialRom {
 class MainMenu extends HookConsumerWidget {
   const MainMenu({super.key});
 
+  static const dimDuration = Duration(milliseconds: 200);
+
+  static const dimKey = Key('mainMenuDim');
   static const openRomKey = Key('openRom');
   static const settingsKey = Key('settings');
   static const quitKey = Key('quit');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final startingRom = useState<RomInfo?>(null);
+
     useEffect(() {
       final subscription = ref.listenManual(initialRomProvider, (
         _,
@@ -59,29 +65,38 @@ class MainMenu extends HookConsumerWidget {
       return subscription.close;
     }, const []);
 
+    final starting = startingRom.value != null;
+
     return FocusChild(
       autofocus: true,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Flexible(child: RecentRomList()),
-            OverflowBar(
-              alignment: MainAxisAlignment.center,
-              overflowAlignment: OverflowBarAlignment.center,
-              spacing: 16,
-              overflowSpacing: 16,
+      child: AbsorbPointer(
+        absorbing: starting,
+        child: AnimatedOpacity(
+          key: dimKey,
+          opacity: starting ? 0.5 : 1,
+          duration: dimDuration,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const OpenRomButton(key: openRomKey),
-                const SettingsButton(key: settingsKey),
-                // Can't quit on web, and Android apps background instead of
-                // quitting.
-                if (!kIsWeb && defaultTargetPlatform != TargetPlatform.android)
-                  const QuitButton(key: quitKey),
+                Flexible(child: RecentRomList(startingRom: startingRom)),
+                OverflowBar(
+                  alignment: MainAxisAlignment.center,
+                  overflowAlignment: OverflowBarAlignment.center,
+                  spacing: 16,
+                  overflowSpacing: 16,
+                  children: [
+                    const OpenRomButton(key: openRomKey),
+                    const SettingsButton(key: settingsKey),
+                    if (!kIsWeb &&
+                        defaultTargetPlatform != TargetPlatform.android)
+                      const QuitButton(key: quitKey),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
