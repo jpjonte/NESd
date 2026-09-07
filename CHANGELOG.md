@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- Battery saves, save states and thumbnails now follow a renamed ROM file
+- Two ROMs with the same file name no longer share their saves and save states
 - The web version now has sound on plain HTTP
 - Fixed APU length counter halt and reload write timing
 - Fixed DMC DMA idle cycle reads

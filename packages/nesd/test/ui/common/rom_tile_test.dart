@@ -110,7 +110,7 @@ void main() {
 
     test('returns null for a file that cannot be decoded', () async {
       await storage.write(
-        manager.thumbnailPath(romInfo),
+        await manager.thumbnailPath(romInfo),
         Uint8List.fromList([0, 1, 2, 3]),
       );
 

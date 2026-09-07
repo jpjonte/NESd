@@ -89,6 +89,8 @@ class LatestSaveState {
 class RomManager {
   static const directoryName = 'NESd';
 
+  static const _hashTagLength = 12;
+
   RomManager({
     required this.baseDirectory,
     required this.storage,
@@ -120,6 +122,8 @@ class RomManager {
   @visibleForTesting
   Future<void> get initialized => _initialized;
 
+  final _stems = <String, String>{};
+
   final thumbnailRevision = ValueNotifier<int>(0);
 
   void dispose() => thumbnailRevision.dispose();
@@ -127,20 +131,20 @@ class RomManager {
   Future<void> save(RomInfo romInfo, Uint8List data) async {
     await _ensureInitialized();
 
-    await storage.write(_getFilename('saves', romInfo, '.sav'), data);
+    await storage.write(await _getFilename('saves', romInfo, '.sav'), data);
   }
 
   Future<Uint8List?> load(RomInfo romInfo) async {
     await _ensureInitialized();
 
-    return storage.read(_getFilename('saves', romInfo, '.sav'));
+    return storage.read(await _getFilename('saves', romInfo, '.sav'));
   }
 
   Future<void> saveState(RomInfo romInfo, int slot, List<int> data) async {
     await _ensureInitialized();
 
     await storage.write(
-      _stateFilename(romInfo, slot),
+      await _stateFilename(romInfo, slot),
       Uint8List.fromList(data),
     );
   }
@@ -148,7 +152,7 @@ class RomManager {
   Future<Uint8List?> loadState(RomInfo romInfo, int slot) async {
     await _ensureInitialized();
 
-    return storage.read(_stateFilename(romInfo, slot));
+    return storage.read(await _stateFilename(romInfo, slot));
   }
 
   Future<LatestSaveState?> loadLatestState(RomInfo romInfo) async {
@@ -159,7 +163,7 @@ class RomManager {
 
     for (var slot = 0; slot < 10; slot++) {
       final modified = await storage.lastModified(
-        _stateFilename(romInfo, slot),
+        await _stateFilename(romInfo, slot),
       );
 
       if (modified == null) {
@@ -176,7 +180,7 @@ class RomManager {
       return null;
     }
 
-    final data = await storage.read(_stateFilename(romInfo, newestSlot));
+    final data = await storage.read(await _stateFilename(romInfo, newestSlot));
 
     if (data == null) {
       return null;
@@ -198,7 +202,7 @@ class RomManager {
     await _ensureInitialized();
 
     final stamp = DateFormat('yyyyMMdd-HHmmss').format(state.modified);
-    final path = _getFilename(
+    final path = await _getFilename(
       'states',
       romInfo,
       '.${state.slot}.$stamp.state.unreadable',
@@ -229,18 +233,18 @@ class RomManager {
     // PNG encode stays synchronous: one-shot at stop(), not a hot path
     final png = img.encodePng(image);
 
-    await storage.write(thumbnailPath(romInfo), Uint8List.fromList(png));
+    await storage.write(await thumbnailPath(romInfo), Uint8List.fromList(png));
 
     thumbnailRevision.value++;
   }
 
-  String thumbnailPath(RomInfo romInfo) =>
+  Future<String> thumbnailPath(RomInfo romInfo) =>
       _getFilename('thumbnails', romInfo, '.png');
 
   Future<Uint8List?> readThumbnail(RomInfo romInfo) async {
     await _ensureInitialized();
 
-    return storage.read(thumbnailPath(romInfo));
+    return storage.read(await thumbnailPath(romInfo));
   }
 
   // the tile loads the thumbnail itself, so building the ROM list needs no
@@ -254,7 +258,7 @@ class RomManager {
   Future<RomTileData?> getRomTileDataForSlot(RomInfo romInfo, int slot) async {
     await _ensureInitialized();
 
-    final path = _stateFilename(romInfo, slot);
+    final path = await _stateFilename(romInfo, slot);
 
     final data = await storage.read(path);
 
@@ -306,7 +310,7 @@ class RomManager {
       return;
     }
 
-    await storage.delete(_stateFilename(romTileData.romInfo, slot));
+    await storage.delete(await _stateFilename(romTileData.romInfo, slot));
   }
 
   Future<void> _initialize() async {
@@ -364,14 +368,108 @@ class RomManager {
 
   String _getDirectory(String component) => p.join(baseDirectory, component);
 
-  String _stateFilename(RomInfo romInfo, int slot) =>
+  Future<String> _stateFilename(RomInfo romInfo, int slot) =>
       _getFilename('states', romInfo, '.$slot.state');
 
-  String _getFilename(String component, RomInfo romInfo, String extension) {
-    final romName = p.basename(romInfo.file.path);
-    final newFilename = p.setExtension(romName, extension);
-    final fullPath = p.join(_getDirectory(component), newFilename);
+  Future<String> _getFilename(
+    String component,
+    RomInfo romInfo,
+    String extension,
+  ) async {
+    final stem = await _resolveStem(component, romInfo);
 
-    return fullPath;
+    return p.join(_getDirectory(component), '$stem$extension');
+  }
+
+  Future<String> _resolveStem(String component, RomInfo romInfo) async {
+    final name = p.basenameWithoutExtension(romInfo.file.name);
+    final tag = _hashTag(romInfo);
+
+    if (tag == null) {
+      return name;
+    }
+
+    final key = '$component$tag';
+    final cached = _stems[key];
+
+    if (cached != null) {
+      return cached;
+    }
+
+    final names = (await storage.list(
+      _getDirectory(component),
+    )).map(p.basename).toList();
+
+    final tagged = _taggedStem(names, tag);
+
+    if (tagged != null) {
+      return _stems[key] = tagged;
+    }
+
+    final stem = '$name$tag';
+
+    await _adoptLegacyFiles(component, romInfo, names, stem);
+
+    return _stems[key] = stem;
+  }
+
+  String? _taggedStem(List<String> names, String tag) {
+    for (final name in names) {
+      final index = name.indexOf(tag);
+
+      if (index != -1) {
+        return name.substring(0, index + tag.length);
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> _adoptLegacyFiles(
+    String component,
+    RomInfo romInfo,
+    List<String> names,
+    String stem,
+  ) async {
+    final directory = _getDirectory(component);
+
+    for (final legacy in _legacyStems(romInfo)) {
+      final matches = names.where((name) => name.startsWith('$legacy.'));
+
+      if (matches.isEmpty) {
+        continue;
+      }
+
+      for (final name in matches) {
+        final data = await storage.read(p.join(directory, name));
+
+        if (data == null) {
+          continue;
+        }
+
+        final adopted = '$stem${name.substring(legacy.length)}';
+
+        await storage.write(p.join(directory, adopted), data);
+        await storage.delete(p.join(directory, name));
+      }
+
+      // the first candidate that matched owns the files
+      return;
+    }
+  }
+
+  Set<String> _legacyStems(RomInfo romInfo) => {
+    p.basenameWithoutExtension(romInfo.file.path),
+    p.basenameWithoutExtension(romInfo.file.name),
+  };
+
+  String? _hashTag(RomInfo romInfo) {
+    final hash = romInfo.romHash;
+
+    if (hash == null || hash.length < _hashTagLength) {
+      return null;
+    }
+
+    return ' [${hash.substring(0, _hashTagLength)}]';
   }
 }

@@ -199,6 +199,128 @@ void main() {
     expect(manager.getRomTileData(romInfo).thumbnail, isA<StoredThumbnail>());
   });
 
+  group('hash-keyed files', () {
+    const hash = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678';
+    const tag = 'a1b2c3d4e5f6';
+
+    const hashed = RomInfo(
+      file: FilesystemFile(
+        path: '/nesd/roms/game.nes',
+        name: 'game.nes',
+        type: FilesystemFileType.file,
+      ),
+      romHash: hash,
+    );
+
+    const renamed = RomInfo(
+      file: FilesystemFile(
+        path: '/nesd/roms/The Game (USA).nes',
+        name: 'The Game (USA).nes',
+        type: FilesystemFileType.file,
+      ),
+      romHash: hash,
+    );
+
+    test('a renamed ROM still finds its SRAM', () async {
+      await manager.save(hashed, Uint8List.fromList([9, 9]));
+
+      expect(await manager.load(renamed), [9, 9]);
+    });
+
+    test('a save from the name-keyed layout is adopted', () async {
+      await storage.write('/nesd/saves/game.sav', Uint8List.fromList([1, 2]));
+
+      expect(await manager.load(hashed), [1, 2]);
+      expect(await storage.read('/nesd/saves/game.sav'), isNull);
+      expect(await storage.read('/nesd/saves/game [$tag].sav'), [1, 2]);
+    });
+
+    test('a ROM without a usable hash keeps the plain name', () async {
+      const unhashed = RomInfo(
+        file: FilesystemFile(
+          path: '/nesd/roms/game.nes',
+          name: 'game.nes',
+          type: FilesystemFileType.file,
+        ),
+        romHash: 'abc',
+      );
+
+      await manager.save(unhashed, Uint8List.fromList([4]));
+
+      expect(await storage.read('/nesd/saves/game.sav'), [4]);
+    });
+
+    test('two ROMs sharing a name keep separate saves', () async {
+      const japan = RomInfo(
+        file: FilesystemFile(
+          path: '/nesd/roms/jp/game.nes',
+          name: 'game.nes',
+          type: FilesystemFileType.file,
+        ),
+        romHash: '0f1e2d3c4b5a69788796a5b4c3d2e1f001234567',
+      );
+
+      await manager.save(hashed, Uint8List.fromList([1]));
+      await manager.save(japan, Uint8List.fromList([2]));
+
+      expect(await manager.load(hashed), [1]);
+      expect(await manager.load(japan), [2]);
+    });
+
+    test('an archived ROM is named after the entry', () async {
+      const archived = RomInfo(
+        file: FilesystemFile(
+          path: '/nesd/roms/collection.zip:game.nes',
+          name: 'game.nes',
+          type: FilesystemFileType.file,
+        ),
+        romHash: hash,
+      );
+
+      await manager.save(archived, Uint8List.fromList([5]));
+
+      expect(await storage.read('/nesd/saves/game [$tag].sav'), [5]);
+    });
+
+    test('a save from the archive-keyed layout is adopted', () async {
+      const archived = RomInfo(
+        file: FilesystemFile(
+          path: '/nesd/roms/collection.zip:game.nes',
+          name: 'other.nes',
+          type: FilesystemFileType.file,
+        ),
+        romHash: hash,
+      );
+
+      await storage.write(
+        '/nesd/saves/collection.zip:game.sav',
+        Uint8List.fromList([6]),
+      );
+
+      expect(await manager.load(archived), [6]);
+      expect(await storage.read('/nesd/saves/collection.zip:game.sav'), isNull);
+    });
+
+    test('adoption takes the other slots and backups along', () async {
+      await storage.write('/nesd/states/game.0.state', Uint8List.fromList([0]));
+      await storage.write('/nesd/states/game.3.state', Uint8List.fromList([3]));
+      await storage.write(
+        '/nesd/states/game.0.20260904-183012.state.unreadable',
+        Uint8List.fromList([9]),
+      );
+
+      expect(await manager.loadState(hashed, 3), [3]);
+      expect(await manager.loadState(hashed, 0), [0]);
+      expect(
+        await storage.read(
+          '/nesd/states/game [$tag].0.20260904-183012.state.unreadable',
+        ),
+        [9],
+      );
+      expect(await storage.list('/nesd/states'), hasLength(3));
+    });
+  });
+
   test('legacy flat files are migrated into their subdirectory', () async {
     final storage = await WebStorageFilesystem.open(newIdbFactoryMemory());
 
