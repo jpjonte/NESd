@@ -9,6 +9,7 @@ import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/router/router_observer.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
+import '../mocks.dart';
 import '../robot.dart';
 import 'rom_load_helper.dart';
 
@@ -37,7 +38,14 @@ void main() {
       },
     );
 
-    unawaited(r.container.read(nesControllerProvider).startRom(_collection));
+    bool? started;
+
+    unawaited(
+      r.container
+          .read(nesControllerProvider)
+          .startRom(_collection)
+          .then((value) => started = value),
+    );
 
     await r.waitUntil(
       () => r.container.read(currentRouteProvider) == FilePickerRoute.name,
@@ -51,7 +59,9 @@ void main() {
     await r.waitUntil(
       () => r.container.read(currentRouteProvider) == EmulatorRoute.name,
     );
+    await r.waitUntil(() => started != null);
 
+    expect(started, isTrue);
     expect(
       r.container.read(nesStateProvider)!.romInfo.file.path,
       '${_collection.path}:beta.nes',
@@ -61,6 +71,47 @@ void main() {
     await r.emulator.tapMenu();
     await r.menuScreen.tapQuitGame();
     await r.waitUntil(() => r.container.read(nesStateProvider) == null);
+  });
+
+  testWidgets('an entry that fails to load keeps the archive picker open', (
+    tester,
+  ) async {
+    final r = Robot(tester);
+
+    await r.pumpApp(
+      extraFiles: {
+        _collection.path: zipOf({
+          'alpha.nes': nestestBytes(),
+          'unsupported.nes': unsupportedMapperRom(),
+        }),
+      },
+    );
+
+    bool? started;
+
+    unawaited(
+      r.container
+          .read(nesControllerProvider)
+          .startRom(_collection)
+          .then((value) => started = value),
+    );
+
+    await r.waitUntil(
+      () => r.container.read(currentRouteProvider) == FilePickerRoute.name,
+    );
+
+    await r.filePickerScreen.tapFile('unsupported.nes');
+    await r.fixAsync();
+
+    expect(started, isNull);
+    expect(r.container.read(nesStateProvider), isNull);
+    expect(r.container.read(currentRouteProvider), FilePickerRoute.name);
+    expect(_errors(r), contains(contains('Unsupported mapper')));
+
+    await r.goBack();
+    await r.waitUntil(() => started != null);
+
+    expect(started, isFalse);
   });
 
   testWidgets('backing out of the archive picker starts nothing', (

@@ -406,14 +406,30 @@ class NesController {
     Uint8List? data,
     bool suspended = false,
   }) async {
-    final rom = data != null ? file : await _resolveArchiveEntry(file);
+    Future<bool> start(FilesystemFile rom) => _startRom(
+      rom,
+      stateBytes: stateBytes,
+      data: data,
+      suspended: suspended,
+    );
 
-    if (rom == null) {
-      return false;
+    if (data == null &&
+        isArchiveFile(file.path) &&
+        await _holdsSeveralRoms(file)) {
+      return _pickArchiveEntry(file, start);
     }
 
+    return start(file);
+  }
+
+  Future<bool> _startRom(
+    FilesystemFile file, {
+    Uint8List? stateBytes,
+    Uint8List? data,
+    bool suspended = false,
+  }) async {
     final loaded = await loadRom(
-      rom,
+      file,
       stateBytes: stateBytes,
       data: data,
       suspended: suspended,
@@ -430,19 +446,23 @@ class NesController {
     return true;
   }
 
-  Future<FilesystemFile?> _resolveArchiveEntry(FilesystemFile file) async {
-    if (!isArchiveFile(file.path) || !await _holdsSeveralRoms(file)) {
-      return file;
-    }
+  Future<bool> _pickArchiveEntry(
+    FilesystemFile archive,
+    Future<bool> Function(FilesystemFile) start,
+  ) async {
+    var started = false;
 
-    return router.push<FilesystemFile?>(
+    await router.push(
       FilePickerRoute(
         title: 'Select a ROM',
-        initialDirectory: file,
+        initialDirectory: archive,
         type: FilePickerType.file,
         allowedExtensions: romPickerExtensions,
+        onSelect: (entry) async => started = await start(entry),
       ),
     );
+
+    return started;
   }
 
   Future<bool> _holdsSeveralRoms(FilesystemFile file) async {
