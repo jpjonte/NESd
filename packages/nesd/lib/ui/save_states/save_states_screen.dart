@@ -10,6 +10,7 @@ import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
+import 'package:nesd/ui/common/paginated_grid_controller.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
@@ -27,6 +28,8 @@ class SaveStatesScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nesController = ref.watch(nesControllerProvider);
     final controller = ref.watch(saveStatesScreenControllerProvider(romInfo));
+
+    final gridController = usePaginatedGridController();
 
     final statesSnapshot = useStream(controller.stream);
 
@@ -102,49 +105,55 @@ class SaveStatesScreen extends HookConsumerWidget {
       slot: nextOpenSlot,
     );
 
-    return NesdScaffold(
-      appBar: NesdAppBar(
-        title: Text(
-          'Save States - ${p.basenameWithoutExtension(romInfo.file.name)}',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontVariations: const [FontVariation.weight(700)],
+    return PaginatedGridActions(
+      controller: gridController,
+      child: NesdScaffold(
+        appBar: NesdAppBar(
+          title: Text(
+            'Save States - ${p.basenameWithoutExtension(romInfo.file.name)}',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontVariations: const [FontVariation.weight(700)],
+            ),
           ),
         ),
-      ),
-      body: Center(
-        child: NesdMenuWrapper(
-          child: FocusChild(
-            autofocus: true,
-            wrapAround: true,
-            child: PaginatedGrid(
-              children: [
-                if (nextOpenSlot < 10 && nesController.isOn)
-                  RomTile(
-                    romTileData: saveRomTileData,
-                    onPressed: () {
-                      controller.save(saveRomTileData);
+        body: Center(
+          child: NesdMenuWrapper(
+            child: FocusChild(
+              autofocus: true,
+              wrapAround: true,
+              child: PaginatedGrid(
+                controller: gridController,
+                children: [
+                  if (nextOpenSlot < 10 && nesController.isOn)
+                    RomTile(
+                      romTileData: saveRomTileData,
+                      onPressed: () {
+                        controller.save(saveRomTileData);
 
-                      ref.read(routerProvider).navigate(const EmulatorRoute());
-                    },
-                  ),
-                for (final romTileData in states)
-                  RomTile(
-                    romTileData: romTileData,
-                    onPressed: onSaveStatePressed(romTileData),
-                    onRemove: () async => await delete(context, romTileData),
-                    contextMenuBuilder: (context, close) => [
-                      ListTile(
-                        title: const Text('Delete save state'),
-                        onTap: () async {
-                          close();
+                        ref
+                            .read(routerProvider)
+                            .navigate(const EmulatorRoute());
+                      },
+                    ),
+                  for (final romTileData in states)
+                    RomTile(
+                      romTileData: romTileData,
+                      onPressed: onSaveStatePressed(romTileData),
+                      onRemove: () async => await delete(context, romTileData),
+                      contextMenuBuilder: (context, close) => [
+                        ListTile(
+                          title: const Text('Delete save state'),
+                          onTap: () async {
+                            close();
 
-                          await delete(context, romTileData);
-                        },
-                      ),
-                    ],
-                  ),
-              ],
+                            await delete(context, romTileData);
+                          },
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),

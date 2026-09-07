@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
@@ -52,6 +54,66 @@ Future<Robot> _openPickerWithUnreadableSlot(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('the tab actions page the save state grid', (tester) async {
+    final r = Robot(tester)
+      ..initSettings({
+        'recentRoms': [
+          {
+            'file': {
+              'path': '/test/roms/nestest.nes',
+              'name': '/test/roms/nestest.nes',
+              'type': 'file',
+            },
+          },
+        ],
+      });
+
+    await r.pumpApp(
+      storage: MemoryStorageFilesystem(),
+      logicalSize: const Size(700, 500),
+    );
+
+    for (final slot in [1, 2, 3]) {
+      await r.container.read(romManagerProvider).saveState(_romInfo, slot, [
+        0x4e,
+        0x45,
+        0x53,
+        0x64,
+        0,
+        0,
+        9,
+      ]);
+    }
+
+    await r.mainMenu.openFirstRomTileContextMenu();
+    await r.mainMenu.tapSaveStatesContextMenuEntry();
+
+    Focus.of(
+      tester.element(
+        find
+            .descendant(
+              of: find.byType(BackButton),
+              matching: find.byType(Icon),
+            )
+            .first,
+      ),
+    ).requestFocus();
+
+    await tester.pumpAndSettle();
+
+    final firstPage = r.saveStates.visibleRomTitles();
+
+    expect(firstPage, isNotEmpty);
+
+    r.sendInputAction(nextTab);
+    await tester.pumpAndSettle();
+
+    final secondPage = r.saveStates.visibleRomTitles();
+
+    expect(secondPage, isNotEmpty);
+    expect(secondPage.toSet().intersection(firstPage.toSet()), isEmpty);
+  });
+
   testWidgets('an unreadable slot is shown as such', (tester) async {
     final r = await _openPickerWithUnreadableSlot(tester);
 
