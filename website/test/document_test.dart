@@ -74,4 +74,16 @@ void main() {
 
     expect(html, contains('og:image:alt'));
   });
+
+  test('every page loads the visit counter once, deferred', () async {
+    final tag = RegExp('<script[^>]*src="/js/visit.js"[^>]*>');
+
+    for (final path in ['/', '/privacy']) {
+      final html = await _renderPage(path);
+      final matches = tag.allMatches(html).toList();
+
+      expect(matches, hasLength(1), reason: 'on $path');
+      expect(matches.single.group(0), contains('defer'), reason: 'on $path');
+    }
+  });
 }
