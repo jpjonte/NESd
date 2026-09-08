@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/logo.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
+import 'package:nesd/ui/common/paginated_grid_controller.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -14,8 +15,13 @@ import 'package:nesd/ui/settings/settings.dart';
 class RecentRomList extends HookConsumerWidget {
   static const logoKey = Key('logo');
 
-  const RecentRomList({required this.startingRom, super.key});
+  const RecentRomList({
+    required this.gridController,
+    required this.startingRom,
+    super.key,
+  });
 
+  final PaginatedGridController gridController;
   final ValueNotifier<RomInfo?> startingRom;
 
   @override
@@ -67,6 +73,7 @@ class RecentRomList extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: PaginatedGrid(
+        controller: gridController,
         children: [
           for (final romTileData in roms)
             RomTile(
