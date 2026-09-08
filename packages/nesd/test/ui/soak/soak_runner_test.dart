@@ -7,6 +7,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/log/log_sink.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/soak/soak_config.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -16,6 +17,8 @@ import 'package:nesd/ui/soak/soak_runner.dart';
 import '../mocks.dart';
 
 class _MockNesController extends Mock implements NesController {}
+
+class _MockAppController extends Mock implements AppController {}
 
 class _MockRemoteNes extends Mock implements RemoteNes {}
 
@@ -32,6 +35,7 @@ class _RecordingSink extends LogSink {
 
 void main() {
   late _MockNesController controller;
+  late _MockAppController appController;
   late _MockRemoteNes nes;
   late _MockRouter router;
   late StreamController<NesIsolateEvent> events;
@@ -54,6 +58,7 @@ void main() {
     SoakRunner.resetLaunchGuardForTesting();
 
     controller = _MockNesController();
+    appController = _MockAppController();
     nes = _MockRemoteNes();
     router = _MockRouter();
     events = StreamController<NesIsolateEvent>.broadcast();
@@ -92,6 +97,7 @@ void main() {
         dirPath: dir.path,
       ),
       controller: controller,
+      appController: appController,
       router: router,
       waitForFirstFrame: () async {},
       exitApp: exitCodes.add,
@@ -101,7 +107,7 @@ void main() {
   test('keeps the emulator running when the window loses focus', () async {
     await runner(pcm: false).run();
 
-    verify(() => controller.lifeCycleListenerEnabled = false).called(1);
+    verify(() => appController.suspendWhenHidden = false).called(1);
   });
 
   test('a second runner instance in the same process does not run', () async {

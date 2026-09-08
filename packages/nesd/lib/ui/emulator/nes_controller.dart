@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
@@ -83,7 +82,7 @@ NesController nesController(Ref ref) {
     romImporter: ref.watch(romImporterProvider),
   );
 
-  ref.onDispose(controller._dispose);
+  ref.onDispose(controller.dispose);
 
   final autoSaveSubscription = ref.listen(
     settingsControllerProvider.select(
@@ -209,14 +208,7 @@ class NesController {
     required this.romImporter,
     this.romLoadTimeout = const Duration(seconds: 10),
     this.rewindSupported = Features.rewind,
-  }) {
-    _lifecycleListener = AppLifecycleListener(
-      onPause: _appSuspended,
-      onInactive: _appSuspended,
-      onShow: _appSuspended,
-      onResume: _appResumed,
-    );
-  }
+  });
 
   final NesState nesState;
 
@@ -243,10 +235,6 @@ class NesController {
   final bool rewindSupported;
 
   RemoteNes? get nes => nesState.nes;
-
-  late final AppLifecycleListener _lifecycleListener;
-
-  bool lifeCycleListenerEnabled = true;
 
   bool _emulatorActive = false;
 
@@ -366,13 +354,13 @@ class NesController {
 
       toaster.send(Toast.error('Failed to import ROM: $e'));
 
-      _applyRunState();
+      applyRunState();
 
       return;
     }
 
     if (file == null) {
-      _applyRunState();
+      applyRunState();
 
       return;
     }
@@ -380,7 +368,7 @@ class NesController {
     final started = await startRom(file);
 
     if (!started) {
-      _applyRunState();
+      applyRunState();
     }
   }
 
@@ -603,7 +591,7 @@ class NesController {
       // The NES that existed when the active-screen signal last changed was
       // a different one (or none at all), so apply the current run state to
       // the instance that just came up.
-      _applyRunState();
+      applyRunState();
     } on PathNotFoundException {
       log.rom.warning('ROM file not found', context: {'path': file.path});
 
@@ -735,24 +723,11 @@ class NesController {
     }
   }
 
-  void _dispose() {
+  void dispose() {
     _autoSaveTimer?.cancel();
-    _lifecycleListener.dispose();
 
     unawaited(_eventSubscription?.cancel());
     unawaited(_isolate?.dispose());
-  }
-
-  void _appSuspended() {
-    if (lifeCycleListenerEnabled) {
-      suspend();
-    }
-  }
-
-  void _appResumed() {
-    if (lifeCycleListenerEnabled) {
-      _applyRunState();
-    }
   }
 
   void setAutoSave({required bool enabled, required int? interval}) {
@@ -808,12 +783,11 @@ class NesController {
   // ignore: avoid_setters_without_getters
   set emulatorActive(bool value) {
     _emulatorActive = value;
-    lifeCycleListenerEnabled = value;
 
-    _applyRunState();
+    applyRunState();
   }
 
-  void _applyRunState() {
+  void applyRunState() {
     if (_emulatorActive) {
       resume();
 

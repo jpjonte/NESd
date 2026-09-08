@@ -146,4 +146,4 @@ final class NesControllerProvider
   }
 }
 
-String _$nesControllerHash() => r'0215c742607c68a3843ba3da6dd7a1290a2f7d66';
+String _$nesControllerHash() => r'37d7a9f060d15045be20af53a568ea4ec20523fa';

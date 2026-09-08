@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
@@ -42,6 +43,7 @@ class _NesdAppState extends ConsumerState<NesdApp> {
   @override
   Widget build(BuildContext context) {
     ref
+      ..watch(appControllerProvider)
       ..watch(soakRunnerProvider)
       ..watch(actionHandlerProvider)
       ..watch(gamepadInputHandlerProvider)
