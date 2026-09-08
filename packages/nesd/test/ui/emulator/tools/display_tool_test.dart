@@ -12,7 +12,7 @@ import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
-import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling.dart';

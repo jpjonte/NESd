@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
-import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_list.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_page.dart';

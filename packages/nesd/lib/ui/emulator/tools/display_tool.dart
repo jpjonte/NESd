@@ -6,7 +6,7 @@ import 'package:nesd/ui/settings/graphics/border_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/overscan_sliders.dart';
-import 'package:nesd/ui/settings/graphics/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';

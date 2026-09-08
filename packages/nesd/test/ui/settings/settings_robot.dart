@@ -6,7 +6,7 @@ import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
-import 'package:nesd/ui/settings/graphics/palette_import_button.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_import_button.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_list.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_page.dart';
