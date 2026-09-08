@@ -143,7 +143,6 @@ void main() {
     RemoteNes build({Duration? requestTimeout}) => RemoteNes(
       isolate: handle,
       romInfo: testRomInfo(),
-      fileHash: 'abc123',
       hasZapper: true,
       cartridgeInfo: testCartridgeInfo(),
       requestTimeout: requestTimeout ?? const Duration(seconds: 5),
@@ -152,7 +151,6 @@ void main() {
     test('exposes constructor fields', () {
       final remote = build();
 
-      expect(remote.fileHash, 'abc123');
       expect(remote.hasZapper, isTrue);
       expect(remote.romInfo.file.name, 'test.nes');
 
@@ -534,7 +532,6 @@ void main() {
       final nes = RemoteNes(
         isolate: handle,
         romInfo: testRomInfo(),
-        fileHash: 'hash',
         hasZapper: true,
         cartridgeInfo: testCartridgeInfo(),
       );

@@ -92,7 +92,6 @@ void main() {
     remote = RemoteNes(
       isolate: handle,
       romInfo: _testRomInfo(),
-      fileHash: 'abc123',
       hasZapper: false,
       cartridgeInfo: _testCartridgeInfo(),
     );

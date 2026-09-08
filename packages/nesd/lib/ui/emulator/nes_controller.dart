@@ -505,14 +505,19 @@ class NesController {
           ? await _autoLoadState(romInfo)
           : null;
       final initialState = stateBytes ?? latestState?.data;
-      final cheats = settingsController.cheats[_cheatsKey(romInfo)] ?? const [];
+      final cheats = settingsController.cheats[romInfo.key] ?? const [];
+
+      settingsController.adoptBreakpoints(
+        legacyKey: cartridge.fileHash,
+        romHash: romInfo.key,
+      );
+
       final breakpoints =
-          settingsController.breakpoints[cartridge.fileHash] ?? const [];
+          settingsController.breakpoints[romInfo.key] ?? const [];
 
       remote = RemoteNes(
         isolate: isolate,
         romInfo: romInfo,
-        fileHash: cartridge.fileHash,
         hasZapper: databaseEntry?.hasZapper ?? false,
         cartridgeInfo: CartridgeInfo.fromCartridge(cartridge),
       );
@@ -675,8 +680,8 @@ class NesController {
         toaster.send(Toast.error(message));
       case LogEvent(:final record):
         NesdLog.instance.ingest(record);
-      case BreakpointsEvent(:final fileHash, :final breakpoints):
-        settingsController.setBreakpoints(fileHash, breakpoints);
+      case BreakpointsEvent(:final romHash, :final breakpoints):
+        settingsController.setBreakpoints(romHash, breakpoints);
       default:
         break;
     }
@@ -851,9 +856,6 @@ class NesController {
       return 'Could not keep a copy: $e';
     }
   }
-
-  String _cheatsKey(RomInfo romInfo) =>
-      romInfo.romHash ?? romInfo.hash ?? romInfo.file.name;
 
   Future<void> _autoSave() async {
     if (nes case final nes?) {

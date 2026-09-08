@@ -931,7 +931,7 @@ class NesWorker {
           DebuggerEvent(state: state, cpuMemory: NesBytes.fromList([memory])),
         ),
         onBreakpoints: (hash, breakpoints) =>
-            send(BreakpointsEvent(fileHash: hash, breakpoints: breakpoints)),
+            send(BreakpointsEvent(romHash: hash, breakpoints: breakpoints)),
         initialBreakpoints: nes.breakpoints,
       );
     }

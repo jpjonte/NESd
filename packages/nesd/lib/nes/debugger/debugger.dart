@@ -6,6 +6,7 @@ import 'package:nesd/nes/debugger/debugger_state.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
+import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -68,7 +69,7 @@ class Debugger implements DebuggerInterface {
 
     nes
       ..setDebuggerActive(true)
-      ..breakpoints = settingsController.breakpoints[nes.fileHash] ?? [];
+      ..breakpoints = settingsController.breakpoints[nes.romInfo.key] ?? [];
   }
 
   final RemoteNes nes;

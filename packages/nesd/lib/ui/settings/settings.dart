@@ -329,7 +329,7 @@ class SettingsController extends _$SettingsController {
 
   void addRecentRom(RomInfo rom) {
     final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.file.name == rom.file.name || r.hash == rom.hash)
+      ..removeWhere((r) => r.sameRom(rom))
       ..insert(0, rom);
 
     _update(state.copyWith(recentRoms: recent.toList()));
@@ -341,7 +341,7 @@ class SettingsController extends _$SettingsController {
 
   void removeRecentRom(RomInfo rom) {
     final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.file.name == rom.file.name || r.hash == rom.hash);
+      ..removeWhere((r) => r.sameRom(rom));
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
@@ -508,6 +508,22 @@ class SettingsController extends _$SettingsController {
   void setBreakpoints(String hash, List<Breakpoint> breakpoints) {
     _update(
       state.copyWith(breakpoints: {...state.breakpoints, hash: breakpoints}),
+    );
+  }
+
+  void adoptBreakpoints({required String legacyKey, required String romHash}) {
+    final legacy = state.breakpoints[legacyKey];
+
+    if (legacy == null) {
+      return;
+    }
+
+    final breakpoints = {...state.breakpoints}..remove(legacyKey);
+
+    _update(
+      state.copyWith(
+        breakpoints: {...breakpoints, romHash: breakpoints[romHash] ?? legacy},
+      ),
     );
   }
 

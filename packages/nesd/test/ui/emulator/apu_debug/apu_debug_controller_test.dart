@@ -56,7 +56,6 @@ void main() {
     nes = RemoteNes(
       isolate: handle,
       romInfo: testRomInfo(),
-      fileHash: 'hash',
       hasZapper: false,
       cartridgeInfo: testCartridgeInfo(),
     );
@@ -124,7 +123,6 @@ void main() {
       final firstNes = RemoteNes(
         isolate: handle,
         romInfo: testRomInfo(),
-        fileHash: 'first',
         hasZapper: false,
         cartridgeInfo: testCartridgeInfo(),
       );
@@ -132,7 +130,6 @@ void main() {
       final secondNes = RemoteNes(
         isolate: handle,
         romInfo: testRomInfo(),
-        fileHash: 'second',
         hasZapper: false,
         cartridgeInfo: testCartridgeInfo(),
       );

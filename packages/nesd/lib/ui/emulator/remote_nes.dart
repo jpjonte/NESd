@@ -36,7 +36,6 @@ class RemoteNes {
     // initializing formal.
     required NesIsolateHandle isolate,
     required this.romInfo,
-    required this.fileHash,
     required this.hasZapper,
     required this.cartridgeInfo,
     this.requestTimeout = const Duration(seconds: 5),
@@ -48,7 +47,6 @@ class RemoteNes {
   }
 
   final RomInfo romInfo;
-  final String fileHash;
   final bool hasZapper;
   final CartridgeInfo cartridgeInfo;
   final Duration requestTimeout;

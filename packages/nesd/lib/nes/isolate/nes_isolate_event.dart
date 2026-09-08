@@ -358,9 +358,9 @@ class ApuDebugEvent extends NesIsolateEvent {
 }
 
 class BreakpointsEvent extends NesIsolateEvent {
-  const BreakpointsEvent({required this.fileHash, required this.breakpoints});
+  const BreakpointsEvent({required this.romHash, required this.breakpoints});
 
-  final String fileHash;
+  final String romHash;
   final List<Breakpoint> breakpoints;
 }
 

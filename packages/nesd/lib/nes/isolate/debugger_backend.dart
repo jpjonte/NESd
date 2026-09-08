@@ -37,7 +37,7 @@ class DebuggerBackend {
   final EventBus eventBus;
   final DisassemblerInterface disassembler;
   final void Function(DebuggerState state, Uint8List cpuMemory) onState;
-  final void Function(String fileHash, List<Breakpoint> breakpoints)
+  final void Function(String romHash, List<Breakpoint> breakpoints)
   onBreakpoints;
 
   late final StreamSubscription<NesEvent> _subscription;
@@ -69,7 +69,7 @@ class DebuggerBackend {
   void _updateBreakpoints() {
     _state = _state.copyWith(breakpoints: nes.breakpoints);
 
-    onBreakpoints(nes.bus.cartridge.fileHash, nes.breakpoints);
+    onBreakpoints(nes.bus.cartridge.romHash, nes.breakpoints);
   }
 
   void _handleEvent(NesEvent event) {
