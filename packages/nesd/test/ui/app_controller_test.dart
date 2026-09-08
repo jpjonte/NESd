@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' hide Router;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
@@ -64,6 +67,8 @@ void main() {
   late NesController nesController;
   late AppController controller;
 
+  late List<String> events;
+
   setUp(() async {
     container = ProviderContainer();
     addTearDown(container.dispose);
@@ -90,11 +95,15 @@ void main() {
     romManager = _MockRomManager();
     toaster = _MockToaster();
 
+    events = [];
+
     when(() => romManager.load(any())).thenAnswer((_) async => null);
-    when(() => romManager.save(any(), any())).thenAnswer((_) async {});
-    when(
-      () => romManager.saveState(any(), any(), any()),
-    ).thenAnswer((_) async {});
+    when(() => romManager.save(any(), any())).thenAnswer((_) async {
+      events.add('sram');
+    });
+    when(() => romManager.saveState(any(), any(), any())).thenAnswer((_) async {
+      events.add('state');
+    });
     when(
       () => romManager.saveThumbnail(
         any(),
@@ -125,7 +134,11 @@ void main() {
 
     addTearDown(nesController.dispose);
 
-    controller = AppController(nesController: nesController);
+    controller = AppController(
+      nesController: nesController,
+      quitApp: () => events.add('quit'),
+      exitSaveTimeout: const Duration(milliseconds: 500),
+    );
 
     addTearDown(controller.dispose);
 
@@ -138,6 +151,43 @@ void main() {
         await nesController.stop();
       }
     });
+  });
+
+  Iterable<Toast> sentToasts() =>
+      verify(() => toaster.send(captureAny())).captured.whereType<Toast>();
+
+  test('quitting NESd saves before the app goes away', () async {
+    await controller.quit();
+
+    expect(events, ['sram', 'state', 'quit']);
+  });
+
+  test('a failing save still lets NESd quit', () async {
+    when(
+      () => romManager.saveState(any(), any(), any()),
+    ).thenThrow(NesdException('quota exceeded'));
+
+    await controller.quit();
+
+    expect(events, ['sram', 'quit']);
+    expect(
+      sentToasts().where(
+        (t) => t.type == ToastType.error && t.message.contains('Auto-save'),
+      ),
+      isNotEmpty,
+    );
+  });
+
+  test('a save that never finishes does not trap the app', () async {
+    final wedged = Completer<void>();
+
+    addTearDown(wedged.complete);
+
+    when(() => romManager.save(any(), any())).thenAnswer((_) => wedged.future);
+
+    await controller.quit();
+
+    expect(events, ['quit']);
   });
 
   test('losing focus suspends the emulator', () async {

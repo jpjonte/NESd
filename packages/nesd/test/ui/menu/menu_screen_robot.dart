@@ -26,6 +26,10 @@ class MenuScreenRobot extends BaseRobot {
     await goAsync(find.byKey(MenuScreen.quitGameKey));
   }
 
+  Future<void> tapQuitNesd() async {
+    await goAsync(find.byKey(MenuScreen.quitNesdKey));
+  }
+
   Future<void> tapSettings() async {
     await goAsync(find.byKey(MenuScreen.settingsKey));
   }

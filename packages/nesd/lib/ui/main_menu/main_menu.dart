@@ -7,9 +7,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
-import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
@@ -205,11 +205,14 @@ class SettingsButton extends ConsumerWidget {
   }
 }
 
-class QuitButton extends StatelessWidget {
+class QuitButton extends ConsumerWidget {
   const QuitButton({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return NesdButton(onPressed: () => quit(), child: const Text('Quit NESd'));
+  Widget build(BuildContext context, WidgetRef ref) {
+    return NesdButton(
+      onPressed: () => unawaited(ref.read(appControllerProvider).quit()),
+      child: const Text('Quit NESd'),
+    );
   }
 }

@@ -4,8 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
-import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -19,6 +19,7 @@ class MainScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(nesControllerProvider);
+    final appController = ref.read(appControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
 
     useEffect(() {
@@ -33,7 +34,7 @@ class MainScreen extends HookConsumerWidget {
 
     return PlatformMenuBar(
       menus: [
-        _mainMenu(context, controller),
+        _mainMenu(context, appController),
         _fileMenu(controller),
         _gameMenu(controller),
         _audioMenu(settingsController),
@@ -42,7 +43,7 @@ class MainScreen extends HookConsumerWidget {
     );
   }
 
-  PlatformMenu _mainMenu(BuildContext context, NesController controller) {
+  PlatformMenu _mainMenu(BuildContext context, AppController appController) {
     final mainMenu = PlatformMenu(
       label: 'NESd',
       menus: [
@@ -61,10 +62,7 @@ class MainScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Quit NESd',
           shortcut: const CharacterActivator('q', meta: true),
-          onSelected: () {
-            unawaited(controller.stop());
-            quit();
-          },
+          onSelected: () => unawaited(appController.quit()),
         ),
       ],
     );
