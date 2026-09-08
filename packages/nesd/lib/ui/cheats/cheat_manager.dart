@@ -11,21 +11,18 @@ class CheatManager extends _$CheatManager {
   @override
   List<Cheat> build(RomInfo romInfo) {
     final settings = ref.watch(settingsControllerProvider);
-    final key = _getCheatsKey(romInfo);
 
-    return settings.cheats[key] ?? const [];
+    return settings.cheats[romInfo.key] ?? const [];
   }
 
-  String _getCheatsKey(RomInfo romInfo) =>
-      romInfo.romHash ?? romInfo.hash ?? romInfo.file.name;
-
   void _updateSettings(List<Cheat> newCheats) {
-    final key = _getCheatsKey(romInfo);
-    ref.read(settingsControllerProvider.notifier).setCheats(key, newCheats);
+    ref
+        .read(settingsControllerProvider.notifier)
+        .setCheats(romInfo.key, newCheats);
 
     final nes = ref.read(nesStateProvider);
 
-    if (nes != null && nes.romInfo == romInfo) {
+    if (nes != null && nes.romInfo.sameRom(romInfo)) {
       nes.cheats = newCheats;
     }
   }
