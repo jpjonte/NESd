@@ -39,6 +39,8 @@ part 'nes_controller.g.dart';
 
 const mobileRewindCaptureInterval = 4;
 
+const autoSaveSlot = 0;
+
 typedef NesIsolateSpawner = Future<NesIsolateHandle> Function();
 
 @riverpod
@@ -310,6 +312,9 @@ class NesController {
   }
 
   Future<void> stop() async {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+
     if (nes case final nes?) {
       await saveProgress(notify: true);
 
@@ -346,6 +351,10 @@ class NesController {
         log.rom.error('Failed to save game data', error: e);
 
         toaster.send(Toast.error('Failed to save game data: $e'));
+      }
+
+      if (settingsController.autoSave) {
+        await _saveAutoState(notify: false);
       }
     }
   }
@@ -833,6 +842,12 @@ class NesController {
         return;
       }
 
+      await _saveAutoState(notify: true);
+    }
+  }
+
+  Future<void> _saveAutoState({required bool notify}) async {
+    if (nes case final nes?) {
       final data = await nes.requestSaveState();
 
       if (data == null) {
@@ -842,7 +857,7 @@ class NesController {
       }
 
       try {
-        await romManager.saveState(nes.romInfo, 0, data);
+        await romManager.saveState(nes.romInfo, autoSaveSlot, data);
       } on Exception catch (e) {
         log.emulator.error('Auto-save failed', error: e);
 
@@ -851,7 +866,9 @@ class NesController {
         return;
       }
 
-      toaster.send(Toast.info('Saved state to slot 0'));
+      if (notify) {
+        toaster.send(Toast.info('Saved state to slot $autoSaveSlot'));
+      }
     }
   }
 }

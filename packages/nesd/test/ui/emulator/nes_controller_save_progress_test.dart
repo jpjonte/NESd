@@ -1,5 +1,5 @@
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' hide Router;
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -7,9 +7,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/fast_forward_speed.dart';
-import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/turbo_speed.dart';
-import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -17,7 +15,7 @@ import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/toast/toaster.dart';
 
-import 'mocks.dart';
+import '../mocks.dart';
 
 class _MockSettingsController extends Mock implements SettingsController {}
 
@@ -38,15 +36,6 @@ const _romFile = FilesystemFile(
   type: FilesystemFileType.file,
 );
 
-Future<void> _setLifecycleState(AppLifecycleState state) async {
-  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .handlePlatformMessage(
-        'flutter/lifecycle',
-        const StringCodec().encodeMessage(state.toString()),
-        (_) {},
-      );
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -60,9 +49,9 @@ void main() {
   late _MockSettingsController settings;
   late _MockRomManager romManager;
   late _MockToaster toaster;
-  late FakeNesIsolateHandle handle;
-  late NesController nesController;
-  late AppController controller;
+  late NesController controller;
+
+  late List<String> events;
 
   setUp(() async {
     container = ProviderContainer();
@@ -90,11 +79,15 @@ void main() {
     romManager = _MockRomManager();
     toaster = _MockToaster();
 
+    events = [];
+
     when(() => romManager.load(any())).thenAnswer((_) async => null);
-    when(() => romManager.save(any(), any())).thenAnswer((_) async {});
-    when(
-      () => romManager.saveState(any(), any(), any()),
-    ).thenAnswer((_) async {});
+    when(() => romManager.save(any(), any())).thenAnswer((_) async {
+      events.add('sram');
+    });
+    when(() => romManager.saveState(any(), any(), any())).thenAnswer((_) async {
+      events.add('state');
+    });
     when(
       () => romManager.saveThumbnail(
         any(),
@@ -105,12 +98,11 @@ void main() {
     ).thenAnswer((_) async {});
 
     final database = MockNesDatabase();
-
-    handle = FakeNesIsolateHandle();
+    final handle = FakeNesIsolateHandle();
 
     addTearDown(handle.dispose);
 
-    nesController = NesController(
+    controller = NesController(
       nesState: container.read(nesStateProvider.notifier),
       spawner: () async => handle,
       router: Router(),
@@ -123,42 +115,63 @@ void main() {
       romImporter: FakeRomImporter(),
     );
 
-    addTearDown(nesController.dispose);
-
-    controller = AppController(nesController: nesController);
-
     addTearDown(controller.dispose);
 
-    final loaded = await nesController.loadRom(_romFile, data: _batteryRom());
+    final loaded = await controller.loadRom(_romFile, data: _batteryRom());
 
     expect(loaded, isTrue);
 
     addTearDown(() async {
       if (container.read(nesStateProvider) != null) {
-        await nesController.stop();
+        await controller.stop();
       }
     });
   });
 
-  test('losing focus suspends the emulator', () async {
-    await _setLifecycleState(AppLifecycleState.resumed);
+  List<int> savedStateSlots() => verify(
+    () => romManager.saveState(any(), captureAny(), any()),
+  ).captured.cast<int>();
 
-    handle.sentCommands.clear();
+  test('quitting a game writes the auto save state', () async {
+    await controller.stop();
 
-    await _setLifecycleState(AppLifecycleState.inactive);
-
-    expect(handle.sentCommands, contains(isA<SuspendCommand>()));
+    expect(savedStateSlots(), [0]);
   });
 
-  test('losing focus leaves the emulator alone with suspending off', () async {
-    controller.suspendWhenHidden = false;
+  test('quitting a game writes no state with auto save off', () async {
+    when(() => settings.autoSave).thenReturn(false);
 
-    await _setLifecycleState(AppLifecycleState.resumed);
+    await controller.stop();
 
-    handle.sentCommands.clear();
+    verifyNever(() => romManager.saveState(any(), any(), any()));
+  });
 
-    await _setLifecycleState(AppLifecycleState.inactive);
+  test('the save runs even though the emulator is suspended', () async {
+    expect(container.read(nesStateProvider)!.running, isFalse);
 
-    expect(handle.sentCommands, isNot(contains(isA<SuspendCommand>())));
+    await controller.stop();
+
+    expect(savedStateSlots(), [0]);
+  });
+
+  test('switching to another ROM saves the outgoing game', () async {
+    final loaded = await controller.loadRom(
+      const FilesystemFile(
+        path: '/test/roms/other.nes',
+        name: 'other.nes',
+        type: FilesystemFileType.file,
+      ),
+      data: _batteryRom(),
+    );
+
+    expect(loaded, isTrue);
+
+    final captured = verify(
+      () => romManager.saveState(captureAny(), captureAny(), any()),
+    ).captured;
+
+    expect(captured, hasLength(2));
+    expect((captured[0] as RomInfo).file.name, 'battery.nes');
+    expect(captured[1], autoSaveSlot);
   });
 }

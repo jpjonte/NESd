@@ -72,6 +72,9 @@ class _Harness {
     when(() => romManager.loadLatestState(any())).thenAnswer((_) async => null);
     when(() => romManager.save(any(), any())).thenAnswer((_) async {});
     when(
+      () => romManager.saveState(any(), any(), any()),
+    ).thenAnswer((_) async {});
+    when(
       () => romManager.saveThumbnail(
         any(),
         width: any(named: 'width'),
