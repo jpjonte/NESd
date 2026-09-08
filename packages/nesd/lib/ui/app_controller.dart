@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:nesd/log/log.dart';
@@ -45,6 +46,7 @@ class AppController {
       onInactive: _suspended,
       onShow: _suspended,
       onResume: _resumed,
+      onExitRequested: _exitRequested,
     );
   }
 
@@ -65,6 +67,12 @@ class AppController {
   }
 
   void dispose() => _lifecycleListener.dispose();
+
+  Future<AppExitResponse> _exitRequested() async {
+    await _saveAndStop();
+
+    return AppExitResponse.exit;
+  }
 
   Future<void> _saveAndStop() async {
     try {

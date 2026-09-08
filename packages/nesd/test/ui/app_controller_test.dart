@@ -50,6 +50,23 @@ Future<void> _setLifecycleState(AppLifecycleState state) async {
       );
 }
 
+Future<String?> _requestAppExit() async {
+  const codec = JSONMethodCodec();
+
+  ByteData? reply;
+
+  await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .handlePlatformMessage(
+        'flutter/platform',
+        codec.encodeMethodCall(const MethodCall('System.requestAppExit')),
+        (data) => reply = data,
+      );
+
+  final response = codec.decodeEnvelope(reply!) as Map<Object?, Object?>;
+
+  return response['response'] as String?;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -160,6 +177,13 @@ void main() {
     await controller.quit();
 
     expect(events, ['sram', 'state', 'quit']);
+  });
+
+  test('closing the window saves before the exit is allowed', () async {
+    final response = await _requestAppExit();
+
+    expect(events, ['sram', 'state']);
+    expect(response, 'exit');
   });
 
   test('a failing save still lets NESd quit', () async {
