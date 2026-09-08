@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/features.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
@@ -21,7 +22,7 @@ class ToolsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           'Tools',
           style: TextStyle(

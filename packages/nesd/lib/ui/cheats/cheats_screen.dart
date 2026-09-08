@@ -7,6 +7,7 @@ import 'package:nesd/nes/cheat/cheat.dart';
 import 'package:nesd/nes/cheat/game_genie_decoder.dart';
 import 'package:nesd/ui/cheats/cheat_manager.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 
@@ -22,7 +23,7 @@ class CheatsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: const Text('Cheats'),
         actions: [
           if (cheats.isNotEmpty)

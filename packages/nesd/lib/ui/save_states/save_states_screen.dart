@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/focus_child.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
@@ -102,7 +103,7 @@ class SaveStatesScreen extends HookConsumerWidget {
     );
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           'Save States - ${p.basenameWithoutExtension(romInfo.file.name)}',
           style: TextStyle(
@@ -115,6 +116,7 @@ class SaveStatesScreen extends HookConsumerWidget {
         child: NesdMenuWrapper(
           child: FocusChild(
             autofocus: true,
+            wrapAround: true,
             child: PaginatedGrid(
               children: [
                 if (nextOpenSlot < 10 && nesController.isOn)

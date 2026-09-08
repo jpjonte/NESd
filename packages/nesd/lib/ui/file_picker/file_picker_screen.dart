@@ -6,6 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/file_picker/file_list.dart';
@@ -121,7 +122,7 @@ class FilePicker extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
-      appBar: AppBar(
+      appBar: NesdAppBar(
         title: Text(
           title,
           style: TextStyle(
@@ -144,6 +145,7 @@ class FilePicker extends ConsumerWidget {
             },
             child: FocusChild(
               autofocus: true,
+              wrapAround: true,
               child: Column(
                 children: [
                   DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
