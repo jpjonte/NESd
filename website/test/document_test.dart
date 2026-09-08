@@ -86,4 +86,19 @@ void main() {
       expect(matches.single.group(0), contains('defer'), reason: 'on $path');
     }
   });
+
+  test('renders the website section of the privacy policy', () async {
+    final content = SiteContent(
+      release: _content.release,
+      privacyMarkdown:
+          '# NESd Privacy Policy\n\n## The website (nesd.jpj.dev)\n\nText.\n',
+    );
+    final html = await renderHtml(
+      App(content: content),
+      path: '/privacy',
+      fullDocument: true,
+    );
+
+    expect(html, contains('The website (nesd.jpj.dev)</h2>'));
+  });
 }

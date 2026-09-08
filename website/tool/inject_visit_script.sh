@@ -16,9 +16,12 @@ if [ "$heads" != 1 ]; then
   exit 1
 fi
 
-# awk rather than sed -i: the in-place flag differs between GNU and BSD sed
+# awk rather than sed -i: the in-place flag differs between GNU and BSD sed.
 tmp=$(mktemp)
-awk -v tag="$tag" '/<\/head>/ { print "  " tag } { print }' "$index" > "$tmp"
+awk -v tag="$tag" '
+  /<\/head>/ { sub(/<\/head>/, "  " tag "\n</head>") }
+  { print }
+' "$index" > "$tmp"
 mv "$tmp" "$index"
 
 echo "inject_visit_script: added the counter to $index"

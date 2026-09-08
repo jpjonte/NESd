@@ -15,6 +15,10 @@ tool/stage.sh                         # -> build/site/ (what gets deployed)
 fvm dart test
 ```
 
+`tool/inject_visit_script.sh` adds the page-view counter tag to the deployed
+`/play/index.html`; it's run by the Pages action, not needed locally.
+
 The landing page's download links come from `build/release.json`, which is the GitHub release API response for the latest release.
 The privacy page is rendered from `../PRIVACY.md`.
 Both are read at build time and a missing file fails the build.
+`web/js/visit.js` is the counter script every page loads; it only counts on nesd.jpj.dev.

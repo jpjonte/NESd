@@ -35,4 +35,11 @@ cp "$root/packages/nesd/web/index.html" "$tmp/play.html"
 bash "$inject" "$tmp/play.html"
 [ "$(grep -cF "$tag" "$tmp/play.html")" = 1 ] || fail "real index.html not handled"
 
+printf '<html><head><title>x</title></head><body></body></html>\n' \
+  > "$tmp/oneline.html"
+bash "$inject" "$tmp/oneline.html"
+grep -q "$tag"'$' "$tmp/oneline.html" || fail "tag not inserted before </head> on a one-line head"
+grep -qx '</head><body></body></html>' "$tmp/oneline.html" \
+  || fail "one-line head not split after the tag"
+
 echo "inject_visit_script check: ok"
