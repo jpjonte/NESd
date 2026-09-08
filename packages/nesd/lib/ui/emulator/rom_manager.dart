@@ -57,19 +57,40 @@ class RomInfo {
   Map<String, dynamic> toJson() => _$RomInfoToJson(this);
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-
-    return other is RomInfo &&
-        (other.file.name == file.name ||
-            other.romHash == romHash ||
-            other.hash == hash);
-  }
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RomInfo &&
+          other.file == file &&
+          other.hash == hash &&
+          other.romHash == romHash &&
+          other.chrHash == chrHash &&
+          other.prgHash == prgHash;
 
   @override
-  int get hashCode => Object.hash(file.name, romHash);
+  int get hashCode => Object.hash(file, hash, romHash, chrHash, prgHash);
+}
+
+/// Answers "is this the same game?", which [RomInfo.==] deliberately does not:
+/// equality is structural so that provider families and route arguments can
+/// rely on it, while the two members here match a ROM across renames.
+extension RomIdentity on RomInfo {
+  /// Key for per-ROM settings such as cheats and breakpoints.
+  ///
+  /// The fallbacks only exist to keep already-stored keys reachable; every
+  /// caller passes a [RomInfo] built from a loaded cartridge, which always
+  /// carries a [RomInfo.romHash].
+  String get key => romHash ?? hash ?? file.name;
+
+  /// Whether [other] is the same game as this one.
+  ///
+  /// Falls back to the path when either side has no content hash, so a
+  /// recent-ROM entry recorded before hashing is replaced by, rather than
+  /// duplicated alongside, the hashed entry for the same file. That makes
+  /// this relation intransitive, which is why it is not [RomInfo.==].
+  bool sameRom(RomInfo other) => switch ((romHash, other.romHash)) {
+    (final a?, final b?) => a == b,
+    _ => file.path == other.file.path,
+  };
 }
 
 /// The newest save state on disk for a ROM and where it came from.
