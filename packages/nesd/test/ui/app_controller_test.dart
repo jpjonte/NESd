@@ -214,6 +214,34 @@ void main() {
     expect(events, ['quit']);
   });
 
+  test('backgrounding the app saves the game', () async {
+    final saved = Completer<void>();
+
+    when(() => romManager.saveState(any(), any(), any())).thenAnswer((_) async {
+      events.add('state');
+
+      if (!saved.isCompleted) {
+        saved.complete();
+      }
+    });
+
+    await _setLifecycleState(AppLifecycleState.resumed);
+    await _setLifecycleState(AppLifecycleState.paused);
+
+    await saved.future.timeout(const Duration(seconds: 2));
+
+    expect(events, ['sram', 'state']);
+  });
+
+  test('merely losing focus saves nothing', () async {
+    await _setLifecycleState(AppLifecycleState.resumed);
+    await _setLifecycleState(AppLifecycleState.inactive);
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(events, isEmpty);
+  });
+
   test('losing focus suspends the emulator', () async {
     await _setLifecycleState(AppLifecycleState.resumed);
 

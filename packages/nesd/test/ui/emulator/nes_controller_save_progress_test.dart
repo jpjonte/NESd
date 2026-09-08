@@ -174,4 +174,10 @@ void main() {
     expect((captured[0] as RomInfo).file.name, 'battery.nes');
     expect(captured[1], autoSaveSlot);
   });
+
+  test('two saves at once are one save', () async {
+    await Future.wait([controller.saveProgress(), controller.saveProgress()]);
+
+    expect(events, ['sram', 'state']);
+  });
 }

@@ -244,6 +244,8 @@ class NesController {
 
   Timer? _autoSaveTimer;
 
+  Future<void>? _saving;
+
   bool _scrubOpen = false;
 
   NesIsolateHandle? _isolate;
@@ -324,7 +326,11 @@ class NesController {
     nesState.clear();
   }
 
-  Future<void> saveProgress({bool notify = false}) async {
+  Future<void> saveProgress({bool notify = false}) => _saving ??= _saveProgress(
+    notify: notify,
+  ).whenComplete(() => _saving = null);
+
+  Future<void> _saveProgress({required bool notify}) async {
     if (nes case final nes?) {
       try {
         final sram = await nes.requestSram();

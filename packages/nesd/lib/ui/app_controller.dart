@@ -42,7 +42,7 @@ class AppController {
     this.exitSaveTimeout = const Duration(seconds: 3),
   }) {
     _lifecycleListener = AppLifecycleListener(
-      onPause: _suspended,
+      onPause: _paused,
       onInactive: _suspended,
       onShow: _suspended,
       onResume: _resumed,
@@ -80,6 +80,12 @@ class AppController {
     } on TimeoutException {
       log.app.warning('Timed out saving on the way out');
     }
+  }
+
+  void _paused() {
+    _suspended();
+
+    unawaited(nesController.saveProgress());
   }
 
   void _suspended() {
