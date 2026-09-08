@@ -41,12 +41,15 @@ class _FakeNesIsolateHandle implements NesIsolateHandle {
   Future<void> dispose() => _controller.close();
 }
 
+const _romHash = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678';
+
 RomInfo _testRomInfo() => const RomInfo(
   file: FilesystemFile(
     path: 'test.nes',
     name: 'test.nes',
     type: FilesystemFileType.file,
   ),
+  romHash: _romHash,
 );
 
 CartridgeInfo _testCartridgeInfo() => const CartridgeInfo(
@@ -78,8 +81,6 @@ DebuggerEvent _debuggerEvent({
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const fileHash = 'abc123';
-
   late _FakeNesIsolateHandle handle;
   late RemoteNes remote;
   late ProviderContainer container;
@@ -91,7 +92,6 @@ void main() {
     remote = RemoteNes(
       isolate: handle,
       romInfo: _testRomInfo(),
-      fileHash: fileHash,
       hasZapper: false,
       cartridgeInfo: _testCartridgeInfo(),
     );
@@ -127,7 +127,7 @@ void main() {
   );
 
   test('constructor activates the debugger and pushes stored breakpoints', () {
-    settingsController.setBreakpoints(fileHash, [Breakpoint(0x8000)]);
+    settingsController.setBreakpoints(_romHash, [Breakpoint(0x8000)]);
     handle.commands.clear();
 
     build();
@@ -263,14 +263,14 @@ void main() {
     () async {
       final debugger = build();
 
-      handle.emit(const BreakpointsEvent(fileHash: fileHash, breakpoints: []));
+      handle.emit(const BreakpointsEvent(romHash: _romHash, breakpoints: []));
 
       await pumpEventQueue();
 
       final breakpoint = Breakpoint(0xA000);
 
       handle.emit(
-        BreakpointsEvent(fileHash: fileHash, breakpoints: [breakpoint]),
+        BreakpointsEvent(romHash: _romHash, breakpoints: [breakpoint]),
       );
 
       await pumpEventQueue();
@@ -290,7 +290,7 @@ void main() {
       final breakpoint = Breakpoint(0xB000);
 
       handle.emit(
-        BreakpointsEvent(fileHash: fileHash, breakpoints: [breakpoint]),
+        BreakpointsEvent(romHash: _romHash, breakpoints: [breakpoint]),
       );
 
       await pumpEventQueue();
@@ -333,7 +333,7 @@ void main() {
       );
 
       handle.emit(
-        BreakpointsEvent(fileHash: fileHash, breakpoints: [Breakpoint(0xD000)]),
+        BreakpointsEvent(romHash: _romHash, breakpoints: [Breakpoint(0xD000)]),
       );
 
       await pumpEventQueue();

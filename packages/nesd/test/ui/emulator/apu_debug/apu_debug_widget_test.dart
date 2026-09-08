@@ -175,7 +175,6 @@ void main() {
       nes = RemoteNes(
         isolate: handle,
         romInfo: testRomInfo(),
-        fileHash: 'hash',
         hasZapper: false,
         cartridgeInfo: testCartridgeInfo(),
       );

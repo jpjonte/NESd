@@ -511,6 +511,22 @@ class SettingsController extends _$SettingsController {
     );
   }
 
+  void adoptBreakpoints({required String legacyKey, required String romHash}) {
+    final legacy = state.breakpoints[legacyKey];
+
+    if (legacy == null) {
+      return;
+    }
+
+    final breakpoints = {...state.breakpoints}..remove(legacyKey);
+
+    _update(
+      state.copyWith(
+        breakpoints: {...breakpoints, romHash: breakpoints[romHash] ?? legacy},
+      ),
+    );
+  }
+
   Map<String, List<Cheat>> get cheats => state.cheats;
 
   set cheats(Map<String, List<Cheat>> cheats) =>

@@ -46,7 +46,7 @@ void main() {
     });
   });
 
-  test('breakpoint mutations notify onBreakpoints with fileHash', () {
+  test('breakpoint mutations notify onBreakpoints with romHash', () {
     final robot = RomRobot('../../roms/test/nestest/nestest.nes');
     final eventBus = EventBus();
     String? hash;
@@ -64,7 +64,7 @@ void main() {
       initialBreakpoints: const [],
     ).addBreakpoint(Breakpoint(0x8000));
 
-    expect(hash, robot.nes.bus.cartridge.fileHash);
+    expect(hash, robot.nes.bus.cartridge.romHash);
     expect(breakpoints, hasLength(1));
   });
 }
