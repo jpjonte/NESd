@@ -36,3 +36,22 @@ List<int> _readRgb(Uint8List bytes, int count) => [
   for (var i = 0; i < count; i++)
     (bytes[i * 3] << 16) | (bytes[i * 3 + 1] << 8) | bytes[i * 3 + 2],
 ];
+
+Uint8List writePalFile(List<int> rgb) {
+  if (rgb.length != 64) {
+    throw ArgumentError.value(rgb.length, 'rgb', 'expected 64 base colors');
+  }
+
+  final bytes = Uint8List(_baseOnlyLength);
+
+  for (var i = 0; i < rgb.length; i++) {
+    final offset = i * 3;
+    final color = rgb[i];
+
+    bytes[offset] = (color >> 16) & 0xff;
+    bytes[offset + 1] = (color >> 8) & 0xff;
+    bytes[offset + 2] = color & 0xff;
+  }
+
+  return bytes;
+}

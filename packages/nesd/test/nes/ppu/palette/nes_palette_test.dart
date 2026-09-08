@@ -59,4 +59,21 @@ void main() {
   test('default palette has 64 entries', () {
     expect(defaultPaletteRgb.length, equals(64));
   });
+
+  test('paletteBaseColors inverts packPaletteColor', () {
+    final rgb = List.generate(64, (i) => (i << 16) | (0x40 << 8) | 0x80);
+
+    expect(paletteBaseColors(expandRgbToPalette(rgb)), equals(rgb));
+  });
+
+  test('hasCustomEmphasis is false for a generated palette', () {
+    expect(hasCustomEmphasis(expandRgbToPalette(defaultPaletteRgb)), isFalse);
+  });
+
+  test('hasCustomEmphasis is true when an emphasis entry differs', () {
+    final palette = expandRgbToPalette(defaultPaletteRgb)
+      ..[(1 << 6) | 3] = packPaletteColor(1, 2, 3);
+
+    expect(hasCustomEmphasis(palette), isTrue);
+  });
 }
