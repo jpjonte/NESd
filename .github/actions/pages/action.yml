@@ -1,8 +1,8 @@
 name: Build and deploy the website
 description: >-
   Builds the jaspr site against the latest GitHub release, merges in the
-  coverage badge and the web app (under /play), and deploys everything
-  to GitHub Pages.
+  coverage badge and the web app (under /play, with the page view counter
+  injected), and deploys everything to GitHub Pages.
 outputs:
   page_url:
     description: URL of the deployed site
@@ -30,6 +30,9 @@ runs:
       run: |
         grep -q '<base href="/">' pages/play/index.html
         sed -i 's|<base href="/">|<base href="/play/">|' pages/play/index.html
+    - name: Add the page view counter to the web app
+      shell: bash
+      run: website/tool/inject_visit_script.sh pages/play/index.html
     - name: Fetch the latest release manifest
       shell: bash
       run: website/tool/fetch_release.sh

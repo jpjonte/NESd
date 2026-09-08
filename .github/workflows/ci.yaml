@@ -48,6 +48,7 @@ jobs:
       - uses: actions/checkout@v7
       - run: ci/check/website/pages_gate.sh
       - run: ci/check/website/visit_script.sh
+      - run: ci/check/website/inject_visit_script.sh
 
   check-linux-packaging:
     runs-on: ubuntu-24.04
