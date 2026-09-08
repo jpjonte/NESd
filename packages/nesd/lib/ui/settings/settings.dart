@@ -329,7 +329,7 @@ class SettingsController extends _$SettingsController {
 
   void addRecentRom(RomInfo rom) {
     final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.file.name == rom.file.name || r.hash == rom.hash)
+      ..removeWhere((r) => r.sameRom(rom))
       ..insert(0, rom);
 
     _update(state.copyWith(recentRoms: recent.toList()));
@@ -341,7 +341,7 @@ class SettingsController extends _$SettingsController {
 
   void removeRecentRom(RomInfo rom) {
     final recent = state.recentRoms.toList()
-      ..removeWhere((r) => r.file.name == rom.file.name || r.hash == rom.hash);
+      ..removeWhere((r) => r.sameRom(rom));
 
     _update(state.copyWith(recentRoms: recent.toList()));
   }
