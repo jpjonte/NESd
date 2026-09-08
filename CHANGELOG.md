@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Auto save now also saves when quitting a game, quitting NESd, or sending it to the background
 
+### Changed
+- The main menu now dims and shows a spinner on the tile while its ROM loads
+
 ### Fixed
 - Battery saves, save states and thumbnails now follow a renamed ROM file
 - Two ROMs with the same file name no longer share their saves and save states
@@ -16,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Two ROMs with the same file name no longer share their breakpoints
 - Two ROMs with the same file name now both stay in the recent ROM list
 - Quitting NESd no longer loses the SRAM save it was writing
+- The file picker now stays open when a ROM fails to load
 - The web version now has sound on plain HTTP
 - Fixed APU length counter halt and reload write timing
 - Fixed DMC DMA idle cycle reads

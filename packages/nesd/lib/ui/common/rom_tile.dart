@@ -19,7 +19,7 @@ const gameTileHeight = 256.0;
 const thumbnailWidth = 256.0;
 const thumbnailHeight = 240.0;
 
-const _spinnerDelay = Duration(milliseconds: 150);
+const romTileSpinnerDelay = Duration(milliseconds: 150);
 
 const _fadeDuration = Duration(milliseconds: 200);
 
@@ -76,14 +76,16 @@ Future<ui.Image?> loadStoredThumbnail(Uint8List? bytes) async {
   }
 }
 
-class RomTile extends ConsumerWidget {
+class RomTile extends HookConsumerWidget {
   static const thumbnailFadeKey = Key('thumbnailFade');
+  static const loadingKey = Key('romTileLoading');
 
   const RomTile({
     required this.romTileData,
     required this.onPressed,
     this.onRemove,
     this.contextMenuBuilder,
+    this.loading = false,
     super.key,
   });
 
@@ -92,8 +94,24 @@ class RomTile extends ConsumerWidget {
   final VoidCallback? onRemove;
   final ContextMenuBuilder? contextMenuBuilder;
 
+  final bool loading;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final showSpinner = useState(false);
+
+    useEffect(() {
+      if (!loading) {
+        showSpinner.value = false;
+
+        return null;
+      }
+
+      final timer = Timer(romTileSpinnerDelay, () => showSpinner.value = true);
+
+      return timer.cancel;
+    }, [loading]);
+
     return ContextMenu(
       contextMenuBuilder: contextMenuBuilder,
       child: CustomButton(
@@ -183,6 +201,20 @@ class RomTile extends ConsumerWidget {
                       ),
                     ),
                   ),
+                if (showSpinner.value)
+                  const Positioned.fill(
+                    key: loadingKey,
+                    child: ColoredBox(
+                      color: Color(0x99000000),
+                      child: Center(
+                        child: SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: CircularProgressIndicator(strokeWidth: 4),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -227,7 +259,7 @@ class _StoredThumbnail extends HookConsumerWidget {
     final wakeUp = useState(0);
 
     useEffect(() {
-      final timer = Timer(_spinnerDelay, () => wakeUp.value++);
+      final timer = Timer(romTileSpinnerDelay, () => wakeUp.value++);
 
       return timer.cancel;
     }, [romPath]);
@@ -240,7 +272,7 @@ class _StoredThumbnail extends HookConsumerWidget {
       alignment: Alignment.center,
       children: [
         _Thumbnail(image: snapshot.data),
-        if (!loaded && elapsed >= _spinnerDelay)
+        if (!loaded && elapsed >= romTileSpinnerDelay)
           const SizedBox(
             width: 32,
             height: 32,

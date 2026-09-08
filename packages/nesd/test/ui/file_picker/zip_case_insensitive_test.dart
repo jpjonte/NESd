@@ -1,11 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
-import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/router/router.dart';
+import 'package:nesd/ui/router/router_observer.dart';
 
+import '../emulator/rom_load_helper.dart';
 import '../robot.dart';
 
 const _romsDirectorySettings = {
@@ -16,18 +18,6 @@ const _romsDirectorySettings = {
   },
 };
 
-Uint8List _zipContaining(List<String> entryNames) {
-  final archive = Archive();
-
-  for (final name in entryNames) {
-    final bytes = Uint8List(16);
-
-    archive.addFile(ArchiveFile(name, bytes.length, bytes));
-  }
-
-  return Uint8List.fromList(ZipEncoder().encode(archive));
-}
-
 void main() {
   testWidgets('tapping an uppercase .ZIP browses into the archive', (
     tester,
@@ -36,10 +26,10 @@ void main() {
 
     await r.pumpApp(
       extraFiles: {
-        '/test/roms/COLLECTION.ZIP': _zipContaining([
-          'first.nes',
-          'second.nes',
-        ]),
+        '/test/roms/COLLECTION.ZIP': zipOf({
+          'first.nes': Uint8List(16),
+          'second.nes': Uint8List(16),
+        }),
       },
     );
 
@@ -57,14 +47,14 @@ void main() {
     );
   });
 
-  testWidgets('an uppercase .ZIP holding one ROM pops that ROM directly', (
+  testWidgets('an uppercase .ZIP holding one ROM starts that ROM directly', (
     tester,
   ) async {
     final r = Robot(tester)..initSettings(_romsDirectorySettings);
 
     await r.pumpApp(
       extraFiles: {
-        '/test/roms/SINGLE.ZIP': _zipContaining(['only.nes']),
+        '/test/roms/SINGLE.ZIP': zipOf({'only.nes': nestestBytes()}),
       },
     );
 
@@ -73,8 +63,17 @@ void main() {
 
     await r.filePickerScreen.tapFile('SINGLE.ZIP');
 
-    await r.waitUntil(() => find.byType(FilePickerScreen).evaluate().isEmpty);
+    await r.waitUntil(
+      () => r.container.read(currentRouteProvider) == EmulatorRoute.name,
+    );
 
-    r.mainMenu.expectMainMenuFound();
+    expect(
+      r.container.read(nesStateProvider)!.romInfo.file.path,
+      '/test/roms/SINGLE.ZIP:only.nes',
+    );
+
+    await r.emulator.tapMenu();
+    await r.menuScreen.tapQuitGame();
+    await r.waitUntil(() => r.container.read(nesStateProvider) == null);
   });
 }

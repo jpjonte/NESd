@@ -25,6 +25,7 @@ class FilePickerScreen extends HookConsumerWidget {
     required this.type,
     this.allowedExtensions = const [],
     this.onChangeDirectory,
+    this.onSelect,
     super.key,
   });
 
@@ -34,8 +35,36 @@ class FilePickerScreen extends HookConsumerWidget {
   final List<String> allowedExtensions;
   final void Function(FilesystemFile)? onChangeDirectory;
 
+  final Future<bool> Function(FilesystemFile)? onSelect;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final busy = useState(false);
+
+    Future<void> select(FilesystemFile file) async {
+      final consume = onSelect;
+
+      if (consume == null) {
+        await context.router.maybePop(file);
+
+        return;
+      }
+
+      if (busy.value) {
+        return;
+      }
+
+      busy.value = true;
+
+      try {
+        await consume(file);
+      } finally {
+        if (context.mounted) {
+          busy.value = false;
+        }
+      }
+    }
+
     ref.listen(filePickerStateProvider, (_, next) {
       if (next is FilePickerData &&
           isArchiveFile(next.directory.path) &&
@@ -44,7 +73,7 @@ class FilePickerScreen extends HookConsumerWidget {
           final file = next.files.first;
 
           if (file.type == FilesystemFileType.file) {
-            context.router.maybePop(file);
+            unawaited(select(file));
           }
         });
       }
@@ -64,6 +93,8 @@ class FilePickerScreen extends HookConsumerWidget {
       title: title,
       allowedExtensions: allowedExtensions,
       onChangeDirectory: onChangeDirectory,
+      onSelectFile: select,
+      busy: busy.value,
     );
   }
 }
@@ -72,13 +103,18 @@ class FilePicker extends ConsumerWidget {
   const FilePicker({
     required this.title,
     required this.allowedExtensions,
+    required this.onSelectFile,
+    required this.busy,
     this.onChangeDirectory,
     super.key,
   });
 
   final String title;
   final List<String> allowedExtensions;
+  final Future<void> Function(FilesystemFile) onSelectFile;
   final void Function(FilesystemFile)? onChangeDirectory;
+
+  final bool busy;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,10 +148,11 @@ class FilePicker extends ConsumerWidget {
                 children: [
                   DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
                   const SearchBox(),
-                  const FilePickerProgressIndicator(),
+                  FilePickerProgressIndicator(busy: busy),
                   FileList(
                     allowedExtensions: allowedExtensions,
                     onChangeDirectory: onChangeDirectory,
+                    onSelectFile: onSelectFile,
                   ),
                 ],
               ),
@@ -198,13 +235,15 @@ class SearchBox extends HookConsumerWidget {
 }
 
 class FilePickerProgressIndicator extends ConsumerWidget {
-  const FilePickerProgressIndicator({super.key});
+  const FilePickerProgressIndicator({required this.busy, super.key});
+
+  final bool busy;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(filePickerStateProvider);
 
-    final loading = state is FilePickerData && state.refreshing;
+    final loading = busy || (state is FilePickerData && state.refreshing);
 
     return Container(
       height: loading ? 4 : 0,

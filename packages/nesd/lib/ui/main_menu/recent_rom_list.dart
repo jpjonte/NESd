@@ -5,6 +5,7 @@ import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/logo.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/rom_tile.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -13,13 +14,16 @@ import 'package:nesd/ui/settings/settings.dart';
 class RecentRomList extends HookConsumerWidget {
   static const logoKey = Key('logo');
 
-  const RecentRomList({super.key});
+  const RecentRomList({required this.startingRom, super.key});
+
+  final ValueNotifier<RomInfo?> startingRom;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final romManager = ref.watch(romManagerProvider);
     final controller = ref.read(nesControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
+    final actionHandler = ref.read(actionHandlerProvider);
 
     final recentRoms = ref.watch(
       settingsControllerProvider.select((settings) => settings.recentRoms),
@@ -66,10 +70,28 @@ class RecentRomList extends HookConsumerWidget {
         children: [
           for (final romTileData in roms)
             RomTile(
+              loading:
+                  startingRom.value?.file.path == romTileData.romInfo.file.path,
               onPressed: () async {
-                final started = await controller.startRom(
-                  romTileData.romInfo.file,
-                );
+                if (startingRom.value != null) {
+                  return;
+                }
+
+                startingRom.value = romTileData.romInfo;
+
+                actionHandler.enabled = false;
+
+                final bool started;
+
+                try {
+                  started = await controller.startRom(romTileData.romInfo.file);
+                } finally {
+                  actionHandler.enabled = true;
+
+                  if (context.mounted) {
+                    startingRom.value = null;
+                  }
+                }
 
                 if (started || !context.mounted) {
                   return;

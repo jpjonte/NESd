@@ -179,6 +179,18 @@ Uint8List minimalValidRom() {
   return rom;
 }
 
+Uint8List unsupportedMapperRom() {
+  final rom = minimalValidRom();
+
+  // mapper id 99
+  rom[6] = 0x30;
+  rom[7] = 0x60;
+
+  return rom;
+}
+
+const heldRomLoadPath = '/test/fixtures/held_load.nes';
+
 /// In-process [NesIsolateHandle] for widget tests.
 ///
 /// Runs a real [NesWorker] on the test isolate with [FakeNesdAudio] instead of
@@ -205,6 +217,8 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
 
   late final NesWorker _worker;
 
+  LoadRomCommand? _heldLoad;
+
   @override
   Stream<NesIsolateEvent> get events => _events.stream;
 
@@ -220,7 +234,27 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
       return;
     }
 
+    if (command case LoadRomCommand(
+      file: final file,
+    ) when file.path == heldRomLoadPath) {
+      _heldLoad = command;
+
+      return;
+    }
+
     unawaited(_worker.handleCommand(command));
+  }
+
+  void releaseRomLoad() {
+    final held = _heldLoad;
+
+    if (held == null) {
+      return;
+    }
+
+    _heldLoad = null;
+
+    unawaited(_worker.handleCommand(held));
   }
 
   void _forceLoadFailure() {

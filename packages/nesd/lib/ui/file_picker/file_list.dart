@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,11 +25,13 @@ const _indicatorFadeDuration = Duration(milliseconds: 150);
 class FileList extends HookConsumerWidget {
   const FileList({
     required this.allowedExtensions,
+    required this.onSelectFile,
     this.onChangeDirectory,
     super.key,
   });
 
   final List<String> allowedExtensions;
+  final Future<void> Function(FilesystemFile) onSelectFile;
   final void Function(FilesystemFile)? onChangeDirectory;
 
   bool _enabled(FilesystemFile file) =>
@@ -326,6 +327,7 @@ class FileList extends HookConsumerWidget {
       focusNode: focusNodes[index],
       onFocusChange: (hasFocus) => onTileFocusChange(index, hasFocus: hasFocus),
       onChangeDirectory: onChangeDirectory,
+      onSelectFile: onSelectFile,
     );
   }
 }
@@ -385,6 +387,7 @@ class FileTile extends ConsumerWidget {
     required this.enabled,
     required this.file,
     required this.fileIsArchive,
+    required this.onSelectFile,
     this.focusNode,
     this.onFocusChange,
     this.onChangeDirectory,
@@ -395,6 +398,7 @@ class FileTile extends ConsumerWidget {
   final bool enabled;
   final FilesystemFile file;
   final bool fileIsArchive;
+  final Future<void> Function(FilesystemFile) onSelectFile;
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocusChange;
   final void Function(FilesystemFile)? onChangeDirectory;
@@ -435,7 +439,7 @@ class FileTile extends ConsumerWidget {
               } else if (fileIsArchive) {
                 controller.go(file);
               } else {
-                await context.router.maybePop(file);
+                await onSelectFile(file);
               }
             },
           );

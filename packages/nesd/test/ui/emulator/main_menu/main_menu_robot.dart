@@ -62,8 +62,20 @@ class MainMenuRobot extends BaseRobot {
     await go(find.byKey(MainMenu.settingsKey));
   }
 
+  Future<void> tapSettingsButtonAsync() async {
+    await goAsync(find.byKey(MainMenu.settingsKey));
+  }
+
   Future<void> tapFirstRomTile() async {
     await goAsync(find.byType(RomTile).first);
+  }
+
+  Future<void> tapRomTileAsync(String title) async {
+    await goAsync(
+      find.byWidgetPredicate(
+        (widget) => widget is RomTile && widget.romTileData.title == title,
+      ),
+    );
   }
 
   Future<void> openFirstRomTileContextMenu() async {

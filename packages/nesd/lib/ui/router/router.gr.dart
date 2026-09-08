@@ -82,6 +82,7 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
     required FilePickerType type,
     List<String> allowedExtensions = const [],
     void Function(FilesystemFile)? onChangeDirectory,
+    Future<bool> Function(FilesystemFile)? onSelect,
     Key? key,
     List<PageRouteInfo>? children,
   }) : super(
@@ -92,6 +93,7 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
            type: type,
            allowedExtensions: allowedExtensions,
            onChangeDirectory: onChangeDirectory,
+           onSelect: onSelect,
            key: key,
          ),
          initialChildren: children,
@@ -109,6 +111,7 @@ class FilePickerRoute extends PageRouteInfo<FilePickerRouteArgs> {
         type: args.type,
         allowedExtensions: args.allowedExtensions,
         onChangeDirectory: args.onChangeDirectory,
+        onSelect: args.onSelect,
         key: args.key,
       );
     },
@@ -122,6 +125,7 @@ class FilePickerRouteArgs {
     required this.type,
     this.allowedExtensions = const [],
     this.onChangeDirectory,
+    this.onSelect,
     this.key,
   });
 
@@ -135,11 +139,13 @@ class FilePickerRouteArgs {
 
   final void Function(FilesystemFile)? onChangeDirectory;
 
+  final Future<bool> Function(FilesystemFile)? onSelect;
+
   final Key? key;
 
   @override
   String toString() {
-    return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, onChangeDirectory: $onChangeDirectory, key: $key}';
+    return 'FilePickerRouteArgs{title: $title, initialDirectory: $initialDirectory, type: $type, allowedExtensions: $allowedExtensions, onChangeDirectory: $onChangeDirectory, onSelect: $onSelect, key: $key}';
   }
 
   @override
