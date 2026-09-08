@@ -19,6 +19,7 @@ import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_backend.dart';
 import 'package:nesd/nes/isolate/debugger_backend.dart';
 import 'package:nesd/nes/isolate/execution_log_backend.dart';
+import 'package:nesd/nes/isolate/latency_activity.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -66,12 +67,15 @@ class NesWorker {
   NesWorker({
     required this.send,
     NesdAudio Function()? audioFactory,
+    LatencyActivity? latencyActivity,
     this.audioStatsInterval = const Duration(seconds: 1),
     this.rewindSupported = Features.rewind,
-  }) : _audioFactory = audioFactory ?? defaultNesdAudio;
+  }) : _audioFactory = audioFactory ?? defaultNesdAudio,
+       _latencyActivity = latencyActivity ?? LatencyActivity();
 
   final void Function(NesIsolateEvent event) send;
   final NesdAudio Function() _audioFactory;
+  final LatencyActivity _latencyActivity;
 
   final Duration audioStatsInterval;
 
@@ -254,6 +258,8 @@ class NesWorker {
 
     _audioOutput?.dispose();
     _audioOutput = null;
+
+    _latencyActivity.dispose();
 
     await _subscription?.cancel();
     _subscription = null;
@@ -445,6 +451,8 @@ class NesWorker {
     _nes?.dispose();
     _nes = null;
 
+    _latencyActivity.setActive(active: false);
+
     log.emulator.info('Emulator stopped');
 
     send(const StoppedEvent());
@@ -551,6 +559,8 @@ class NesWorker {
 
   void _sendStatus() {
     final status = _lastStatus = _status;
+
+    _latencyActivity.setActive(active: status.running);
 
     send(
       StatusEvent(
