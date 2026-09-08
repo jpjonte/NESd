@@ -7,6 +7,7 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/soak/soak_config.dart';
 import 'package:nesd/soak/soak_stats.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -33,6 +34,7 @@ SoakRunner? soakRunner(Ref ref) {
   final runner = SoakRunner(
     config: config,
     controller: ref.read(nesControllerProvider),
+    appController: ref.read(appControllerProvider),
     router: ref.read(routerProvider),
   );
 
@@ -45,6 +47,7 @@ class SoakRunner {
   SoakRunner({
     required this.config,
     required this.controller,
+    required this.appController,
     required this.router,
     Future<void> Function()? waitForFirstFrame,
     this.exitApp = exit,
@@ -53,6 +56,7 @@ class SoakRunner {
 
   final SoakConfig config;
   final NesController controller;
+  final AppController appController;
   final Router router;
   final void Function(int) exitApp;
 
@@ -108,7 +112,7 @@ class SoakRunner {
       unawaited(router.navigate(const EmulatorRoute()));
 
       // make sure the emulator isn't suspended when the window loses focus
-      controller.lifeCycleListenerEnabled = false;
+      appController.suspendWhenHidden = false;
 
       final nes = controller.nes!
         ..rewindEnabled = true

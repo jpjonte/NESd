@@ -17,6 +17,7 @@ class AutoSaveSwitch extends ConsumerWidget {
     return FocusOnHover(
       child: SwitchSettingsTile(
         title: const Text('Auto Save'),
+        subtitle: const Text('Save to slot 0 on a timer and when quitting'),
         value: setting,
         onChanged: (value) => controller.autoSave = value,
       ),

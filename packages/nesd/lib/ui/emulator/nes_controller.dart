@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' hide Router;
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
@@ -39,6 +38,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'nes_controller.g.dart';
 
 const mobileRewindCaptureInterval = 4;
+
+const autoSaveSlot = 0;
 
 typedef NesIsolateSpawner = Future<NesIsolateHandle> Function();
 
@@ -83,7 +84,7 @@ NesController nesController(Ref ref) {
     romImporter: ref.watch(romImporterProvider),
   );
 
-  ref.onDispose(controller._dispose);
+  ref.onDispose(controller.dispose);
 
   final autoSaveSubscription = ref.listen(
     settingsControllerProvider.select(
@@ -209,14 +210,7 @@ class NesController {
     required this.romImporter,
     this.romLoadTimeout = const Duration(seconds: 10),
     this.rewindSupported = Features.rewind,
-  }) {
-    _lifecycleListener = AppLifecycleListener(
-      onPause: _appSuspended,
-      onInactive: _appSuspended,
-      onShow: _appSuspended,
-      onResume: _appResumed,
-    );
-  }
+  });
 
   final NesState nesState;
 
@@ -244,15 +238,13 @@ class NesController {
 
   RemoteNes? get nes => nesState.nes;
 
-  late final AppLifecycleListener _lifecycleListener;
-
-  bool lifeCycleListenerEnabled = true;
-
   bool _emulatorActive = false;
 
   Uint32List _systemPalette = defaultPalette;
 
   Timer? _autoSaveTimer;
+
+  Future<void>? _saving;
 
   bool _scrubOpen = false;
 
@@ -322,6 +314,23 @@ class NesController {
   }
 
   Future<void> stop() async {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
+
+    if (nes case final nes?) {
+      await saveProgress(notify: true);
+
+      await nes.stop();
+    }
+
+    nesState.clear();
+  }
+
+  Future<void> saveProgress({bool notify = false}) => _saving ??= _saveProgress(
+    notify: notify,
+  ).whenComplete(() => _saving = null);
+
+  Future<void> _saveProgress({required bool notify}) async {
     if (nes case final nes?) {
       try {
         final sram = await nes.requestSram();
@@ -329,7 +338,9 @@ class NesController {
         if (sram != null) {
           await romManager.save(nes.romInfo, sram);
 
-          toaster.send(Toast.info('SRAM saved'));
+          if (notify) {
+            toaster.send(Toast.info('SRAM saved'));
+          }
         }
 
         final thumbnail = await nes.requestThumbnail();
@@ -343,15 +354,15 @@ class NesController {
           );
         }
       } on Exception catch (e) {
-        log.rom.error('Failed to save on stop', error: e);
+        log.rom.error('Failed to save game data', error: e);
 
         toaster.send(Toast.error('Failed to save game data: $e'));
       }
 
-      await nes.stop();
+      if (settingsController.autoSave) {
+        await _saveAutoState(notify: false);
+      }
     }
-
-    nesState.clear();
   }
 
   Future<void> selectRom() async {
@@ -366,13 +377,13 @@ class NesController {
 
       toaster.send(Toast.error('Failed to import ROM: $e'));
 
-      _applyRunState();
+      applyRunState();
 
       return;
     }
 
     if (file == null) {
-      _applyRunState();
+      applyRunState();
 
       return;
     }
@@ -380,7 +391,7 @@ class NesController {
     final started = await startRom(file);
 
     if (!started) {
-      _applyRunState();
+      applyRunState();
     }
   }
 
@@ -482,19 +493,7 @@ class NesController {
       final romInfo = cartridge.romInfo;
       final databaseEntry = cartridge.databaseEntry;
 
-      if (nes case final oldNes?) {
-        try {
-          final oldSram = await oldNes.requestSram();
-
-          if (oldSram != null) {
-            await romManager.save(oldNes.romInfo, oldSram);
-          }
-        } on Exception catch (e) {
-          log.rom.error('Failed to save SRAM', error: e);
-
-          toaster.send(Toast.error('Failed to save SRAM: $e'));
-        }
-      }
+      await saveProgress();
 
       await nes?.stop();
 
@@ -603,7 +602,7 @@ class NesController {
       // The NES that existed when the active-screen signal last changed was
       // a different one (or none at all), so apply the current run state to
       // the instance that just came up.
-      _applyRunState();
+      applyRunState();
     } on PathNotFoundException {
       log.rom.warning('ROM file not found', context: {'path': file.path});
 
@@ -735,24 +734,11 @@ class NesController {
     }
   }
 
-  void _dispose() {
+  void dispose() {
     _autoSaveTimer?.cancel();
-    _lifecycleListener.dispose();
 
     unawaited(_eventSubscription?.cancel());
     unawaited(_isolate?.dispose());
-  }
-
-  void _appSuspended() {
-    if (lifeCycleListenerEnabled) {
-      suspend();
-    }
-  }
-
-  void _appResumed() {
-    if (lifeCycleListenerEnabled) {
-      _applyRunState();
-    }
   }
 
   void setAutoSave({required bool enabled, required int? interval}) {
@@ -808,12 +794,11 @@ class NesController {
   // ignore: avoid_setters_without_getters
   set emulatorActive(bool value) {
     _emulatorActive = value;
-    lifeCycleListenerEnabled = value;
 
-    _applyRunState();
+    applyRunState();
   }
 
-  void _applyRunState() {
+  void applyRunState() {
     if (_emulatorActive) {
       resume();
 
@@ -863,6 +848,12 @@ class NesController {
         return;
       }
 
+      await _saveAutoState(notify: true);
+    }
+  }
+
+  Future<void> _saveAutoState({required bool notify}) async {
+    if (nes case final nes?) {
       final data = await nes.requestSaveState();
 
       if (data == null) {
@@ -872,7 +863,7 @@ class NesController {
       }
 
       try {
-        await romManager.saveState(nes.romInfo, 0, data);
+        await romManager.saveState(nes.romInfo, autoSaveSlot, data);
       } on Exception catch (e) {
         log.emulator.error('Auto-save failed', error: e);
 
@@ -881,7 +872,9 @@ class NesController {
         return;
       }
 
-      toaster.send(Toast.info('Saved state to slot 0'));
+      if (notify) {
+        toaster.send(Toast.info('Saved state to slot $autoSaveSlot'));
+      }
     }
   }
 }

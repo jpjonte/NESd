@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Auto save now also saves when quitting a game, quitting NESd, or sending it to the background
+
 ### Fixed
 - Battery saves, save states and thumbnails now follow a renamed ROM file
 - Two ROMs with the same file name no longer share their saves and save states
 - Cheats and breakpoints now follow a renamed ROM file
 - Two ROMs with the same file name no longer share their breakpoints
 - Two ROMs with the same file name now both stay in the recent ROM list
+- Quitting NESd no longer loses the SRAM save it was writing
 - The web version now has sound on plain HTTP
 - Fixed APU length counter halt and reload write timing
 - Fixed DMC DMA idle cycle reads

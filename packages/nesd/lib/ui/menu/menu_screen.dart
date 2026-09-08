@@ -7,11 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/dividers.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
-import 'package:nesd/ui/common/quit.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -24,6 +24,7 @@ class MenuScreen extends ConsumerWidget {
   static const rewindTimelineKey = Key('rewindTimeline');
   static const resetGameKey = Key('resetGame');
   static const quitGameKey = Key('quitGame');
+  static const quitNesdKey = Key('quitNesd');
   static const settingsKey = Key('settings');
   static const toolsKey = Key('tools');
 
@@ -154,10 +155,9 @@ class MenuScreen extends ConsumerWidget {
                   const NesdVerticalDivider(),
                   Center(
                     child: NesdButton(
-                      onPressed: () {
-                        unawaited(ref.read(nesControllerProvider).stop());
-                        quit();
-                      },
+                      key: quitNesdKey,
+                      onPressed: () =>
+                          unawaited(ref.read(appControllerProvider).quit()),
                       child: const Text('Quit NESd'),
                     ),
                   ),
