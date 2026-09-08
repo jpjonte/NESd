@@ -311,13 +311,25 @@ class NesController {
 
   Future<void> stop() async {
     if (nes case final nes?) {
+      await saveProgress(notify: true);
+
+      await nes.stop();
+    }
+
+    nesState.clear();
+  }
+
+  Future<void> saveProgress({bool notify = false}) async {
+    if (nes case final nes?) {
       try {
         final sram = await nes.requestSram();
 
         if (sram != null) {
           await romManager.save(nes.romInfo, sram);
 
-          toaster.send(Toast.info('SRAM saved'));
+          if (notify) {
+            toaster.send(Toast.info('SRAM saved'));
+          }
         }
 
         final thumbnail = await nes.requestThumbnail();
@@ -331,15 +343,11 @@ class NesController {
           );
         }
       } on Exception catch (e) {
-        log.rom.error('Failed to save on stop', error: e);
+        log.rom.error('Failed to save game data', error: e);
 
         toaster.send(Toast.error('Failed to save game data: $e'));
       }
-
-      await nes.stop();
     }
-
-    nesState.clear();
   }
 
   Future<void> selectRom() async {
@@ -470,19 +478,7 @@ class NesController {
       final romInfo = cartridge.romInfo;
       final databaseEntry = cartridge.databaseEntry;
 
-      if (nes case final oldNes?) {
-        try {
-          final oldSram = await oldNes.requestSram();
-
-          if (oldSram != null) {
-            await romManager.save(oldNes.romInfo, oldSram);
-          }
-        } on Exception catch (e) {
-          log.rom.error('Failed to save SRAM', error: e);
-
-          toaster.send(Toast.error('Failed to save SRAM: $e'));
-        }
-      }
+      await saveProgress();
 
       await nes?.stop();
 
