@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MixerSettings {
 
- double get pulse1; double get pulse2; double get triangle; double get noise; double get dmc; double get mmc5; double get namco163;
+ double get pulse1; double get pulse2; double get triangle; double get noise; double get dmc; double get mmc5; double get namco163; double get sunsoft5b;
 /// Create a copy of MixerSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $MixerSettingsCopyWith<MixerSettings> get copyWith => _$MixerSettingsCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as MixerSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MixerSettings&&(identical(other.pulse1, _this.pulse1) || other.pulse1 == _this.pulse1)&&(identical(other.pulse2, _this.pulse2) || other.pulse2 == _this.pulse2)&&(identical(other.triangle, _this.triangle) || other.triangle == _this.triangle)&&(identical(other.noise, _this.noise) || other.noise == _this.noise)&&(identical(other.dmc, _this.dmc) || other.dmc == _this.dmc)&&(identical(other.mmc5, _this.mmc5) || other.mmc5 == _this.mmc5)&&(identical(other.namco163, _this.namco163) || other.namco163 == _this.namco163));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MixerSettings&&(identical(other.pulse1, _this.pulse1) || other.pulse1 == _this.pulse1)&&(identical(other.pulse2, _this.pulse2) || other.pulse2 == _this.pulse2)&&(identical(other.triangle, _this.triangle) || other.triangle == _this.triangle)&&(identical(other.noise, _this.noise) || other.noise == _this.noise)&&(identical(other.dmc, _this.dmc) || other.dmc == _this.dmc)&&(identical(other.mmc5, _this.mmc5) || other.mmc5 == _this.mmc5)&&(identical(other.namco163, _this.namco163) || other.namco163 == _this.namco163)&&(identical(other.sunsoft5b, _this.sunsoft5b) || other.sunsoft5b == _this.sunsoft5b));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as MixerSettings;
-  return Object.hash(runtimeType,_this.pulse1,_this.pulse2,_this.triangle,_this.noise,_this.dmc,_this.mmc5,_this.namco163);
+  return Object.hash(runtimeType,_this.pulse1,_this.pulse2,_this.triangle,_this.noise,_this.dmc,_this.mmc5,_this.namco163,_this.sunsoft5b);
 }
 
 @override
 String toString() {
   final _this = this as MixerSettings;
-  return 'MixerSettings(pulse1: ${_this.pulse1}, pulse2: ${_this.pulse2}, triangle: ${_this.triangle}, noise: ${_this.noise}, dmc: ${_this.dmc}, mmc5: ${_this.mmc5}, namco163: ${_this.namco163})';
+  return 'MixerSettings(pulse1: ${_this.pulse1}, pulse2: ${_this.pulse2}, triangle: ${_this.triangle}, noise: ${_this.noise}, dmc: ${_this.dmc}, mmc5: ${_this.mmc5}, namco163: ${_this.namco163}, sunsoft5b: ${_this.sunsoft5b})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $MixerSettingsCopyWith<$Res>  {
   factory $MixerSettingsCopyWith(MixerSettings value, $Res Function(MixerSettings) _then) = _$MixerSettingsCopyWithImpl;
 @useResult
 $Res call({
- double pulse1, double pulse2, double triangle, double noise, double dmc, double mmc5, double namco163
+ double pulse1, double pulse2, double triangle, double noise, double dmc, double mmc5, double namco163, double sunsoft5b
 });
 
 
@@ -71,7 +71,7 @@ class _$MixerSettingsCopyWithImpl<$Res>
 
 /// Create a copy of MixerSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pulse1 = null,Object? pulse2 = null,Object? triangle = null,Object? noise = null,Object? dmc = null,Object? mmc5 = null,Object? namco163 = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pulse1 = null,Object? pulse2 = null,Object? triangle = null,Object? noise = null,Object? dmc = null,Object? mmc5 = null,Object? namco163 = null,Object? sunsoft5b = null,}) {
   return _then(MixerSettings(
 pulse1: null == pulse1 ? _self.pulse1 : pulse1 // ignore: cast_nullable_to_non_nullable
 as double,pulse2: null == pulse2 ? _self.pulse2 : pulse2 // ignore: cast_nullable_to_non_nullable
@@ -80,6 +80,7 @@ as double,noise: null == noise ? _self.noise : noise // ignore: cast_nullable_to
 as double,dmc: null == dmc ? _self.dmc : dmc // ignore: cast_nullable_to_non_nullable
 as double,mmc5: null == mmc5 ? _self.mmc5 : mmc5 // ignore: cast_nullable_to_non_nullable
 as double,namco163: null == namco163 ? _self.namco163 : namco163 // ignore: cast_nullable_to_non_nullable
+as double,sunsoft5b: null == sunsoft5b ? _self.sunsoft5b : sunsoft5b // ignore: cast_nullable_to_non_nullable
 as double,
   ));
 }
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163,  double sunsoft5b)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MixerSettings() when $default != null:
-return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163);case _:
+return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163,_that.sunsoft5b);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163,  double sunsoft5b)  $default,) {final _that = this;
 switch (_that) {
 case _MixerSettings():
-return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163);}
+return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163,_that.sunsoft5b);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -200,10 +201,10 @@ return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double pulse1,  double pulse2,  double triangle,  double noise,  double dmc,  double mmc5,  double namco163,  double sunsoft5b)?  $default,) {final _that = this;
 switch (_that) {
 case _MixerSettings() when $default != null:
-return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163);case _:
+return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_that.mmc5,_that.namco163,_that.sunsoft5b);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.pulse1,_that.pulse2,_that.triangle,_that.noise,_that.dmc,_
 @JsonSerializable()
 
 class _MixerSettings extends MixerSettings {
-  const _MixerSettings({this.pulse1 = 1.0, this.pulse2 = 1.0, this.triangle = 1.0, this.noise = 1.0, this.dmc = 1.0, this.mmc5 = 1.0, this.namco163 = 1.0}): super._();
+  const _MixerSettings({this.pulse1 = 1.0, this.pulse2 = 1.0, this.triangle = 1.0, this.noise = 1.0, this.dmc = 1.0, this.mmc5 = 1.0, this.namco163 = 1.0, this.sunsoft5b = 1.0}): super._();
   factory _MixerSettings.fromJson(Map<String, dynamic> json) => _$MixerSettingsFromJson(json);
 
 @override@JsonKey() final  double pulse1;
@@ -225,6 +226,7 @@ class _MixerSettings extends MixerSettings {
 @override@JsonKey() final  double dmc;
 @override@JsonKey() final  double mmc5;
 @override@JsonKey() final  double namco163;
+@override@JsonKey() final  double sunsoft5b;
 
 /// Create a copy of MixerSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -239,18 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MixerSettings&&(identical(other.pulse1, pulse1) || other.pulse1 == pulse1)&&(identical(other.pulse2, pulse2) || other.pulse2 == pulse2)&&(identical(other.triangle, triangle) || other.triangle == triangle)&&(identical(other.noise, noise) || other.noise == noise)&&(identical(other.dmc, dmc) || other.dmc == dmc)&&(identical(other.mmc5, mmc5) || other.mmc5 == mmc5)&&(identical(other.namco163, namco163) || other.namco163 == namco163));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MixerSettings&&(identical(other.pulse1, pulse1) || other.pulse1 == pulse1)&&(identical(other.pulse2, pulse2) || other.pulse2 == pulse2)&&(identical(other.triangle, triangle) || other.triangle == triangle)&&(identical(other.noise, noise) || other.noise == noise)&&(identical(other.dmc, dmc) || other.dmc == dmc)&&(identical(other.mmc5, mmc5) || other.mmc5 == mmc5)&&(identical(other.namco163, namco163) || other.namco163 == namco163)&&(identical(other.sunsoft5b, sunsoft5b) || other.sunsoft5b == sunsoft5b));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,pulse1,pulse2,triangle,noise,dmc,mmc5,namco163);
+    return Object.hash(runtimeType,pulse1,pulse2,triangle,noise,dmc,mmc5,namco163,sunsoft5b);
 }
 
 @override
 String toString() {
-    return 'MixerSettings(pulse1: $pulse1, pulse2: $pulse2, triangle: $triangle, noise: $noise, dmc: $dmc, mmc5: $mmc5, namco163: $namco163)';
+    return 'MixerSettings(pulse1: $pulse1, pulse2: $pulse2, triangle: $triangle, noise: $noise, dmc: $dmc, mmc5: $mmc5, namco163: $namco163, sunsoft5b: $sunsoft5b)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$MixerSettingsCopyWith<$Res> implements $MixerSettingsCopy
   factory _$MixerSettingsCopyWith(_MixerSettings value, $Res Function(_MixerSettings) _then) = __$MixerSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- double pulse1, double pulse2, double triangle, double noise, double dmc, double mmc5, double namco163
+ double pulse1, double pulse2, double triangle, double noise, double dmc, double mmc5, double namco163, double sunsoft5b
 });
 
 
@@ -278,7 +280,7 @@ class __$MixerSettingsCopyWithImpl<$Res>
 
 /// Create a copy of MixerSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pulse1 = null,Object? pulse2 = null,Object? triangle = null,Object? noise = null,Object? dmc = null,Object? mmc5 = null,Object? namco163 = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pulse1 = null,Object? pulse2 = null,Object? triangle = null,Object? noise = null,Object? dmc = null,Object? mmc5 = null,Object? namco163 = null,Object? sunsoft5b = null,}) {
   return _then(_MixerSettings(
 pulse1: null == pulse1 ? _self.pulse1 : pulse1 // ignore: cast_nullable_to_non_nullable
 as double,pulse2: null == pulse2 ? _self.pulse2 : pulse2 // ignore: cast_nullable_to_non_nullable
@@ -287,6 +289,7 @@ as double,noise: null == noise ? _self.noise : noise // ignore: cast_nullable_to
 as double,dmc: null == dmc ? _self.dmc : dmc // ignore: cast_nullable_to_non_nullable
 as double,mmc5: null == mmc5 ? _self.mmc5 : mmc5 // ignore: cast_nullable_to_non_nullable
 as double,namco163: null == namco163 ? _self.namco163 : namco163 // ignore: cast_nullable_to_non_nullable
+as double,sunsoft5b: null == sunsoft5b ? _self.sunsoft5b : sunsoft5b // ignore: cast_nullable_to_non_nullable
 as double,
   ));
 }

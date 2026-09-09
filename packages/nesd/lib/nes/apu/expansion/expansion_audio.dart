@@ -14,4 +14,4 @@ abstract class ExpansionAudio {
   ExpansionAudioKind get kind;
 }
 
-enum ExpansionAudioKind { mmc5, namco163 }
+enum ExpansionAudioKind { mmc5, namco163, sunsoft5b }

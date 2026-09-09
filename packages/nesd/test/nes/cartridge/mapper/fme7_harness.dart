@@ -66,3 +66,11 @@ void write(FME7 mapper, int command, int value) {
     ..cpuWrite(0x8000, command)
     ..cpuWrite(0xa000, value);
 }
+
+void playSunsoft5bTone(FME7 mapper) {
+  mapper
+    ..cpuWrite(0xc000, 0x07)
+    ..cpuWrite(0xe000, 0x3f)
+    ..cpuWrite(0xc000, 0x08)
+    ..cpuWrite(0xe000, 0x0f);
+}

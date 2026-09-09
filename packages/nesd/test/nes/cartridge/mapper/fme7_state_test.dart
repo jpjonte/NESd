@@ -61,4 +61,14 @@ void main() {
     expect(restored.ppuRead(0x2400), 0x11);
     expect(restored.ppuRead(0x2c00), 0x22);
   });
+
+  test('the audio chip state travels with the mapper state', () {
+    final mapper = buildFme7()
+      ..cpuWrite(0xc000, 0x08)
+      ..cpuWrite(0xe000, 0x0c);
+
+    final restored = buildFme7()..state = roundTrip(mapper.state);
+
+    expect(restored.audio.registers[0x08], 0x0c);
+  });
 }

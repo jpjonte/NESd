@@ -1,5 +1,6 @@
 import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
+import 'package:nesd/nes/apu/expansion/sunsoft5b_audio_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 
 class FME7State extends MapperState {
@@ -14,6 +15,7 @@ class FME7State extends MapperState {
     required this.irqCounter,
     required this.irqCounterEnabled,
     required this.irqEnabled,
+    required this.audioState,
     super.id = 69,
   });
 
@@ -38,6 +40,7 @@ class FME7State extends MapperState {
       irqCounter: reader.get(uint16),
       irqCounterEnabled: reader.get(boolean),
       irqEnabled: reader.get(boolean),
+      audioState: Sunsoft5BAudioState.deserialize(reader),
     );
   }
 
@@ -58,6 +61,8 @@ class FME7State extends MapperState {
 
   final bool irqCounterEnabled;
   final bool irqEnabled;
+
+  final Sunsoft5BAudioState audioState;
 
   @override
   void serialize(PayloadWriter writer) {
@@ -83,5 +88,7 @@ class FME7State extends MapperState {
       ..set(uint16, irqCounter)
       ..set(boolean, irqCounterEnabled)
       ..set(boolean, irqEnabled);
+
+    audioState.serialize(writer);
   }
 }

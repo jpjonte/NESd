@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/apu/tables.dart';
 import 'package:nesd/nes/cpu/irq_source.dart';
 
 import 'fme7_harness.dart';
@@ -270,6 +271,50 @@ void main() {
       final mapper = buildFme7();
 
       expect(mapper.needsStep, true);
+    });
+  });
+
+  group('5B audio', () {
+    test('the mapper exposes its chip as expansion audio', () {
+      final mapper = buildFme7();
+
+      expect(mapper.expansionAudio, same(mapper.audio));
+    });
+
+    test(r'$C000 selects an audio register and $E000 writes it', () {
+      final mapper = buildFme7()
+        ..cpuWrite(0xc000, 0x08)
+        ..cpuWrite(0xe000, 0x0f);
+
+      expect(mapper.audio.registers[0x08], 0x0f);
+    });
+
+    test('the audio ports leave the bank registers alone', () {
+      final mapper = buildFme7();
+
+      write(mapper, 0x9, 3);
+
+      mapper
+        ..cpuWrite(0xc000, 0x9)
+        ..cpuWrite(0xe000, 0x7);
+
+      expect(mapper.cpuRead(0x8000), 0xb0 + 3);
+    });
+
+    test('the chip runs off the mapper step', () {
+      final mapper = buildFme7()
+        ..cpuWrite(0xc000, 0x00)
+        ..cpuWrite(0xe000, 0x01)
+        ..cpuWrite(0xc000, 0x07)
+        ..cpuWrite(0xe000, 0x3e)
+        ..cpuWrite(0xc000, 0x08)
+        ..cpuWrite(0xe000, 0x0f);
+
+      for (var i = 0; i < sunsoft5bPrescaler; i++) {
+        mapper.step();
+      }
+
+      expect(mapper.audio.output, greaterThan(0));
     });
   });
 }

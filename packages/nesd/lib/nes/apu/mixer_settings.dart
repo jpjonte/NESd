@@ -13,6 +13,7 @@ sealed class MixerSettings with _$MixerSettings {
     @Default(1.0) double dmc,
     @Default(1.0) double mmc5,
     @Default(1.0) double namco163,
+    @Default(1.0) double sunsoft5b,
   }) = _MixerSettings;
 
   const MixerSettings._();
@@ -28,6 +29,7 @@ sealed class MixerSettings with _$MixerSettings {
     dmc: _gain(dmc),
     mmc5: _gain(mmc5),
     namco163: _gain(namco163),
+    sunsoft5b: _gain(sunsoft5b),
   );
 }
 

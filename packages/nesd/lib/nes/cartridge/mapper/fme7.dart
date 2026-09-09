@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:nesd/extension/bit_extension.dart';
+import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
+import 'package:nesd/nes/apu/expansion/sunsoft5b_audio.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/fme7_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper.dart';
@@ -17,6 +19,11 @@ class FME7 extends Mapper {
 
   @override
   int chrPageSize = 0x400;
+
+  late final Sunsoft5BAudio audio = Sunsoft5BAudio();
+
+  @override
+  ExpansionAudio? get expansionAudio => audio;
 
   int _command = 0;
 
@@ -50,6 +57,7 @@ class FME7 extends Mapper {
     irqCounter: _irqCounter,
     irqCounterEnabled: _irqCounterEnabled,
     irqEnabled: _irqEnabled,
+    audioState: audio.state,
   );
 
   @override
@@ -68,6 +76,8 @@ class FME7 extends Mapper {
     _irqCounter = state.irqCounter;
     _irqCounterEnabled = state.irqCounterEnabled;
     _irqEnabled = state.irqEnabled;
+
+    audio.state = state.audioState;
 
     _updatePrgBanks();
     _updateChrBanks();
@@ -99,6 +109,8 @@ class FME7 extends Mapper {
     _irqCounterEnabled = false;
     _irqEnabled = false;
 
+    audio.reset();
+
     _updatePrgBanks();
     _updateChrBanks();
     _updateWorkRam();
@@ -109,6 +121,8 @@ class FME7 extends Mapper {
 
   @override
   void step() {
+    audio.step();
+
     if (!_irqCounterEnabled) {
       return;
     }
@@ -129,6 +143,14 @@ class FME7 extends Mapper {
         return;
       case 0xa000:
         _writeParameter(value);
+
+        return;
+      case 0xc000:
+        audio.writeAddress(value);
+
+        return;
+      case 0xe000:
+        audio.writeData(value);
 
         return;
     }
