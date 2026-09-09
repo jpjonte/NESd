@@ -14,6 +14,7 @@ import 'package:nesd/ui/menu/menu_screen.dart';
 import 'package:nesd/ui/menu/tools_screen.dart';
 import 'package:nesd/ui/save_states/save_states_screen.dart';
 import 'package:nesd/ui/settings/controls/touch/touch_editor_screen.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_editor_screen.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 
 part 'router.gr.dart';
@@ -76,6 +77,7 @@ class Router extends RootStackRouter {
     ),
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
     AutoRoute(page: TouchEditorRoute.page, path: '/touch_editor'),
+    AutoRoute(page: PaletteEditorRoute.page, path: '/palette_editor'),
     AutoRoute(page: FilePickerRoute.page, path: '/file_picker'),
     AutoRoute(
       page: CheatsRoute.page,

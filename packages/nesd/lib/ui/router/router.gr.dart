@@ -220,6 +220,22 @@ class MenuRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PaletteEditorScreen]
+class PaletteEditorRoute extends PageRouteInfo<void> {
+  const PaletteEditorRoute({List<PageRouteInfo>? children})
+    : super(PaletteEditorRoute.name, initialChildren: children);
+
+  static const String name = 'PaletteEditorRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const PaletteEditorScreen();
+    },
+  );
+}
+
+/// generated route for
 /// [SaveStatesScreen]
 class SaveStatesRoute extends PageRouteInfo<SaveStatesRouteArgs> {
   SaveStatesRoute({

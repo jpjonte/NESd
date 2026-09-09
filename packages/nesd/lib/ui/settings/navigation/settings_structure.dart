@@ -31,6 +31,7 @@ import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/graphics/overscan_sliders.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_edit_button.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_import_button.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_preview.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_remove_button.dart';
@@ -244,6 +245,10 @@ final _video = [
       SettingsEntry(
         title: 'Import palette…',
         builder: (_, _) => const PaletteImportButton(),
+      ),
+      SettingsEntry(
+        title: 'Edit palette…',
+        builder: (_, _) => const PaletteEditButton(),
       ),
       SettingsEntry(
         title: 'Remove palette',
