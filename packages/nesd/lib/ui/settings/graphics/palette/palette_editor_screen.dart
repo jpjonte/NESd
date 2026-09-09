@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_color_editor.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_swatch_grid.dart';
 
@@ -22,18 +23,37 @@ class PaletteEditorScreen extends ConsumerWidget {
 
     return NesdScaffold(
       appBar: const NesdAppBar(title: Text('Palette Editor')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            PaletteSwatchGrid(
-              colors: state.colors,
-              selected: state.selected,
-              onSelected: editor.select,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final grid = PaletteSwatchGrid(
+            colors: state.colors,
+            selected: state.selected,
+            onSelected: editor.select,
+          );
+          final controls = PaletteColorEditor(state: state);
+
+          if (constraints.maxWidth < 600) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [grid, const SizedBox(height: 16), controls],
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: grid),
+                const SizedBox(width: 24),
+                Expanded(child: SingleChildScrollView(child: controls)),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
