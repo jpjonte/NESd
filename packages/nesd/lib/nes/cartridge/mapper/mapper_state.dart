@@ -4,6 +4,7 @@ import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg_state.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/fme7_state.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper176_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper45_state.dart';
@@ -46,6 +47,7 @@ abstract class MapperState {
       30 => UNROM512State.deserialize(reader),
       45 => Mapper45State.deserialize(reader),
       66 => GxROMState.deserialize(reader),
+      69 => FME7State.deserialize(reader),
       71 => SinglePrgBankState.deserialize(reader, 71),
       176 => Mapper176State.deserialize(reader),
       206 => Namco108State.deserialize(reader),
