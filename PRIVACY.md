@@ -1,15 +1,16 @@
 # NESd Privacy Policy
 
-Last updated: 2026-08-24
+Last updated: 2026-09-08
 
 NESd is a Nintendo Entertainment System emulator. It has no backend
 service and no account system.
 
-## What NESd collects
+## What the NESd app collects
 
-Nothing. NESd does not collect, transmit, or share any personal data.
-There are no analytics, no crash reporting, no advertising, and no
-tracking of any kind.
+Nothing. The NESd app does not collect, transmit, or share any personal
+data. There are no analytics, no crash reporting, no advertising, and no
+tracking of any kind. This applies to every platform, including the web
+version and self-hosted copies.
 
 ## What NESd stores on your device
 
@@ -45,6 +46,29 @@ browser's site data for that site removes all of it.
 The web version is delivered over the network.
 Beyond that, NESd does not require network access, and your
 ROMs, saves, and other game data never leave your browser.
+
+## The website (nesd.jpj.dev)
+
+The website counts page views so I can see how many people visit it and
+how many open the in-browser version. The counter is
+[GoatCounter](https://www.goatcounter.com), running on my own server. No
+third party receives anything.
+
+For each page view it records the time, the page address, and the
+address of the site you came from, if your browser sends one. That is
+all. It does not record your IP address, browser, operating system,
+screen size, language, or location. It sets no cookies and does not
+recognise you across visits or pages. Each page is counted once per
+browser tab, however often you reload; the flag for that lives in your
+browser only.
+
+Opening the in-browser version at /play counts as one page view, the
+same as any other page. Beyond that, the emulator itself sends nothing:
+which games you play, for how long, and everything else stays in your
+browser, as described above. Self-hosted copies of the web version
+contain no counter at all.
+
+If you block scripts, nothing is counted.
 
 ## Contact
 

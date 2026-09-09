@@ -58,6 +58,7 @@ class App extends StatelessComponent {
         ),
         const meta(attributes: {'property': 'og:url', 'content': siteUrl}),
         const meta(name: 'twitter:card', content: 'summary_large_image'),
+        const script(src: '/js/visit.js', defer: true),
         Component.element(
           tag: 'script',
           attributes: const {'type': 'application/ld+json'},

@@ -74,4 +74,31 @@ void main() {
 
     expect(html, contains('og:image:alt'));
   });
+
+  test('every page loads the visit counter once, deferred', () async {
+    final tag = RegExp('<script[^>]*src="/js/visit.js"[^>]*>');
+
+    for (final path in ['/', '/privacy']) {
+      final html = await _renderPage(path);
+      final matches = tag.allMatches(html).toList();
+
+      expect(matches, hasLength(1), reason: 'on $path');
+      expect(matches.single.group(0), contains('defer'), reason: 'on $path');
+    }
+  });
+
+  test('renders the website section of the privacy policy', () async {
+    final content = SiteContent(
+      release: _content.release,
+      privacyMarkdown:
+          '# NESd Privacy Policy\n\n## The website (nesd.jpj.dev)\n\nText.\n',
+    );
+    final html = await renderHtml(
+      App(content: content),
+      path: '/privacy',
+      fullDocument: true,
+    );
+
+    expect(html, contains('The website (nesd.jpj.dev)</h2>'));
+  });
 }
