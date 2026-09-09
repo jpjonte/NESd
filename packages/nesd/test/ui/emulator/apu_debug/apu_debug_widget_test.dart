@@ -70,6 +70,7 @@ ApuDebugEvent _event({bool mmc5 = false}) {
         ? const Mmc5DebugState(pulse1: pulse1, pulse2: pulse2, pcmLevel: 200)
         : null,
     n163: null,
+    sunsoft5b: null,
     cpuFrequency: 1789773,
   );
 }
@@ -133,6 +134,86 @@ ApuDebugEvent _n163Event({int enabledChannels = 8}) {
         ),
         growable: false,
       ),
+    ),
+    sunsoft5b: null,
+    cpuFrequency: 1789773,
+  );
+}
+
+ApuDebugEvent _sunsoft5bEvent() {
+  const laneCount = 8; // 5 builtin + 3 5B expansion lanes
+  final packed = Uint8List(laneCount * _count);
+
+  for (var j = 0; j < 3; j++) {
+    final laneStart = (5 + j) * _count;
+
+    for (var s = 0; s < _count; s++) {
+      packed[laneStart + s] = 10 + j * 5 + s;
+    }
+  }
+
+  return ApuDebugEvent(
+    channelSamples: NesBytes.fromList([packed]),
+    mixSamples: NesBytes.fromList([Float32List(_count)]),
+    sampleCount: _count,
+    pulse1: const PulseDebugState(
+      enabled: false,
+      duty: 0,
+      volume: 0,
+      timerPeriod: 0,
+    ),
+    pulse2: const PulseDebugState(
+      enabled: false,
+      duty: 0,
+      volume: 0,
+      timerPeriod: 0,
+    ),
+    triangle: const TriangleDebugState(
+      enabled: false,
+      timerPeriod: 0,
+      linearCounter: 0,
+      lengthCounter: 0,
+    ),
+    noise: const NoiseDebugState(
+      enabled: false,
+      volume: 0,
+      mode: false,
+      timerPeriod: 0,
+    ),
+    dmc: const DmcDebugState(
+      enabled: false,
+      level: 0,
+      rate: 0,
+      bytesRemaining: 0,
+    ),
+    expansionLaneCount: 3,
+    mmc5: null,
+    n163: null,
+    // period 127 -> 1789773 / (32 * 127) = 440.4 Hz = A-4
+    sunsoft5b: const Sunsoft5BDebugState(
+      channels: [
+        Sunsoft5BChannelDebugState(
+          volume: 12,
+          tonePeriod: 127,
+          usesEnvelope: false,
+          toneEnabled: true,
+          noiseEnabled: false,
+        ),
+        Sunsoft5BChannelDebugState(
+          volume: 0,
+          tonePeriod: 64,
+          usesEnvelope: false,
+          toneEnabled: true,
+          noiseEnabled: false,
+        ),
+        Sunsoft5BChannelDebugState(
+          volume: 5,
+          tonePeriod: 32,
+          usesEnvelope: true,
+          toneEnabled: false,
+          noiseEnabled: true,
+        ),
+      ],
     ),
     cpuFrequency: 1789773,
   );
@@ -393,6 +474,60 @@ void main() {
       }
 
       expect(find.text('N163 CH5'), findsNothing);
+    });
+
+    testWidgets('5B lanes appear only for Sunsoft 5B cartridges', (
+      tester,
+    ) async {
+      await pumpPanel(tester);
+
+      handle.emit(_sunsoft5bEvent());
+      await tester.pump();
+
+      for (final label in ['5B A', '5B B', '5B C']) {
+        expect(find.text(label), findsOneWidget, reason: 'missing $label lane');
+      }
+    });
+
+    testWidgets('a 5B lane shows its own volume, frequency and samples', (
+      tester,
+    ) async {
+      await pumpPanel(tester);
+
+      handle.emit(_sunsoft5bEvent());
+      await tester.pump();
+
+      final rows = _laneContentByLabel(tester, {'5B A', '5B B', '5B C'});
+
+      expect(rows.texts['5B A'], contains('12'));
+      expect(rows.texts['5B A'], contains(' 440.4Hz'));
+      expect(rows.texts['5B A'], contains(' A-4'));
+
+      expect(rows.painters['5B A']!.samples, [10, 11, 12, 13, 14, 15, 16, 17]);
+      expect(rows.painters['5B C']!.samples, [20, 21, 22, 23, 24, 25, 26, 27]);
+      expect(rows.painters['5B A']!.maxValue, 31);
+    });
+
+    testWidgets('a silent 5B channel dims its label', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_sunsoft5bEvent());
+      await tester.pump();
+
+      Color? nameColor(String label) =>
+          tester.widget<Text>(find.text(label)).style?.color;
+
+      expect(nameColor('5B A')!.a, 1.0);
+      expect(nameColor('5B B')!.a, lessThan(1.0));
+    });
+
+    testWidgets('no 5B lanes without a Sunsoft 5B cartridge', (tester) async {
+      await pumpPanel(tester);
+
+      handle.emit(_event());
+      await tester.pump();
+
+      expect(find.text('5B A'), findsNothing);
     });
 
     testWidgets('no N163 lanes without a Namco 163 cartridge', (tester) async {

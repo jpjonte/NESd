@@ -20,6 +20,7 @@ class MixerSliders extends StatelessWidget {
         DmcGainSlider(),
         Mmc5GainSlider(),
         Namco163GainSlider(),
+        Sunsoft5BGainSlider(),
       ],
     );
   }
@@ -99,6 +100,17 @@ class Namco163GainSlider extends StatelessWidget {
     label: 'Namco 163',
     value: (mixer) => mixer.namco163,
     update: (mixer, value) => mixer.copyWith(namco163: value),
+  );
+}
+
+class Sunsoft5BGainSlider extends StatelessWidget {
+  const Sunsoft5BGainSlider({super.key});
+
+  @override
+  Widget build(BuildContext context) => _MixerSlider(
+    label: 'Sunsoft 5B',
+    value: (mixer) => mixer.sunsoft5b,
+    update: (mixer, value) => mixer.copyWith(sunsoft5b: value),
   );
 }
 

@@ -121,6 +121,26 @@ void main() {
       expect(apu.sampleBuffer[1], greaterThan(0));
     });
 
+    test('lowering the 5B gain mid-playback attenuates the running chip', () {
+      final mapper = buildFme7();
+      final apu = mapper.bus.apu..reset();
+
+      playSunsoft5bTone(mapper);
+
+      _run(apu, mapper.step);
+
+      final loud = apu.sampleBuffer[1];
+
+      apu
+        ..mixer = const MixerSettings(sunsoft5b: 0.25)
+        ..sampleIndex = 0;
+
+      _run(apu, mapper.step);
+
+      expect(loud, greaterThan(0));
+      expect(apu.sampleBuffer[1], closeTo(loud * 0.25, 1e-6));
+    });
+
     test('the MMC5 gain leaves Namco 163 audio alone', () {
       final mapper = buildNamco163();
       final apu = mapper.bus.apu

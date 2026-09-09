@@ -113,3 +113,29 @@ class Namco163DebugState {
 
   final List<Namco163ChannelDebugState> channels;
 }
+
+@immutable
+class Sunsoft5BChannelDebugState {
+  const Sunsoft5BChannelDebugState({
+    required this.volume,
+    required this.tonePeriod,
+    required this.usesEnvelope,
+    required this.toneEnabled,
+    required this.noiseEnabled,
+  });
+
+  final int volume;
+  final int tonePeriod;
+
+  final bool usesEnvelope;
+
+  final bool toneEnabled;
+  final bool noiseEnabled;
+}
+
+@immutable
+class Sunsoft5BDebugState {
+  const Sunsoft5BDebugState({required this.channels});
+
+  final List<Sunsoft5BChannelDebugState> channels;
+}

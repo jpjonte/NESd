@@ -28,6 +28,12 @@ const _n163Colors = [
   Color(0xffff77a4),
 ];
 
+const _sunsoft5bColors = [
+  Color(0xff5fc47a),
+  Color(0xff8ecf5a),
+  Color(0xffc0d24a),
+];
+
 const _disabledOpacity = 0.38;
 
 @immutable
@@ -104,6 +110,11 @@ final _mmc5Pulse1Style = _LaneStyle(_mmc5Pulse1Color);
 final _mmc5Pulse2Style = _LaneStyle(_mmc5Pulse2Color);
 final _mmc5PcmStyle = _LaneStyle(_mmc5PcmColor);
 final _n163Styles = [for (final color in _n163Colors) _LaneStyle(color)];
+final _sunsoft5bStyles = [
+  for (final color in _sunsoft5bColors) _LaneStyle(color),
+];
+
+const _sunsoft5bChannelNames = ['A', 'B', 'C'];
 
 String _frequency(double value) => '${value.toStringAsFixed(1).padLeft(6)}Hz';
 
@@ -217,6 +228,19 @@ class ApuDebugWidget extends HookConsumerWidget {
               style: _n163Styles[i],
               enabled: n163.channels[i].volume > 0,
             ),
+        if (data.sunsoft5b case final sunsoft5b?
+            when data.expansionSamples.length >= 3)
+          for (var i = 0; i < sunsoft5b.channels.length; i++)
+            _ApuLane(
+              label: '5B ${_sunsoft5bChannelNames[i]}',
+              params: _sunsoft5bParams(data, sunsoft5b.channels[i]),
+              samples: data.expansionSamples[i],
+              maxValue: 31,
+              style: _sunsoft5bStyles[i],
+              enabled:
+                  sunsoft5b.channels[i].usesEnvelope ||
+                  sunsoft5b.channels[i].volume > 0,
+            ),
         _ApuLane(
           label: 'Mix',
           params: const [],
@@ -238,6 +262,31 @@ class ApuDebugWidget extends HookConsumerWidget {
       _Param('NOTE', noteName(frequency).padLeft(4)),
     ];
   }
+
+  List<_Param> _sunsoft5bParams(
+    ApuDebugData data,
+    Sunsoft5BChannelDebugState channel,
+  ) {
+    final frequency = data.sunsoft5bFrequency(channel);
+
+    return [
+      _Param(
+        'VOL',
+        channel.usesEnvelope ? ' E' : '${channel.volume}'.padLeft(2),
+      ),
+      _Param('SRC', _sunsoft5bSource(channel).padRight(5)),
+      _Param('FREQ', _frequency(frequency)),
+      _Param('NOTE', noteName(frequency).padLeft(4)),
+    ];
+  }
+
+  String _sunsoft5bSource(Sunsoft5BChannelDebugState channel) =>
+      switch ((channel.toneEnabled, channel.noiseEnabled)) {
+        (true, true) => 'both',
+        (true, false) => 'tone',
+        (false, true) => 'noise',
+        (false, false) => 'none',
+      };
 
   List<_Param> _n163Params(
     ApuDebugData data,

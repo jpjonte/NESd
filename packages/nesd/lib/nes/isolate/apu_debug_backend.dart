@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/apu/channel/pulse_channel_core.dart';
 import 'package:nesd/nes/apu/expansion/mmc5_audio.dart';
 import 'package:nesd/nes/apu/expansion/namco163_audio.dart';
+import 'package:nesd/nes/apu/expansion/sunsoft5b_audio.dart';
 import 'package:nesd/nes/event/event_bus.dart';
 import 'package:nesd/nes/event/nes_event.dart';
 import 'package:nesd/nes/isolate/apu_debug_state.dart';
@@ -99,6 +101,22 @@ class ApuDebugBackend {
           )
         : null;
 
+    final sunsoft5b = expansion is Sunsoft5BAudio
+        ? Sunsoft5BDebugState(
+            channels: List.generate(
+              3,
+              (i) => Sunsoft5BChannelDebugState(
+                volume: expansion.volumeOf(i),
+                tonePeriod: expansion.tonePeriodOf(i),
+                usesEnvelope: expansion.usesEnvelope(i),
+                toneEnabled: expansion.registers[0x07].bit(i) == 0,
+                noiseEnabled: expansion.registers[0x07].bit(i + 3) == 0,
+              ),
+              growable: false,
+            ),
+          )
+        : null;
+
     onEvent(
       ApuDebugEvent.pack(
         channels: channels,
@@ -126,6 +144,7 @@ class ApuDebugBackend {
         ),
         mmc5: mmc5,
         n163: n163,
+        sunsoft5b: sunsoft5b,
         cpuFrequency: apu.cpuFrequency,
       ),
     );

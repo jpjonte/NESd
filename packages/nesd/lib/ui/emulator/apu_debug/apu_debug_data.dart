@@ -62,6 +62,7 @@ class ApuDebugData {
     required this.expansionSamples,
     required this.mmc5,
     required this.n163,
+    required this.sunsoft5b,
     required this.cpuFrequency,
   });
 
@@ -83,6 +84,7 @@ class ApuDebugData {
       expansionSamples: samples.expansion,
       mmc5: event.mmc5,
       n163: event.n163,
+      sunsoft5b: event.sunsoft5b,
       cpuFrequency: event.cpuFrequency,
     );
   }
@@ -108,6 +110,8 @@ class ApuDebugData {
 
   final Namco163DebugState? n163;
 
+  final Sunsoft5BDebugState? sunsoft5b;
+
   final int cpuFrequency;
 
   double pulseFrequency(PulseDebugState pulse) =>
@@ -123,6 +127,9 @@ class ApuDebugData {
       cpuFrequency *
       channel.frequency /
       (n163SlotCycles * 65536 * channel.waveLength * n163.enabledChannels);
+
+  double sunsoft5bFrequency(Sunsoft5BChannelDebugState channel) =>
+      cpuFrequency / (32 * channel.tonePeriod);
 
   /// Duty percentage for [pulse], or `?<raw>` if the selector is outside 0-3,
   /// so we don't crash inside `build`.

@@ -55,6 +55,7 @@ ApuDebugEvent _event({bool mmc5 = false}) {
         ? const Mmc5DebugState(pulse1: _pulse, pulse2: _pulse, pcmLevel: 200)
         : null,
     n163: null,
+    sunsoft5b: null,
     cpuFrequency: 1789773,
   );
 }
@@ -79,6 +80,7 @@ ApuDebugEvent _eventWith({
     expansionLaneCount: 0,
     mmc5: null,
     n163: null,
+    sunsoft5b: null,
     cpuFrequency: 1789773,
   );
 }

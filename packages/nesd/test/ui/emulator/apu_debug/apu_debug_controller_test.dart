@@ -44,6 +44,7 @@ ApuDebugEvent _event() => ApuDebugEvent(
   expansionLaneCount: 0,
   mmc5: null,
   n163: null,
+  sunsoft5b: null,
   cpuFrequency: 1789773,
 );
 
