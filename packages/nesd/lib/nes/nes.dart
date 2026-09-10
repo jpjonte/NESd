@@ -245,7 +245,7 @@ class NES {
     _applyState(state);
 
     if (walk.frame case final frame?) {
-      ppu.frameBuffer.setPixels(frame);
+      ppu.injectFrame(frame);
     }
 
     _rewindBuffer.commitWalk(walk);
@@ -263,7 +263,7 @@ class NES {
     }
 
     if (_scrubEntryFrame case final frame?) {
-      ppu.frameBuffer.setPixels(frame);
+      ppu.injectFrame(frame);
     }
 
     walk.dispose();
@@ -574,10 +574,10 @@ class NES {
     _applyState(snapshot.state);
 
     if (snapshot.frame case final frame?) {
-      ppu.frameBuffer.setPixels(frame);
+      ppu.injectFrame(frame);
     }
 
-    ppu.frameBuffer.swap();
+    ppu.presentFrame();
 
     final workTime = _openFrameWindow();
 
@@ -613,10 +613,10 @@ class NES {
 
     if (walk.position != _scrubPresentedPosition) {
       if (walk.frame case final frame?) {
-        ppu.frameBuffer.setPixels(frame);
+        ppu.injectFrame(frame);
       }
 
-      ppu.frameBuffer.swap();
+      ppu.presentFrame();
 
       _scrubPresentedPosition = walk.position;
     }
@@ -669,7 +669,7 @@ class NES {
   }
 
   Future<void> _sendFrame() async {
-    ppu.frameBuffer.swap();
+    ppu.presentFrame();
 
     final workTime = _openFrameWindow();
 

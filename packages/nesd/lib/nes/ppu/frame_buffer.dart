@@ -45,6 +45,8 @@ class FrameBuffer {
 
   Uint8List get presentedPixels => _presentedPixels ?? pixels;
 
+  Uint32List get presentedPixels32 => _presentedPixels32 ?? pixels32;
+
   int getPixelBrightness(int x, int y, {bool previousFrame = false}) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
       return 0;
