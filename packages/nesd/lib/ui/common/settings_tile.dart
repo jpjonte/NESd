@@ -194,6 +194,8 @@ class SliderSettingsTile extends StatelessWidget {
     this.label,
     this.onTap,
     this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
     this.min = 0.0,
     this.max = 1.0,
     this.enabled = true,
@@ -204,6 +206,9 @@ class SliderSettingsTile extends StatelessWidget {
   final String? label;
   final GestureTapCallback? onTap;
   final ValueChanged<double>? onChanged;
+
+  final ValueChanged<double>? onChangeStart;
+  final ValueChanged<double>? onChangeEnd;
   final double value;
   final String displayValue;
   final double min;
@@ -227,6 +232,8 @@ class SliderSettingsTile extends StatelessWidget {
                   min: min,
                   max: max,
                   onChanged: enabled ? onChanged : null,
+                  onChangeStart: enabled ? onChangeStart : null,
+                  onChangeEnd: enabled ? onChangeEnd : null,
                   label: label,
                 ),
               ),

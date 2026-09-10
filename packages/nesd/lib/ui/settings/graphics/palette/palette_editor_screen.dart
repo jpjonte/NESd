@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/common/confirmation_dialog.dart';
+import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
@@ -28,6 +30,12 @@ class PaletteEditorScreen extends HookConsumerWidget {
 
   static const emphasisWarningKey = Key('paletteEmphasisWarning');
 
+  static const undoKey = Key('paletteEditorUndo');
+
+  static const redoKey = Key('paletteEditorRedo');
+
+  static const resetKey = Key('paletteEditorReset');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(paletteEditorProvider);
@@ -43,6 +51,34 @@ class PaletteEditorScreen extends HookConsumerWidget {
       return const NesdScaffold(appBar: NesdAppBar(title: Text('Palette')));
     }
 
+    // Above the screen, so a focused text field keeps its own undo: its
+    // shortcuts are handled closer to the field and win.
+    return Shortcuts(
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.keyZ, meta: true): _UndoIntent(),
+        SingleActivator(LogicalKeyboardKey.keyZ, control: true): _UndoIntent(),
+        SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true):
+            _RedoIntent(),
+        SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true):
+            _RedoIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _UndoIntent: _HistoryAction<_UndoIntent>(editor.undo),
+          _RedoIntent: _HistoryAction<_RedoIntent>(editor.redo),
+        },
+        child: _buildScreen(context, ref, state, editor, nameController),
+      ),
+    );
+  }
+
+  Widget _buildScreen(
+    BuildContext context,
+    WidgetRef ref,
+    PaletteEditorState state,
+    PaletteEditor editor,
+    TextEditingController nameController,
+  ) {
     return PopScope(
       canPop: !state.dirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -67,6 +103,18 @@ class PaletteEditorScreen extends HookConsumerWidget {
         appBar: NesdAppBar(
           title: const Text('Palette Editor'),
           actions: [
+            IconButton(
+              key: undoKey,
+              icon: const Icon(Icons.undo),
+              tooltip: 'Undo',
+              onPressed: editor.canUndo ? editor.undo : null,
+            ),
+            IconButton(
+              key: redoKey,
+              icon: const Icon(Icons.redo),
+              tooltip: 'Redo',
+              onPressed: editor.canRedo ? editor.redo : null,
+            ),
             IconButton(
               key: saveKey,
               icon: const Icon(Icons.save),
@@ -99,7 +147,19 @@ class PaletteEditorScreen extends HookConsumerWidget {
               selected: state.selected,
               onSelected: editor.select,
             );
-            final controls = PaletteColorEditor(state: state);
+            final controls = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PaletteColorEditor(state: state),
+                FocusOnHover(
+                  child: ButtonSettingsTile(
+                    key: resetKey,
+                    title: const Text('Reset all colors'),
+                    onPressed: state.colorsChanged ? editor.resetColors : null,
+                  ),
+                ),
+              ],
+            );
 
             if (constraints.maxWidth < 600) {
               return SingleChildScrollView(
@@ -207,4 +267,35 @@ class _EmphasisWarning extends StatelessWidget {
       ),
     );
   }
+}
+
+class _HistoryAction<T extends Intent> extends Action<T> {
+  _HistoryAction(this.step);
+
+  final void Function() step;
+
+  @override
+  bool isEnabled(T intent) => !_editingText();
+
+  @override
+  void invoke(T intent) => step();
+
+  static bool _editingText() {
+    final context = FocusManager.instance.primaryFocus?.context;
+
+    if (context == null) {
+      return false;
+    }
+
+    return context.widget is EditableText ||
+        context.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+}
+
+class _UndoIntent extends Intent {
+  const _UndoIntent();
+}
+
+class _RedoIntent extends Intent {
+  const _RedoIntent();
 }

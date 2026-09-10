@@ -88,7 +88,11 @@ class PaletteColorEditor extends HookConsumerWidget {
                         return;
                       }
 
-                      editor.setColor(state.selected, parsed);
+                      editor.setColor(
+                        state.selected,
+                        parsed,
+                        source: EditSource.hex(state.selected),
+                      );
                     },
                   ),
                 ),
@@ -103,7 +107,10 @@ class PaletteColorEditor extends HookConsumerWidget {
             onChanged: (value) => editor.setColor(
               state.selected,
               _withChannel(color, channel, value),
+              source: EditSource.channel(state.selected, channel),
             ),
+            onDragStart: editor.beginEdit,
+            onDragEnd: editor.endEdit,
             onReset: () => editor.revertColor(state.selected),
           ),
       ],
@@ -117,12 +124,16 @@ class _ChannelSlider extends StatelessWidget {
     required this.color,
     required this.onChanged,
     required this.onReset,
+    required this.onDragStart,
+    required this.onDragEnd,
   });
 
   final int channel;
   final int color;
   final ValueChanged<int> onChanged;
   final VoidCallback onReset;
+  final VoidCallback onDragStart;
+  final VoidCallback onDragEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +151,8 @@ class _ChannelSlider extends StatelessWidget {
       child: FocusOnHover(
         child: SliderSettingsTile(
           key: PaletteColorEditor.channelKey(channel),
+          onChangeStart: (_) => onDragStart(),
+          onChangeEnd: (_) => onDragEnd(),
           label: _channelLabels[channel],
           value: value.toDouble(),
           displayValue: '$value',
