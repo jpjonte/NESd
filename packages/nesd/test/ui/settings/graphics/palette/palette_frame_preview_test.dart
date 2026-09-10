@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/isolate/nes_bytes.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
+import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_color_editor.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
@@ -14,18 +15,22 @@ import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import '../../../robot.dart';
 
 class _FakeEmulator {
+  static const width = 256;
+  static const height = 240;
+
   int requests = 0;
 
   Future<RepaintFrameResponse?> repaint(Uint32List palette) async {
     requests++;
 
-    final pixels = Uint32List(8 * 8)..fillRange(0, 8 * 8, palette[0x21]);
+    final pixels = Uint32List(width * height)
+      ..fillRange(0, width * height, palette[0x21]);
 
     return RepaintFrameResponse(
       requestId: requests,
       pixels: NesBytes.fromList([pixels]),
-      width: 8,
-      height: 8,
+      width: width,
+      height: height,
     );
   }
 }
@@ -102,6 +107,21 @@ void main() {
     expect(await _topLeftPixel(tester), equals(0x102030ff));
   });
 
+  testWidgets('runs the preview through the display filter layer', (
+    tester,
+  ) async {
+    final emulator = _FakeEmulator();
+
+    final robot = await _openEditor(tester, repaint: emulator.repaint);
+
+    await robot.waitUntil(() => _previewImage.evaluate().isNotEmpty);
+
+    expect(
+      find.ancestor(of: _previewImage, matching: find.byType(OverscanCrop)),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('fits the preview and every slider on a wide window', (
     tester,
   ) async {
@@ -114,7 +134,7 @@ void main() {
     final height =
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
 
-    final preview = tester.getRect(_previewImage);
+    final preview = tester.getRect(find.byKey(PaletteFramePreview.previewKey));
 
     expect(preview.bottom, lessThanOrEqualTo(height));
 

@@ -7,9 +7,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/emulator/display.dart';
 import 'package:nesd/ui/emulator/display_geometry.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/nes_palette_provider.dart';
+import 'package:nesd/ui/emulator/video_filter/video_filter_registry.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 typedef RepaintFrame =
@@ -119,11 +121,14 @@ class PaletteFramePreview extends HookConsumerWidget {
 
   static const imageKey = Key('paletteFramePreviewImage');
 
+  static const previewKey = Key('paletteFramePreview');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final repaint = ref.watch(paletteRepaintProvider);
     final palette = ref.watch(nesPaletteProvider);
     final settings = ref.watch(settingsControllerProvider);
+    final shaderState = ref.watch(videoFilterRegistryProvider);
 
     final renderer = useMemoized(PaletteFrameRenderer.new);
 
@@ -144,6 +149,11 @@ class PaletteFramePreview extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final overscan = settings.overscan;
+
+    final visibleWidth = overscan.visibleWidth(image.width);
+    final visibleHeight = overscan.visibleHeight(image.height);
+
     return LayoutBuilder(
       builder: (_, constraints) {
         final pixelAspectRatio = calculatePixelAspectRatio(
@@ -154,12 +164,23 @@ class PaletteFramePreview extends HookConsumerWidget {
         );
 
         return AspectRatio(
-          aspectRatio: image.width / image.height * pixelAspectRatio,
-          child: RawImage(
-            key: imageKey,
-            image: image,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.none,
+          key: previewKey,
+          aspectRatio: visibleWidth / visibleHeight * pixelAspectRatio,
+          child: frameFilterLayer(
+            imageWidth: image.width,
+            imageHeight: image.height,
+            filters: settings.videoFilters,
+            shaders: shaderState.shaders,
+            crtFilter: settings.crtFilter,
+            shaderFilterSupported: ui.ImageFilter.isShaderFilterSupported,
+            imageFilterFactory: ui.ImageFilter.shader,
+            overscan: overscan,
+            child: RawImage(
+              key: imageKey,
+              image: image,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.none,
+            ),
           ),
         );
       },
