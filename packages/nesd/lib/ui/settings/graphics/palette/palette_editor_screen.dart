@@ -26,6 +26,8 @@ class PaletteEditorScreen extends HookConsumerWidget {
 
   static const nameKey = Key('paletteEditorName');
 
+  static const emphasisWarningKey = Key('paletteEmphasisWarning');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(paletteEditorProvider);
@@ -107,6 +109,8 @@ class PaletteEditorScreen extends HookConsumerWidget {
                   children: [
                     nameField,
                     const SizedBox(height: 16),
+                    if (state.sourceHadEmphasis)
+                      const _EmphasisWarning(key: emphasisWarningKey),
                     grid,
                     const SizedBox(height: 16),
                     controls,
@@ -123,7 +127,13 @@ class PaletteEditorScreen extends HookConsumerWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [nameField, const SizedBox(height: 16), grid],
+                      children: [
+                        nameField,
+                        const SizedBox(height: 16),
+                        if (state.sourceHadEmphasis)
+                          const _EmphasisWarning(key: emphasisWarningKey),
+                        grid,
+                      ],
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -168,5 +178,29 @@ class PaletteEditorScreen extends HookConsumerWidget {
     }
 
     toaster.send(Toast.info('Exported $name'));
+  }
+}
+
+class _EmphasisWarning extends StatelessWidget {
+  const _EmphasisWarning({required super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'This palette has its own emphasis colors. Saving '
+              'replaces them with generated ones.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
