@@ -68,6 +68,7 @@ ApuDebugEvent _pack({required int capacity, required int count}) =>
       dmc: _dmc,
       mmc5: null,
       n163: null,
+      sunsoft5b: null,
       cpuFrequency: 1789773,
     );
 
@@ -134,6 +135,7 @@ void main() {
           pcmLevel: 200,
         ),
         n163: null,
+        sunsoft5b: null,
         cpuFrequency: 1789773,
       );
 

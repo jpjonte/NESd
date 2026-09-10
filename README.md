@@ -98,7 +98,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 - Fast-forward at 2x, 3x, 4x or unlimited, with audio
 - Game Genie cheats
 - Video filters (CRT and Smoothing) that can be stacked
-- Expansion audio for MMC5 and Namco 163 games
+- Expansion audio for MMC5, Namco 163 and Sunsoft 5B games
 - Customizable controls with multiple bindings per action
 - Gamepad support
 - Customizable touch screen controls
@@ -133,7 +133,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 
 <!-- game-counts:start -->
 
-NESd supports 3,404 games.
+NESd supports 3,417 games.
 
 <details>
 <summary>Supported mappers</summary>
@@ -151,6 +151,7 @@ NESd supports 3,404 games.
 - 30: UNROM 512 (39 games)
 - 45: GA23C (151 games)
 - 66: GxROM (17 games)
+- 69: Sunsoft FME-7 (13 games)
 - 71: BR909x (30 games)
 - 118: TxSROM (8 games)
 - 176: 8025 (344 games)

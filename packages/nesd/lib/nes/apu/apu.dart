@@ -446,6 +446,7 @@ class APU {
     _expansionGain = switch (_expansion?.kind) {
       ExpansionAudioKind.mmc5 => _mixer.mmc5,
       ExpansionAudioKind.namco163 => _mixer.namco163,
+      ExpansionAudioKind.sunsoft5b => _mixer.sunsoft5b,
       null => 1,
     };
   }

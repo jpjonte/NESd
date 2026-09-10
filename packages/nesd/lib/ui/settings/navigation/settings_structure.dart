@@ -353,6 +353,10 @@ final _audio = [
         title: 'Namco 163',
         builder: (_, _) => const Namco163GainSlider(),
       ),
+      SettingsEntry(
+        title: 'Sunsoft 5B',
+        builder: (_, _) => const Sunsoft5BGainSlider(),
+      ),
     ],
   ),
 ];

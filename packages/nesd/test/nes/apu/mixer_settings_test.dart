@@ -12,6 +12,7 @@ void main() {
     expect(settings.dmc, 1.0);
     expect(settings.mmc5, 1.0);
     expect(settings.namco163, 1.0);
+    expect(settings.sunsoft5b, 1.0);
   });
 
   test('round-trips through JSON', () {
@@ -23,6 +24,7 @@ void main() {
       dmc: 0.875,
       mmc5: 0.125,
       namco163: 0.625,
+      sunsoft5b: 0.375,
     );
 
     expect(MixerSettings.fromJson(settings.toJson()), settings);
@@ -37,6 +39,7 @@ void main() {
       dmc: double.nan,
       mmc5: double.infinity,
       namco163: double.negativeInfinity,
+      sunsoft5b: 3.5,
     );
 
     final clamped = settings.clamped();
@@ -48,6 +51,7 @@ void main() {
     expect(clamped.dmc, isNot(isNaN));
     expect(clamped.mmc5, 1.0);
     expect(clamped.namco163, 0.0);
+    expect(clamped.sunsoft5b, 1.0);
   });
 
   test('clamped leaves usable gains untouched', () {

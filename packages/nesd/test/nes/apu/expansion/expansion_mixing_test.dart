@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
 import '../../../test_roms/rom_robot.dart';
+import '../../cartridge/mapper/fme7_harness.dart';
 import '../../cartridge/mapper/mmc5_harness.dart';
 import '../../cartridge/mapper/namco163_harness.dart';
 
@@ -59,5 +60,20 @@ void main() {
 
     expect(apu.sampleIndex, greaterThan(1));
     expect(apu.sampleBuffer[1], lessThan(0));
+  });
+
+  test('Sunsoft 5B audio reaches the mixed sample buffer', () {
+    final mapper = buildFme7();
+    final apu = mapper.bus.apu..reset();
+
+    playSunsoft5bTone(mapper);
+
+    for (var i = 0; i < 256; i++) {
+      apu.step();
+      mapper.step();
+    }
+
+    expect(apu.sampleIndex, greaterThan(1));
+    expect(apu.sampleBuffer[1], closeTo(sunsoft5bScale, 1e-6));
   });
 }

@@ -59,12 +59,13 @@ void main() {
     expect(find.text('DMC'), findsOneWidget);
     expect(find.text('MMC5'), findsOneWidget);
     expect(find.text('Namco 163'), findsOneWidget);
+    expect(find.text('Sunsoft 5B'), findsOneWidget);
   });
 
   testWidgets('starts every channel at 100%', (tester) async {
     await pump(tester, const MixerSliders());
 
-    expect(find.text('100'), findsNWidgets(7));
+    expect(find.text('100'), findsNWidgets(8));
   });
 
   testWidgets('dragging one slider changes only that channel', (tester) async {
@@ -138,6 +139,20 @@ void main() {
     final mixer = readMixer(tester, Mmc5GainSlider);
 
     expect(mixer.mmc5, 0.0);
+    expect(mixer.namco163, 1.0);
+    expect(mixer.sunsoft5b, 1.0);
+  });
+
+  testWidgets('the Sunsoft 5B slider drives only the 5B gain', (tester) async {
+    await pump(tester, const Sunsoft5BGainSlider());
+
+    await tester.drag(find.byType(Slider), const Offset(-5000, 0));
+    await tester.pumpAndSettle();
+
+    final mixer = readMixer(tester, Sunsoft5BGainSlider);
+
+    expect(mixer.sunsoft5b, 0.0);
+    expect(mixer.mmc5, 1.0);
     expect(mixer.namco163, 1.0);
   });
 }

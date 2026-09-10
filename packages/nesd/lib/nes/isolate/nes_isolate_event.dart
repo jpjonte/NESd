@@ -223,6 +223,7 @@ class ApuDebugEvent extends NesIsolateEvent {
     required this.expansionLaneCount,
     required this.mmc5,
     required this.n163,
+    required this.sunsoft5b,
     required this.cpuFrequency,
   });
 
@@ -242,6 +243,7 @@ class ApuDebugEvent extends NesIsolateEvent {
     required DmcDebugState dmc,
     required Mmc5DebugState? mmc5,
     required Namco163DebugState? n163,
+    required Sunsoft5BDebugState? sunsoft5b,
     required int cpuFrequency,
   }) {
     assert(sampleCount > 0, 'sampleCount must be positive');
@@ -273,6 +275,7 @@ class ApuDebugEvent extends NesIsolateEvent {
       expansionLaneCount: channels.expansion.length,
       mmc5: mmc5,
       n163: n163,
+      sunsoft5b: sunsoft5b,
       cpuFrequency: cpuFrequency,
     );
   }
@@ -351,6 +354,8 @@ class ApuDebugEvent extends NesIsolateEvent {
   final Mmc5DebugState? mmc5;
 
   final Namco163DebugState? n163;
+
+  final Sunsoft5BDebugState? sunsoft5b;
 
   /// CPU frequency in Hz for the active region, for deriving channel
   /// frequencies UI-side.

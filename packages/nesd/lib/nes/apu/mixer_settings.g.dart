@@ -15,6 +15,7 @@ _MixerSettings _$MixerSettingsFromJson(Map<String, dynamic> json) =>
       dmc: (json['dmc'] as num?)?.toDouble() ?? 1.0,
       mmc5: (json['mmc5'] as num?)?.toDouble() ?? 1.0,
       namco163: (json['namco163'] as num?)?.toDouble() ?? 1.0,
+      sunsoft5b: (json['sunsoft5b'] as num?)?.toDouble() ?? 1.0,
     );
 
 Map<String, dynamic> _$MixerSettingsToJson(_MixerSettings instance) =>
@@ -26,4 +27,5 @@ Map<String, dynamic> _$MixerSettingsToJson(_MixerSettings instance) =>
       'dmc': instance.dmc,
       'mmc5': instance.mmc5,
       'namco163': instance.namco163,
+      'sunsoft5b': instance.sunsoft5b,
     };

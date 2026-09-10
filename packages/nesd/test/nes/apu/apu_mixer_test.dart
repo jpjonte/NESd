@@ -4,6 +4,7 @@ import 'package:nesd/nes/apu/apu_mix.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
 import 'package:nesd/nes/apu/tables.dart';
 
+import '../cartridge/mapper/fme7_harness.dart';
 import '../cartridge/mapper/mmc5_harness.dart';
 import '../cartridge/mapper/namco163_harness.dart';
 
@@ -92,6 +93,52 @@ void main() {
       _run(apu, mapper.step);
 
       expect(apu.sampleBuffer[1], 0);
+    });
+
+    test('the Sunsoft 5B gain mutes 5B audio', () {
+      final mapper = buildFme7();
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(sunsoft5b: 0);
+
+      playSunsoft5bTone(mapper);
+
+      _run(apu, mapper.step);
+
+      expect(apu.sampleBuffer[1], 0);
+    });
+
+    test('the MMC5 gain leaves 5B audio alone', () {
+      final mapper = buildFme7();
+      final apu = mapper.bus.apu
+        ..reset()
+        ..mixer = const MixerSettings(mmc5: 0);
+
+      playSunsoft5bTone(mapper);
+
+      _run(apu, mapper.step);
+
+      expect(apu.sampleBuffer[1], greaterThan(0));
+    });
+
+    test('lowering the 5B gain mid-playback attenuates the running chip', () {
+      final mapper = buildFme7();
+      final apu = mapper.bus.apu..reset();
+
+      playSunsoft5bTone(mapper);
+
+      _run(apu, mapper.step);
+
+      final loud = apu.sampleBuffer[1];
+
+      apu
+        ..mixer = const MixerSettings(sunsoft5b: 0.25)
+        ..sampleIndex = 0;
+
+      _run(apu, mapper.step);
+
+      expect(loud, greaterThan(0));
+      expect(apu.sampleBuffer[1], closeTo(loud * 0.25, 1e-6));
     });
 
     test('the MMC5 gain leaves Namco 163 audio alone', () {
