@@ -12,6 +12,7 @@ import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/user_palettes.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:riverpod/misc.dart';
@@ -135,6 +136,25 @@ void main() {
     expect(container.read(nesPaletteProvider), equals(fallback));
 
     loading.complete({});
+  });
+
+  test('an open draft overrides the selection and snaps back on close', () {
+    final container = _container();
+
+    // ignore: cascade_invocations
+    container.listen(nesPaletteProvider, (_, _) {});
+
+    final rgb = List.filled(64, 0x102030);
+
+    container
+        .read(paletteEditorProvider.notifier)
+        .open(name: 'Draft', colors: rgb, sourceHadEmphasis: false);
+
+    expect(container.read(nesPaletteProvider), equals(expandRgbToPalette(rgb)));
+
+    container.read(paletteEditorProvider.notifier).close();
+
+    expect(container.read(nesPaletteProvider), equals(fallback));
   });
 }
 
