@@ -397,6 +397,20 @@ class ThumbnailResponse extends NesIsolateEvent {
   final int height;
 }
 
+class RepaintFrameResponse extends NesIsolateEvent {
+  const RepaintFrameResponse({
+    required this.requestId,
+    required this.pixels,
+    required this.width,
+    required this.height,
+  });
+
+  final int requestId;
+  final NesBytes? pixels;
+  final int width;
+  final int height;
+}
+
 class TileDebugResponse extends NesIsolateEvent {
   const TileDebugResponse({
     required this.requestId,

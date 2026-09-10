@@ -201,6 +201,51 @@ void main() {
     expect(frame.pixels, isA<PointerFramePixels>());
   });
 
+  test('repaints the frame it is showing through a supplied palette', () async {
+    await worker.handleCommand(_loadRomCommand(suspended: true));
+    await waitFor<RomLoadedEvent>();
+    await waitFor<FrameEvent>();
+
+    final palette = Uint32List(512);
+
+    for (var i = 0; i < palette.length; i++) {
+      palette[i] = 0xff000000 | i;
+    }
+
+    await worker.handleCommand(
+      RepaintFrameRequest(requestId: 7, palette: palette),
+    );
+
+    final response = await waitFor<RepaintFrameResponse>();
+
+    expect(response.requestId, equals(7));
+
+    final pixels = Uint32List.view(
+      response.pixels!.materialize().asUint8List().buffer,
+    );
+    final indices = worker.nesForTesting!.ppu.frameIndices;
+
+    expect(pixels, hasLength(indices.length));
+
+    for (var i = 0; i < pixels.length; i++) {
+      expect(pixels[i], equals(palette[indices[i]]), reason: 'pixel $i');
+    }
+  });
+
+  test(
+    'answers a repaint request with nothing when no ROM is loaded',
+    () async {
+      await worker.handleCommand(
+        RepaintFrameRequest(requestId: 3, palette: Uint32List(512)),
+      );
+
+      final response = await waitFor<RepaintFrameResponse>();
+
+      expect(response.requestId, equals(3));
+      expect(response.pixels, isNull);
+    },
+  );
+
   test('a suspended load halts after its first frame without '
       'pausing', () async {
     await worker.handleCommand(_loadRomCommand(suspended: true));

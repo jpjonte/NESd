@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -12,6 +11,7 @@ import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_actions.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_color_editor.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_frame_preview.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_save_action.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_swatch_grid.dart';
 import 'package:nesd/ui/toast/toaster.dart';
@@ -111,6 +111,8 @@ class PaletteEditorScreen extends HookConsumerWidget {
                     const SizedBox(height: 16),
                     if (state.sourceHadEmphasis)
                       const _EmphasisWarning(key: emphasisWarningKey),
+                    const PaletteFramePreview(),
+                    const SizedBox(height: 16),
                     grid,
                     const SizedBox(height: 16),
                     controls,
@@ -133,6 +135,8 @@ class PaletteEditorScreen extends HookConsumerWidget {
                         if (state.sourceHadEmphasis)
                           const _EmphasisWarning(key: emphasisWarningKey),
                         grid,
+                        const SizedBox(height: 16),
+                        const Expanded(child: PaletteFramePreview()),
                       ],
                     ),
                   ),

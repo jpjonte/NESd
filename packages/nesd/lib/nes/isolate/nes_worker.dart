@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -236,6 +237,8 @@ class NesWorker {
         _handleThumbnail(command.requestId);
       case TileDebugRequest():
         _handleTileDebug(command.requestId);
+      case RepaintFrameRequest():
+        _handleRepaintFrame(command.requestId, command.palette);
       case ReleaseFrameCommand():
         _releaseFrame(command.frameHandle);
       case SetZapperPositionCommand():
@@ -867,6 +870,39 @@ class NesWorker {
         pixels: NesBytes.fromList([pixels]),
         width: frameBuffer.width,
         height: frameBuffer.height,
+      ),
+    );
+  }
+
+  void _handleRepaintFrame(int requestId, Uint32List palette) {
+    final ppu = _nes?.ppu;
+
+    if (ppu == null || !ppu.frameIndicesValid) {
+      send(
+        RepaintFrameResponse(
+          requestId: requestId,
+          pixels: null,
+          width: 0,
+          height: 0,
+        ),
+      );
+
+      return;
+    }
+
+    final indices = ppu.frameIndices;
+    final pixels = Uint32List(indices.length);
+
+    for (var i = 0; i < indices.length; i++) {
+      pixels[i] = palette[indices[i] & 0x1ff];
+    }
+
+    send(
+      RepaintFrameResponse(
+        requestId: requestId,
+        pixels: NesBytes.fromList([pixels]),
+        width: ppu.frameBuffer.width,
+        height: ppu.frameBuffer.height,
       ),
     );
   }

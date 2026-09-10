@@ -289,6 +289,12 @@ class RemoteNes {
     (requestId) => TileDebugRequest(requestId: requestId),
   );
 
+  Future<RepaintFrameResponse?> requestRepaintFrame(Uint32List palette) =>
+      _request<RepaintFrameResponse>(
+        (requestId) =>
+            RepaintFrameRequest(requestId: requestId, palette: palette),
+      );
+
   Future<RewindScrubBeganResponse?> beginRewindScrub() async {
     final response = await _request<RewindScrubBeganResponse>(
       (requestId) => BeginRewindScrubCommand(requestId: requestId),
@@ -392,6 +398,8 @@ class RemoteNes {
       case ThumbnailResponse(:final requestId):
         _complete(requestId, event);
       case TileDebugResponse(:final requestId):
+        _complete(requestId, event);
+      case RepaintFrameResponse(:final requestId):
         _complete(requestId, event);
       case RewindScrubBeganResponse(:final requestId):
         _complete(requestId, event);
