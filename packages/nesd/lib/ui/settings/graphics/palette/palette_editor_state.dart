@@ -92,6 +92,14 @@ class PaletteEditor extends _$PaletteEditor {
 
   void close() => state = null;
 
+  void closeIfMounted() {
+    if (!ref.mounted) {
+      return;
+    }
+
+    close();
+  }
+
   void _update(PaletteEditorState Function(PaletteEditorState) change) {
     final current = state;
 

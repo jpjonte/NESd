@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/ui/common/confirmation_dialog.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
@@ -26,85 +29,110 @@ class PaletteEditorScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(paletteEditorProvider);
+    final editor = ref.read(paletteEditorProvider.notifier);
+
+    useEffect(() {
+      return () => scheduleMicrotask(editor.closeIfMounted);
+    }, const []);
+
+    final nameController = useTextEditingController(text: state?.name ?? '');
 
     if (state == null) {
       return const NesdScaffold(appBar: NesdAppBar(title: Text('Palette')));
     }
 
-    final editor = ref.read(paletteEditorProvider.notifier);
-    final nameController = useTextEditingController(text: state.name);
+    return PopScope(
+      canPop: !state.dirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) {
+          return;
+        }
 
-    return NesdScaffold(
-      appBar: NesdAppBar(
-        title: const Text('Palette Editor'),
-        actions: [
-          IconButton(
-            key: saveKey,
-            icon: const Icon(Icons.save),
-            tooltip: 'Save palette',
-            onPressed: () => savePalette(context, ref),
-          ),
-          IconButton(
-            key: exportKey,
-            icon: const Icon(Icons.save_alt),
-            tooltip: 'Export palette',
-            onPressed: () => _export(ref),
-          ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final nameField = Focus(
-            skipTraversal: true,
-            child: SettingsTile(
-              title: const Text('Name'),
-              child: TextField(
-                key: nameKey,
-                controller: nameController,
-                onChanged: editor.setName,
-              ),
+        final discard = await ConfirmationDialog.show(
+          context,
+          title: const Text('Discard changes?'),
+          content: const Text('The palette has unsaved changes.'),
+          confirmLabel: const Text('Discard'),
+        );
+
+        if (discard != true || !context.mounted) {
+          return;
+        }
+
+        Navigator.of(context).pop();
+      },
+      child: NesdScaffold(
+        appBar: NesdAppBar(
+          title: const Text('Palette Editor'),
+          actions: [
+            IconButton(
+              key: saveKey,
+              icon: const Icon(Icons.save),
+              tooltip: 'Save palette',
+              onPressed: () => savePalette(context, ref),
             ),
-          );
-          final grid = PaletteSwatchGrid(
-            colors: state.colors,
-            selected: state.selected,
-            onSelected: editor.select,
-          );
-          final controls = PaletteColorEditor(state: state);
+            IconButton(
+              key: exportKey,
+              icon: const Icon(Icons.save_alt),
+              tooltip: 'Export palette',
+              onPressed: () => _export(ref),
+            ),
+          ],
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final nameField = Focus(
+              skipTraversal: true,
+              child: SettingsTile(
+                title: const Text('Name'),
+                child: TextField(
+                  key: nameKey,
+                  controller: nameController,
+                  onChanged: editor.setName,
+                ),
+              ),
+            );
+            final grid = PaletteSwatchGrid(
+              colors: state.colors,
+              selected: state.selected,
+              onSelected: editor.select,
+            );
+            final controls = PaletteColorEditor(state: state);
 
-          if (constraints.maxWidth < 600) {
-            return SingleChildScrollView(
+            if (constraints.maxWidth < 600) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    nameField,
+                    const SizedBox(height: 16),
+                    grid,
+                    const SizedBox(height: 16),
+                    controls,
+                  ],
+                ),
+              );
+            }
+
+            return Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  nameField,
-                  const SizedBox(height: 16),
-                  grid,
-                  const SizedBox(height: 16),
-                  controls,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [nameField, const SizedBox(height: 16), grid],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(child: SingleChildScrollView(child: controls)),
                 ],
               ),
             );
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [nameField, const SizedBox(height: 16), grid],
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(child: SingleChildScrollView(child: controls)),
-              ],
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
