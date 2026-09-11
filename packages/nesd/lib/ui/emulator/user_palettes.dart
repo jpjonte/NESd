@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/palette/pal_file.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/user_palette_store.dart';
@@ -61,10 +62,22 @@ class UserPalettes extends _$UserPalettes {
 
   Future<void> import(String name, Uint8List bytes) async {
     final palette = parsePalFile(bytes);
+    await _write(name, bytes, palette);
+  }
 
+  Future<void> save(String name, List<int> rgb) =>
+      _write(name, writePalFile(rgb), expandRgbToPalette(rgb));
+
+  Future<void> _write(String name, Uint8List bytes, Uint32List palette) async {
     await ref.read(userPaletteStoreProvider).write(name, bytes);
 
-    state = AsyncData({...await future, name: palette});
+    final palettes = {...await future}
+      ..removeWhere(
+        (existing, _) => existing.toLowerCase() == name.toLowerCase(),
+      )
+      ..[name] = palette;
+
+    state = AsyncData(palettes);
   }
 
   Future<void> remove(String name) async {

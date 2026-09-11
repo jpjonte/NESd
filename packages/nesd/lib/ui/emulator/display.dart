@@ -245,13 +245,37 @@ Widget frameTextureLayer({
   required ui.ImageFilter Function(ui.FragmentShader shader) imageFilterFactory,
   Overscan overscan = Overscan.none,
 }) {
-  final texture = OverscanCrop(
-    overscan: overscan,
+  return frameFilterLayer(
     imageWidth: imageWidth,
     imageHeight: imageHeight,
+    filters: filters,
+    shaders: shaders,
+    crtFilter: crtFilter,
+    shaderFilterSupported: shaderFilterSupported,
+    imageFilterFactory: imageFilterFactory,
+    overscan: overscan,
     child: SizedBox.expand(
       child: Texture(textureId: textureId, filterQuality: FilterQuality.none),
     ),
+  );
+}
+
+Widget frameFilterLayer({
+  required Widget child,
+  required int imageWidth,
+  required int imageHeight,
+  required List<VideoFilter> filters,
+  required Map<VideoFilter, ui.FragmentShader> shaders,
+  required CrtFilterSettings crtFilter,
+  required bool shaderFilterSupported,
+  required ui.ImageFilter Function(ui.FragmentShader shader) imageFilterFactory,
+  Overscan overscan = Overscan.none,
+}) {
+  final cropped = OverscanCrop(
+    overscan: overscan,
+    imageWidth: imageWidth,
+    imageHeight: imageHeight,
+    child: child,
   );
 
   final chain = composeVideoFilterChain(
@@ -265,13 +289,13 @@ Widget frameTextureLayer({
   );
 
   if (chain == null) {
-    return texture;
+    return cropped;
   }
 
   return ImageFiltered(
     key: ValueKey(chain.key),
     imageFilter: chain.filter,
-    child: texture,
+    child: cropped,
   );
 }
 

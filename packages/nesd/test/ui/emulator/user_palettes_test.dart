@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
+import 'package:nesd/nes/ppu/palette/pal_file.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/emulator/user_palettes.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
@@ -136,5 +137,59 @@ void main() {
 
     expect(await storage.exists('/app/palettes/Foo.pal'), isFalse);
     expect(container.read(userPalettesProvider).requireValue, isEmpty);
+  });
+
+  test('save writes a 192-byte file and publishes the palette', () async {
+    final container = _containerFor(MemoryStorageFilesystem());
+    final notifier = container.read(userPalettesProvider.notifier);
+
+    await container.read(userPalettesProvider.future);
+
+    final rgb = List.generate(64, (i) => (i << 16) | (i << 8) | i);
+
+    await notifier.save('Mine', rgb);
+
+    expect(
+      container.read(userPalettesProvider).value,
+      equals({'Mine': expandRgbToPalette(rgb)}),
+    );
+
+    final bytes = await container.read(userPaletteStoreProvider).read('Mine');
+
+    expect(bytes, hasLength(192));
+    expect(parsePalFile(bytes!), equals(expandRgbToPalette(rgb)));
+  });
+
+  test('save overwrites an existing palette of the same name', () async {
+    final container = _containerFor(MemoryStorageFilesystem());
+    final notifier = container.read(userPalettesProvider.notifier);
+
+    await container.read(userPalettesProvider.future);
+    await notifier.save('Mine', List.filled(64, 0x102030));
+    await notifier.save('Mine', List.filled(64, 0x405060));
+
+    expect(
+      container.read(userPalettesProvider).value!['Mine']![0],
+      equals(packPaletteColor(0x40, 0x50, 0x60)),
+    );
+  });
+
+  test('save drops a stray case-variant key for the same palette', () async {
+    await storage.write('/app/palettes/Foo.pal', greyPalFile(0x10));
+    await storage.write('/app/palettes/foo.pal', greyPalFile(0x20));
+
+    final container = _containerFor(storage);
+    final notifier = container.read(userPalettesProvider.notifier);
+
+    final before = await container.read(userPalettesProvider.future);
+
+    expect(before.keys, unorderedEquals(['Foo', 'foo']));
+
+    await notifier.save('Foo', List.filled(64, 0x304050));
+
+    final after = container.read(userPalettesProvider).requireValue;
+
+    expect(after.keys, equals(['Foo']));
+    expect(after['Foo']![0], equals(packPaletteColor(0x30, 0x40, 0x50)));
   });
 }

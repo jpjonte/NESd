@@ -113,5 +113,24 @@ Uint32List expandRgbToPalette(List<int> rgb) {
 
 final defaultPalette = expandRgbToPalette(defaultPaletteRgb);
 
+List<int> paletteBaseColors(Uint32List palette) => [
+  for (var color = 0; color < 64; color++)
+    ((palette[color] & 0xff) << 16) |
+        (palette[color] & 0x0000ff00) |
+        ((palette[color] >> 16) & 0xff),
+];
+
+bool hasCustomEmphasis(Uint32List palette) {
+  final generated = expandRgbToPalette(paletteBaseColors(palette));
+
+  for (var i = 64; i < nesPaletteLength; i++) {
+    if (palette[i] != generated[i]) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 int _attenuate(int channel, bool dim) =>
     dim ? (channel * emphasisAttenuation).round() : channel;

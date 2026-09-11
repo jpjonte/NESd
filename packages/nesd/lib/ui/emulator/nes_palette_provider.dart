@@ -5,6 +5,7 @@ import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/palette/palette_library.dart';
 import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/ui/emulator/user_palettes.dart';
+import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,6 +14,12 @@ part 'nes_palette_provider.g.dart';
 
 @riverpod
 Uint32List nesPalette(Ref ref) {
+  final draft = ref.watch(paletteDraftProvider);
+
+  if (draft != null) {
+    return draft;
+  }
+
   final library = ref.watch(paletteLibraryProvider).value;
   final userPalettes = ref.watch(userPalettesProvider).value;
 

@@ -311,6 +311,13 @@ class TileDebugRequest extends NesCommand {
   final int requestId;
 }
 
+class RepaintFrameRequest extends NesCommand {
+  const RepaintFrameRequest({required this.requestId, required this.palette});
+
+  final int requestId;
+  final Uint32List palette;
+}
+
 class ReleaseFrameCommand extends NesCommand {
   const ReleaseFrameCommand({required this.frameHandle});
 

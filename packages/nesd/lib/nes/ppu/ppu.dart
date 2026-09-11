@@ -100,6 +100,8 @@ class PPU {
   // (greyscale + emphasis already applied)
   final Uint32List _paletteLut = Uint32List(0x80);
 
+  final Uint16List _paletteIndexLut = Uint16List(0x80);
+
   Uint32List _systemPalette = defaultPalette;
 
   Region _region = Region.ntsc;
@@ -108,6 +110,9 @@ class PPU {
 
   @visibleForTesting
   Uint32List get paletteLut => _paletteLut;
+
+  @visibleForTesting
+  Uint16List get paletteIndexLut => _paletteIndexLut;
 
   Uint32List get systemPalette => _systemPalette;
 
@@ -126,6 +131,16 @@ class PPU {
   }
 
   final FrameBuffer frameBuffer = FrameBuffer(width: 256, height: 240);
+  Uint16List get frameIndices => _presentedIndices;
+
+  Uint16List _presentedIndices = Uint16List(256 * 240);
+  Uint16List _drawingIndices = Uint16List(256 * 240);
+
+  bool _frameIndicesValid = false;
+  bool _framePixelsInjected = false;
+  bool _frameUsedExtendedColors = false;
+
+  bool get frameIndicesValid => _frameIndicesValid;
   final List<Uint8List?> _ppuBlocks = List<Uint8List?>.filled(
     _ppuBlockCount,
     null,
@@ -182,6 +197,8 @@ class PPU {
     }
 
     _extendedColors = value;
+
+    _frameUsedExtendedColors |= value;
 
     _rebuildPaletteLut();
   }
@@ -319,7 +336,9 @@ class PPU {
     secondaryOam.setAll(0, state.secondaryOam);
     palette.setAll(0, state.palette);
     if (state.frameBuffer case final frame?) {
-      frameBuffer.setPixels(frame.presentedPixels);
+      injectFrame(frame.presentedPixels);
+
+      _frameIndicesValid = false;
     }
     consoleCycles = state.consoleCycles;
     cycles = state.cycles;
@@ -1162,9 +1181,11 @@ class PPU {
     final color = _getPixelColor();
 
     // Use precomputed final RGB color for this palette index (with mirroring)
-    final rgb = _paletteLut[color & 0x7f];
+    final entry = color & 0x7f;
 
-    frameBuffer.setPixelWithBase(_pixelBase, currentX, rgb);
+    frameBuffer.setPixelWithBase(_pixelBase, currentX, _paletteLut[entry]);
+
+    _drawingIndices[_pixelBase + currentX] = _paletteIndexLut[entry];
   }
 
   @pragma('vm:prefer-inline')
@@ -1721,7 +1742,7 @@ class PPU {
       final remapped = _remapPaletteIndex(i);
       final value = _computePaletteEntry(remapped);
 
-      _setPaletteEntry(remapped, value);
+      _setPaletteEntry(remapped, value, _computePaletteIndex(remapped));
     }
   }
 
@@ -1747,22 +1768,43 @@ class PPU {
     final rem = _remapPaletteIndex(entry);
     final val = _computePaletteEntry(rem);
 
-    _setPaletteEntry(rem, val);
+    _setPaletteEntry(rem, val, _computePaletteIndex(rem));
   }
 
-  void _setPaletteEntry(int index, int value) {
+  void injectFrame(Uint8List pixels) {
+    frameBuffer.setPixels(pixels);
+
+    _frameIndicesValid = false;
+    _framePixelsInjected = true;
+  }
+
+  void presentFrame() {
+    frameBuffer.swap();
+
+    final drawn = _drawingIndices;
+
+    _drawingIndices = _presentedIndices;
+    _presentedIndices = drawn;
+
+    _frameIndicesValid = !_framePixelsInjected && !_frameUsedExtendedColors;
+
+    _framePixelsInjected = false;
+    _frameUsedExtendedColors = _extendedColors;
+  }
+
+  void _setPaletteEntry(int index, int value, int paletteIndex) {
     if (extendedPalette) {
-      _paletteLut[index] = value;
+      _writePaletteEntry(index, value, paletteIndex);
 
       switch (index) {
         case 0x00:
-          _paletteLut[0x10] = value;
+          _writePaletteEntry(0x10, value, paletteIndex);
         case 0x04:
-          _paletteLut[0x14] = value;
+          _writePaletteEntry(0x14, value, paletteIndex);
         case 0x08:
-          _paletteLut[0x18] = value;
+          _writePaletteEntry(0x18, value, paletteIndex);
         case 0x0c:
-          _paletteLut[0x1c] = value;
+          _writePaletteEntry(0x1c, value, paletteIndex);
       }
 
       return;
@@ -1770,20 +1812,31 @@ class PPU {
 
     switch (index) {
       case 0x00:
-        _paletteLut[0x00] = value;
-        _paletteLut[0x10] = value;
+        _writePaletteEntry(0x00, value, paletteIndex);
+        _writePaletteEntry(0x10, value, paletteIndex);
       case 0x04:
-        _paletteLut[0x04] = value;
-        _paletteLut[0x14] = value;
+        _writePaletteEntry(0x04, value, paletteIndex);
+        _writePaletteEntry(0x14, value, paletteIndex);
       case 0x08:
-        _paletteLut[0x08] = value;
-        _paletteLut[0x18] = value;
+        _writePaletteEntry(0x08, value, paletteIndex);
+        _writePaletteEntry(0x18, value, paletteIndex);
       case 0x0c:
-        _paletteLut[0x0c] = value;
-        _paletteLut[0x1c] = value;
+        _writePaletteEntry(0x0c, value, paletteIndex);
+        _writePaletteEntry(0x1c, value, paletteIndex);
       default:
-        _paletteLut[index] = value;
+        _writePaletteEntry(index, value, paletteIndex);
     }
+  }
+
+  void _writePaletteEntry(int index, int value, int paletteIndex) {
+    _paletteLut[index] = value;
+    _paletteIndexLut[index] = paletteIndex;
+  }
+
+  int _computePaletteIndex(int index) {
+    final greyMask = PPUMASK_Gr == 1 ? 0x30 : 0x3f;
+
+    return _emphasisBase | (palette[index & 0x7f] & greyMask);
   }
 
   int _computePaletteEntry(int index) {

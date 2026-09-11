@@ -89,6 +89,7 @@ void main() {
       'Palette',
       'Palette Preview',
       'Import palette…',
+      'Edit palette…',
       'Remove palette',
       'Hue',
       'Saturation',

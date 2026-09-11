@@ -52,4 +52,17 @@ void main() {
     expect(() => parsePalFile(_bytes(0, (_) => 0)), throwsFormatException);
     expect(() => parsePalFile(_bytes(1535, (_) => 0)), throwsFormatException);
   });
+
+  test('writes 192 bytes that parse back to the same palette', () {
+    final rgb = List.generate(64, (i) => (i << 16) | (0x40 << 8) | 0x80);
+
+    final bytes = writePalFile(rgb);
+
+    expect(bytes.length, equals(192));
+    expect(parsePalFile(bytes), equals(expandRgbToPalette(rgb)));
+  });
+
+  test('write rejects a palette that is not 64 colors', () {
+    expect(() => writePalFile(List.filled(63, 0)), throwsArgumentError);
+  });
 }
