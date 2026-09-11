@@ -16,6 +16,11 @@ runs:
         # GITHUB_ACTION_PATH leaks from this composite action into the nested
         # step, so setup-dart looks for its matcher file here and fails
         problem-matcher: 'false'
+    - name: Drop the pub.dev token setup-dart registered
+      shell: bash
+      # the job has id-token: write for deploy-pages, which makes setup-dart
+      # mint a pub.dev publishing token; pub.dev rejects it on package reads
+      run: dart pub token remove https://pub.dev
     - uses: actions/download-artifact@v8
       with:
         name: coverage-badge
