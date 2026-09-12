@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/ui/common/fuzzy_matcher.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/archive_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
-import 'package:nesd/ui/file_picker/fuzzy_matcher.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
