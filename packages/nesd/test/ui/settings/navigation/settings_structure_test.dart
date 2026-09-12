@@ -1,6 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/features.dart';
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
+import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
+import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
+import 'package:nesd/ui/settings/debug/log_level_dropdown.dart';
+import 'package:nesd/ui/settings/general/auto_save_interval.dart';
+import 'package:nesd/ui/settings/general/auto_save_switch.dart';
+import 'package:nesd/ui/settings/general/rewind_switch.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 void main() {
@@ -97,5 +104,42 @@ void main() {
       'Brightness',
       'Gamma',
     ]);
+  });
+
+  test('entries whose tile shows a subtitle declare it', () {
+    SettingsEntry entry(SettingsCategory category, String title) => [
+      for (final section in sectionsOf(category))
+        for (final item in section.items)
+          if (item is SettingsEntry) item,
+    ].singleWhere((e) => e.title == title);
+
+    expect(
+      entry(SettingsCategory.general, 'Auto Save').subtitle,
+      AutoSaveSwitch.subtitle,
+    );
+    expect(
+      entry(SettingsCategory.general, 'Auto Save Interval').subtitle,
+      AutoSaveInterval.subtitle,
+    );
+
+    if (Features.rewind) {
+      expect(
+        entry(SettingsCategory.general, 'Enable Rewind').subtitle,
+        RewindSwitch.subtitle,
+      );
+    }
+
+    expect(
+      entry(SettingsCategory.audio, 'Low Pass Filter').subtitle,
+      LowPassFilterSwitch.subtitle,
+    );
+    expect(
+      entry(SettingsCategory.audio, 'Swap Duty Cycles').subtitle,
+      SwapDutyCyclesSwitch.subtitle,
+    );
+    expect(
+      entry(SettingsCategory.advanced, 'Log level').subtitle,
+      LogLevelDropdown.subtitle,
+    );
   });
 }

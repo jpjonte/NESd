@@ -83,11 +83,14 @@ class SettingsEntry extends SettingsItem {
   const SettingsEntry({
     required this.title,
     required this.builder,
+    this.subtitle,
     this.visibleWhen,
   });
 
   final String title;
   final SettingsEntryBuilder builder;
+
+  final String? subtitle;
 
   final SettingsVisibility? visibleWhen;
 }
@@ -121,10 +124,12 @@ final _general = [
     items: [
       SettingsEntry(
         title: 'Auto Save',
+        subtitle: AutoSaveSwitch.subtitle,
         builder: (_, _) => const AutoSaveSwitch(),
       ),
       SettingsEntry(
         title: 'Auto Save Interval',
+        subtitle: AutoSaveInterval.subtitle,
         builder: (_, _) => const AutoSaveInterval(),
       ),
       SettingsEntry(
@@ -144,6 +149,7 @@ final _general = [
       if (Features.rewind)
         SettingsEntry(
           title: 'Enable Rewind',
+          subtitle: RewindSwitch.subtitle,
           builder: (_, _) => const RewindSwitch(),
         ),
       SettingsEntry(
@@ -327,10 +333,12 @@ final _audio = [
       SettingsEntry(title: 'Volume', builder: (_, _) => const VolumeSlider()),
       SettingsEntry(
         title: 'Low Pass Filter',
+        subtitle: LowPassFilterSwitch.subtitle,
         builder: (_, _) => const LowPassFilterSwitch(),
       ),
       SettingsEntry(
         title: 'Swap Duty Cycles',
+        subtitle: SwapDutyCyclesSwitch.subtitle,
         builder: (_, _) => const SwapDutyCyclesSwitch(),
       ),
     ],
@@ -475,6 +483,7 @@ final _advanced = [
       ),
       SettingsEntry(
         title: 'Log level',
+        subtitle: LogLevelDropdown.subtitle,
         builder: (_, _) => const LogLevelDropdown(),
       ),
       SettingsEntry(

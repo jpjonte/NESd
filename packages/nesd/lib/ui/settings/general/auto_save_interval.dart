@@ -10,6 +10,8 @@ import 'package:nesd/ui/settings/settings.dart';
 class AutoSaveInterval extends HookConsumerWidget {
   const AutoSaveInterval({super.key});
 
+  static const subtitle = 'Minutes between auto saves';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final autoSave = ref.watch(
@@ -53,7 +55,7 @@ class AutoSaveInterval extends HookConsumerWidget {
         child: SettingsTile(
           enabled: autoSave,
           title: const Text('Auto Save Interval'),
-          subtitle: const Text('Minutes between auto saves'),
+          subtitle: const Text(subtitle),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 100),
             child: Padding(
