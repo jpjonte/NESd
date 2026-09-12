@@ -4,6 +4,10 @@ publish_to: none
 environment:
   sdk: '>=3.12.0 <4.0.0'
 
+dependencies:
+  flutter:
+    sdk: flutter
+
 workspace:
   - packages/nesd
   - packages/nesd_audio
