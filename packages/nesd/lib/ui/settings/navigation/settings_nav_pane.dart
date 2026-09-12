@@ -4,12 +4,16 @@ import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
+import 'package:nesd/ui/settings/search/settings_search.dart';
+import 'package:nesd/ui/settings/search/settings_search_field.dart';
+import 'package:nesd/ui/settings/search/settings_search_results.dart';
 
 class SettingsNavPane extends ConsumerWidget {
   const SettingsNavPane({
     required this.categoryFocusNodes,
     required this.onSelectCategory,
     required this.onSelectSection,
+    required this.onSelectEntry,
     super.key,
   });
 
@@ -18,6 +22,7 @@ class SettingsNavPane extends ConsumerWidget {
   final ValueChanged<SettingsCategory> onSelectCategory;
   final void Function(SettingsCategory category, String sectionId)
   onSelectSection;
+  final ValueChanged<SettingsEntryLocation> onSelectEntry;
 
   static const width = 240.0;
 
@@ -34,42 +39,68 @@ class SettingsNavPane extends ConsumerWidget {
     final selected =
         ref.watch(settingsNavigationProvider.select((s) => s.category)) ??
         SettingsCategory.general;
+    final query = ref.watch(settingsNavigationProvider.select((s) => s.query));
+    final navigation = ref.read(settingsNavigationProvider.notifier);
+
+    final matches = visibleSettingsMatches(ref, query);
+    final searching = query.trim().isNotEmpty;
 
     return SizedBox(
       width: width,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            for (final category in SettingsCategory.values) ...[
-              SettingsNavItem(
-                key: itemKey(category),
-                focusNode: categoryFocusNodes[category],
-                icon: category.icon,
-                title: category.title,
-                selected: category == selected,
-                onTap: () => onSelectCategory(category),
-              ),
-              if (sectionsOf(category).length > 1)
-                for (final section in sectionsOf(category))
-                  SettingsNavItem(
-                    key: sectionKey(section.id),
-                    title: section.title,
-                    indent: true,
-                    onTap: () => onSelectSection(category, section.id),
-                  ),
-            ],
-            SettingsNavItem(
-              key: aboutKey,
-              icon: Icons.info_outline,
-              title: 'About NESd',
-              onTap: () => showDialog<void>(
-                context: context,
-                builder: (_) => const AboutDialog(),
-              ),
+      child: Column(
+        children: [
+          SettingsSearchField(
+            value: query,
+            onChanged: (value) => navigation.query = value,
+            onSubmitted: () {
+              if (matches.isNotEmpty) {
+                onSelectEntry(matches.first);
+              }
+            },
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: searching
+                  ? SettingsSearchResults(
+                      matches: matches,
+                      onSelect: onSelectEntry,
+                    )
+                  : Column(
+                      children: [
+                        for (final category in SettingsCategory.values) ...[
+                          SettingsNavItem(
+                            key: itemKey(category),
+                            focusNode: categoryFocusNodes[category],
+                            icon: category.icon,
+                            title: category.title,
+                            selected: category == selected,
+                            onTap: () => onSelectCategory(category),
+                          ),
+                          if (sectionsOf(category).length > 1)
+                            for (final section in sectionsOf(category))
+                              SettingsNavItem(
+                                key: sectionKey(section.id),
+                                title: section.title,
+                                indent: true,
+                                onTap: () =>
+                                    onSelectSection(category, section.id),
+                              ),
+                        ],
+                        SettingsNavItem(
+                          key: aboutKey,
+                          icon: Icons.info_outline,
+                          title: 'About NESd',
+                          onTap: () => showDialog<void>(
+                            context: context,
+                            builder: (_) => const AboutDialog(),
+                          ),
+                        ),
+                      ],
+                    ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

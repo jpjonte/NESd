@@ -32,12 +32,22 @@ class TwoPaneSettings extends HookConsumerWidget {
     );
 
     final categoryFocusNodes = useCategoryFocusNodes('settings nav');
+    final paneFocus = useFocusNode(
+      skipTraversal: true,
+      debugLabel: 'settings pane',
+    );
 
     useEffect(() {
       scheduleMicrotask(() {
-        if (context.mounted) {
-          focusFirstDescendant(categoryFocusNodes[category]!);
+        if (!context.mounted) {
+          return;
         }
+
+        focusFirstDescendant(
+          navigation.query.trim().isNotEmpty
+              ? paneFocus
+              : categoryFocusNodes[category]!,
+        );
       });
 
       return null;
@@ -61,6 +71,12 @@ class TwoPaneSettings extends HookConsumerWidget {
       navigation.category = selected;
 
       afterRebuild(() => unawaited(scrollToSection(sectionKeys, sectionId)));
+    }
+
+    void selectEntry(SettingsEntryLocation target) {
+      navigation.reveal(target);
+
+      afterRebuild(() => unawaited(scrollToEntry(entryKeys, target.id)));
     }
 
     void step(int delta) {
@@ -92,10 +108,15 @@ class TwoPaneSettings extends HookConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SettingsNavPane(
-                categoryFocusNodes: categoryFocusNodes,
-                onSelectCategory: selectCategory,
-                onSelectSection: selectSection,
+              Focus(
+                focusNode: paneFocus,
+                skipTraversal: true,
+                child: SettingsNavPane(
+                  categoryFocusNodes: categoryFocusNodes,
+                  onSelectCategory: selectCategory,
+                  onSelectSection: selectSection,
+                  onSelectEntry: selectEntry,
+                ),
               ),
               Expanded(
                 child: Focus(
