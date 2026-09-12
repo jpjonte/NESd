@@ -7,11 +7,33 @@ import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 typedef SectionKeys = Map<String, GlobalKey<SettingsSectionViewState>>;
 
+typedef EntryKeys = Map<String, GlobalKey<SettingsEntryViewState>>;
+
 SectionKeys createSectionKeys() => {
   for (final category in SettingsCategory.values)
     for (final section in sectionsOf(category))
       section.id: GlobalKey<SettingsSectionViewState>(debugLabel: section.id),
 };
+
+EntryKeys createEntryKeys() => {
+  for (final location in settingsEntryLocations)
+    location.id: GlobalKey<SettingsEntryViewState>(debugLabel: location.id),
+};
+
+Future<void> _scrollToAndFocus(
+  State<StatefulWidget> state,
+  VoidCallback focus,
+) async {
+  await Scrollable.ensureVisible(
+    state.context,
+    duration: const Duration(milliseconds: 200),
+    curve: Curves.easeInOut,
+  );
+
+  if (state.mounted) {
+    focus();
+  }
+}
 
 Future<void> scrollToSection(SectionKeys keys, String sectionId) async {
   final state = keys[sectionId]?.currentState;
@@ -20,26 +42,30 @@ Future<void> scrollToSection(SectionKeys keys, String sectionId) async {
     return;
   }
 
-  await Scrollable.ensureVisible(
-    state.context,
-    duration: const Duration(milliseconds: 200),
-    curve: Curves.easeInOut,
-  );
+  await _scrollToAndFocus(state, state.focusFirstTile);
+}
 
-  if (state.mounted) {
-    state.focusFirstTile();
+Future<void> scrollToEntry(EntryKeys keys, String entryId) async {
+  final state = keys[entryId]?.currentState;
+
+  if (state == null) {
+    return;
   }
+
+  await _scrollToAndFocus(state, state.focus);
 }
 
 class SettingsCategoryContent extends StatelessWidget {
   const SettingsCategoryContent({
     required this.category,
     required this.sectionKeys,
+    required this.entryKeys,
     super.key,
   });
 
   final SettingsCategory category;
   final SectionKeys sectionKeys;
+  final EntryKeys entryKeys;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +81,7 @@ class SettingsCategoryContent extends StatelessWidget {
             key: sectionKeys[section.id],
             section: section,
             showHeader: showHeaders,
+            entryKeys: entryKeys,
           ),
       ],
     );
@@ -65,11 +92,13 @@ class SettingsSectionView extends StatefulWidget {
   const SettingsSectionView({
     required this.section,
     required this.showHeader,
+    required this.entryKeys,
     super.key,
   });
 
   final SettingsSection section;
   final bool showHeader;
+  final EntryKeys entryKeys;
 
   @override
   State<SettingsSectionView> createState() => SettingsSectionViewState();
@@ -91,18 +120,25 @@ class SettingsSectionViewState extends State<SettingsSectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final section = widget.section;
+
     return Focus(
       focusNode: _focusNode,
       skipTraversal: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.showHeader)
-            SettingsSectionHeader(title: widget.section.title),
-          for (final item in widget.section.items)
+          if (widget.showHeader) SettingsSectionHeader(title: section.title),
+          for (final item in section.items)
             switch (item) {
-              SettingsEntry() => SettingsEntryView(entry: item),
-              SettingsGroup() => SettingsGroupTile(group: item),
+              SettingsEntry() => SettingsEntryView(
+                key: widget.entryKeys[settingsEntryId(section.id, item)],
+                entry: item,
+              ),
+              SettingsGroup() => SettingsGroupTile(
+                group: item,
+                entryKeys: widget.entryKeys,
+              ),
             },
         ],
       ),
@@ -110,19 +146,42 @@ class SettingsSectionViewState extends State<SettingsSectionView> {
   }
 }
 
-class SettingsEntryView extends ConsumerWidget {
+class SettingsEntryView extends ConsumerStatefulWidget {
   const SettingsEntryView({required this.entry, super.key});
 
   final SettingsEntry entry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsEntryView> createState() => SettingsEntryViewState();
+}
+
+class SettingsEntryViewState extends ConsumerState<SettingsEntryView> {
+  final _focusNode = FocusNode(
+    skipTraversal: true,
+    debugLabel: 'settings entry',
+  );
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void focus() => focusFirstDescendant(_focusNode);
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = widget.entry;
     final visibleWhen = entry.visibleWhen;
 
     if (visibleWhen != null && !visibleWhen(ref)) {
       return const SizedBox.shrink();
     }
 
-    return entry.builder(context, ref);
+    return Focus(
+      focusNode: _focusNode,
+      skipTraversal: true,
+      child: entry.builder(context, ref),
+    );
   }
 }

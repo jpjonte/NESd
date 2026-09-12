@@ -24,6 +24,7 @@ class TwoPaneSettings extends HookConsumerWidget {
     final navigation = ref.read(settingsNavigationProvider.notifier);
 
     final sectionKeys = useMemoized(createSectionKeys);
+    final entryKeys = useMemoized(createEntryKeys);
 
     final contentFocus = useFocusNode(
       skipTraversal: true,
@@ -106,6 +107,7 @@ class TwoPaneSettings extends HookConsumerWidget {
                     child: SettingsCategoryContent(
                       category: category,
                       sectionKeys: sectionKeys,
+                      entryKeys: entryKeys,
                     ),
                   ),
                 ),

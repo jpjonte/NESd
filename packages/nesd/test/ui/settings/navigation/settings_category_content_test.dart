@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,19 +16,23 @@ import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
 import 'package:nesd/ui/settings/graphics/ntsc_palette_sliders.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_group_tile.dart';
+import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../helpers/focus.dart';
+
 class _FakeFilesystem extends Mock implements Filesystem {}
 
 void main() {
   Future<ProviderContainer> pumpContent(
     WidgetTester tester,
-    SettingsCategory category,
-  ) async {
+    SettingsCategory category, {
+    EntryKeys? entryKeys,
+  }) async {
     SharedPreferences.setMockInitialValues({});
 
     final prefs = await SharedPreferences.getInstance();
@@ -51,6 +57,7 @@ void main() {
               child: SettingsCategoryContent(
                 category: category,
                 sectionKeys: createSectionKeys(),
+                entryKeys: entryKeys ?? createEntryKeys(),
               ),
             ),
           ),
@@ -144,5 +151,52 @@ void main() {
 
     expect(keys.keys.toSet(), ids.toSet());
     expect(keys.length, ids.length);
+  });
+
+  testWidgets('scrollToEntry scrolls an expanded binding in and focuses it', (
+    tester,
+  ) async {
+    final entryKeys = createEntryKeys();
+    final container = await pumpContent(
+      tester,
+      SettingsCategory.controls,
+      entryKeys: entryKeys,
+    );
+
+    container
+        .read(settingsNavigationProvider.notifier)
+        .toggleGroup('controls.bindings.player2');
+    await tester.pumpAndSettle();
+
+    const id = 'controls.bindings.player2/Controller 2 Start';
+
+    unawaited(scrollToEntry(entryKeys, id));
+    await tester.pumpAndSettle();
+
+    final entry = find.byKey(entryKeys[id]!);
+    final viewport = tester.getRect(find.byType(SingleChildScrollView));
+
+    expect(tester.getRect(entry).top, greaterThanOrEqualTo(viewport.top));
+    expect(tester.getRect(entry).bottom, lessThanOrEqualTo(viewport.bottom));
+    expect(focusInside(tester, entry), isTrue);
+  });
+
+  testWidgets('scrollToEntry ignores an entry whose group is collapsed', (
+    tester,
+  ) async {
+    final entryKeys = createEntryKeys();
+
+    await pumpContent(tester, SettingsCategory.controls, entryKeys: entryKeys);
+
+    final before = primaryFocus;
+
+    await scrollToEntry(
+      entryKeys,
+      'controls.bindings.player2/Controller 2 Start',
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(primaryFocus, same(before));
   });
 }

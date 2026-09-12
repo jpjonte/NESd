@@ -19,6 +19,7 @@ class SettingsCategoryPage extends HookWidget {
     final sections = sectionsOf(category);
 
     final sectionKeys = useMemoized(createSectionKeys);
+    final entryKeys = useMemoized(createEntryKeys);
 
     final contentFocus = useFocusNode(
       skipTraversal: true,
@@ -71,6 +72,7 @@ class SettingsCategoryPage extends HookWidget {
                 child: SettingsCategoryContent(
                   category: category,
                   sectionKeys: sectionKeys,
+                  entryKeys: entryKeys,
                 ),
               ),
             ),
