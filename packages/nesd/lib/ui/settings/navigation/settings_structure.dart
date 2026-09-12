@@ -117,6 +117,62 @@ List<SettingsSection> sectionsOf(SettingsCategory category) =>
       SettingsCategory.advanced => _advanced,
     };
 
+String settingsEntryId(String parentId, SettingsEntry entry) =>
+    '$parentId/${entry.title}';
+
+@immutable
+class SettingsEntryLocation {
+  const SettingsEntryLocation({
+    required this.category,
+    required this.section,
+    required this.entry,
+    this.group,
+  });
+
+  final SettingsCategory category;
+  final SettingsSection section;
+  final SettingsGroup? group;
+  final SettingsEntry entry;
+
+  String get id => settingsEntryId(group?.id ?? section.id, entry);
+
+  String get breadcrumb => [
+    category.title,
+    section.title,
+    if (group case final group?) group.title,
+  ].join(' › ');
+
+  String get searchText => [
+    entry.title,
+    if (entry.subtitle case final subtitle?) subtitle,
+    if (group case final group?) group.title,
+  ].join(' ');
+}
+
+final List<SettingsEntryLocation> settingsEntryLocations = List.unmodifiable([
+  for (final category in SettingsCategory.values)
+    for (final section in sectionsOf(category))
+      for (final item in section.items)
+        ...switch (item) {
+          SettingsEntry() => [
+            SettingsEntryLocation(
+              category: category,
+              section: section,
+              entry: item,
+            ),
+          ],
+          SettingsGroup() => [
+            for (final entry in item.entries)
+              SettingsEntryLocation(
+                category: category,
+                section: section,
+                group: item,
+                entry: entry,
+              ),
+          ],
+        },
+]);
+
 final _general = [
   SettingsSection(
     id: 'general.saves',
