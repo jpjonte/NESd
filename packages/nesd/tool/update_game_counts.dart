@@ -109,9 +109,10 @@ List<int> _supportedMappers(File file) {
   }
 
   final ids =
-      RegExp(r'^\s*(\d+)\s*=>', multiLine: true)
+      RegExp(r'^\s*(\d+(?:\s*\|\|\s*\d+)*)\s*=>', multiLine: true)
           .allMatches(switchBody.group(1)!)
-          .map((match) => int.parse(match.group(1)!))
+          .expand((match) => match.group(1)!.split('||'))
+          .map((id) => int.parse(id.trim()))
           .toList()
         ..sort();
 

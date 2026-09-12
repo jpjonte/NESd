@@ -34,6 +34,7 @@ const _changeDetectors = <String, int>{
   '$_base/spritecans-2011/spritecans.nes': 6027694824722942956,
   '$_base/full_palette/full_palette.nes': 6387691627853472549,
   '$_base/mmc5test_v2/mmc5test.nes': 7390973552206513059,
+  '$_base/m22chrbankingtest/0-127.nes': 536103781366711217,
 };
 
 void main() {

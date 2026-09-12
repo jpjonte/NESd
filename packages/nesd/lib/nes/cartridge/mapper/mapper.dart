@@ -24,6 +24,7 @@ import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/txsrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom512.dart';
+import 'package:nesd/nes/cartridge/mapper/vrc24.dart';
 import 'package:nesd/nes/cartridge/mapper/vt/mapper256.dart';
 
 enum CpuMemoryType { prgRom, prgRam, prgSaveRam }
@@ -80,6 +81,7 @@ abstract class Mapper {
       9 => MMC2(),
       16 => BandaiFCG(subMapperId, prgSaveRamSize),
       19 => Namco163(subMapperId),
+      21 || 22 || 23 || 25 => VRC24(mapperId, subMapperId),
       30 => UNROM512(subMapperId),
       45 => Mapper45(subMapperId),
       66 => GxROM(),
