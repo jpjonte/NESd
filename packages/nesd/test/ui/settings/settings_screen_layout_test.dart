@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_list.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_page.dart';
 import 'package:nesd/ui/settings/navigation/settings_nav_pane.dart';
+import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/navigation/two_pane_settings.dart';
+import 'package:nesd/ui/settings/search/settings_search_field.dart';
+import 'package:nesd/ui/settings/search/settings_search_results.dart';
 import 'package:nesd/ui/settings/settings_screen.dart';
 
 import '../../helpers/focus.dart';
@@ -207,4 +211,88 @@ void main() {
       }
     },
   );
+
+  const startId = 'controls.bindings.player2/Controller 2 Start';
+
+  final searchField = find.byKey(SettingsSearchField.fieldKey);
+
+  Finder bindingTile(String title) => find.byWidgetPredicate(
+    (w) => w is BindingTile && w.action.title == title,
+  );
+
+  for (final (name, size) in [('desktop', _desktop), ('phone', _phone)]) {
+    testWidgets('$name: the d-pad reaches the search, results and entry', (
+      tester,
+    ) async {
+      final r = await openSettings(tester, size);
+
+      r.sendInputAction(inputUp);
+      await tester.pumpAndSettle();
+
+      expect(
+        focusInside(tester, searchField),
+        isTrue,
+        reason: 'up from the first navigation item enters the field',
+      );
+
+      await tester.enterText(searchField, 'player 2 start');
+      await tester.pumpAndSettle();
+
+      r.sendInputAction(inputDown);
+      await tester.pumpAndSettle();
+
+      final row = find.byKey(SettingsSearchResults.rowKey(startId));
+
+      expect(focusInside(tester, row), isTrue, reason: 'down leaves the field');
+
+      r.sendInputAction(confirm);
+      await tester.pumpAndSettle();
+
+      final tile = bindingTile('Controller 2 Start');
+
+      expect(tile, findsOneWidget);
+      expect(tester.getRect(tile).bottom, lessThanOrEqualTo(size.height));
+      expect(focusInside(tester, tile), isTrue);
+    });
+  }
+
+  testWidgets('crossing the breakpoint mid-search keeps the field focused', (
+    tester,
+  ) async {
+    final r = await openSettings(tester, _phone);
+
+    await tester.enterText(searchField, 'player 2 start');
+    await tester.pumpAndSettle();
+
+    await resize(tester, _desktop);
+
+    expect(find.byType(TwoPaneSettings), findsOneWidget);
+    expect(
+      r.settingsScreen.container.read(settingsNavigationProvider).query,
+      'player 2 start',
+    );
+    expect(find.byKey(SettingsSearchResults.rowKey(startId)), findsOneWidget);
+    expect(focusInside(tester, searchField), isTrue);
+  });
+
+  testWidgets('cancel in the field clears the query, then leaves settings', (
+    tester,
+  ) async {
+    final r = await openSettings(tester, _desktop);
+
+    await tester.enterText(searchField, 'start');
+    await tester.pumpAndSettle();
+
+    r.sendInputAction(cancel);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsSearchResults), findsNothing);
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(focusInside(tester, searchField), isTrue);
+
+    r.sendInputAction(cancel);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsScreen), findsNothing);
+  });
 }
