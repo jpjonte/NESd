@@ -19,9 +19,19 @@ class StackedSettings extends HookConsumerWidget {
 
     final returnTo = useState<SettingsCategory?>(null);
 
+    final pendingEntry = useRef<String?>(null);
+
+    final initialEntry = pendingEntry.value;
+    pendingEntry.value = null;
+
     void backToList() {
       returnTo.value = navigation.category;
       navigation.category = null;
+    }
+
+    void selectEntry(SettingsEntryLocation target) {
+      pendingEntry.value = target.id;
+      navigation.reveal(target);
     }
 
     return PopScope(
@@ -51,10 +61,12 @@ class StackedSettings extends HookConsumerWidget {
                   initialFocus: returnTo.value ?? SettingsCategory.general,
                   onSelectCategory: (selected) =>
                       navigation.category = selected,
+                  onSelectEntry: selectEntry,
                 )
               : SettingsCategoryPage(
                   key: ValueKey(category),
                   category: category,
+                  initialEntry: initialEntry,
                 ),
         ),
       ),

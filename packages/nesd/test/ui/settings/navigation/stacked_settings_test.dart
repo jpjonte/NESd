@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_list.dart';
@@ -11,12 +14,16 @@ import 'package:nesd/ui/settings/navigation/settings_category_page.dart';
 import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/navigation/stacked_settings.dart';
+import 'package:nesd/ui/settings/search/settings_search_field.dart';
+import 'package:nesd/ui/settings/search/settings_search_results.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/focus.dart';
 import '../../../helpers/fonts.dart';
+
+class _FakeFilesystem extends Mock implements Filesystem {}
 
 void main() {
   Finder content(SettingsCategory category) => find.byWidgetPredicate(
@@ -45,6 +52,7 @@ void main() {
           storageFilesystemProvider.overrideWithValue(
             MemoryStorageFilesystem(),
           ),
+          filesystemProvider.overrideWithValue(_FakeFilesystem()),
         ],
         child: MaterialApp(
           theme: nesdThemeLight,
@@ -215,5 +223,132 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(content(SettingsCategory.video), findsOneWidget);
+  });
+
+  const startId = 'controls.bindings.player2/Controller 2 Start';
+
+  final searchField = find.byKey(SettingsSearchField.fieldKey);
+
+  Finder bindingTile(String title) => find.byWidgetPredicate(
+    (w) => w is BindingTile && w.action.title == title,
+  );
+
+  Future<void> search(WidgetTester tester, String query) async {
+    await tester.enterText(searchField, query);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('typing turns the category list into results', (tester) async {
+    await pumpStacked(tester);
+
+    await search(tester, 'player 2 start');
+
+    expect(find.byKey(SettingsSearchResults.rowKey(startId)), findsOneWidget);
+    expect(
+      find.byKey(SettingsCategoryList.rowKey(SettingsCategory.general)),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(SettingsSearchField.clearKey));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(SettingsCategoryList.rowKey(SettingsCategory.general)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a result opens the page with the entry visible and focused', (
+    tester,
+  ) async {
+    final container = await pumpStacked(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsCategoryPage), findsOneWidget);
+    expect(
+      container.read(settingsNavigationProvider).category,
+      SettingsCategory.controls,
+    );
+
+    final tile = bindingTile('Controller 2 Start');
+    final viewport = tester.getRect(find.byType(StackedSettings));
+
+    expect(tile, findsOneWidget);
+    expect(tester.getRect(tile).top, greaterThanOrEqualTo(viewport.top));
+    expect(tester.getRect(tile).bottom, lessThanOrEqualTo(viewport.bottom));
+    expect(focusInside(tester, tile), isTrue);
+  });
+
+  testWidgets('submitting the field opens the top result', (tester) async {
+    final container = await pumpStacked(tester);
+
+    await search(tester, 'player 2 start');
+
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsCategoryPage), findsOneWidget);
+    expect(
+      container.read(settingsNavigationProvider).category,
+      SettingsCategory.controls,
+    );
+    expect(focusInside(tester, bindingTile('Controller 2 Start')), isTrue);
+  });
+
+  testWidgets('going back keeps the results and focuses the first one', (
+    tester,
+  ) async {
+    final container = await pumpStacked(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    await Navigator.of(
+      tester.element(find.byType(SettingsCategoryPage)),
+    ).maybePop();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SettingsCategoryList), findsOneWidget);
+    expect(container.read(settingsNavigationProvider).query, 'player 2 start');
+    expect(find.byKey(SettingsSearchResults.rowKey(startId)), findsOneWidget);
+    expect(
+      focusInside(tester, find.byKey(SettingsSearchResults.rowKey(startId))),
+      isTrue,
+    );
+  });
+
+  testWidgets('stepping categories after a search does not rescroll', (
+    tester,
+  ) async {
+    await pumpStacked(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    Actions.invoke(
+      tester.element(find.byType(SettingsCategoryPage)),
+      const NextTabIntent(),
+    );
+    await tester.pumpAndSettle();
+
+    Actions.invoke(
+      tester.element(find.byType(SettingsCategoryPage)),
+      const PreviousTabIntent(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(content(SettingsCategory.controls), findsOneWidget);
+    expect(
+      focusInside(tester, content(SettingsCategory.controls)),
+      isTrue,
+      reason: 'a re-entered page focuses its first tile like before',
+    );
+    expect(focusInside(tester, bindingTile('Controller 2 Start')), isFalse);
   });
 }
