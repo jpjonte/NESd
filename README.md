@@ -166,7 +166,7 @@ NESd supports 3,417 games.
 
 <!-- test-roms:start -->
 
-120 of 124 test ROMs run in CI and pass.
+121 of 125 test ROMs run in CI and pass.
 
 <details>
 <summary>Test ROM results</summary>
@@ -209,6 +209,7 @@ The ROMs live in `roms/test/`, the tests that run them in `packages/nesd/test/te
 | Mapper | `mmc3_test` | blargg | 5 / 6 | `6-MMC6` targets the MMC6 IRQ revision |
 | Mapper | `mmc3_test_2` | blargg | 5 / 6 | Newer build of the `mmc3_test` ROMs, `6-MMC3_alt` targets the alternate IRQ revision |
 | Mapper | `mmc5test_v2` | AWJ | 1 / 1 | Framebuffer golden |
+| Mapper | `m22chrbankingtest` | lidnariq | 1 / 1 | Framebuffer golden, VRC2a CHR bank shift |
 
 </details>
 
