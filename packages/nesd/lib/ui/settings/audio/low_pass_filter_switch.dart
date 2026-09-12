@@ -7,6 +7,8 @@ import 'package:nesd/ui/settings/settings.dart';
 class LowPassFilterSwitch extends ConsumerWidget {
   const LowPassFilterSwitch({super.key});
 
+  static const subtitle = 'Softens high frequencies like the original hardware';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
@@ -17,9 +19,7 @@ class LowPassFilterSwitch extends ConsumerWidget {
     return FocusOnHover(
       child: SwitchSettingsTile(
         title: const Text('Low Pass Filter'),
-        subtitle: const Text(
-          'Softens high frequencies like the original hardware',
-        ),
+        subtitle: const Text(subtitle),
         value: setting,
         onChanged: (value) => controller.lowPassFilter = value,
       ),

@@ -7,6 +7,8 @@ import 'package:nesd/ui/settings/settings.dart';
 class AutoSaveSwitch extends ConsumerWidget {
   const AutoSaveSwitch({super.key});
 
+  static const subtitle = 'Save to slot 0 on a timer and when quitting';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
@@ -17,7 +19,7 @@ class AutoSaveSwitch extends ConsumerWidget {
     return FocusOnHover(
       child: SwitchSettingsTile(
         title: const Text('Auto Save'),
-        subtitle: const Text('Save to slot 0 on a timer and when quitting'),
+        subtitle: const Text(subtitle),
         value: setting,
         onChanged: (value) => controller.autoSave = value,
       ),

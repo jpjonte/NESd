@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_dropdown.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_nav_pane.dart';
 import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 import 'package:nesd/ui/settings/navigation/two_pane_settings.dart';
+import 'package:nesd/ui/settings/search/settings_search_field.dart';
+import 'package:nesd/ui/settings/search/settings_search_results.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/focus.dart';
 import '../../../helpers/fonts.dart';
+
+class _FakeFilesystem extends Mock implements Filesystem {}
 
 void main() {
   Finder content(SettingsCategory category) => find.byWidgetPredicate(
@@ -46,6 +53,7 @@ void main() {
           storageFilesystemProvider.overrideWithValue(
             MemoryStorageFilesystem(),
           ),
+          filesystemProvider.overrideWithValue(_FakeFilesystem()),
         ],
         child: MaterialApp(
           theme: nesdThemeLight,
@@ -242,5 +250,107 @@ void main() {
 
     expect(rect.top, greaterThanOrEqualTo(pane.top));
     expect(rect.bottom, lessThanOrEqualTo(pane.bottom));
+  });
+
+  const startId = 'controls.bindings.player2/Controller 2 Start';
+
+  final searchField = find.byKey(SettingsSearchField.fieldKey);
+
+  Finder bindingTile(String title) => find.byWidgetPredicate(
+    (w) => w is BindingTile && w.action.title == title,
+  );
+
+  Future<void> search(WidgetTester tester, String query) async {
+    await tester.enterText(searchField, query);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('typing replaces the nav list with results', (tester) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+
+    expect(container.read(settingsNavigationProvider).query, 'player 2 start');
+    expect(find.byKey(SettingsSearchResults.rowKey(startId)), findsOneWidget);
+    expect(
+      find.byKey(SettingsNavPane.itemKey(SettingsCategory.general)),
+      findsNothing,
+    );
+    expect(find.byKey(SettingsNavPane.aboutKey), findsNothing);
+    expect(content(SettingsCategory.general), findsOneWidget);
+
+    await tester.tap(find.byKey(SettingsSearchField.clearKey));
+    await tester.pumpAndSettle();
+
+    expect(container.read(settingsNavigationProvider).query, '');
+    expect(find.byType(SettingsSearchResults), findsNothing);
+    expect(
+      find.byKey(SettingsNavPane.itemKey(SettingsCategory.general)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a result opens its category, expands the group and focuses it', (
+    tester,
+  ) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    final navigation = container.read(settingsNavigationProvider);
+
+    expect(navigation.category, SettingsCategory.controls);
+    expect(navigation.expandedGroups, contains('controls.bindings.player2'));
+    expect(navigation.query, 'player 2 start', reason: 'results stay');
+
+    final tile = bindingTile('Controller 2 Start');
+    final viewport = tester.getRect(find.byType(TwoPaneSettings));
+
+    expect(tile, findsOneWidget);
+    expect(tester.getRect(tile).top, greaterThanOrEqualTo(viewport.top));
+    expect(tester.getRect(tile).bottom, lessThanOrEqualTo(viewport.bottom));
+    expect(focusInside(tester, tile), isTrue);
+  });
+
+  testWidgets('submitting the field selects the top result', (tester) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'timer');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(settingsNavigationProvider).category,
+      SettingsCategory.general,
+    );
+    expect(focusInside(tester, section('general.saves')), isTrue);
+  });
+
+  testWidgets('a hidden entry is not offered as a result', (tester) async {
+    await pumpTwoPane(tester);
+
+    await search(tester, 'saturation');
+
+    expect(
+      find.byKey(SettingsSearchResults.rowKey('video.palette/Saturation')),
+      findsNothing,
+      reason:
+          'the palette sliders are hidden until a generated palette is '
+          'selected',
+    );
+  });
+
+  testWidgets('dismiss clears the query, then leaves', (tester) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'start');
+
+    Actions.invoke(tester.element(searchField), const DismissIntent());
+    await tester.pumpAndSettle();
+
+    expect(container.read(settingsNavigationProvider).query, '');
+    expect(find.byType(TwoPaneSettings), findsOneWidget);
   });
 }

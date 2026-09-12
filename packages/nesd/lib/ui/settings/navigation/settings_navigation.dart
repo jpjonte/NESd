@@ -9,21 +9,25 @@ class SettingsNavigationState {
   const SettingsNavigationState({
     this.category,
     this.expandedGroups = const {},
+    this.query = '',
   });
 
   final SettingsCategory? category;
 
   final Set<String> expandedGroups;
 
+  final String query;
+
   @override
   bool operator ==(Object other) =>
       other is SettingsNavigationState &&
       other.category == category &&
-      setEquals(other.expandedGroups, expandedGroups);
+      setEquals(other.expandedGroups, expandedGroups) &&
+      other.query == query;
 
   @override
   int get hashCode =>
-      Object.hash(category, Object.hashAllUnordered(expandedGroups));
+      Object.hash(category, Object.hashAllUnordered(expandedGroups), query);
 }
 
 @riverpod
@@ -37,6 +41,17 @@ class SettingsNavigation extends _$SettingsNavigation {
     state = SettingsNavigationState(
       category: category,
       expandedGroups: state.expandedGroups,
+      query: state.query,
+    );
+  }
+
+  String get query => state.query;
+
+  set query(String query) {
+    state = SettingsNavigationState(
+      category: state.category,
+      expandedGroups: state.expandedGroups,
+      query: query,
     );
   }
 
@@ -59,6 +74,17 @@ class SettingsNavigation extends _$SettingsNavigation {
     state = SettingsNavigationState(
       category: state.category,
       expandedGroups: expanded,
+      query: state.query,
+    );
+  }
+
+  void reveal(SettingsEntryLocation target) {
+    final group = target.group;
+
+    state = SettingsNavigationState(
+      category: target.category,
+      expandedGroups: {...state.expandedGroups, if (group != null) group.id},
+      query: state.query,
     );
   }
 }

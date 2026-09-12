@@ -7,6 +7,9 @@ import 'package:nesd/ui/settings/settings.dart';
 class SwapDutyCyclesSwitch extends ConsumerWidget {
   const SwapDutyCyclesSwitch({super.key});
 
+  static const subtitle =
+      'Swaps the pulse channels’ duty cycles, like on many Famiclones';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
@@ -17,9 +20,7 @@ class SwapDutyCyclesSwitch extends ConsumerWidget {
     return FocusOnHover(
       child: SwitchSettingsTile(
         title: const Text('Swap Duty Cycles'),
-        subtitle: const Text(
-          'Swaps the pulse channels’ duty cycles, like on many Famiclones',
-        ),
+        subtitle: const Text(subtitle),
         value: setting,
         onChanged: (value) => controller.swapDutyCycles = value,
       ),

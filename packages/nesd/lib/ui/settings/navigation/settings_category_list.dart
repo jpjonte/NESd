@@ -2,23 +2,30 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' hide AboutDialog;
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/about/about_dialog.dart';
 import 'package:nesd/ui/common/focus_first_descendant.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/navigation/category_focus_nodes.dart';
+import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
+import 'package:nesd/ui/settings/search/settings_search.dart';
+import 'package:nesd/ui/settings/search/settings_search_field.dart';
+import 'package:nesd/ui/settings/search/settings_search_results.dart';
 
-class SettingsCategoryList extends HookWidget {
+class SettingsCategoryList extends HookConsumerWidget {
   const SettingsCategoryList({
     required this.initialFocus,
     required this.onSelectCategory,
+    required this.onSelectEntry,
     super.key,
   });
 
   final SettingsCategory initialFocus;
 
   final ValueChanged<SettingsCategory> onSelectCategory;
+  final ValueChanged<SettingsEntryLocation> onSelectEntry;
 
   static Key rowKey(SettingsCategory category) =>
       Key('settings-row-${category.name}');
@@ -26,45 +33,83 @@ class SettingsCategoryList extends HookWidget {
   static const aboutKey = Key('settings-row-about');
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref.watch(settingsNavigationProvider.select((s) => s.query));
+    final navigation = ref.read(settingsNavigationProvider.notifier);
+
+    final matches = visibleSettingsMatches(ref, query);
+    final searching = query.trim().isNotEmpty;
+
     final rowNodes = useCategoryFocusNodes('settings row');
+    final resultsFocus = useFocusNode(
+      skipTraversal: true,
+      debugLabel: 'settings results',
+    );
 
     useEffect(() {
       scheduleMicrotask(() {
-        if (context.mounted) {
-          focusFirstDescendant(rowNodes[initialFocus]!);
+        if (!context.mounted) {
+          return;
         }
+
+        focusFirstDescendant(
+          searching ? resultsFocus : rowNodes[initialFocus]!,
+        );
       });
 
       return null;
     }, [rowNodes]);
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Column(
-          children: [
-            for (final category in SettingsCategory.values)
-              _CategoryRow(
-                key: rowKey(category),
-                category: category,
-                focusNode: rowNodes[category]!,
-                onTap: () => onSelectCategory(category),
-              ),
-            FocusOnHover(
-              child: SettingsTile(
-                key: aboutKey,
-                title: const Text('About NESd'),
-                onTap: () => showDialog<void>(
-                  context: context,
-                  builder: (_) => const AboutDialog(),
-                ),
-                child: const SizedBox(),
-              ),
-            ),
-          ],
+    return Column(
+      children: [
+        SettingsSearchField(
+          value: query,
+          onChanged: (value) => navigation.query = value,
+          onSubmitted: () {
+            if (matches.isNotEmpty) {
+              onSelectEntry(matches.first);
+            }
+          },
         ),
-      ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: searching
+                  ? Focus(
+                      focusNode: resultsFocus,
+                      skipTraversal: true,
+                      child: SettingsSearchResults(
+                        matches: matches,
+                        onSelect: onSelectEntry,
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        for (final category in SettingsCategory.values)
+                          _CategoryRow(
+                            key: rowKey(category),
+                            category: category,
+                            focusNode: rowNodes[category]!,
+                            onTap: () => onSelectCategory(category),
+                          ),
+                        FocusOnHover(
+                          child: SettingsTile(
+                            key: aboutKey,
+                            title: const Text('About NESd'),
+                            onTap: () => showDialog<void>(
+                              context: context,
+                              builder: (_) => const AboutDialog(),
+                            ),
+                            child: const SizedBox(),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

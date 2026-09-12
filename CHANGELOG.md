@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Konami VRC2 and VRC4 (mappers 21, 22, 23, 25) support
 - Sunsoft FME-7 (mapper 69) support
 - Auto save now also saves when quitting a game, quitting NESd, or sending it to the background
+- Search field in Settings
 - The Previous Tab and Next Tab actions now page through the recent ROM and save state grids
 - In-app palette editor with live preview and export
 

@@ -8,9 +8,15 @@ import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 class SettingsCategoryPage extends HookWidget {
-  const SettingsCategoryPage({required this.category, super.key});
+  const SettingsCategoryPage({
+    required this.category,
+    this.initialEntry,
+    super.key,
+  });
 
   final SettingsCategory category;
+
+  final String? initialEntry;
 
   static Key chipKey(String sectionId) => Key('settings-chip-$sectionId');
 
@@ -19,6 +25,7 @@ class SettingsCategoryPage extends HookWidget {
     final sections = sectionsOf(category);
 
     final sectionKeys = useMemoized(createSectionKeys);
+    final entryKeys = useMemoized(createEntryKeys);
 
     final contentFocus = useFocusNode(
       skipTraversal: true,
@@ -26,8 +33,16 @@ class SettingsCategoryPage extends HookWidget {
     );
 
     useEffect(() {
+      final entry = initialEntry;
+
       scheduleMicrotask(() {
-        if (context.mounted) {
+        if (!context.mounted) {
+          return;
+        }
+
+        if (entry != null && entryKeys[entry]?.currentState != null) {
+          unawaited(scrollToEntry(entryKeys, entry));
+        } else {
           focusFirstDescendant(contentFocus);
         }
       });
@@ -71,6 +86,7 @@ class SettingsCategoryPage extends HookWidget {
                 child: SettingsCategoryContent(
                   category: category,
                   sectionKeys: sectionKeys,
+                  entryKeys: entryKeys,
                 ),
               ),
             ),

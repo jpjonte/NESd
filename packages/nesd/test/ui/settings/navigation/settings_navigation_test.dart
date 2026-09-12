@@ -59,18 +59,64 @@ void main() {
     expect(notifier().isExpanded('controls.bindings.player1'), isFalse);
   });
 
+  test('starts with an empty query', () {
+    expect(state().query, '');
+  });
+
+  test('the query survives category changes and group toggles', () {
+    notifier().query = 'start';
+    notifier().category = SettingsCategory.video;
+    notifier().toggleGroup('controls.bindings.menu');
+    notifier().step(1);
+
+    expect(state().query, 'start');
+    expect(notifier().query, 'start');
+  });
+
+  test('reveal selects the category and expands the group', () {
+    final target = settingsEntryLocations.singleWhere(
+      (l) => l.id == 'controls.bindings.player2/Controller 2 Start',
+    );
+
+    notifier().query = 'player 2 start';
+    notifier().toggleGroup('controls.bindings.menu');
+    notifier().reveal(target);
+
+    expect(state().category, SettingsCategory.controls);
+    expect(notifier().isExpanded('controls.bindings.player2'), isTrue);
+    expect(notifier().isExpanded('controls.bindings.menu'), isTrue);
+    expect(state().query, 'player 2 start');
+  });
+
+  test('reveal of an ungrouped entry only selects the category', () {
+    final target = settingsEntryLocations.singleWhere(
+      (l) => l.entry.title == 'Auto Save',
+    );
+
+    notifier().reveal(target);
+
+    expect(state().category, SettingsCategory.general);
+    expect(state().expandedGroups, isEmpty);
+  });
+
   test('states with equal fields are equal', () {
     expect(
       const SettingsNavigationState(
         category: SettingsCategory.audio,
         expandedGroups: {'a'},
+        query: 'q',
       ),
       equals(
         const SettingsNavigationState(
           category: SettingsCategory.audio,
           expandedGroups: {'a'},
+          query: 'q',
         ),
       ),
+    );
+    expect(
+      const SettingsNavigationState(query: 'a'),
+      isNot(equals(const SettingsNavigationState(query: 'b'))),
     );
   });
 }

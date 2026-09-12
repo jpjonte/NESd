@@ -8,9 +8,14 @@ import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
 class SettingsGroupTile extends HookConsumerWidget {
-  const SettingsGroupTile({required this.group, super.key});
+  const SettingsGroupTile({
+    required this.group,
+    required this.entryKeys,
+    super.key,
+  });
 
   final SettingsGroup group;
+  final EntryKeys entryKeys;
 
   static Key headerKey(String groupId) => Key('settings-group-$groupId');
 
@@ -48,7 +53,11 @@ class SettingsGroupTile extends HookConsumerWidget {
           ),
         ),
         if (expanded)
-          for (final entry in group.entries) SettingsEntryView(entry: entry),
+          for (final entry in group.entries)
+            SettingsEntryView(
+              key: entryKeys[settingsEntryId(group.id, entry)],
+              entry: entry,
+            ),
       ],
     );
   }

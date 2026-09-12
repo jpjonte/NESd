@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nesd/ui/file_picker/fuzzy_matcher.dart';
+import 'package:nesd/ui/common/fuzzy_matcher.dart';
 
 void main() {
   group('fuzzyScore', () {

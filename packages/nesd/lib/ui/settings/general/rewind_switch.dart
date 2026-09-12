@@ -7,6 +7,9 @@ import 'package:nesd/ui/settings/settings.dart';
 class RewindSwitch extends ConsumerWidget {
   const RewindSwitch({super.key});
 
+  static const subtitle =
+      'Allows rewinding game time, but degrades performance';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
@@ -17,9 +20,7 @@ class RewindSwitch extends ConsumerWidget {
     return FocusOnHover(
       child: SwitchSettingsTile(
         title: const Text('Enable Rewind'),
-        subtitle: const Text(
-          'Allows rewinding game time, but degrades performance',
-        ),
+        subtitle: const Text(subtitle),
         value: setting,
         onChanged: (value) => controller.rewind = value,
       ),

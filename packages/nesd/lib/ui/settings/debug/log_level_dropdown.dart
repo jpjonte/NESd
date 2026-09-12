@@ -11,6 +11,8 @@ import 'package:nesd/ui/settings/settings.dart';
 class LogLevelDropdown extends HookConsumerWidget {
   const LogLevelDropdown({super.key});
 
+  static const subtitle = 'Events below this level are not recorded';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final setting = ref.watch(
@@ -23,7 +25,7 @@ class LogLevelDropdown extends HookConsumerWidget {
       focusNode: focusNode,
       child: SettingsTile(
         title: const Text('Log level'),
-        subtitle: const Text('Events below this level are not recorded'),
+        subtitle: const Text(subtitle),
         adaptive: true,
         onTap: () => activateFirstDescendant(focusNode),
         child: Container(
