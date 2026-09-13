@@ -1,12 +1,16 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gamepads/gamepads.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
+import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_id.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
@@ -18,6 +22,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _MockSharedPreferences prefs;
+  late ProviderContainer container;
 
   setUp(() {
     prefs = _MockSharedPreferences();
@@ -28,7 +33,7 @@ void main() {
   SettingsController load(String raw) {
     when(() => prefs.getString(any())).thenReturn(raw);
 
-    final container = ProviderContainer(
+    container = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     )..listen(settingsControllerProvider, (_, _) {});
 
@@ -36,6 +41,26 @@ void main() {
 
     return container.read(settingsControllerProvider.notifier);
   }
+
+  String gamepadBinding(String action, GamepadButton button) {
+    final id = gamepadButtonInput(button).id;
+
+    return '{"index": 1, "action": "$action", "type": "hold", '
+        '"input": {"type": "gamepad", "slot": 0, '
+        '"inputs": [{"id": "$id", "direction": 1}]}}';
+  }
+
+  String keyboardBinding(String action, LogicalKeyboardKey key) {
+    return '{"index": 0, "action": "$action", "type": "hold", '
+        '"input": {"type": "keyboard", "keys": [${key.keyId}]}}';
+  }
+
+  GamepadInputCombination gamepadInputOf(
+    Bindings bindings,
+    InputAction action,
+  ) =>
+      bindings.firstWhere((b) => b.action == action).input
+          as GamepadInputCombination;
 
   test('legacy show* booleans migrate to openTools', () {
     final controller = load(
@@ -92,8 +117,9 @@ void main() {
       }
     ''');
 
-    final input = controller.bindings.single.input;
-    final gamepad = input as GamepadInputCombination;
+    final gamepad =
+        controller.bindings.firstWhere((b) => b.action == controller1Left).input
+            as GamepadInputCombination;
 
     expect(gamepad.inputs.single.id, 'button_dpadLeft');
     expect(gamepad.inputs.single.direction, 1);
@@ -119,8 +145,9 @@ void main() {
       }
     ''');
 
-    final input = controller.bindings.single.input;
-    final gamepad = input as GamepadInputCombination;
+    final gamepad =
+        controller.bindings.firstWhere((b) => b.action == controller1Left).input
+            as GamepadInputCombination;
 
     expect(gamepad.inputs.single.id, 'button_3');
   });
@@ -194,17 +221,19 @@ void main() {
       }
     ''');
 
-    final gamepad = controller.bindings.single.input as GamepadInputCombination;
+    final gamepad =
+        controller.bindings.firstWhere((b) => b.action == controller1A).input
+            as GamepadInputCombination;
 
     expect(gamepad.slot, 0);
     expect(gamepad.inputs.single.id, 'button_a');
     expect(controller.gamepadSlots[0], const GamepadDeviceKey(name: 'Pad'));
   });
 
-  test('a v3 settings file is left alone', () {
+  test('a v4 settings file is left alone', () {
     final controller = load('''
       {
-        "bindingsVersion": 3,
+        "bindingsVersion": 4,
         "gamepadSlots": {"1": {"name": "Kept"}},
         "bindings": [
           {
@@ -225,6 +254,7 @@ void main() {
 
     expect(gamepad.slot, 1);
     expect(controller.gamepadSlots[1], const GamepadDeviceKey(name: 'Kept'));
+    expect(container.read(settingsControllerProvider).bindingsVersion, 4);
   });
 
   test('one physical gamepad bound to many actions maps to one slot', () {
@@ -318,7 +348,18 @@ void main() {
       }
     ''');
 
-    expect(controller.bindings.length, 1);
+    expect(
+      controller.bindings.where((b) => b.action == controller1A),
+      hasLength(1),
+      reason: 'the stored binding is kept, not duplicated',
+    );
+    expect(
+      controller.bindings.any((b) => b.action == controller1Up),
+      isFalse,
+      reason:
+          'the full gamepad default set is skipped once any gamepad '
+          'binding exists',
+    );
   });
 
   test('gamepad defaults skip an index a profile already uses', () {
@@ -422,5 +463,108 @@ void main() {
     );
 
     expect(controller.videoFilters, [VideoFilter.smooth]);
+  });
+
+  test('version 3 settings gain the gamepad menu defaults', () {
+    final controller = load(
+      '{"bindingsVersion": 3, "bindings": ['
+      '${gamepadBinding('ui.confirm', GamepadButton.a)}'
+      ']}',
+    );
+
+    final bindings = controller.bindings;
+
+    expect(
+      gamepadInputOf(bindings, inputLeft).inputs.single,
+      gamepadButtonInput(GamepadButton.dpadLeft),
+    );
+    expect(
+      gamepadInputOf(bindings, inputRight).inputs.single,
+      gamepadButtonInput(GamepadButton.dpadRight),
+    );
+    expect(
+      gamepadInputOf(bindings, secondaryAction).inputs.single,
+      gamepadButtonInput(GamepadButton.x),
+    );
+    expect(container.read(settingsControllerProvider).bindingsVersion, 4);
+  });
+
+  test('version 3 settings with the keyboard menu defaults still gain the '
+      'gamepad ones', () {
+    final controller = load(
+      '{"bindingsVersion": 3, "bindings": ['
+      '${keyboardBinding('ui.inputLeft', LogicalKeyboardKey.arrowLeft)},'
+      '${keyboardBinding('ui.inputRight', LogicalKeyboardKey.arrowRight)},'
+      '${keyboardBinding('ui.secondaryAction', LogicalKeyboardKey.shift)}'
+      ']}',
+    );
+
+    final bindings = controller.bindings;
+
+    GamepadInputCombination gamepadFor(InputAction action) =>
+        bindings
+                .firstWhere(
+                  (b) =>
+                      b.action == action && b.input is GamepadInputCombination,
+                )
+                .input
+            as GamepadInputCombination;
+
+    expect(
+      gamepadFor(inputLeft).inputs.single,
+      gamepadButtonInput(GamepadButton.dpadLeft),
+    );
+    expect(
+      gamepadFor(inputRight).inputs.single,
+      gamepadButtonInput(GamepadButton.dpadRight),
+    );
+    expect(
+      gamepadFor(secondaryAction).inputs.single,
+      gamepadButtonInput(GamepadButton.x),
+    );
+
+    for (final action in [inputLeft, inputRight, secondaryAction]) {
+      expect(
+        bindings.where(
+          (b) => b.action == action && b.input is KeyboardInputCombination,
+        ),
+        hasLength(1),
+        reason: 'the keyboard binding for $action must survive migration',
+      );
+    }
+  });
+
+  test('an existing binding for a menu action is kept on migration', () {
+    final controller = load(
+      '{"bindingsVersion": 3, "bindings": ['
+      '${gamepadBinding('ui.inputLeft', GamepadButton.leftBumper)}'
+      ']}',
+    );
+
+    final left = controller.bindings.where((b) => b.action == inputLeft);
+
+    expect(left, hasLength(1));
+    expect(
+      (left.single.input as GamepadInputCombination).inputs.single,
+      gamepadButtonInput(GamepadButton.leftBumper),
+    );
+  });
+
+  test('version 4 settings are left alone', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 4,
+        "bindings": [
+          {
+            "index": 0,
+            "action": "ui.confirm",
+            "type": "hold",
+            "input": {"type": "keyboard", "keys": [13]}
+          }
+        ]
+      }
+    ''');
+
+    expect(controller.bindings.where((b) => b.action == inputLeft), isEmpty);
   });
 }

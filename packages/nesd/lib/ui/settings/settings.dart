@@ -157,7 +157,7 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
-    @Default(3) int bindingsVersion,
+    @Default(4) int bindingsVersion,
     @JsonKey(fromJson: gamepadSlotsFromJson, toJson: gamepadSlotsToJson)
     @Default(<int, GamepadDeviceKey>{})
     Map<int, GamepadDeviceKey> gamepadSlots,
@@ -746,10 +746,14 @@ class SettingsController extends _$SettingsController {
         ? _withGamepadDefaults(migrated)
         : migrated;
 
+    final withMenuDefaults = storedVersion < 4
+        ? _withMenuDefaults(withDefaults)
+        : withDefaults;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: withDefaults,
-      bindingsVersion: 3,
+      bindings: withMenuDefaults,
+      bindingsVersion: 4,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }
@@ -825,6 +829,17 @@ class SettingsController extends _$SettingsController {
     return [
       ...bindings,
       ...defaultGamepadBindings.where(
+        (b) => !taken.contains((b.action, b.index)),
+      ),
+    ];
+  }
+
+  Bindings _withMenuDefaults(Bindings bindings) {
+    final taken = {for (final b in bindings) (b.action, b.index)};
+
+    return [
+      ...bindings,
+      ...defaultMenuGamepadBindings.where(
         (b) => !taken.contains((b.action, b.index)),
       ),
     ];
