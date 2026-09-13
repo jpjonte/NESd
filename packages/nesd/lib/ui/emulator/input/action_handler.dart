@@ -135,6 +135,8 @@ class ActionHandler {
 
   int _scrubHoldRun = 0;
 
+  bool _navigatedThisTick = false;
+
   bool enabled = true;
 
   bool emulatorActive = false;
@@ -242,7 +244,7 @@ class ActionHandler {
       case Cancel():
         toolFocusController.exit();
       case OpenMenu():
-        router.navigate(const MenuRoute());
+        toolFocusController.exit();
       default:
         _handleActionDownInMenu(action);
     }
@@ -391,37 +393,21 @@ class ActionHandler {
 
   void _handleActionDownInMenu(InputAction action) {
     switch (action) {
-      case NextInput():
-        _sendIntent(const NextFocusIntent());
-      case PreviousInput():
-        _sendIntent(const PreviousFocusIntent());
-      case InputUp():
-        _sendIntent(
-          const DirectionalFocusIntent(
-            TraversalDirection.up,
-            ignoreTextFields: false,
-          ),
-        );
-      case InputDown():
-        _sendIntent(
-          const DirectionalFocusIntent(
-            TraversalDirection.down,
-            ignoreTextFields: false,
-          ),
-        );
+      case PreviousInput() || InputUp():
+        _navigate(() => _moveFocus(TraversalDirection.up));
+      case NextInput() || InputDown():
+        _navigate(() => _moveFocus(TraversalDirection.down));
       case InputLeft():
-        _sendIntent(
-          const DirectionalFocusIntent(
-            TraversalDirection.left,
-            ignoreTextFields: false,
-          ),
+        _navigate(
+          () =>
+              _sendIntent(const DecreaseIntent()) ||
+              _moveFocus(TraversalDirection.left),
         );
       case InputRight():
-        _sendIntent(
-          const DirectionalFocusIntent(
-            TraversalDirection.right,
-            ignoreTextFields: false,
-          ),
+        _navigate(
+          () =>
+              _sendIntent(const IncreaseIntent()) ||
+              _moveFocus(TraversalDirection.right),
         );
       case Confirm():
         _sendIntent(const ActivateIntent());
@@ -430,15 +416,15 @@ class ActionHandler {
       case Cancel():
         _sendIntent(const DismissIntent());
       case MenuDecrease():
-        _sendIntent(const DecreaseIntent());
+        _navigate(() => _sendIntent(const DecreaseIntent()));
       case MenuIncrease():
-        _sendIntent(const IncreaseIntent());
+        _navigate(() => _sendIntent(const IncreaseIntent()));
       case PreviousTab():
         _sendIntent(const PreviousTabIntent());
       case NextTab():
         _sendIntent(const NextTabIntent());
       case OpenMenu():
-        router.navigate(const EmulatorRoute());
+        _sendIntent(const DismissIntent());
       default:
         _warnIfInGameAction(action);
     }
@@ -483,25 +469,42 @@ class ActionHandler {
     unawaited(nesController.loadState(slot));
   }
 
-  void _sendIntent(Intent intent) {
+  bool _navigate(bool Function() send) {
+    if (_navigatedThisTick) {
+      return true;
+    }
+
+    _navigatedThisTick = true;
+
+    scheduleMicrotask(() => _navigatedThisTick = false);
+
+    return send();
+  }
+
+  bool _moveFocus(TraversalDirection direction) =>
+      _sendIntent(DirectionalFocusIntent(direction, ignoreTextFields: false));
+
+  bool _sendIntent(Intent intent) {
     final focus = WidgetsBinding.instance.focusManager.primaryFocus;
 
     final context = focus?.context;
 
     if (context == null) {
-      return;
+      return false;
     }
 
     final flutterAction = Actions.maybeFind(context, intent: intent);
 
     if (flutterAction == null) {
-      return;
+      return false;
     }
 
     if (!flutterAction.isEnabled(intent)) {
-      return;
+      return false;
     }
 
     Actions.of(context).invokeAction(flutterAction, intent);
+
+    return true;
   }
 }

@@ -209,8 +209,8 @@ void main() {
 
     await pressDown();
 
-    expect(actions, isNot(contains('controller1.down')));
     expect(focusInside(tester, find.byType(AudioToolWidget)), isTrue);
+    expect(actions, isNot(contains('controller1.down')));
 
     r.sendInputAction(cancel);
     await r.pumpFrames(const Duration(milliseconds: 100));
@@ -224,11 +224,19 @@ void main() {
     await quit(r);
   });
 
-  testWidgets('open menu while focused opens the in-game menu', (tester) async {
+  testWidgets('open menu leaves the panel first, then opens the in-game menu', (
+    tester,
+  ) async {
     final r = await start(tester, ['audio']);
 
     r.sendInputAction(focusTools);
     await r.pumpFrames(const Duration(milliseconds: 100));
+
+    r.sendInputAction(openMenu);
+    await r.pumpFrames(const Duration(milliseconds: 500));
+
+    expect(r.container.read(toolFocusControllerProvider), isFalse);
+    expect(find.byType(MenuScreen), findsNothing);
 
     r.sendInputAction(openMenu);
     await r.pumpFrames(const Duration(milliseconds: 500));
