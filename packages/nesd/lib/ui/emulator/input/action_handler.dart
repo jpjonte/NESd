@@ -420,9 +420,11 @@ class ActionHandler {
       case MenuIncrease():
         _navigate(() => _sendIntent(const IncreaseIntent()));
       case PreviousTab():
-        _sendIntent(const PreviousTabIntent());
+        _sendIntent(const PreviousTabIntent()) ||
+            _sendIntent(const PreviousFocusIntent());
       case NextTab():
-        _sendIntent(const NextTabIntent());
+        _sendIntent(const NextTabIntent()) ||
+            _sendIntent(const NextFocusIntent());
       case OpenMenu():
         _sendIntent(const DismissIntent());
       default:

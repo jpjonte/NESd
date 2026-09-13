@@ -185,6 +185,33 @@ void main() {
     expect(received, [isA<DismissIntent>()]);
   });
 
+  testWidgets(
+    'tab falls through to reading-order focus when nothing handles it',
+    (tester) async {
+      await pumpFocused(tester, {
+        NextFocusIntent: record<NextFocusIntent>(),
+        PreviousFocusIntent: record<PreviousFocusIntent>(),
+      });
+
+      press(nextTab);
+      await tester.pump();
+      press(previousTab);
+
+      expect(received, [isA<NextFocusIntent>(), isA<PreviousFocusIntent>()]);
+    },
+  );
+
+  testWidgets('tab prefers a tab handler', (tester) async {
+    await pumpFocused(tester, {
+      NextTabIntent: record<NextTabIntent>(),
+      NextFocusIntent: record<NextFocusIntent>(),
+    });
+
+    press(nextTab);
+
+    expect(received, [isA<NextTabIntent>()]);
+  });
+
   testWidgets('open menu leaves a focused tool panel', (tester) async {
     handler
       ..emulatorActive = true
