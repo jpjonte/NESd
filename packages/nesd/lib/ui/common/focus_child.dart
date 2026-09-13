@@ -11,6 +11,7 @@ class FocusChild extends HookWidget {
     required this.autofocus,
     this.wrapAround = false,
     this.wrapTraversal = true,
+    this.node,
     super.key,
   });
 
@@ -24,9 +25,13 @@ class FocusChild extends HookWidget {
   /// whether next/previous (tab order) moves wrap around at the edges
   final bool wrapTraversal;
 
+  final FocusScopeNode? node;
+
   @override
   Widget build(BuildContext context) {
-    final focusScopeNode = useFocusScopeNode(skipTraversal: true)
+    final ownNode = useFocusScopeNode(skipTraversal: true);
+    final focusScopeNode = (node ?? ownNode)
+      ..skipTraversal = true
       ..traversalEdgeBehavior = wrapTraversal
           ? TraversalEdgeBehavior.closedLoop
           : TraversalEdgeBehavior.stop;
