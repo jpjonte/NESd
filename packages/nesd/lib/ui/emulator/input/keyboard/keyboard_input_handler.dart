@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/bound_action.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -35,6 +37,27 @@ KeyboardInputHandler keyboardInputHandler(Ref ref) {
 
   ref.onDispose(scrubSubscription.close);
 
+  void updateMode() {
+    handler.menuMode =
+        !ref.read(emulatorActiveProvider) ||
+        ref.read(toolFocusControllerProvider);
+  }
+
+  final activeSubscription = ref.listen(
+    emulatorActiveProvider,
+    (_, _) => updateMode(),
+    fireImmediately: true,
+  );
+  final toolsSubscription = ref.listen(
+    toolFocusControllerProvider,
+    (_, _) => updateMode(),
+    fireImmediately: true,
+  );
+
+  ref
+    ..onDispose(activeSubscription.close)
+    ..onDispose(toolsSubscription.close);
+
   return handler;
 }
 
@@ -51,6 +74,8 @@ class KeyboardInputHandler {
   late final KeyMap _bindings;
 
   bool scrubOpen = false;
+
+  final _activeActions = <InputAction>{};
 
   bool menuMode = false;
 
@@ -88,14 +113,18 @@ class KeyboardInputHandler {
         return _handleKeyRepeat(
           (action) =>
               _repeatingMenuActions.contains(action) &&
-              (!inTextField || _textFieldActions.contains(action)),
+              (!inTextField || _textFieldActions.contains(action)) &&
+              !isInGameAction(action),
         );
       }
 
       return true;
     }
 
-    final allowed = inTextField ? _textFieldActions.contains : _allowAll;
+    final baseAllowed = inTextField ? _textFieldActions.contains : _allowAll;
+
+    bool allowed(InputAction action) =>
+        baseAllowed(action) && (!menuMode || !isInGameAction(action));
 
     final key = event.logicalKey;
 
@@ -184,7 +213,11 @@ class KeyboardInputHandler {
         break;
       }
 
-      if (!allowed(action.action)) {
+      if (value == 0.0) {
+        if (!_activeActions.contains(action.action)) {
+          continue;
+        }
+      } else if (!allowed(action.action)) {
         continue;
       }
 
@@ -197,6 +230,12 @@ class KeyboardInputHandler {
           ),
         );
         triggered = true;
+
+        if (value == 0.0) {
+          _activeActions.remove(action.action);
+        } else {
+          _activeActions.add(action.action);
+        }
       }
     }
 

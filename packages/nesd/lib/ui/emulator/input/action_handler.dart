@@ -432,7 +432,7 @@ class ActionHandler {
 
   void _warnIfInGameAction(InputAction action) {
     assert(() {
-      if (_isInGameAction(action)) {
+      if (isInGameAction(action)) {
         final reason = toolsFocused
             ? 'the tool panel owns input'
             : 'the emulator is not the active screen';
@@ -445,21 +445,6 @@ class ActionHandler {
       return true;
     }());
   }
-
-  bool _isInGameAction(InputAction action) => switch (action) {
-    ControllerPress() ||
-    SaveState() ||
-    LoadState() ||
-    FastForward() ||
-    Rewind() ||
-    RewindTimelineAction() ||
-    PauseAction() ||
-    ResetAction() ||
-    StopAction() ||
-    DecreaseVolume() ||
-    IncreaseVolume() => true,
-    _ => false,
-  };
 
   void _saveState(int slot) {
     unawaited(nesController.saveState(slot));
@@ -508,3 +493,18 @@ class ActionHandler {
     return true;
   }
 }
+
+bool isInGameAction(InputAction action) => switch (action) {
+  ControllerPress() ||
+  SaveState() ||
+  LoadState() ||
+  FastForward() ||
+  Rewind() ||
+  RewindTimelineAction() ||
+  PauseAction() ||
+  ResetAction() ||
+  StopAction() ||
+  DecreaseVolume() ||
+  IncreaseVolume() => true,
+  _ => false,
+};

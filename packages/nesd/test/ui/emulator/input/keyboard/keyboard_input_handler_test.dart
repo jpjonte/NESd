@@ -254,4 +254,38 @@ void main() {
     await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
     expect(events.map((e) => e.action), [nextInput]);
   });
+
+  testWidgets('in a menu, keys bound only to in-game actions fall through', (
+    tester,
+  ) async {
+    final h = handlerWith([key(controller1A, LogicalKeyboardKey.keyZ)])
+      ..menuMode = true;
+    late bool consumed;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Focus(
+          autofocus: true,
+          onKeyEvent: (node, event) {
+            consumed = h.handleKeyEvent(event);
+
+            return KeyEventResult.handled;
+          },
+          child: const SizedBox(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
+
+    expect(events, isEmpty);
+    expect(consumed, isFalse);
+
+    h.menuMode = false;
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.keyZ);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
+
+    expect(events.map((e) => e.action), [controller1A]);
+  });
 }

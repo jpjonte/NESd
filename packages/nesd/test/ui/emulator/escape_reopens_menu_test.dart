@@ -63,6 +63,25 @@ void main() {
     await quitGame(r);
   });
 
+  testWidgets('Escape on the pause menu resumes the game', (tester) async {
+    final r = Robot(tester)..initSettings(settingsWithRecentRom());
+
+    await r.pumpApp();
+    await r.mainMenu.tapFirstRomTile();
+
+    await pressKey(r, LogicalKeyboardKey.escape);
+    r.menuScreen.expectMenuScreenFound();
+
+    await pressKey(r, LogicalKeyboardKey.escape);
+    expect(find.byType(MenuScreen), findsNothing);
+    r.emulator.expectEmulatorWidgetFound();
+    expect(find.byType(MainScreen), findsNothing);
+
+    // Quit the game so the emulator's timers are gone before teardown.
+    await r.emulator.tapMenu();
+    await quitGame(r);
+  });
+
   testWidgets('Unbound Escape does nothing in game', (tester) async {
     final r = Robot(tester)..initSettings(settingsWithRecentRom());
 
