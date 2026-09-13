@@ -77,7 +77,24 @@ class KeyboardInputHandler {
 
   final _activeActions = <InputAction>{};
 
+  final _pendingModifiers = <InputAction, Set<LogicalKeyboardKey>>{};
+
   bool menuMode = false;
+
+  static final _modifierKeys = <LogicalKeyboardKey>{
+    LogicalKeyboardKey.shift,
+    LogicalKeyboardKey.shiftLeft,
+    LogicalKeyboardKey.shiftRight,
+    LogicalKeyboardKey.control,
+    LogicalKeyboardKey.controlLeft,
+    LogicalKeyboardKey.controlRight,
+    LogicalKeyboardKey.alt,
+    LogicalKeyboardKey.altLeft,
+    LogicalKeyboardKey.altRight,
+    LogicalKeyboardKey.meta,
+    LogicalKeyboardKey.metaLeft,
+    LogicalKeyboardKey.metaRight,
+  };
 
   static const _repeatingMenuActions = <InputAction>{
     previousInput,
@@ -149,7 +166,13 @@ class KeyboardInputHandler {
       final currentActions = _getActions(pressedKeys);
 
       // handle all actions that are no longer active
-      return _addActions(0.0, previousActions, currentActions, allowed);
+      return _addActions(
+        0.0,
+        previousActions,
+        currentActions,
+        allowed,
+        releasedKey: key,
+      );
     }
 
     return false;
@@ -186,6 +209,7 @@ class KeyboardInputHandler {
             priority: input.length,
             action: binding.action,
             bindingType: binding.type,
+            keys: input,
           ),
         );
       }
@@ -202,7 +226,12 @@ class KeyboardInputHandler {
     List<BoundAction> compareActions,
     bool Function(InputAction) allowed, {
     bool highesPriorityOnly = false,
+    LogicalKeyboardKey? releasedKey,
   }) {
+    final releasedKeys = releasedKey == null
+        ? const <LogicalKeyboardKey>{}
+        : {releasedKey, ...releasedKey.synonyms};
+
     int? priority;
     var triggered = false;
 
@@ -214,6 +243,19 @@ class KeyboardInputHandler {
       }
 
       if (value == 0.0) {
+        final pendingKeys = _pendingModifiers[action.action];
+
+        if (pendingKeys != null && releasedKeys.any(pendingKeys.contains)) {
+          _pendingModifiers.remove(action.action);
+
+          _emit(action.action, 1.0, action.bindingType);
+          _emit(action.action, 0.0, action.bindingType);
+
+          triggered = true;
+
+          continue;
+        }
+
         if (!_activeActions.contains(action.action)) {
           continue;
         }
@@ -222,13 +264,16 @@ class KeyboardInputHandler {
       }
 
       if (!compareActions.contains(action)) {
-        actionStream.add(
-          InputActionEvent(
-            action: action.action,
-            value: value,
-            bindingType: action.bindingType,
-          ),
-        );
+        if (value != 0.0 && menuMode && _isModifierOnlyBinding(action)) {
+          _pendingModifiers[action.action] = action.keys;
+          triggered = true;
+
+          continue;
+        }
+
+        _pendingModifiers.clear();
+
+        _emit(action.action, value, action.bindingType);
         triggered = true;
 
         if (value == 0.0) {
@@ -241,6 +286,15 @@ class KeyboardInputHandler {
 
     return triggered;
   }
+
+  void _emit(InputAction action, double value, BindingType bindingType) {
+    actionStream.add(
+      InputActionEvent(action: action, value: value, bindingType: bindingType),
+    );
+  }
+
+  bool _isModifierOnlyBinding(BoundAction action) =>
+      action.keys.isNotEmpty && action.keys.every(_modifierKeys.contains);
 
   KeyMap _buildBindingMap(Bindings bindings) {
     final bindingMap = <Set<LogicalKeyboardKey>, Binding>{};

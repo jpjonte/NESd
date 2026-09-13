@@ -288,4 +288,160 @@ void main() {
 
     expect(events.map((e) => e.action), [controller1A]);
   });
+
+  Future<void> pumpHandler(WidgetTester tester, KeyboardInputHandler h) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Focus(
+          autofocus: true,
+          onKeyEvent: (node, event) {
+            h.handleKeyEvent(event);
+
+            return KeyEventResult.handled;
+          },
+          child: const SizedBox(),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
+  testWidgets('in a menu a bare modifier binding fires on release', (
+    tester,
+  ) async {
+    final h = handlerWith([key(secondaryAction, LogicalKeyboardKey.shift)])
+      ..menuMode = true;
+
+    await pumpHandler(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+    expect(events, isEmpty);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+    expect(events.map((e) => (e.action, e.value)), [
+      (secondaryAction, 1.0),
+      (secondaryAction, 0.0),
+    ]);
+  });
+
+  testWidgets(
+    'in a menu a modifier that completed a chord does not fire on its own',
+    (tester) async {
+      final h = handlerWith([
+        key(secondaryAction, LogicalKeyboardKey.shift),
+        Binding(
+          index: 0,
+          action: previousTab,
+          input: InputCombination.keyboard({
+            LogicalKeyboardKey.shift,
+            LogicalKeyboardKey.tab,
+          }),
+        ),
+      ])..menuMode = true;
+
+      await pumpHandler(tester, h);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+      expect(events, isEmpty);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.tab);
+      expect(events.map((e) => (e.action, e.value)), [(previousTab, 1.0)]);
+
+      events.clear();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.tab);
+      expect(events.map((e) => (e.action, e.value)), [(previousTab, 0.0)]);
+
+      events.clear();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+      expect(events, isEmpty);
+    },
+  );
+
+  testWidgets('in game a bare modifier binding still fires on press', (
+    tester,
+  ) async {
+    final h = handlerWith([
+      key(secondaryAction, LogicalKeyboardKey.shift),
+      Binding(
+        index: 0,
+        action: previousTab,
+        input: InputCombination.keyboard({
+          LogicalKeyboardKey.shift,
+          LogicalKeyboardKey.tab,
+        }),
+      ),
+    ]);
+
+    await pumpHandler(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+
+    expect(events.map((e) => (e.action, e.value)), [(secondaryAction, 1.0)]);
+  });
+
+  testWidgets('a pending modifier survives the release of an unrelated key', (
+    tester,
+  ) async {
+    final h = handlerWith([key(secondaryAction, LogicalKeyboardKey.shift)])
+      ..menuMode = true;
+
+    await pumpHandler(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+    expect(events, isEmpty);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyQ);
+    expect(events, isEmpty);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.keyQ);
+    expect(events, isEmpty);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+    expect(events.map((e) => (e.action, e.value)), [
+      (secondaryAction, 1.0),
+      (secondaryAction, 0.0),
+    ]);
+  });
+
+  testWidgets('a second held modifier does not release a pending one', (
+    tester,
+  ) async {
+    final h = handlerWith([key(secondaryAction, LogicalKeyboardKey.shift)])
+      ..menuMode = true;
+
+    await pumpHandler(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+    expect(events, isEmpty);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+    expect(events, isEmpty);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+    expect(events, isEmpty);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+    expect(events.map((e) => (e.action, e.value)), [
+      (secondaryAction, 1.0),
+      (secondaryAction, 0.0),
+    ]);
+  });
+
+  testWidgets('a modifier-only classification uses the matched keys', (
+    tester,
+  ) async {
+    final h = handlerWith([
+      key(secondaryAction, LogicalKeyboardKey.shift),
+      key(secondaryAction, LogicalKeyboardKey.keyQ),
+    ])..menuMode = true;
+
+    await pumpHandler(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyQ);
+    expect(events.map((e) => (e.action, e.value)), [(secondaryAction, 1.0)]);
+
+    events.clear();
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.keyQ);
+    expect(events.map((e) => (e.action, e.value)), [(secondaryAction, 0.0)]);
+  });
 }
