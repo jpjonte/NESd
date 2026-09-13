@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
 
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
@@ -9,6 +10,10 @@ class SettingsTile extends StatelessWidget {
     this.enabled = true,
     this.adaptive = false,
     this.onTap,
+    this.onDecrease,
+    this.onIncrease,
+    this.onSecondary,
+    this.focusNode,
     super.key,
   });
 
@@ -21,6 +26,10 @@ class SettingsTile extends StatelessWidget {
   final bool adaptive;
 
   final GestureTapCallback? onTap;
+  final VoidCallback? onDecrease;
+  final VoidCallback? onIncrease;
+  final VoidCallback? onSecondary;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
@@ -53,61 +62,97 @@ class SettingsTile extends StatelessWidget {
       child: subtitle ?? const SizedBox(),
     );
 
-    return InkWell(
-      onTap: enabled ? (onTap ?? () {}) : null,
-      child: LayoutBuilder(
-        builder: (_, constraints) {
-          final narrow = constraints.maxWidth < 600;
-          final column = adaptive && narrow;
+    Action<T> callback<T extends Intent>(VoidCallback run) => CallbackAction<T>(
+      onInvoke: (_) {
+        run();
 
-          final titles = [
-            if (title != null) wrappedTitle,
-            if (subtitle != null) wrappedSubtitle,
-          ];
+        return null;
+      },
+    );
 
-          final wrappedTitles = ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 2 / 3),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: titles,
-            ),
-          );
+    return Actions(
+      actions: {
+        ActivateIntent: callback<ActivateIntent>(() {
+          if (enabled) {
+            onTap?.call();
+          }
+        }),
+        if (onDecrease != null)
+          DecreaseIntent: callback<DecreaseIntent>(onDecrease!),
+        if (onIncrease != null)
+          IncreaseIntent: callback<IncreaseIntent>(onIncrease!),
+        if (onSecondary != null)
+          SecondaryActionIntent: callback<SecondaryActionIntent>(onSecondary!),
+      },
+      child: Focus(
+        focusNode: focusNode,
+        canRequestFocus: enabled,
+        debugLabel: 'settings tile',
+        child: FocusTraversalGroup(
+          descendantsAreTraversable: false,
+          child: InkWell(
+            onTap: enabled ? (onTap ?? () {}) : null,
+            child: LayoutBuilder(
+              builder: (_, constraints) {
+                final narrow = constraints.maxWidth < 600;
+                final column = adaptive && narrow;
 
-          final wrappedChild = SizedBox(
-            height: 70,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: column
-                    ? constraints.maxWidth
-                    : constraints.maxWidth * 2 / 3,
-              ),
-              child: child,
-            ),
-          );
+                final titles = [
+                  if (title != null) wrappedTitle,
+                  if (subtitle != null) wrappedSubtitle,
+                ];
 
-          final children = [if (title != null) wrappedTitles, wrappedChild];
+                final wrappedTitles = ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * 2 / 3,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: titles,
+                  ),
+                );
 
-          return ConstrainedBox(
-            constraints: BoxConstraints(minHeight: column ? 100.0 : 70.0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: column
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: children,
-                    )
-                  : Row(
-                      mainAxisAlignment: title != null
-                          ? MainAxisAlignment.spaceBetween
-                          : MainAxisAlignment.center,
-                      children: children,
+                final wrappedChild = SizedBox(
+                  height: 70,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: column
+                          ? constraints.maxWidth
+                          : constraints.maxWidth * 2 / 3,
                     ),
+                    child: child,
+                  ),
+                );
+
+                final children = [
+                  if (title != null) wrappedTitles,
+                  wrappedChild,
+                ];
+
+                return ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: column ? 100.0 : 70.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: column
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: children,
+                          )
+                        : Row(
+                            mainAxisAlignment: title != null
+                                ? MainAxisAlignment.spaceBetween
+                                : MainAxisAlignment.center,
+                            children: children,
+                          ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

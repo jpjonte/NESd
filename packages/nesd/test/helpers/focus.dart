@@ -17,7 +17,7 @@ bool focusInside(WidgetTester tester, Finder ancestor) {
       .isNotEmpty;
 }
 
-void focusInto(WidgetTester tester, Finder ancestor) {
+Iterable<FocusNode> traversableInside(WidgetTester tester, Finder ancestor) {
   bool inside(FocusNode node) {
     final context = node.context;
 
@@ -34,8 +34,13 @@ void focusInto(WidgetTester tester, Finder ancestor) {
         .isNotEmpty;
   }
 
-  final nodes = tester.binding.focusManager.rootScope.traversalDescendants
-      .where((node) => node is! FocusScopeNode && inside(node));
+  return tester.binding.focusManager.rootScope.traversalDescendants.where(
+    (node) => node is! FocusScopeNode && inside(node),
+  );
+}
+
+void focusInto(WidgetTester tester, Finder ancestor) {
+  final nodes = traversableInside(tester, ancestor).toList();
 
   expect(nodes, isNotEmpty, reason: 'no focusable node inside $ancestor');
 
