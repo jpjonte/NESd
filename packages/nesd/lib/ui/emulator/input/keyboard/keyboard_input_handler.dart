@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/bound_action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
@@ -50,14 +52,50 @@ class KeyboardInputHandler {
 
   bool scrubOpen = false;
 
+  bool menuMode = false;
+
+  static const _repeatingMenuActions = <InputAction>{
+    previousInput,
+    nextInput,
+    inputUp,
+    inputDown,
+    inputLeft,
+    inputRight,
+    menuDecrease,
+    menuIncrease,
+  };
+
+  static const _textFieldActions = <InputAction>{
+    previousInput,
+    nextInput,
+    inputUp,
+    inputDown,
+    previousTab,
+    nextTab,
+    confirm,
+    openMenu,
+  };
+
   bool handleKeyEvent(KeyEvent event) {
+    final inTextField = _focusInTextField();
+
     if (event is KeyRepeatEvent) {
-      if (!scrubOpen) {
-        return true;
+      if (scrubOpen) {
+        return _handleKeyRepeat(_allowAll);
       }
 
-      return _handleKeyRepeat();
+      if (menuMode) {
+        return _handleKeyRepeat(
+          (action) =>
+              _repeatingMenuActions.contains(action) &&
+              (!inTextField || _textFieldActions.contains(action)),
+        );
+      }
+
+      return true;
     }
+
+    final allowed = inTextField ? _textFieldActions.contains : _allowAll;
 
     final key = event.logicalKey;
 
@@ -74,6 +112,7 @@ class KeyboardInputHandler {
         1.0,
         currentActions,
         previousActions,
+        allowed,
         highesPriorityOnly: true,
       );
     } else if (event is KeyUpEvent) {
@@ -81,17 +120,25 @@ class KeyboardInputHandler {
       final currentActions = _getActions(pressedKeys);
 
       // handle all actions that are no longer active
-      return _addActions(0.0, previousActions, currentActions);
+      return _addActions(0.0, previousActions, currentActions, allowed);
     }
 
     return false;
   }
 
-  bool _handleKeyRepeat() {
+  static bool _allowAll(InputAction action) => true;
+
+  bool _handleKeyRepeat(bool Function(InputAction) allowed) {
     final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
     final currentActions = _getActions(pressedKeys);
 
-    return _addActions(1.0, currentActions, const [], highesPriorityOnly: true);
+    return _addActions(
+      1.0,
+      currentActions,
+      const [],
+      allowed,
+      highesPriorityOnly: true,
+    );
   }
 
   // get actions that match the pressed keys, sorted by highest priority first
@@ -123,7 +170,8 @@ class KeyboardInputHandler {
   bool _addActions(
     double value,
     List<BoundAction> baseActions,
-    List<BoundAction> compareActions, {
+    List<BoundAction> compareActions,
+    bool Function(InputAction) allowed, {
     bool highesPriorityOnly = false,
   }) {
     int? priority;
@@ -134,6 +182,10 @@ class KeyboardInputHandler {
 
       if (highesPriorityOnly && action.priority < priority) {
         break;
+      }
+
+      if (!allowed(action.action)) {
+        continue;
       }
 
       if (!compareActions.contains(action)) {
@@ -162,4 +214,9 @@ class KeyboardInputHandler {
 
     return bindingMap;
   }
+
+  static bool _focusInTextField() =>
+      FocusManager.instance.primaryFocus?.context
+          ?.findAncestorStateOfType<EditableTextState>() !=
+      null;
 }
