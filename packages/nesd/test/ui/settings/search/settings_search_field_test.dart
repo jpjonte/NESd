@@ -181,4 +181,13 @@ void main() {
 
     expect(submitted, 1);
   });
+
+  testWidgets('activate submits the field', (tester) async {
+    await pumpField(tester);
+
+    Actions.invoke(tester.element(field), const ActivateIntent());
+    await tester.pumpAndSettle();
+
+    expect(submitted, 1);
+  });
 }

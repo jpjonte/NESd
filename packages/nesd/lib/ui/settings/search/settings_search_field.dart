@@ -52,6 +52,13 @@ class SettingsSearchField extends HookWidget {
             return Actions.maybeInvoke(context, intent);
           },
         ),
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            onSubmitted();
+
+            return null;
+          },
+        ),
       },
       child: FocusOnHover(
         onFocusChange: (hasFocus) => focused.value = hasFocus,
