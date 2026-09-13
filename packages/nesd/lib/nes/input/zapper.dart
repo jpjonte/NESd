@@ -12,24 +12,47 @@ const _sensorRadius = 2;
 
 const _brightnessThreshold = 64;
 
+const _minimumTriggerFrames = 6;
+
+const _noPull = -1;
+
 class Zapper implements InputDevice {
   Zapper({required this.bus});
 
   final Bus bus;
 
-  bool get trigger => _trigger == 1;
+  bool get trigger => _held;
 
-  set trigger(bool value) => _trigger = value ? 1 : 0;
+  set trigger(bool value) {
+    _held = value;
 
-  int _trigger = 0;
+    if (value) {
+      _pulledAtFrame = bus.ppu.frames;
+    }
+  }
+
+  bool _held = false;
+
+  int _pulledAtFrame = _noPull;
 
   Offset? position = Offset.zero;
 
   @override
   int read(int address, {bool disableSideEffects = false}) {
     final lightValue = _calculateLightValue();
+    final trigger = _held || _withinMinimumHold() ? 1 : 0;
 
-    return (_trigger << 4) | (lightValue << 3);
+    return (trigger << 4) | (lightValue << 3);
+  }
+
+  bool _withinMinimumHold() {
+    if (_pulledAtFrame == _noPull) {
+      return false;
+    }
+
+    final elapsed = bus.ppu.frames - _pulledAtFrame;
+
+    return elapsed >= 0 && elapsed < _minimumTriggerFrames;
   }
 
   @override
