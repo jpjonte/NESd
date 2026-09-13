@@ -4,7 +4,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
 import 'package:nesd/nes/ppu/palette/palette_selection.dart';
-import 'package:nesd/ui/common/activate_first_descendant.dart';
 import 'package:nesd/ui/common/dropdown.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
@@ -23,7 +22,9 @@ class PaletteDropdown extends HookConsumerWidget {
     );
     final userPalettes = ref.watch(userPalettesProvider).value ?? const {};
     final controller = ref.read(settingsControllerProvider.notifier);
-    final focusNode = useFocusNode(skipTraversal: true);
+    final dropdownFocus = useFocusNode(skipTraversal: true);
+
+    final currentValue = selection.effective(userPalettes.keys);
 
     final items = [
       for (final id in NesPaletteId.values)
@@ -39,17 +40,28 @@ class PaletteDropdown extends HookConsumerWidget {
         ),
     ];
 
+    void step(int delta) {
+      final current = controller.paletteSelection.effective(userPalettes.keys);
+      final next = stepDropdownValue(items, current, delta);
+
+      if (next != null) {
+        controller.paletteSelection = next;
+      }
+    }
+
     return FocusOnHover(
-      focusNode: focusNode,
       child: SettingsTile(
         title: const Text('Palette'),
         adaptive: true,
-        onTap: () => activateFirstDescendant(focusNode),
+        onTap: () => openDropdown(dropdownFocus),
+        onDecrease: () => step(-1),
+        onIncrease: () => step(1),
         child: Container(
           padding: const EdgeInsets.all(8),
           constraints: expand ? null : const BoxConstraints(maxWidth: 300),
           child: Dropdown<PaletteSelection>(
-            value: selection.effective(userPalettes.keys),
+            focusNode: dropdownFocus,
+            value: currentValue,
             onChanged: (value) => controller.paletteSelection =
                 value ?? PaletteSelection.defaultSelection,
             items: items,
