@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -78,24 +77,15 @@ class _CrtSlider extends ConsumerWidget {
       controller.crtFilter = update(crt, newValue.clamp(0.0, max));
     }
 
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (intent) => set(current - 0.05),
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (intent) => set(current + 0.05),
-        ),
-      },
-      child: FocusOnHover(
-        child: SliderSettingsTile(
-          label: label,
-          onTap: () => set(defaultValue),
-          onChanged: (sliderValue) => set(sliderValue / 100),
-          value: current * 100,
-          displayValue: '${(current * 100).round()}%',
-          max: max * 100,
-        ),
+    return FocusOnHover(
+      child: SliderSettingsTile(
+        label: label,
+        onTap: () => set(defaultValue),
+        onChanged: (sliderValue) => set(sliderValue / 100),
+        value: current * 100,
+        displayValue: '${(current * 100).round()}%',
+        max: max * 100,
+        step: 5,
       ),
     );
   }

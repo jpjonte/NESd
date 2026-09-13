@@ -236,6 +236,7 @@ class SliderSettingsTile extends StatelessWidget {
   const SliderSettingsTile({
     required this.value,
     required this.displayValue,
+    required this.step,
     this.label,
     this.onTap,
     this.onChanged,
@@ -258,14 +259,26 @@ class SliderSettingsTile extends StatelessWidget {
   final String displayValue;
   final double min;
   final double max;
+  final double step;
 
   @override
   Widget build(BuildContext context) {
+    void stepBy(double delta) {
+      final next = (value + delta).clamp(min, max);
+
+      if (next != value) {
+        onChanged?.call(next);
+      }
+    }
+
     return SettingsTile(
       enabled: enabled,
       adaptive: true,
       title: label != null ? Text(label!) : null,
       onTap: onTap,
+      onSecondary: onTap,
+      onDecrease: enabled ? () => stepBy(-step) : null,
+      onIncrease: enabled ? () => stepBy(step) : null,
       child: LayoutBuilder(
         builder: (_, constraints) => SizedBox(
           width: constraints.maxWidth,
