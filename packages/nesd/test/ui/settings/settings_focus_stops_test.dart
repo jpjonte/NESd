@@ -56,6 +56,16 @@ void main() {
           tiles.evaluate().length,
           reason: 'disabled tiles are skipped, every enabled tile is one stop',
         );
+
+        for (final tile in tiles.evaluate()) {
+          final tileFinder = find.byElementPredicate((e) => identical(e, tile));
+
+          expect(
+            traversableInside(tester, tileFinder).length,
+            1,
+            reason: 'exactly one focus stop for $tile',
+          );
+        }
       });
     }
   }

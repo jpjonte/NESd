@@ -72,11 +72,6 @@ class SettingsTile extends StatelessWidget {
 
     return Actions(
       actions: {
-        ActivateIntent: callback<ActivateIntent>(() {
-          if (enabled) {
-            onTap?.call();
-          }
-        }),
         if (onDecrease != null)
           DecreaseIntent: callback<DecreaseIntent>(onDecrease!),
         if (onIncrease != null)
@@ -84,73 +79,67 @@ class SettingsTile extends StatelessWidget {
         if (onSecondary != null)
           SecondaryActionIntent: callback<SecondaryActionIntent>(onSecondary!),
       },
-      child: Focus(
+      child: InkWell(
         focusNode: focusNode,
         canRequestFocus: enabled,
-        debugLabel: 'settings tile',
+        onTap: enabled ? (onTap ?? () {}) : null,
         child: FocusTraversalGroup(
           descendantsAreTraversable: false,
-          child: InkWell(
-            onTap: enabled ? (onTap ?? () {}) : null,
-            child: LayoutBuilder(
-              builder: (_, constraints) {
-                final narrow = constraints.maxWidth < 600;
-                final column = adaptive && narrow;
+          child: LayoutBuilder(
+            builder: (_, constraints) {
+              final narrow = constraints.maxWidth < 600;
+              final column = adaptive && narrow;
 
-                final titles = [
-                  if (title != null) wrappedTitle,
-                  if (subtitle != null) wrappedSubtitle,
-                ];
+              final titles = [
+                if (title != null) wrappedTitle,
+                if (subtitle != null) wrappedSubtitle,
+              ];
 
-                final wrappedTitles = ConstrainedBox(
+              final wrappedTitles = ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: constraints.maxWidth * 2 / 3,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: titles,
+                ),
+              );
+
+              final wrappedChild = SizedBox(
+                height: 70,
+                child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: constraints.maxWidth * 2 / 3,
+                    maxWidth: column
+                        ? constraints.maxWidth
+                        : constraints.maxWidth * 2 / 3,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: titles,
-                  ),
-                );
+                  child: child,
+                ),
+              );
 
-                final wrappedChild = SizedBox(
-                  height: 70,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: column
-                          ? constraints.maxWidth
-                          : constraints.maxWidth * 2 / 3,
-                    ),
-                    child: child,
-                  ),
-                );
+              final children = [if (title != null) wrappedTitles, wrappedChild];
 
-                final children = [
-                  if (title != null) wrappedTitles,
-                  wrappedChild,
-                ];
-
-                return ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: column ? 100.0 : 70.0),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: column
-                        ? Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: children,
-                          )
-                        : Row(
-                            mainAxisAlignment: title != null
-                                ? MainAxisAlignment.spaceBetween
-                                : MainAxisAlignment.center,
-                            children: children,
-                          ),
-                  ),
-                );
-              },
-            ),
+              return ConstrainedBox(
+                constraints: BoxConstraints(minHeight: column ? 100.0 : 70.0),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: column
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children,
+                        )
+                      : Row(
+                          mainAxisAlignment: title != null
+                              ? MainAxisAlignment.spaceBetween
+                              : MainAxisAlignment.center,
+                          children: children,
+                        ),
+                ),
+              );
+            },
           ),
         ),
       ),
