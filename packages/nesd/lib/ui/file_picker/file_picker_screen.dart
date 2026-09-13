@@ -145,18 +145,18 @@ class FilePicker extends ConsumerWidget {
             },
             child: FocusChild(
               autofocus: true,
-              wrapAround: true,
-              child: Column(
-                children: [
-                  DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
-                  const SearchBox(),
-                  FilePickerProgressIndicator(busy: busy),
-                  FileList(
-                    allowedExtensions: allowedExtensions,
-                    onChangeDirectory: onChangeDirectory,
-                    onSelectFile: onSelectFile,
-                  ),
-                ],
+              wrapTraversal: false,
+              child: FileList(
+                header: Column(
+                  children: [
+                    DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
+                    const SearchBox(),
+                    FilePickerProgressIndicator(busy: busy),
+                  ],
+                ),
+                allowedExtensions: allowedExtensions,
+                onChangeDirectory: onChangeDirectory,
+                onSelectFile: onSelectFile,
               ),
             ),
           ),

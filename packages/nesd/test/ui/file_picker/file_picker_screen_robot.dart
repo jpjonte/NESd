@@ -55,6 +55,22 @@ class FilePickerScreenRobot extends BaseRobot {
     expect(find.byType(FileTile), findsNWidgets(count));
   }
 
+  Future<void> scrollToFile(String name) async {
+    final tile = find.byWidgetPredicate(
+      (widget) => widget is FileTile && widget.file.name == name,
+    );
+
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.descendant(
+        of: find.byType(CustomScrollView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pump();
+  }
+
   Future<void> focusFile(String name) async {
     final tile = find.byWidgetPredicate(
       (widget) => widget is FileTile && widget.file.name == name,
