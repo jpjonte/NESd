@@ -28,26 +28,33 @@ class GamepadSlotsSection extends ConsumerWidget {
           children: [
             for (final assignment in assignments)
               FocusOnHover(
-                child: SettingsTile(
-                  title: Text('Gamepad ${assignment.slot + 1}'),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: Text(assignment.key.name)),
-                      IconButton(
-                        icon: const Icon(Icons.swap_vert),
-                        tooltip: assignment.slot == 0
-                            ? null
-                            : 'Move to Gamepad ${assignment.slot}',
-                        onPressed: assignment.slot == 0
-                            ? null
-                            : () => registry.assign(
-                                assignment.slot - 1,
-                                assignment.gamepadId,
-                              ),
+                child: Builder(
+                  builder: (context) {
+                    final moveUp = assignment.slot == 0
+                        ? null
+                        : () => registry.assign(
+                            assignment.slot - 1,
+                            assignment.gamepadId,
+                          );
+
+                    return SettingsTile(
+                      title: Text('Gamepad ${assignment.slot + 1}'),
+                      onTap: moveUp,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(assignment.key.name)),
+                          IconButton(
+                            icon: const Icon(Icons.swap_vert),
+                            tooltip: assignment.slot == 0
+                                ? null
+                                : 'Move to Gamepad ${assignment.slot}',
+                            onPressed: moveUp,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
           ],

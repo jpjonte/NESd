@@ -6,7 +6,6 @@ import 'package:nesd/features.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/settings.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -60,30 +59,22 @@ class ProfileSelectionHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final indexController = ref.watch(profileIndexProvider.notifier);
 
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (_) => indexController.previous(),
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (_) => indexController.next(),
-        ),
-      },
-      child: const FocusOnHover(
-        child: SettingsTile(
-          child: SizedBox(
-            width: 324,
-            height: 40,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PreviousProfileButton(),
-                SizedBox(width: 8),
-                CurrentProfileHeader(),
-                SizedBox(width: 8),
-                NextProfileButton(),
-              ],
-            ),
+    return FocusOnHover(
+      child: SettingsTile(
+        onDecrease: indexController.previous,
+        onIncrease: indexController.next,
+        child: const SizedBox(
+          width: 324,
+          height: 40,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PreviousProfileButton(),
+              SizedBox(width: 8),
+              CurrentProfileHeader(),
+              SizedBox(width: 8),
+              NextProfileButton(),
+            ],
           ),
         ),
       ),

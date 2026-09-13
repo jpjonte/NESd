@@ -2,8 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
+import '../../../helpers/focus.dart';
 import '../../robot.dart';
 
 void main() {
@@ -80,5 +82,32 @@ void main() {
       findsOneWidget,
       reason: 'the rows follow the registry',
     );
+  });
+
+  testWidgets('confirm on a slot row moves the gamepad up a slot', (
+    tester,
+  ) async {
+    final r = await openControlsTab(tester);
+
+    final registry = r.container.read(gamepadSlotRegistryProvider)
+      ..observe('a', const GamepadDeviceKey(name: 'Sony DualSense'))
+      ..observe('b', const GamepadDeviceKey(name: '8BitDo Pro 2'));
+
+    await tester.pumpAndSettle();
+
+    final secondRow = find.ancestor(
+      of: find.text('Gamepad 2'),
+      matching: find.byType(SettingsTile),
+    );
+
+    await tester.ensureVisible(secondRow);
+    focusInto(tester, secondRow);
+    await tester.pumpAndSettle();
+
+    r.sendInputAction(confirm);
+    await tester.pumpAndSettle();
+
+    expect(registry.slotOf('b'), 0);
+    expect(registry.slotOf('a'), 1);
   });
 }

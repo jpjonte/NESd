@@ -70,6 +70,19 @@ class BinderController {
     settingsController.clearBinding(action, profileIndex);
   }
 
+  BindingType? get bindingType =>
+      settingsController.getBinding(action, profileIndex)?.type;
+
+  set bindingType(BindingType type) {
+    final binding = settingsController.getBinding(action, profileIndex);
+
+    if (binding == null || binding.type == type) {
+      return;
+    }
+
+    settingsController.updateBinding(binding.copyWith(type: type));
+  }
+
   KeyEventResult handleKeyEvent(FocusNode node, KeyEvent event) {
     if (!state.editing) {
       return KeyEventResult.ignored;
