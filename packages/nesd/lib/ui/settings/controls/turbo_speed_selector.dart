@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/turbo_speed.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
-import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/common/segmented_settings_tile.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 extension on TurboSpeed {
@@ -25,50 +24,13 @@ class TurboSpeedSelector extends ConsumerWidget {
     );
     final controller = ref.read(settingsControllerProvider.notifier);
 
-    const values = TurboSpeed.values;
-    final index = values.indexOf(setting);
-
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (intent) =>
-              controller.turboSpeed = index > 0 ? values[index - 1] : setting,
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (intent) => controller.turboSpeed =
-              index < values.length - 1 ? values[index + 1] : setting,
-        ),
-      },
-      child: FocusOnHover(
-        child: SettingsTile(
-          title: const Text('Turbo Speed'),
-          adaptive: true,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-              child: SegmentedButton<TurboSpeed>(
-                onSelectionChanged: (value) =>
-                    controller.turboSpeed = value.first,
-                segments: [
-                  for (final speed in values)
-                    ButtonSegment(
-                      icon: const SizedBox(width: 18, height: 18),
-                      label: Center(
-                        child: Text(
-                          speed.label,
-                          style: const TextStyle(
-                            fontVariations: [FontVariation.weight(700)],
-                          ),
-                        ),
-                      ),
-                      value: speed,
-                    ),
-                ],
-                selected: {setting},
-              ),
-            ),
-          ),
-        ),
+    return FocusOnHover(
+      child: SegmentedSettingsTile<TurboSpeed>(
+        title: const Text('Turbo Speed'),
+        values: TurboSpeed.values,
+        value: setting,
+        onChanged: (value) => controller.turboSpeed = value,
+        label: (value) => value.label,
       ),
     );
   }
