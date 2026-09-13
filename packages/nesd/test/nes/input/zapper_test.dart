@@ -20,9 +20,12 @@ void main() {
 
       when(() => bus.ppu).thenReturn(ppu);
       when(() => ppu.preRenderScanline).thenReturn(261);
+      when(() => ppu.frames).thenReturn(0);
 
       zapper = Zapper(bus: bus);
     });
+
+    void stubFrame(int frame) => when(() => ppu.frames).thenReturn(frame);
 
     void stubBeam({required int scanline, required int cycle}) {
       when(() => ppu.scanline).thenReturn(scanline);
@@ -68,8 +71,70 @@ void main() {
       expect(triggerBit(zapper.read(0)), 1);
 
       zapper.trigger = false;
+      stubFrame(100);
 
       expect(triggerBit(zapper.read(0)), 0);
+    });
+
+    group('minimum trigger hold', () {
+      setUp(() {
+        stubBeam(scanline: 0, cycle: 0);
+        stubBrightness(0, previousFrame: false);
+        stubBrightness(0, previousFrame: true);
+
+        zapper.position = null;
+      });
+
+      void tapTrigger() {
+        zapper
+          ..trigger = true
+          ..trigger = false;
+      }
+
+      test('a pull released within one frame reads pulled for six frames', () {
+        stubFrame(100);
+        tapTrigger();
+
+        for (var frame = 100; frame < 106; frame++) {
+          stubFrame(frame);
+
+          expect(triggerBit(zapper.read(0)), 1, reason: 'frame $frame');
+        }
+
+        stubFrame(106);
+
+        expect(triggerBit(zapper.read(0)), 0);
+      });
+
+      test('a trigger held past the window keeps reading pulled', () {
+        stubFrame(100);
+        zapper.trigger = true;
+        stubFrame(200);
+
+        expect(triggerBit(zapper.read(0)), 1);
+      });
+
+      test('the window expires when the frame counter moves backwards', () {
+        stubFrame(100);
+        tapTrigger();
+        stubFrame(50);
+
+        expect(triggerBit(zapper.read(0)), 0);
+      });
+
+      test('a second pull inside the window restarts it', () {
+        stubFrame(100);
+        tapTrigger();
+        stubFrame(103);
+        tapTrigger();
+        stubFrame(108);
+
+        expect(triggerBit(zapper.read(0)), 1);
+
+        stubFrame(109);
+
+        expect(triggerBit(zapper.read(0)), 0);
+      });
     });
 
     test('reports no light without a position', () {
