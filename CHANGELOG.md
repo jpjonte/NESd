@@ -9,15 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Konami VRC2 and VRC4 (mappers 21, 22, 23, 25) support
 - Sunsoft FME-7 (mapper 69) support
-- Auto save now also saves when quitting a game, quitting NESd, or sending it to the background
-- Search field in Settings
-- The Previous Tab and Next Tab actions now page through the recent ROM and save state grids
 - In-app palette editor with live preview and export
+- Search field in Settings
+- Auto save now also saves when quitting a game or quitting NESd
+- The Previous Tab and Next Tab actions now page through the recent ROMs and save states
+- All settings can now be changed with the keyboard or a gamepad
 
 ### Changed
 - The main menu now dims and shows a spinner on the tile while its ROM loads
-- Keyboard and gamepad navigation now skips the back button in menus
-- Menu navigation now wraps around
+- Improved gamepad and keyboard menu navigation
 - Increased process priority on macOS
 - The privacy policy now describes the website's page-view counter
 
