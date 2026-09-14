@@ -156,7 +156,7 @@ class ActionHandler {
       return;
     }
 
-    if (event.action case ToggleTool(tool: final tool)) {
+    if (event.action case ToggleTool(:final tool)) {
       // Edge-triggered: hold-to-repeat re-emissions and analog jitter
       // around the threshold must not toggle again (#251).
       if (event.value > 0.5) {
@@ -315,7 +315,7 @@ class ActionHandler {
         if (_inGame) {
           nes?.rewind = false;
         }
-      case PauseAction(paused: final paused):
+      case PauseAction(:final paused):
         if (_inGame) {
           if (paused) {
             nes?.unpause();
@@ -363,7 +363,7 @@ class ActionHandler {
         _resetScrubHold();
         nes?.unpause();
         unawaited(scrubController.open());
-      case PauseAction(paused: final paused):
+      case PauseAction(:final paused):
         if (paused) {
           nes?.pause();
         } else {

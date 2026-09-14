@@ -227,7 +227,7 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
     sentCommands.add(command);
 
     if (command case LoadRomCommand(
-      file: final file,
+      :final file,
     ) when file.path == forcedRomLoadFailurePath) {
       _forceLoadFailure();
 
@@ -235,7 +235,7 @@ class FakeNesIsolateHandle implements NesIsolateHandle {
     }
 
     if (command case LoadRomCommand(
-      file: final file,
+      :final file,
     ) when file.path == heldRomLoadPath) {
       _heldLoad = command;
 

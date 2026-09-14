@@ -26,12 +26,10 @@ const contactEmail = 'nesd@jpj.dev';
 const supportedGameCount = '3,447';
 
 @immutable
-class FeatureGroup {
-  const FeatureGroup({required this.title, required this.features});
-
-  final String title;
-  final List<String> features;
-}
+class const FeatureGroup({
+  required final String title,
+  required final List<String> features,
+});
 
 const featureGroups = [
   FeatureGroup(
@@ -67,13 +65,11 @@ const featureGroups = [
 ];
 
 @immutable
-class RomSource {
-  const RomSource({required this.label, required this.url, required this.note});
-
-  final String label;
-  final String url;
-  final String note;
-}
+class const RomSource({
+  required final String label,
+  required final String url,
+  required final String note,
+});
 
 const romSources = [
   RomSource(
@@ -96,20 +92,12 @@ const romSources = [
 ];
 
 @immutable
-class Screenshot {
-  const Screenshot({
-    required this.file,
-    required this.alt,
-    required this.caption,
-    this.wide = false,
-  });
-
-  final String file;
-  final String alt;
-  final String caption;
-
-  final bool wide;
-}
+class const Screenshot({
+  required final String file,
+  required final String alt,
+  required final String caption,
+  final bool wide = false,
+});
 
 const screenshots = [
   Screenshot(
@@ -141,12 +129,10 @@ const screenshots = [
 ];
 
 @immutable
-class PlatformNote {
-  const PlatformNote({required this.requirement, required this.firstLaunch});
-
-  final String requirement;
-  final String? firstLaunch;
-}
+class const PlatformNote({
+  required final String requirement,
+  required final String? firstLaunch,
+});
 
 const platformNotes = {
   DownloadPlatform.macos: PlatformNote(
@@ -175,10 +161,11 @@ const platformNotes = {
 };
 
 @immutable
-class SiteInputs {
-  const SiteInputs({required this.releaseJsonPath, required this.privacyPath});
-
-  factory SiteInputs.fromEnvironment(
+class const SiteInputs({
+  required final String releaseJsonPath,
+  required final String privacyPath,
+}) {
+  factory fromEnvironment(
     Map<String, String> environment, {
     required String workingDirectory,
   }) {
@@ -198,16 +185,14 @@ class SiteInputs {
       privacyPath: '$workingDirectory/../PRIVACY.md',
     );
   }
-
-  final String releaseJsonPath;
-  final String privacyPath;
 }
 
 @immutable
-class SiteContent {
-  const SiteContent({required this.release, required this.privacyMarkdown});
-
-  factory SiteContent.load(SiteInputs inputs) {
+class const SiteContent({
+  required final ReleaseManifest release,
+  required final String privacyMarkdown,
+}) {
+  factory load(SiteInputs inputs) {
     final releaseFile = File(inputs.releaseJsonPath);
 
     if (!releaseFile.existsSync()) {
@@ -244,7 +229,4 @@ class SiteContent {
       privacyMarkdown: privacyFile.readAsStringSync(),
     );
   }
-
-  final ReleaseManifest release;
-  final String privacyMarkdown;
 }

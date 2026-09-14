@@ -45,7 +45,7 @@ void logAppStart({
     'build': buildNumber,
     if (buildId.isNotEmpty) 'buildId': buildId,
     'platform': platform,
-    if (flavor != null) 'flavor': flavor,
+    'flavor': ?flavor,
   },
 );
 

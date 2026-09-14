@@ -1000,24 +1000,18 @@ class NesWorker {
     }
   }
 
-  // the single bool parameter mirrors the protocol command it backs
-  // ignore: avoid_positional_boolean_parameters
   void _setDebuggerActive(bool active) {
     _debuggerActive = active;
 
     _rebuildBackends();
   }
 
-  // the single bool parameter mirrors the protocol command it backs
-  // ignore: avoid_positional_boolean_parameters
   void _setExecutionLogEnabled(bool enabled) {
     _executionLogEnabled = enabled;
 
     _rebuildBackends();
   }
 
-  // the single bool parameter mirrors the protocol command it backs
-  // ignore: avoid_positional_boolean_parameters
   void _setApuDebugEnabled(bool enabled) {
     _apuDebugEnabled = enabled;
 

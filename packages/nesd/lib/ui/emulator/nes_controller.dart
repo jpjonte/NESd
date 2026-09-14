@@ -260,7 +260,7 @@ class NesController {
     final split = splitArchivePath(path);
 
     if (split == null) {
-      return filesystem.read(path);
+      return await filesystem.read(path);
     }
 
     final archive = await ArchiveFilesystem.open(
@@ -268,7 +268,7 @@ class NesController {
       data: await filesystem.read(split.archivePath),
     );
 
-    return archive.read(split.entryPath);
+    return await archive.read(split.entryPath);
   }
 
   void suspend() => nes?.suspend();
@@ -416,10 +416,10 @@ class NesController {
     if (data == null &&
         isArchiveFile(file.path) &&
         await _holdsSeveralRoms(file)) {
-      return _pickArchiveEntry(file, start);
+      return await _pickArchiveEntry(file, start);
     }
 
-    return start(file);
+    return await start(file);
   }
 
   Future<bool> _startRom(
@@ -803,7 +803,7 @@ class NesController {
       throw TooManyRoms(path);
     }
 
-    return archive.readEntry(roms.single.name);
+    return await archive.readEntry(roms.single.name);
   }
 
   // ignore: avoid_setters_without_getters
@@ -835,7 +835,7 @@ class NesController {
       return null;
     }
 
-    return romManager.loadLatestState(romInfo);
+    return await romManager.loadLatestState(romInfo);
   }
 
   /// Copies the state the worker could not load aside, so auto-save cannot

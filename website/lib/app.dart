@@ -23,11 +23,8 @@ String _structuredData(ReleaseManifest release) => jsonEncode({
   'author': {'@type': 'Person', 'name': 'Buddy Jonte'},
 });
 
-class App extends StatelessComponent {
-  const App({required this.content, super.key});
-
-  final SiteContent content;
-
+class const App({required final SiteContent content, super.key})
+    extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return Document(

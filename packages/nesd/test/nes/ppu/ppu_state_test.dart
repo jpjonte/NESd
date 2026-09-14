@@ -46,11 +46,7 @@ PPUState buildState({int decay = 0x5a, int spriteEvalPhase = 3}) {
     nametableLatch: 0x24,
     patternTableHighLatch: 0x5a,
     patternTableLowLatch: 0xa5,
-    patternTableHighShift: 0,
-    patternTableLowShift: 0,
     attributeTableLatch: 2,
-    attributeTableHighShift: 0,
-    attributeTableLowShift: 0,
     attribute: 3,
     oamAddress: 257, // sprite evaluation may stop as high as 257
     oamBuffer: 0x77,

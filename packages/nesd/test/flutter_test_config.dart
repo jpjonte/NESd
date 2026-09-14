@@ -10,7 +10,7 @@ import 'helpers/host_arch.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   if (kIsWeb) {
-    return testMain();
+    return await testMain();
   }
 
   if (Platform.isMacOS) {

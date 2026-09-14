@@ -6,11 +6,8 @@ import 'package:nesd_website/components/rom_note.dart';
 import 'package:nesd_website/components/screenshot_strip.dart';
 import 'package:nesd_website/release.dart';
 
-class LandingPage extends StatelessComponent {
-  const LandingPage({required this.release, super.key});
-
-  final ReleaseManifest release;
-
+class const LandingPage({required final ReleaseManifest release, super.key})
+    extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return PageShell(

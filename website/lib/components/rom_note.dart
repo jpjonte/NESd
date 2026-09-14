@@ -2,9 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:nesd_website/content.dart';
 
-class RomNote extends StatelessComponent {
-  const RomNote({super.key});
-
+class const RomNote({super.key}) extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return section(id: 'games', classes: 'rom-note', [

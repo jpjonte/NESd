@@ -1,40 +1,26 @@
 import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 
-enum DownloadPlatform {
+enum DownloadPlatform(final String label) {
   macos('macOS'),
   windows('Windows'),
   linux('Linux'),
-  android('Android');
-
-  const DownloadPlatform(this.label);
-
-  final String label;
+  android('Android'),
 }
 
 @immutable
-class DownloadAsset {
-  const DownloadAsset({
-    required this.platform,
-    required this.label,
-    required this.url,
-  });
-
-  final DownloadPlatform platform;
-
-  final String label;
-
-  final Uri url;
-}
+class const DownloadAsset({
+  required final DownloadPlatform platform,
+  required final String label,
+  required final Uri url,
+});
 
 @immutable
-class _AssetRule {
-  const _AssetRule(this.suffix, this.platform, this.label);
-
-  final String suffix;
-  final DownloadPlatform platform;
-  final String label;
-}
+class const _AssetRule(
+  final String suffix,
+  final DownloadPlatform platform,
+  final String label,
+);
 
 const _rules = [
   _AssetRule('.macos-universal.dmg', DownloadPlatform.macos, '.dmg'),
@@ -59,15 +45,13 @@ const _rules = [
 ];
 
 @immutable
-class ReleaseManifest {
-  const ReleaseManifest({
-    required this.version,
-    required this.releaseUrl,
-    required this.assets,
-    this.publishedAt,
-  });
-
-  factory ReleaseManifest.fromJson(Map<String, Object?> json) {
+class const ReleaseManifest({
+  required final String version,
+  required final Uri releaseUrl,
+  required final List<DownloadAsset> assets,
+  final DateTime? publishedAt,
+}) {
+  factory fromJson(Map<String, Object?> json) {
     final version = json['tag_name'];
     final htmlUrl = json['html_url'];
     final rawAssets = json['assets'];
@@ -119,14 +103,6 @@ class ReleaseManifest {
           : null,
     );
   }
-
-  final String version;
-
-  final Uri releaseUrl;
-
-  final List<DownloadAsset> assets;
-
-  final DateTime? publishedAt;
 
   String? get releaseDate {
     if (publishedAt case final date?) {

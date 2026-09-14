@@ -45,4 +45,7 @@ base class FakePlatformFile extends PlatformFile {
 
   @override
   XFile get xFile => throw UnimplementedError();
+
+  @override
+  int? lengthSync() => size;
 }

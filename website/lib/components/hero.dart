@@ -4,11 +4,8 @@ import 'package:nesd_website/components/download_cards.dart';
 import 'package:nesd_website/content.dart';
 import 'package:nesd_website/release.dart';
 
-class Hero extends StatelessComponent {
-  const Hero({required this.release, super.key});
-
-  final ReleaseManifest release;
-
+class const Hero({required final ReleaseManifest release, super.key})
+    extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return section(classes: 'hero', [

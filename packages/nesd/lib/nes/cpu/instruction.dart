@@ -1,6 +1,3 @@
-// instruction names don't follow dart naming conventions
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:nesd/exception/stop.dart';
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/cpu/address_mode.dart';

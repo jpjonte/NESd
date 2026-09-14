@@ -2,9 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:nesd_website/content.dart';
 
-class ScreenshotStrip extends StatelessComponent {
-  const ScreenshotStrip({super.key});
-
+class const ScreenshotStrip({super.key}) extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return section(id: 'screenshots', classes: 'screenshots', [

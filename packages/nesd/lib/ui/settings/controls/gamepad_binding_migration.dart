@@ -41,7 +41,7 @@ GamepadInput? _migrateAxisId(GamepadInput input) {
     return null;
   }
 
-  final (target, flip: flip) = axis;
+  final (target, :flip) = axis;
 
   return gamepadAxisInput(target, flip ? -input.direction : input.direction);
 }

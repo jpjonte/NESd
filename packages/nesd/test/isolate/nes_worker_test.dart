@@ -181,7 +181,7 @@ void main() {
   Future<RewindScrubBeganResponse> beginScrub({required int requestId}) async {
     await worker.handleCommand(BeginRewindScrubCommand(requestId: requestId));
 
-    return waitForWhere<RewindScrubBeganResponse>(
+    return await waitForWhere<RewindScrubBeganResponse>(
       (e) => e.requestId == requestId,
     );
   }

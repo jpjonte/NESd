@@ -1,6 +1,3 @@
-// register names don't follow dart naming conventions
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';

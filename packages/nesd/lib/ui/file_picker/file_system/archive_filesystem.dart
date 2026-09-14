@@ -53,7 +53,7 @@ abstract class ArchiveFilesystem extends Filesystem {
     }
 
     if (isSevenZipFile(path)) {
-      return SevenZipFilesystem.open(path: path, data: data);
+      return await SevenZipFilesystem.open(path: path, data: data);
     }
 
     throw UnsupportedFileType(fileExtension(path));

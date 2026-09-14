@@ -3,11 +3,8 @@ import 'package:jaspr/jaspr.dart';
 import 'package:nesd_website/content.dart';
 import 'package:nesd_website/release.dart';
 
-class DownloadCards extends StatelessComponent {
-  const DownloadCards({required this.release, super.key});
-
-  final ReleaseManifest release;
-
+class const DownloadCards({required final ReleaseManifest release, super.key})
+    extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return div(classes: 'downloads', [

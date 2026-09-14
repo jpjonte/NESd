@@ -54,31 +54,16 @@ String formatRecordsForExport(
 String formatRecordTimeForViewer(LogRecord record) =>
     _consoleTime.format(record.time);
 
-/// Renders [record] as one row in the log viewer: local wall-clock time,
-/// level tag, channel and message.
-///
-/// Deliberately carries no error, context or stack trace — those live in
-/// the row's expandable detail section, rendered by [formatRecordDetails].
 String formatRecordForViewer(LogRecord record) =>
     '${formatRecordTimeForViewer(record)} ${record.level.tag} '
     '${record.channel.name} ${record.message}';
 
-/// Renders the expandable detail section for [record]: its error, its
-/// pretty-printed JSON context and its stack trace, in that order,
-/// omitting whichever the record does not carry.
-///
-/// Returns an empty string for a record with no details, which is the
-/// same condition as `LogRecord.hasDetails` being false.
 String formatRecordDetails(LogRecord record) => [
-  if (record.error case final error?) error,
+  ?record.error,
   if (record.context case final context?) _prettyJson.convert(context),
-  if (record.stackTrace case final stackTrace?) stackTrace,
+  ?record.stackTrace,
 ].join('\n');
 
-/// Renders [record] for the dev console: the viewer row, plus the detail
-/// tail appended inline.
-///
-/// Built from [formatRecordForViewer] so the two cannot drift apart.
 String formatRecordForConsole(LogRecord record) {
   final buffer = StringBuffer(formatRecordForViewer(record));
 

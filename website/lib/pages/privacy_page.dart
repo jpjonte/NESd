@@ -3,11 +3,8 @@ import 'package:jaspr/jaspr.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:nesd_website/components/page_shell.dart';
 
-class PrivacyPage extends StatelessComponent {
-  const PrivacyPage({required this.markdown, super.key});
-
-  final String markdown;
-
+class const PrivacyPage({required final String markdown, super.key})
+    extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final html = md.markdownToHtml(

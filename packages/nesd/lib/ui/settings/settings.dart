@@ -123,9 +123,7 @@ Map<int, GamepadDeviceKey> gamepadSlotsFromJson(Map<String, dynamic>? json) {
 
   return {
     for (final MapEntry(:key, :value) in json.entries)
-      if (int.tryParse(key) case final slot?)
-        if (GamepadDeviceKey.tryFromJson(value) case final deviceKey?)
-          slot: deviceKey,
+      ?int.tryParse(key): ?GamepadDeviceKey.tryFromJson(value),
   };
 }
 

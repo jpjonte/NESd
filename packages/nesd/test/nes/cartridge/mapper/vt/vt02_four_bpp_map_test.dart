@@ -157,7 +157,7 @@ void main() {
       expect(nes.ppu.spriteSixteenPixels, isTrue);
     });
 
-    test(r'EVA12S selects the bgEvaBit2 source', () {
+    test('EVA12S selects the bgEvaBit2 source', () {
       final (:nes, mapper: _) = buildVt02();
 
       nes.bus.cpuWrite(0x2018, 0x08); // BKPAGE = 1

@@ -158,7 +158,7 @@ class RomManager {
   Future<Uint8List?> load(RomInfo romInfo) async {
     await _ensureInitialized();
 
-    return storage.read(await _getFilename('saves', romInfo, '.sav'));
+    return await storage.read(await _getFilename('saves', romInfo, '.sav'));
   }
 
   Future<void> saveState(RomInfo romInfo, int slot, List<int> data) async {
@@ -173,7 +173,7 @@ class RomManager {
   Future<Uint8List?> loadState(RomInfo romInfo, int slot) async {
     await _ensureInitialized();
 
-    return storage.read(await _stateFilename(romInfo, slot));
+    return await storage.read(await _stateFilename(romInfo, slot));
   }
 
   Future<LatestSaveState?> loadLatestState(RomInfo romInfo) async {
@@ -265,7 +265,7 @@ class RomManager {
   Future<Uint8List?> readThumbnail(RomInfo romInfo) async {
     await _ensureInitialized();
 
-    return storage.read(await thumbnailPath(romInfo));
+    return await storage.read(await thumbnailPath(romInfo));
   }
 
   // the tile loads the thumbnail itself, so building the ROM list needs no

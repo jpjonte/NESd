@@ -101,7 +101,7 @@ class TwoPaneSettings extends HookConsumerWidget {
         final focused = FocusManager.instance.primaryFocus?.context;
 
         if (focused != null) {
-          unawaited(Scrollable.ensureVisible(focused));
+          Scrollable.ensureVisible(focused);
         }
       });
     }

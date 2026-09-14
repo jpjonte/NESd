@@ -36,7 +36,7 @@ void main() {
   Future<String?> currentRoute() async {
     await Future<void>.delayed(Duration.zero);
 
-    return container.read(currentRouteProvider);
+    return await container.read(currentRouteProvider);
   }
 
   test('reports the pushed route', () async {

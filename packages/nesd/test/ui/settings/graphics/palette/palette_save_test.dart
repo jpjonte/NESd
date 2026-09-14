@@ -48,7 +48,7 @@ class _SlowUserPalettes extends UserPalettes {
   Future<void> save(String name, List<int> rgb) async {
     await saving.future;
 
-    return super.save(name, rgb);
+    return await super.save(name, rgb);
   }
 }
 

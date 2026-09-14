@@ -293,7 +293,7 @@ class FileList extends HookConsumerWidget {
               FilePickerLoading() => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
               ),
-              FilePickerError(message: final message) => SliverToBoxAdapter(
+              FilePickerError(:final message) => SliverToBoxAdapter(
                 child: Center(
                   child: Text(
                     message,
@@ -304,34 +304,33 @@ class FileList extends HookConsumerWidget {
                   ),
                 ),
               ),
-              FilePickerData(directory: final directory) =>
-                SliverFixedExtentList(
-                  itemExtent: itemExtent,
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final tile = index == 0
-                        ? ParentTile(
-                            directory: directory,
-                            focusNode: focusNodes[0],
-                            onFocusChange: (hasFocus) =>
-                                onTileFocusChange(0, hasFocus: hasFocus),
-                            onChangeDirectory: onChangeDirectory,
-                          )
-                        : _fileTile(
-                            index,
-                            files[index - 1],
-                            focusNodes,
-                            onTileFocusChange,
-                          );
+              FilePickerData(:final directory) => SliverFixedExtentList(
+                itemExtent: itemExtent,
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final tile = index == 0
+                      ? ParentTile(
+                          directory: directory,
+                          focusNode: focusNodes[0],
+                          onFocusChange: (hasFocus) =>
+                              onTileFocusChange(0, hasFocus: hasFocus),
+                          onChangeDirectory: onChangeDirectory,
+                        )
+                      : _fileTile(
+                          index,
+                          files[index - 1],
+                          focusNodes,
+                          onTileFocusChange,
+                        );
 
-                    return Column(
-                      children: [
-                        SizedBox(height: tileHeight, child: tile),
-                        if (index < files.length)
-                          const Divider(height: _dividerHeight),
-                      ],
-                    );
-                  }, childCount: files.length + 1),
-                ),
+                  return Column(
+                    children: [
+                      SizedBox(height: tileHeight, child: tile),
+                      if (index < files.length)
+                        const Divider(height: _dividerHeight),
+                    ],
+                  );
+                }, childCount: files.length + 1),
+              ),
             },
           ],
         ),

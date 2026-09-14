@@ -91,17 +91,17 @@ sealed class TouchInputConfig with _$TouchInputConfig {
       Rect.fromCenter(center: center(viewport), width: width, height: height);
 
   double get height => switch (this) {
-    RectangleButtonConfig(height: final height) => height,
-    CircleButtonConfig(size: final size) => size,
-    JoyStickConfig(size: final size) => size,
-    DPadConfig(size: final size) => size,
+    RectangleButtonConfig(:final height) => height,
+    CircleButtonConfig(:final size) => size,
+    JoyStickConfig(:final size) => size,
+    DPadConfig(:final size) => size,
   };
 
   double get width => switch (this) {
-    RectangleButtonConfig(width: final width) => width,
-    CircleButtonConfig(size: final size) => size,
-    JoyStickConfig(size: final size) => size,
-    DPadConfig(size: final size) => size,
+    RectangleButtonConfig(:final width) => width,
+    CircleButtonConfig(:final size) => size,
+    JoyStickConfig(:final size) => size,
+    DPadConfig(:final size) => size,
   };
 
   factory TouchInputConfig.fromJson(Map<String, dynamic> json) =>

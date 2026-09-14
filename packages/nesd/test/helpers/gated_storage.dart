@@ -27,7 +27,7 @@ class GatedStorage implements StorageFilesystem {
       await _gate.future;
     }
 
-    return inner.read(path);
+    return await inner.read(path);
   }
 
   @override

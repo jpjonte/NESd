@@ -2,13 +2,11 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/server.dart';
 import 'package:nesd_website/content.dart';
 
-class PageShell extends StatelessComponent {
-  const PageShell({required this.children, required this.path, super.key});
-
-  final List<Component> children;
-
-  final String path;
-
+class const PageShell({
+  required final List<Component> children,
+  required final String path,
+  super.key,
+}) extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return div(classes: 'page', [

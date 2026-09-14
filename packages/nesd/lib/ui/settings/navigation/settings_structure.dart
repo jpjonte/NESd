@@ -144,7 +144,7 @@ class SettingsEntryLocation {
 
   String get searchText => [
     entry.title,
-    if (entry.subtitle case final subtitle?) subtitle,
+    ?entry.subtitle,
     if (group case final group?) group.title,
   ].join(' ');
 }

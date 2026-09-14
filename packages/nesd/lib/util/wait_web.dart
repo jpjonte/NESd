@@ -33,12 +33,12 @@ Future<void> _yieldMacrotask() {
 Future<void> wait(Duration duration) async {
   if (duration >= _idleThreshold) {
     // long sleeps don't need the precision, fall back to `setTimeout`
-    return Future.delayed(duration);
+    return await Future.delayed(duration);
   }
 
   if (duration <= Duration.zero) {
     // make sure we still yield to the event loop, so the tab doesn't freeze
-    return _yieldMacrotask();
+    return await _yieldMacrotask();
   }
 
   final stopwatch = Stopwatch()..start();

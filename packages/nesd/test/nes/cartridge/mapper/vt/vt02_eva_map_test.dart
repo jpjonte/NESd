@@ -58,14 +58,9 @@ void main() {
     test('an empty source clears the mapping', () {
       final (:nes, :mapper) = buildVt02(chrPages: 64);
 
-      mapper.mapPpuEva2bpp(
-        1,
-        0x0000,
-        0x03ff,
-        3,
-        source: nes.bus.cartridge.chrRom,
-      );
-      mapper.mapPpuEva2bpp(1, 0x0000, 0x03ff, 0, source: Uint8List(0));
+      mapper
+        ..mapPpuEva2bpp(1, 0x0000, 0x03ff, 3, source: nes.bus.cartridge.chrRom)
+        ..mapPpuEva2bpp(1, 0x0000, 0x03ff, 0, source: Uint8List(0));
 
       expect(mapper.eva2bppRead(1, 0x0000), 0);
       expect(nes.ppu.readEva2bpp(1, 0x0000), 0);

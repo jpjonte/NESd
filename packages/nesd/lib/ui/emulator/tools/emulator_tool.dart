@@ -69,8 +69,6 @@ Set<EmulatorTool> openToolsFromJson(dynamic json) {
 
   return {
     for (final name in json)
-      if (EmulatorTool.values.firstWhereOrNull((t) => t.name == name)
-          case final tool?)
-        tool,
+      ?EmulatorTool.values.firstWhereOrNull((t) => t.name == name),
   };
 }

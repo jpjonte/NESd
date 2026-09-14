@@ -1697,8 +1697,9 @@ class PPU {
       _updateBusAddress(lowAddress);
 
       if (spriteFourBpp) {
-        output.patternLow = readEva4bpp(eva, _fourBppAddress(lowAddress, 0));
-        output.patternLow2 = readEva4bpp(eva, _fourBppAddress(lowAddress, 1));
+        output
+          ..patternLow = readEva4bpp(eva, _fourBppAddress(lowAddress, 0))
+          ..patternLow2 = readEva4bpp(eva, _fourBppAddress(lowAddress, 1));
       } else {
         output.patternLow = readEva2bpp(eva, lowAddress);
       }
@@ -1706,8 +1707,9 @@ class PPU {
       _updateBusAddress(highAddress);
 
       if (spriteFourBpp) {
-        output.patternHigh = readEva4bpp(eva, _fourBppAddress(highAddress, 0));
-        output.patternHigh2 = readEva4bpp(eva, _fourBppAddress(highAddress, 1));
+        output
+          ..patternHigh = readEva4bpp(eva, _fourBppAddress(highAddress, 0))
+          ..patternHigh2 = readEva4bpp(eva, _fourBppAddress(highAddress, 1));
       } else {
         output.patternHigh = readEva2bpp(eva, highAddress);
       }
@@ -1718,19 +1720,22 @@ class PPU {
     if (spriteFourBpp) {
       _updateBusAddress(lowAddress);
 
-      output.patternLow = readFourBpp(_fourBppAddress(lowAddress, 0));
-      output.patternLow2 = readFourBpp(_fourBppAddress(lowAddress, 1));
+      output
+        ..patternLow = readFourBpp(_fourBppAddress(lowAddress, 0))
+        ..patternLow2 = readFourBpp(_fourBppAddress(lowAddress, 1));
 
       _updateBusAddress(highAddress);
 
-      output.patternHigh = readFourBpp(_fourBppAddress(highAddress, 0));
-      output.patternHigh2 = readFourBpp(_fourBppAddress(highAddress, 1));
+      output
+        ..patternHigh = readFourBpp(_fourBppAddress(highAddress, 0))
+        ..patternHigh2 = readFourBpp(_fourBppAddress(highAddress, 1));
 
       return;
     }
 
-    output.patternLow = readPpuMemory(lowAddress);
-    output.patternHigh = readPpuMemory(highAddress);
+    output
+      ..patternLow = readPpuMemory(lowAddress)
+      ..patternHigh = readPpuMemory(highAddress);
   }
 
   void _rebuildPaletteLut() {
