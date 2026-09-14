@@ -1,9 +1,15 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/settings/controls/binder_state.dart';
+import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
+import 'package:nesd/ui/settings/controls/controls_settings.dart';
+import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
+import '../../../helpers/focus.dart';
 import '../../robot.dart';
 
 void main() {
@@ -69,5 +75,88 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(r.container.read(binderStateProvider(tile.action)).editing, isFalse);
+  });
+
+  testWidgets('left and right no longer switch the profile', (tester) async {
+    final r = Robot(tester);
+
+    final (_, tileFinder) = await openControlsTab(r);
+
+    focusInto(tester, tileFinder);
+    await tester.pumpAndSettle();
+
+    r.sendInputAction(inputRight);
+    await tester.pumpAndSettle();
+
+    expect(r.container.read(profileIndexProvider), 0);
+  });
+
+  testWidgets('left and right flip hold and toggle on a toggleable action', (
+    tester,
+  ) async {
+    final r = Robot(tester);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
+    await r.settingsScreen.expandBindingGroup('controls.bindings.player1');
+
+    final tileFinder = find
+        .byWidgetPredicate((w) => w is BindingTile && w.action.toggleable)
+        .first;
+    final action = tester.widget<BindingTile>(tileFinder).action;
+
+    await tester.ensureVisible(tileFinder);
+    focusInto(tester, tileFinder);
+    await tester.pumpAndSettle();
+
+    r.sendInputAction(inputRight);
+    await tester.pumpAndSettle();
+
+    expect(r.settings.getBinding(action, 0)?.type, BindingType.toggle);
+
+    r.sendInputAction(inputLeft);
+    await tester.pumpAndSettle();
+
+    expect(r.settings.getBinding(action, 0)?.type, BindingType.hold);
+  });
+
+  testWidgets('Shift+Tab leaves the focused binding intact', (tester) async {
+    final r = Robot(tester);
+
+    final (tile, tileFinder) = await openControlsTab(r);
+
+    focusInto(tester, tileFinder);
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+    await tester.pumpAndSettle();
+
+    expect(r.settings.getBinding(tile.action, 0), isNotNull);
+    expect(
+      r.container.read(settingsNavigationProvider.notifier).category,
+      isNot(SettingsCategory.controls),
+    );
+  });
+
+  testWidgets('the profile header switches profiles with left and right', (
+    tester,
+  ) async {
+    final r = Robot(tester);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.openCategory(SettingsCategory.controls);
+
+    focusInto(tester, find.byType(ProfileSelectionHeader));
+    await tester.pumpAndSettle();
+
+    r.sendInputAction(inputRight);
+    await tester.pumpAndSettle();
+
+    expect(r.container.read(profileIndexProvider), 1);
   });
 }

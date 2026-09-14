@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class HueSlider extends ConsumerWidget {
@@ -107,25 +106,16 @@ class _NtscSlider extends ConsumerWidget {
 
     final step = (max - min) / 20;
 
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (intent) => set(current - step),
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (intent) => set(current + step),
-        ),
-      },
-      child: FocusOnHover(
-        child: SliderSettingsTile(
-          label: label,
-          onTap: () => set(defaultValue),
-          onChanged: set,
-          value: current,
-          displayValue: current.toStringAsFixed(2),
-          min: min,
-          max: max,
-        ),
+    return FocusOnHover(
+      child: SliderSettingsTile(
+        label: label,
+        onTap: () => set(defaultValue),
+        onChanged: set,
+        value: current,
+        displayValue: current.toStringAsFixed(2),
+        min: min,
+        max: max,
+        step: step,
       ),
     );
   }

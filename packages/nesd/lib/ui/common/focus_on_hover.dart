@@ -32,10 +32,7 @@ class FocusOnHover extends HookWidget {
         cursor: cursor ?? MouseCursor.defer,
         onHover: (_) {
           if (!focusNode.hasFocus) {
-            focusNode.descendants
-                .where((d) => d.canRequestFocus)
-                .firstOrNull
-                ?.requestFocus();
+            focusNode.traversalDescendants.firstOrNull?.requestFocus();
           }
         },
         child: child,

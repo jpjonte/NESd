@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/ui/common/focus_first_descendant.dart';
@@ -81,6 +82,13 @@ abstract class BaseRobot {
       tester.widget(find.byType(ProviderScope)),
       duration,
     );
+  }
+
+  Future<void> pressKey(LogicalKeyboardKey key) async {
+    await tester.sendKeyDownEvent(key);
+    await pumpFrames(const Duration(milliseconds: 500));
+    await tester.sendKeyUpEvent(key);
+    await pumpFrames(const Duration(milliseconds: 50));
   }
 
   /// Runs both real async code and FakeAsync code.

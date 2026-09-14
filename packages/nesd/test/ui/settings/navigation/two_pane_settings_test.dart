@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
@@ -33,10 +34,20 @@ void main() {
     (w) => w is SettingsSectionView && w.section.id == id,
   );
 
+  Finder navItem(SettingsCategory category) =>
+      find.byKey(SettingsNavPane.itemKey(category));
+
+  void invokeAt(WidgetTester tester, Finder where, Intent intent) =>
+      Actions.invoke(tester.element(where), intent);
+
+  var outerDismissals = 0;
+
   Future<ProviderContainer> pumpTwoPane(
     WidgetTester tester, {
     Size size = const Size(1920, 1080),
   }) async {
+    outerDismissals = 0;
+
     SharedPreferences.setMockInitialValues({});
 
     final prefs = await SharedPreferences.getInstance();
@@ -57,7 +68,16 @@ void main() {
         ],
         child: MaterialApp(
           theme: nesdThemeLight,
-          home: const Scaffold(body: TwoPaneSettings()),
+          home: Scaffold(
+            body: Actions(
+              actions: {
+                DismissIntent: CallbackAction<DismissIntent>(
+                  onInvoke: (_) => outerDismissals++,
+                ),
+              },
+              child: const TwoPaneSettings(),
+            ),
+          ),
         ),
       ),
     );
@@ -352,5 +372,204 @@ void main() {
 
     expect(container.read(settingsNavigationProvider).query, '');
     expect(find.byType(TwoPaneSettings), findsOneWidget);
+  });
+
+  testWidgets('right on a nav item enters the content', (tester) async {
+    await pumpTwoPane(tester);
+
+    focusInto(tester, navItem(SettingsCategory.general));
+    await tester.pumpAndSettle();
+
+    invokeAt(
+      tester,
+      navItem(SettingsCategory.general),
+      const DirectionalFocusIntent(TraversalDirection.right),
+    );
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, content(SettingsCategory.general)), isTrue);
+  });
+
+  testWidgets('left on a plain tile returns to the nav item', (tester) async {
+    await pumpTwoPane(tester);
+
+    final firstTile = find
+        .descendant(
+          of: content(SettingsCategory.general),
+          matching: find.byType(SettingsTile),
+        )
+        .first;
+
+    focusInto(tester, firstTile);
+    await tester.pumpAndSettle();
+
+    invokeAt(
+      tester,
+      firstTile,
+      const DirectionalFocusIntent(TraversalDirection.left),
+    );
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, navItem(SettingsCategory.general)), isTrue);
+  });
+
+  testWidgets('the content remembers its last tile', (tester) async {
+    await pumpTwoPane(tester);
+
+    final tiles = find.descendant(
+      of: content(SettingsCategory.general),
+      matching: find.byType(SettingsTile),
+    );
+
+    focusInto(tester, tiles.at(2));
+    await tester.pumpAndSettle();
+
+    invokeAt(tester, tiles.at(2), const DismissIntent());
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, navItem(SettingsCategory.general)), isTrue);
+    expect(outerDismissals, 0);
+
+    invokeAt(
+      tester,
+      navItem(SettingsCategory.general),
+      const DirectionalFocusIntent(TraversalDirection.right),
+    );
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, tiles.at(2)), isTrue);
+  });
+
+  testWidgets('dismiss on the nav pane bubbles up', (tester) async {
+    await pumpTwoPane(tester);
+
+    focusInto(tester, navItem(SettingsCategory.general));
+    await tester.pumpAndSettle();
+
+    invokeAt(tester, navItem(SettingsCategory.general), const DismissIntent());
+
+    expect(outerDismissals, 1);
+  });
+
+  testWidgets('down from the last tile wraps inside the content', (
+    tester,
+  ) async {
+    await pumpTwoPane(tester);
+
+    final tiles = find.descendant(
+      of: content(SettingsCategory.general),
+      matching: find.byType(SettingsTile),
+    );
+
+    focusInto(tester, tiles.last);
+    await tester.pumpAndSettle();
+
+    invokeAt(
+      tester,
+      tiles.last,
+      const DirectionalFocusIntent(TraversalDirection.down),
+    );
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, tiles.first), isTrue);
+    expect(focusInside(tester, find.byType(SettingsNavPane)), isFalse);
+  });
+
+  Finder resultRows() => find.descendant(
+    of: find.byType(SettingsSearchResults),
+    matching: find.byType(InkWell),
+  );
+
+  testWidgets('left from a found entry returns to its search result', (
+    tester,
+  ) async {
+    await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    final tile = bindingTile('Controller 2 Start');
+
+    expect(focusInside(tester, tile), isTrue);
+
+    invokeAt(
+      tester,
+      tile,
+      const DirectionalFocusIntent(TraversalDirection.left),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      focusInside(tester, find.byKey(SettingsSearchResults.rowKey(startId))),
+      isTrue,
+    );
+  });
+
+  testWidgets('dismiss from a found entry returns to its search result', (
+    tester,
+  ) async {
+    await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+    await tester.tap(find.byKey(SettingsSearchResults.rowKey(startId)));
+    await tester.pumpAndSettle();
+
+    invokeAt(tester, bindingTile('Controller 2 Start'), const DismissIntent());
+    await tester.pumpAndSettle();
+
+    expect(
+      focusInside(tester, find.byKey(SettingsSearchResults.rowKey(startId))),
+      isTrue,
+    );
+    expect(outerDismissals, 0);
+  });
+
+  testWidgets('the selected result is the one that gets focus back', (
+    tester,
+  ) async {
+    await pumpTwoPane(tester);
+
+    await search(tester, 'player');
+
+    expect(resultRows(), findsAtLeastNWidgets(2));
+
+    await tester.tap(resultRows().at(1));
+    await tester.pumpAndSettle();
+
+    final focused = FocusManager.instance.primaryFocus!.context!;
+
+    expect(
+      focusInside(tester, find.byType(SettingsNavPane)),
+      isFalse,
+      reason: 'selecting a result moves focus into the content',
+    );
+
+    Actions.invoke(
+      focused,
+      const DirectionalFocusIntent(TraversalDirection.left),
+    );
+    await tester.pumpAndSettle();
+
+    expect(focusInside(tester, resultRows().at(1)), isTrue);
+  });
+
+  testWidgets('dismiss on a search result clears the search', (tester) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+
+    final row = find.byKey(SettingsSearchResults.rowKey(startId));
+
+    focusInto(tester, row);
+    await tester.pumpAndSettle();
+
+    invokeAt(tester, row, const DismissIntent());
+    await tester.pumpAndSettle();
+
+    expect(container.read(settingsNavigationProvider).query, isEmpty);
+    expect(find.byType(SettingsSearchResults), findsNothing);
+    expect(focusInside(tester, navItem(SettingsCategory.general)), isTrue);
+    expect(outerDismissals, 0);
   });
 }

@@ -67,6 +67,12 @@ List<Binding> _controllerGamepadDefaults({
   _gamepadAxis(right, GamepadAxis.leftStickX, 1, slot: slot),
 ];
 
+final defaultMenuGamepadBindings = [
+  _gamepadButton(inputLeft, GamepadButton.dpadLeft, slot: 0),
+  _gamepadButton(inputRight, GamepadButton.dpadRight, slot: 0),
+  _gamepadButton(secondaryAction, GamepadButton.x, slot: 0),
+];
+
 final defaultGamepadBindings = [
   ..._controllerGamepadDefaults(
     slot: 0,
@@ -103,6 +109,7 @@ final defaultGamepadBindings = [
   _gamepadButton(nextInput, GamepadButton.dpadDown, slot: 0),
   _gamepadButton(previousTab, GamepadButton.leftBumper, slot: 0),
   _gamepadButton(nextTab, GamepadButton.rightBumper, slot: 0),
+  ...defaultMenuGamepadBindings,
 ];
 
 final defaultBindings = [

@@ -14,10 +14,13 @@ class SettingsNavPane extends ConsumerWidget {
     required this.onSelectCategory,
     required this.onSelectSection,
     required this.onSelectEntry,
+    this.resultsFocusNode,
     super.key,
   });
 
   final Map<SettingsCategory, FocusNode> categoryFocusNodes;
+
+  final FocusNode? resultsFocusNode;
 
   final ValueChanged<SettingsCategory> onSelectCategory;
   final void Function(SettingsCategory category, String sectionId)
@@ -62,9 +65,13 @@ class SettingsNavPane extends ConsumerWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: searching
-                  ? SettingsSearchResults(
-                      matches: matches,
-                      onSelect: onSelectEntry,
+                  ? Focus(
+                      focusNode: resultsFocusNode,
+                      skipTraversal: true,
+                      child: SettingsSearchResults(
+                        matches: matches,
+                        onSelect: onSelectEntry,
+                      ),
                     )
                   : Column(
                       children: [

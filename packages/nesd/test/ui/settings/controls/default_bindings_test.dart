@@ -64,6 +64,9 @@ void main() {
       cancel,
       previousInput,
       nextInput,
+      inputLeft,
+      inputRight,
+      secondaryAction,
     ]) {
       final binding = gamepad.firstWhere(
         (b) => b.action == action,

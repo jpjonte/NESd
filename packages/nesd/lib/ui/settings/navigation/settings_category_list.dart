@@ -60,7 +60,17 @@ class SettingsCategoryList extends HookConsumerWidget {
       return null;
     }, [rowNodes]);
 
-    return Column(
+    void clearSearch() {
+      navigation.query = '';
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          focusFirstDescendant(rowNodes[initialFocus]!);
+        }
+      });
+    }
+
+    final list = Column(
       children: [
         SettingsSearchField(
           value: query,
@@ -110,6 +120,23 @@ class SettingsCategoryList extends HookConsumerWidget {
           ),
         ),
       ],
+    );
+
+    return Actions(
+      actions: {
+        DismissIntent: CallbackAction<DismissIntent>(
+          onInvoke: (intent) {
+            if (!searching) {
+              return Actions.maybeInvoke(context, intent);
+            }
+
+            clearSearch();
+
+            return null;
+          },
+        ),
+      },
+      child: list,
     );
   }
 }

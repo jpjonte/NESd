@@ -79,6 +79,48 @@ void main() {
     await _quit(r);
   });
 
+  testWidgets('moving up after wrapping returns to the last entry', (
+    tester,
+  ) async {
+    final r = await _openMenu(tester);
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    final count = _entries.evaluate().length;
+
+    for (var i = 0; i < count; i++) {
+      r.sendInputAction(inputDown);
+      await r.pumpFrames(const Duration(milliseconds: 100));
+    }
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    r.sendInputAction(inputUp);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, _entries.last), isTrue);
+
+    await _quit(r);
+  });
+
+  testWidgets('left and right keep the focused entry', (tester) async {
+    final r = await _openMenu(tester);
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    r.sendInputAction(inputLeft);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    r.sendInputAction(inputRight);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(focusInside(tester, _entries.first), isTrue);
+
+    await _quit(r);
+  });
+
   testWidgets('the back button never takes focus', (tester) async {
     final r = await _openMenu(tester);
 

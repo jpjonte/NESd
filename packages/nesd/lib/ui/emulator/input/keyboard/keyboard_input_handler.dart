@@ -1,7 +1,11 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:nesd/ui/emulator/emulator_active.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/bound_action.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -33,6 +37,27 @@ KeyboardInputHandler keyboardInputHandler(Ref ref) {
 
   ref.onDispose(scrubSubscription.close);
 
+  void updateMode() {
+    handler.menuMode =
+        !ref.read(emulatorActiveProvider) ||
+        ref.read(toolFocusControllerProvider);
+  }
+
+  final activeSubscription = ref.listen(
+    emulatorActiveProvider,
+    (_, _) => updateMode(),
+    fireImmediately: true,
+  );
+  final toolsSubscription = ref.listen(
+    toolFocusControllerProvider,
+    (_, _) => updateMode(),
+    fireImmediately: true,
+  );
+
+  ref
+    ..onDispose(activeSubscription.close)
+    ..onDispose(toolsSubscription.close);
+
   return handler;
 }
 
@@ -50,14 +75,73 @@ class KeyboardInputHandler {
 
   bool scrubOpen = false;
 
+  final _activeActions = <InputAction>{};
+
+  final _pendingModifiers = <InputAction, Set<LogicalKeyboardKey>>{};
+
+  bool menuMode = false;
+
+  static final _modifierKeys = <LogicalKeyboardKey>{
+    LogicalKeyboardKey.shift,
+    LogicalKeyboardKey.shiftLeft,
+    LogicalKeyboardKey.shiftRight,
+    LogicalKeyboardKey.control,
+    LogicalKeyboardKey.controlLeft,
+    LogicalKeyboardKey.controlRight,
+    LogicalKeyboardKey.alt,
+    LogicalKeyboardKey.altLeft,
+    LogicalKeyboardKey.altRight,
+    LogicalKeyboardKey.meta,
+    LogicalKeyboardKey.metaLeft,
+    LogicalKeyboardKey.metaRight,
+  };
+
+  static const _repeatingMenuActions = <InputAction>{
+    previousInput,
+    nextInput,
+    inputUp,
+    inputDown,
+    inputLeft,
+    inputRight,
+    menuDecrease,
+    menuIncrease,
+  };
+
+  static const _textFieldActions = <InputAction>{
+    previousInput,
+    nextInput,
+    inputUp,
+    inputDown,
+    previousTab,
+    nextTab,
+    confirm,
+    openMenu,
+  };
+
   bool handleKeyEvent(KeyEvent event) {
+    final inTextField = _focusInTextField();
+
     if (event is KeyRepeatEvent) {
-      if (!scrubOpen) {
-        return true;
+      if (scrubOpen) {
+        return _handleKeyRepeat(_allowAll);
       }
 
-      return _handleKeyRepeat();
+      if (menuMode) {
+        return _handleKeyRepeat(
+          (action) =>
+              _repeatingMenuActions.contains(action) &&
+              (!inTextField || _textFieldActions.contains(action)) &&
+              !isInGameAction(action),
+        );
+      }
+
+      return true;
     }
+
+    final baseAllowed = inTextField ? _textFieldActions.contains : _allowAll;
+
+    bool allowed(InputAction action) =>
+        baseAllowed(action) && (!menuMode || !isInGameAction(action));
 
     final key = event.logicalKey;
 
@@ -74,6 +158,7 @@ class KeyboardInputHandler {
         1.0,
         currentActions,
         previousActions,
+        allowed,
         highesPriorityOnly: true,
       );
     } else if (event is KeyUpEvent) {
@@ -81,17 +166,31 @@ class KeyboardInputHandler {
       final currentActions = _getActions(pressedKeys);
 
       // handle all actions that are no longer active
-      return _addActions(0.0, previousActions, currentActions);
+      return _addActions(
+        0.0,
+        previousActions,
+        currentActions,
+        allowed,
+        releasedKey: key,
+      );
     }
 
     return false;
   }
 
-  bool _handleKeyRepeat() {
+  static bool _allowAll(InputAction action) => true;
+
+  bool _handleKeyRepeat(bool Function(InputAction) allowed) {
     final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
     final currentActions = _getActions(pressedKeys);
 
-    return _addActions(1.0, currentActions, const [], highesPriorityOnly: true);
+    return _addActions(
+      1.0,
+      currentActions,
+      const [],
+      allowed,
+      highesPriorityOnly: true,
+    );
   }
 
   // get actions that match the pressed keys, sorted by highest priority first
@@ -110,6 +209,7 @@ class KeyboardInputHandler {
             priority: input.length,
             action: binding.action,
             bindingType: binding.type,
+            keys: input,
           ),
         );
       }
@@ -123,9 +223,15 @@ class KeyboardInputHandler {
   bool _addActions(
     double value,
     List<BoundAction> baseActions,
-    List<BoundAction> compareActions, {
+    List<BoundAction> compareActions,
+    bool Function(InputAction) allowed, {
     bool highesPriorityOnly = false,
+    LogicalKeyboardKey? releasedKey,
   }) {
+    final releasedKeys = releasedKey == null
+        ? const <LogicalKeyboardKey>{}
+        : {releasedKey, ...releasedKey.synonyms};
+
     int? priority;
     var triggered = false;
 
@@ -136,20 +242,59 @@ class KeyboardInputHandler {
         break;
       }
 
+      if (value == 0.0) {
+        final pendingKeys = _pendingModifiers[action.action];
+
+        if (pendingKeys != null && releasedKeys.any(pendingKeys.contains)) {
+          _pendingModifiers.remove(action.action);
+
+          _emit(action.action, 1.0, action.bindingType);
+          _emit(action.action, 0.0, action.bindingType);
+
+          triggered = true;
+
+          continue;
+        }
+
+        if (!_activeActions.contains(action.action)) {
+          continue;
+        }
+      } else if (!allowed(action.action)) {
+        continue;
+      }
+
       if (!compareActions.contains(action)) {
-        actionStream.add(
-          InputActionEvent(
-            action: action.action,
-            value: value,
-            bindingType: action.bindingType,
-          ),
-        );
+        if (value != 0.0 && menuMode && _isModifierOnlyBinding(action)) {
+          _pendingModifiers[action.action] = action.keys;
+          triggered = true;
+
+          continue;
+        }
+
+        _pendingModifiers.clear();
+
+        _emit(action.action, value, action.bindingType);
         triggered = true;
+
+        if (value == 0.0) {
+          _activeActions.remove(action.action);
+        } else {
+          _activeActions.add(action.action);
+        }
       }
     }
 
     return triggered;
   }
+
+  void _emit(InputAction action, double value, BindingType bindingType) {
+    actionStream.add(
+      InputActionEvent(action: action, value: value, bindingType: bindingType),
+    );
+  }
+
+  bool _isModifierOnlyBinding(BoundAction action) =>
+      action.keys.isNotEmpty && action.keys.every(_modifierKeys.contains);
 
   KeyMap _buildBindingMap(Bindings bindings) {
     final bindingMap = <Set<LogicalKeyboardKey>, Binding>{};
@@ -162,4 +307,9 @@ class KeyboardInputHandler {
 
     return bindingMap;
   }
+
+  static bool _focusInTextField() =>
+      FocusManager.instance.primaryFocus?.context
+          ?.findAncestorStateOfType<EditableTextState>() !=
+      null;
 }

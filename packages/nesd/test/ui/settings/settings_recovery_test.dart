@@ -80,7 +80,7 @@ void main() {
       'binding list', () {
     final controller = load({
       // the current version, so no migration adds bindings of its own
-      'bindingsVersion': 3,
+      'bindingsVersion': 4,
       'bindings': [
         {
           'index': 0,
@@ -107,7 +107,7 @@ void main() {
   test('a legacy map binding that cannot be read is dropped, not the whole '
       'map', () {
     final controller = load({
-      'bindingsVersion': 3,
+      'bindingsVersion': 4,
       'bindings': {
         'ui.openMenu': {
           'type': 'keyboard',
@@ -122,7 +122,7 @@ void main() {
 
   test('a dropped binding is surfaced rather than silently lost', () async {
     load({
-      'bindingsVersion': 3,
+      'bindingsVersion': 4,
       'bindings': [
         {
           'index': 0,

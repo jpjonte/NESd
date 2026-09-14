@@ -24,12 +24,14 @@ const _indicatorFadeDuration = Duration(milliseconds: 150);
 
 class FileList extends HookConsumerWidget {
   const FileList({
+    required this.header,
     required this.allowedExtensions,
     required this.onSelectFile,
     this.onChangeDirectory,
     super.key,
   });
 
+  final Widget header;
   final List<String> allowedExtensions;
   final Future<void> Function(FilesystemFile) onSelectFile;
   final void Function(FilesystemFile)? onChangeDirectory;
@@ -184,6 +186,58 @@ class FileList extends HookConsumerWidget {
       }
     }
 
+    void wrapTo({required bool forward}) {
+      final focus = FocusManager.instance.primaryFocus;
+      final focusContext = focus?.context;
+
+      if (focus != null && focusContext != null) {
+        FocusTraversalGroup.maybeOf(
+          focusContext,
+        )?.invalidateScopeData(focus.nearestScope!);
+      }
+
+      if (forward) {
+        focusTileAt(0);
+
+        return;
+      }
+
+      final last = nearestFocusable(entries, entries.length - 1, direction: -1);
+
+      focusTileAt(last == null ? 0 : last + 1);
+    }
+
+    void moveFocus(TraversalDirection direction) {
+      final focus = FocusManager.instance.primaryFocus;
+
+      if (focus == null || focus.focusInDirection(direction)) {
+        return;
+      }
+
+      switch (direction) {
+        case TraversalDirection.down:
+          wrapTo(forward: true);
+        case TraversalDirection.up:
+          wrapTo(forward: false);
+        case TraversalDirection.left || TraversalDirection.right:
+          break;
+      }
+    }
+
+    void traverse({required bool forward}) {
+      final focus = FocusManager.instance.primaryFocus;
+
+      if (focus == null) {
+        return;
+      }
+
+      final moved = forward ? focus.nextFocus() : focus.previousFocus();
+
+      if (!moved) {
+        wrapTo(forward: forward);
+      }
+    }
+
     final lastDirectoryPath = useRef<String?>(null);
 
     useEffect(() {
@@ -230,84 +284,110 @@ class FileList extends HookConsumerWidget {
       return null;
     }, [state]);
 
-    return Expanded(
-      child: Stack(
-        children: [
-          Actions(
-            actions: {
-              PreviousTabIntent: CallbackAction<PreviousTabIntent>(
-                onInvoke: (_) {
-                  jump(forward: false);
-
-                  return null;
-                },
+    final list = Stack(
+      children: [
+        CustomScrollView(
+          controller: scrollController,
+          slivers: [
+            switch (state) {
+              FilePickerLoading() => const SliverToBoxAdapter(
+                child: Center(child: CircularProgressIndicator()),
               ),
-              NextTabIntent: CallbackAction<NextTabIntent>(
-                onInvoke: (_) {
-                  jump(forward: true);
-
-                  return null;
-                },
+              FilePickerError(message: final message) => SliverToBoxAdapter(
+                child: Center(
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontVariations: const [FontVariation.weight(700)],
+                    ),
+                  ),
+                ),
               ),
+              FilePickerData(directory: final directory) =>
+                SliverFixedExtentList(
+                  itemExtent: itemExtent,
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final tile = index == 0
+                        ? ParentTile(
+                            directory: directory,
+                            focusNode: focusNodes[0],
+                            onFocusChange: (hasFocus) =>
+                                onTileFocusChange(0, hasFocus: hasFocus),
+                            onChangeDirectory: onChangeDirectory,
+                          )
+                        : _fileTile(
+                            index,
+                            files[index - 1],
+                            focusNodes,
+                            onTileFocusChange,
+                          );
+
+                    return Column(
+                      children: [
+                        SizedBox(height: tileHeight, child: tile),
+                        if (index < files.length)
+                          const Divider(height: _dividerHeight),
+                      ],
+                    );
+                  }, childCount: files.length + 1),
+                ),
             },
-            child: CustomScrollView(
-              controller: scrollController,
-              slivers: [
-                switch (state) {
-                  FilePickerLoading() => const SliverToBoxAdapter(
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  FilePickerError(message: final message) => SliverToBoxAdapter(
-                    child: Center(
-                      child: Text(
-                        message,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                          fontVariations: const [FontVariation.weight(700)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  FilePickerData(directory: final directory) =>
-                    SliverFixedExtentList(
-                      itemExtent: itemExtent,
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final tile = index == 0
-                            ? ParentTile(
-                                directory: directory,
-                                focusNode: focusNodes[0],
-                                onFocusChange: (hasFocus) =>
-                                    onTileFocusChange(0, hasFocus: hasFocus),
-                                onChangeDirectory: onChangeDirectory,
-                              )
-                            : _fileTile(
-                                index,
-                                files[index - 1],
-                                focusNodes,
-                                onTileFocusChange,
-                              );
-
-                        return Column(
-                          children: [
-                            SizedBox(height: tileHeight, child: tile),
-                            if (index < files.length)
-                              const Divider(height: _dividerHeight),
-                          ],
-                        );
-                      }, childCount: files.length + 1),
-                    ),
-                },
-              ],
-            ),
+          ],
+        ),
+        if (focusedIndex.value case final index?
+            when index > 0 && index <= files.length)
+          _PositionIndicator(
+            visible: indicatorVisible.value,
+            group: indicatorGroup.value,
+            position: index,
+            total: files.length,
           ),
-          if (focusedIndex.value case final index?
-              when index > 0 && index <= files.length)
-            _PositionIndicator(
-              visible: indicatorVisible.value,
-              group: indicatorGroup.value,
-              position: index,
-              total: files.length,
-            ),
+      ],
+    );
+
+    return Actions(
+      actions: {
+        PreviousTabIntent: CallbackAction<PreviousTabIntent>(
+          onInvoke: (_) {
+            jump(forward: false);
+
+            return null;
+          },
+        ),
+        NextTabIntent: CallbackAction<NextTabIntent>(
+          onInvoke: (_) {
+            jump(forward: true);
+
+            return null;
+          },
+        ),
+        DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
+          onInvoke: (intent) {
+            moveFocus(intent.direction);
+
+            return null;
+          },
+        ),
+        NextFocusIntent: CallbackAction<NextFocusIntent>(
+          onInvoke: (_) {
+            traverse(forward: true);
+
+            return null;
+          },
+        ),
+        PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
+          onInvoke: (_) {
+            traverse(forward: false);
+
+            return null;
+          },
+        ),
+      },
+      child: Column(
+        children: [
+          header,
+          Expanded(child: list),
         ],
       ),
     );

@@ -3,7 +3,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_editor_state.dart';
 
 const _channelLabels = ['Red', 'Green', 'Blue'];
@@ -139,27 +138,18 @@ class _ChannelSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final value = _channelValue(color, channel);
 
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (_) => onChanged(value - 1),
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (_) => onChanged(value + 1),
-        ),
-      },
-      child: FocusOnHover(
-        child: SliderSettingsTile(
-          key: PaletteColorEditor.channelKey(channel),
-          onChangeStart: (_) => onDragStart(),
-          onChangeEnd: (_) => onDragEnd(),
-          label: _channelLabels[channel],
-          value: value.toDouble(),
-          displayValue: '$value',
-          max: 255,
-          onTap: onReset,
-          onChanged: (v) => onChanged(v.round()),
-        ),
+    return FocusOnHover(
+      child: SliderSettingsTile(
+        key: PaletteColorEditor.channelKey(channel),
+        onChangeStart: (_) => onDragStart(),
+        onChangeEnd: (_) => onDragEnd(),
+        label: _channelLabels[channel],
+        value: value.toDouble(),
+        displayValue: '$value',
+        max: 255,
+        onTap: onReset,
+        onChanged: (v) => onChanged(v.round()),
+        step: 1,
       ),
     );
   }

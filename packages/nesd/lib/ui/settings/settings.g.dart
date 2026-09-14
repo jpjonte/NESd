@@ -39,7 +39,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   bindings: json['bindings'] == null
       ? const []
       : bindingsFromJson(json['bindings']),
-  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 3,
+  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 4,
   gamepadSlots: json['gamepadSlots'] == null
       ? const <int, GamepadDeviceKey>{}
       : gamepadSlotsFromJson(json['gamepadSlots'] as Map<String, dynamic>?),

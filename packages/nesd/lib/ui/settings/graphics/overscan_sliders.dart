@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/common/settings_tile.dart';
-import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -104,24 +103,15 @@ class _OverscanSlider extends ConsumerWidget {
       controller.overscan = update(overscan, newValue);
     }
 
-    return Actions(
-      actions: {
-        DecreaseIntent: CallbackAction<DecreaseIntent>(
-          onInvoke: (intent) => set(current - 1),
-        ),
-        IncreaseIntent: CallbackAction<IncreaseIntent>(
-          onInvoke: (intent) => set(current + 1),
-        ),
-      },
-      child: FocusOnHover(
-        child: SliderSettingsTile(
-          label: label,
-          onTap: () => set(defaultValue),
-          onChanged: (sliderValue) => set(sliderValue.round()),
-          value: current.toDouble(),
-          displayValue: '$current px',
-          max: maxOverscan.toDouble(),
-        ),
+    return FocusOnHover(
+      child: SliderSettingsTile(
+        label: label,
+        onTap: () => set(defaultValue),
+        onChanged: (sliderValue) => set(sliderValue.round()),
+        value: current.toDouble(),
+        displayValue: '$current px',
+        max: maxOverscan.toDouble(),
+        step: 1,
       ),
     );
   }

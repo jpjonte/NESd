@@ -180,7 +180,7 @@ void main() {
   ) async {
     final r = await openSettings(tester, _desktop);
 
-    await r.settingsScreen.openCategory(SettingsCategory.audio);
+    await r.settingsScreen.openCategory(SettingsCategory.general);
 
     expect(
       focusInside(tester, find.byType(TwoPaneSettings)),

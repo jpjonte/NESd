@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/nes/apu/mixer_settings.dart';
-import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/settings/audio/mixer_sliders.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -107,7 +106,7 @@ void main() {
   testWidgets('holding increase stops at 100%', (tester) async {
     await pump(tester, const DmcGainSlider());
 
-    final context = tester.element(find.byType(SliderSettingsTile));
+    final context = tester.element(find.byType(Slider));
 
     for (var i = 0; i < 40; i++) {
       Actions.invoke(context, const IncreaseIntent());
@@ -120,7 +119,7 @@ void main() {
   testWidgets('holding decrease stops at silence', (tester) async {
     await pump(tester, const DmcGainSlider());
 
-    final context = tester.element(find.byType(SliderSettingsTile));
+    final context = tester.element(find.byType(Slider));
 
     for (var i = 0; i < 40; i++) {
       Actions.invoke(context, const DecreaseIntent());
