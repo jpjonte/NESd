@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - In-app palette editor with live preview and export
 - Search field in Settings
 - Auto save now also saves when quitting a game or quitting NESd
+- Most screens now show input hints for the current input method
 - The Previous Tab and Next Tab actions now page through the recent ROMs and save states
 - All settings can now be changed with the keyboard or a gamepad
 

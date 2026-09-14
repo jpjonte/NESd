@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:nesd/ui/common/hints/input_hint_bar.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/settings/navigation/settings_navigation.dart';
 import 'package:nesd/ui/settings/navigation/stacked_settings.dart';
@@ -25,6 +27,17 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
+      hints: [
+        navigateHint,
+        const InputHint(actions: [inputLeft, inputRight], label: 'Adjust'),
+        const InputHint(actions: [confirm], label: 'Change'),
+        if (twoPane || category != null)
+          const InputHint(
+            actions: [previousTab, nextTab],
+            label: 'Switch category',
+          ),
+        backHint,
+      ],
       appBar: NesdAppBar(
         title: Text(
           title,

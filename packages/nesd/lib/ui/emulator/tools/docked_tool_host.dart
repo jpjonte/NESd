@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_host_hints.dart';
 import 'package:nesd/ui/emulator/tools/tool_widgets.dart';
 
 class DockedToolHost extends HookConsumerWidget {
@@ -70,55 +71,66 @@ class DockedToolHost extends HookConsumerWidget {
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: dockedToolColumnWidth),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final needed = tools.fold(
-                0.0,
-                (sum, tool) => sum + tool.minHeight,
-              );
-
-              if (constraints.hasBoundedHeight &&
-                  needed <= constraints.maxHeight) {
-                return Column(
-                  children: [
-                    for (final tool in tools)
-                      _filled(
-                        tool,
-                        cartridgeInfo,
-                        focus: focused && tool == active,
-                      ),
-                  ],
-                );
-              }
-
-              return Scrollbar(
-                controller: scrollController,
-                thumbVisibility: true,
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(
-                    context,
-                  ).copyWith(scrollbars: false),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Column(
-                      children: [
-                        for (final tool in tools)
-                          _pinned(
-                            tool,
-                            cartridgeInfo,
-                            focus: focused && tool == active,
-                          ),
-                      ],
-                    ),
-                  ),
+          child: Column(
+            children: [
+              Expanded(
+                child: _panels(
+                  tools,
+                  cartridgeInfo,
+                  active: active,
+                  focused: focused,
+                  scrollController: scrollController,
                 ),
-              );
-            },
+              ),
+              ToolHostHints(focused: focused),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _panels(
+    List<EmulatorTool> tools,
+    CartridgeInfo? cartridgeInfo, {
+    required EmulatorTool? active,
+    required bool focused,
+    required ScrollController scrollController,
+  }) => LayoutBuilder(
+    builder: (context, constraints) {
+      final needed = tools.fold(0.0, (sum, tool) => sum + tool.minHeight);
+
+      if (constraints.hasBoundedHeight && needed <= constraints.maxHeight) {
+        return Column(
+          children: [
+            for (final tool in tools)
+              _filled(tool, cartridgeInfo, focus: focused && tool == active),
+          ],
+        );
+      }
+
+      return Scrollbar(
+        controller: scrollController,
+        thumbVisibility: true,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(
+              children: [
+                for (final tool in tools)
+                  _pinned(
+                    tool,
+                    cartridgeInfo,
+                    focus: focused && tool == active,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
   Widget _panel(
     EmulatorTool tool,

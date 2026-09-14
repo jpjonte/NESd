@@ -388,13 +388,10 @@ sealed class InputCombination with _$InputCombination {
     final GamepadInputCombination input => _gamepadLabel(input),
   };
 
-  static String _keyboardLabel(KeyboardInputCombination input) {
-    final sorted = input.keys.toList()..sort((a, b) => b.keyId - a.keyId);
-
-    return sorted
-        .map((key) => key.keyLabel == ' ' ? 'Space' : key.keyLabel)
-        .join(' + ');
-  }
+  static String _keyboardLabel(KeyboardInputCombination input) => input
+      .sortedKeys
+      .map((key) => key.keyLabel == ' ' ? 'Space' : key.keyLabel)
+      .join(' + ');
 
   static String _gamepadLabel(GamepadInputCombination input) {
     final buttons = input.inputs.map((button) => button.label ?? button.id);
@@ -404,4 +401,9 @@ sealed class InputCombination with _$InputCombination {
 
   factory InputCombination.fromJson(Map<String, dynamic> json) =>
       _$InputCombinationFromJson(json);
+}
+
+extension KeyboardInputCombinationKeys on KeyboardInputCombination {
+  List<LogicalKeyboardKey> get sortedKeys =>
+      keys.toList()..sort((a, b) => b.keyId - a.keyId);
 }

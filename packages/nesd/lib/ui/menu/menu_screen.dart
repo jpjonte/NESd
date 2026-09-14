@@ -9,10 +9,12 @@ import 'package:nesd/log/log.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
 import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/dividers.dart';
+import 'package:nesd/ui/common/hints/input_hint_bar.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -39,6 +41,12 @@ class MenuScreen extends ConsumerWidget {
 
     return NesdScaffold(
       backgroundColor: Colors.black.withAlpha(200),
+      hints: const [
+        navigateHint,
+        selectHint,
+        InputHint(actions: [cancel, openMenu], label: 'Back to game'),
+      ],
+      hintColor: Colors.white,
       appBar: NesdAppBar(
         title: Text(
           'NESd',

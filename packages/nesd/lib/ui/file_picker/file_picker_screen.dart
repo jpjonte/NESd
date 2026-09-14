@@ -6,9 +6,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
+import 'package:nesd/ui/common/hints/input_hint_bar.dart';
 import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/file_picker/file_list.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
@@ -122,6 +124,12 @@ class FilePicker extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return NesdScaffold(
+      hints: const [
+        navigateHint,
+        InputHint(actions: [confirm], label: 'Open'),
+        InputHint(actions: [previousTab, nextTab], label: 'Jump by letter'),
+        backHint,
+      ],
       appBar: NesdAppBar(
         title: Text(
           title,
