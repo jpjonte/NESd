@@ -72,14 +72,13 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
-    needs: [lint]
     steps:
       - uses: actions/checkout@v7
       - run: flutter pub get
       - run: bin/build_test_libs.sh
       - run: |
           cd packages/nesd
-          flutter test --coverage
+          flutter test --coverage --concurrency 4
       - run: ci/0-test/extract_coverage.sh
       - uses: actions/upload-artifact@v7
         with:
@@ -90,7 +89,6 @@ jobs:
   test-web:
     # run the web tests directly on the runner (Chrome is preinstalled)
     runs-on: ubuntu-24.04
-    needs: [lint]
     steps:
       - uses: actions/checkout@v7
       - id: env
@@ -106,7 +104,6 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
-    needs: [lint]
     steps:
       - uses: actions/checkout@v7
       - run: |
@@ -128,7 +125,7 @@ jobs:
   publish-pages:
     if: github.ref == 'refs/heads/main' && needs.pages-gate.outputs.deploy == 'true'
     runs-on: ubuntu-24.04
-    needs: [test, test-site, pages-gate, build-web, check-readme]
+    needs: [lint, test, test-web, test-site, pages-gate, build-web, check-readme]
     permissions:
       contents: read
       pages: write
@@ -147,7 +144,7 @@ jobs:
   publish-pages-release:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [test, test-site, release, build-web, check-readme]
+    needs: [lint, test, test-web, test-site, release, build-web, check-readme]
     permissions:
       contents: read
       pages: write
@@ -165,7 +162,6 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    needs: [test]
     outputs:
       release_name: ${{ steps.env.outputs.release_name }}
     steps:
@@ -199,7 +195,6 @@ jobs:
       matrix:
         arch: [ x64, arm64 ]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
-    needs: [ test ]
     env:
       ARCH: ${{ matrix.arch }}
     container:
@@ -238,7 +233,6 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    needs: [ test ]
     steps:
       - uses: actions/checkout@v7
       - run: ci/1-build/windows/prepare.ps1
@@ -259,7 +253,6 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
-    needs: [ test ]
     env:
       GRADLE_USER_HOME: /root/.gradle
     steps:
@@ -303,7 +296,6 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
-    needs: [test, test-web]
     steps:
       - uses: actions/checkout@v7
       - run: git config --global --add safe.directory "$(pwd)"
@@ -320,7 +312,7 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
-    needs: [ build-android, check-play-listing ]
+    needs: [ lint, test, test-web, test-site, build-android, check-play-listing ]
     env:
       PLAY_TRACK: alpha
     steps:
@@ -357,7 +349,7 @@ jobs:
        needs.detect-changes.outputs.build-relevant == 'true') ||
       startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-24.04
-    needs: [detect-changes, build-web]
+    needs: [lint, test, test-web, test-site, detect-changes, build-web]
     permissions:
       contents: read
       packages: write
@@ -550,6 +542,10 @@ jobs:
       group: flatpak-push
       cancel-in-progress: false
     needs:
+      - lint
+      - test
+      - test-web
+      - test-site
       - detect-changes
       - build-macos
       - package-linux-deb
@@ -630,6 +626,10 @@ jobs:
       group: flatpak-push
       cancel-in-progress: false
     needs:
+      - lint
+      - test
+      - test-web
+      - test-site
       - build-macos
       - package-linux-deb
       - package-linux-rpm
