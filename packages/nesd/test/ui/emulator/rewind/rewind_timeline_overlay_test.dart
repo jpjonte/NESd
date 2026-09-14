@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/isolate/nes_isolate_event.dart';
@@ -113,11 +113,10 @@ void main() {
     await _quitGame(r);
   });
 
-  testWidgets('shows drag and tap hints when touch controls are on', (
-    tester,
-  ) async {
-    final r = _robot(tester, showTouchControls: true);
+  testWidgets('shows drag and tap hints after a touch', (tester) async {
+    final r = _robot(tester);
 
+    // starting the game taps the ROM tile, which is the touch
     await _startGame(r);
     await _openScrubber(r);
 
@@ -125,18 +124,20 @@ void main() {
       find.text('Drag the strip to scrub · Tap a frame to jump there'),
       findsOneWidget,
     );
-    expect(find.text('Confirm'), findsNothing);
+    expect(find.text('Enter'), findsNothing);
 
     await _quitGame(r);
   });
 
-  testWidgets('shows key hints when touch controls are off', (tester) async {
+  testWidgets('shows the bound keys after a key press', (tester) async {
     final r = _robot(tester);
 
     await _startGame(r);
+    await r.pressKey(LogicalKeyboardKey.shiftLeft);
     await _openScrubber(r);
 
-    expect(find.text('Confirm'), findsOneWidget);
+    expect(find.text('Enter'), findsOneWidget);
+    expect(find.text('Backspace'), findsOneWidget);
     expect(find.textContaining('Drag'), findsNothing);
 
     await _quitGame(r);

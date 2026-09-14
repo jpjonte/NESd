@@ -3,7 +3,11 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/nes/region.dart';
+import 'package:nesd/ui/common/hints/input_hint_bar.dart';
 import 'package:nesd/ui/emulator/display_geometry.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/emulator/input/input_hint_resolver.dart';
+import 'package:nesd/ui/emulator/input/input_method.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/emulator/overscan_crop.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_filmstrip_painter.dart';
@@ -22,14 +26,6 @@ const _overlayEdgeColor = Colors.white24;
 const _textColor = Colors.white;
 const _labelColor = Colors.white70;
 const _labelFontSize = 11.0;
-
-const _hintFillColor = Colors.white12;
-const _hintBorderRadius = BorderRadius.all(Radius.circular(6));
-const _hintPadding = EdgeInsets.symmetric(horizontal: 10, vertical: 4);
-const _hintMinHeight = 32.0;
-const _touchHintMinHeight = 44.0;
-const _hintIconSize = 16.0;
-const _hintSpacing = 12.0;
 const _hintRunSpacing = 6.0;
 
 const _frameWidth = 256;
@@ -62,12 +58,6 @@ class _RewindTimelineOverlayState extends ConsumerState<RewindTimelineOverlay> {
 
     final controller = ref.read(rewindScrubControllerProvider.notifier);
 
-    final touchHints = ref.watch(
-      settingsControllerProvider.select(
-        (settings) => settings.showTouchControls,
-      ),
-    );
-
     return Positioned.fill(
       child: Stack(
         children: [
@@ -92,7 +82,6 @@ class _RewindTimelineOverlayState extends ConsumerState<RewindTimelineOverlay> {
               onScrubBy: controller.moveBy,
               onCommit: controller.commit,
               onCancel: controller.cancel,
-              touchHints: touchHints,
             ),
           ),
         ],
@@ -239,7 +228,6 @@ class RewindFilmstrip extends StatefulWidget {
     required this.onScrubBy,
     required this.onCommit,
     required this.onCancel,
-    required this.touchHints,
     super.key,
   });
 
@@ -250,8 +238,6 @@ class RewindFilmstrip extends StatefulWidget {
 
   final VoidCallback onCommit;
   final VoidCallback onCancel;
-
-  final bool touchHints;
 
   @override
   State<RewindFilmstrip> createState() => _RewindFilmstripState();
@@ -339,7 +325,6 @@ class _RewindFilmstripState extends State<RewindFilmstrip> {
                           captureInterval: state.captureInterval,
                           onCommit: widget.onCommit,
                           onCancel: widget.onCancel,
-                          touchHints: widget.touchHints,
                         ),
                       ),
                     ],
@@ -395,73 +380,61 @@ class _RewindFilmstripState extends State<RewindFilmstrip> {
   }
 }
 
-class _HintBar extends StatelessWidget {
+class _HintBar extends ConsumerWidget {
   const _HintBar({
     required this.captureInterval,
     required this.onCommit,
     required this.onCancel,
-    required this.touchHints,
   });
 
   final int captureInterval;
   final VoidCallback onCommit;
   final VoidCallback onCancel;
-  final bool touchHints;
 
   @override
-  Widget build(BuildContext context) {
-    if (touchHints) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Drag the strip to scrub · Tap a frame to jump there',
-            style: TextStyle(color: _labelColor, fontSize: _labelFontSize),
-          ),
-          const SizedBox(height: _hintRunSpacing),
-          _HintRow(
-            children: [
-              _HintChip(
-                prompt: const _HintIcon(Icons.play_arrow),
-                label: 'Resume here',
-                minHeight: _touchHintMinHeight,
-                onPressed: onCommit,
-              ),
-              _HintChip(
-                prompt: const _HintIcon(Icons.close),
-                label: 'Back to live',
-                minHeight: _touchHintMinHeight,
-                onPressed: onCancel,
-              ),
-            ],
-          ),
-        ],
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final touch = ref.watch(
+      inputHintResolverProvider.select(
+        (resolver) => resolver.method == InputMethod.touch,
+      ),
+    );
+
+    final hints = [
+      const InputHint(
+        actions: [inputLeft, inputRight],
+        label: 'Skip 1 second · hold to speed up',
+      ),
+      InputHint(
+        actions: const [inputUp, previousInput, inputDown, nextInput],
+        label: _fineStepLabel(captureInterval),
+      ),
+      InputHint(
+        actions: const [confirm],
+        icon: Icons.play_arrow,
+        label: 'Resume here',
+        onPressed: onCommit,
+      ),
+      InputHint(
+        actions: const [cancel],
+        icon: Icons.close,
+        label: 'Back to live',
+        onPressed: onCancel,
+      ),
+    ];
+
+    if (!touch) {
+      return InputHintBar(hints: hints, color: _textColor);
     }
 
-    return _HintRow(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const _HintChip(
-          prompt: _ArrowPrompt(Icons.arrow_left, Icons.arrow_right),
-          label: 'Skip 1 second · hold to speed up',
+        const Text(
+          'Drag the strip to scrub · Tap a frame to jump there',
+          style: TextStyle(color: _labelColor, fontSize: _labelFontSize),
         ),
-        _HintChip(
-          prompt: const _ArrowPrompt(
-            Icons.arrow_drop_up,
-            Icons.arrow_drop_down,
-          ),
-          label: _fineStepLabel(captureInterval),
-        ),
-        _HintChip(
-          prompt: const _KeyPrompt(Icons.play_arrow, 'Confirm'),
-          label: 'Resume here',
-          onPressed: onCommit,
-        ),
-        _HintChip(
-          prompt: const _KeyPrompt(Icons.close, 'Cancel'),
-          label: 'Back to live',
-          onPressed: onCancel,
-        ),
+        const SizedBox(height: _hintRunSpacing),
+        InputHintBar(hints: hints, color: _textColor),
       ],
     );
   }
@@ -471,119 +444,4 @@ class _HintBar extends StatelessWidget {
         1 => 'Step 1 frame',
         final frames => 'Step $frames frames',
       };
-}
-
-class _HintRow extends StatelessWidget {
-  const _HintRow({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: _hintSpacing,
-      runSpacing: _hintRunSpacing,
-      children: children,
-    );
-  }
-}
-
-class _HintIcon extends StatelessWidget {
-  const _HintIcon(this.icon);
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(icon, color: _textColor, size: _hintIconSize);
-  }
-}
-
-class _HintChip extends StatelessWidget {
-  const _HintChip({
-    required this.prompt,
-    required this.label,
-    this.minHeight = _hintMinHeight,
-    this.onPressed,
-  });
-
-  final Widget prompt;
-  final String label;
-  final double minHeight;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: _hintFillColor,
-      borderRadius: _hintBorderRadius,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: _hintBorderRadius,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: minHeight),
-          child: Padding(
-            padding: _hintPadding,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                prompt,
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: _labelColor,
-                    fontSize: _labelFontSize,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ArrowPrompt extends StatelessWidget {
-  const _ArrowPrompt(this.first, this.second);
-
-  final IconData first;
-  final IconData second;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [_HintIcon(first), _HintIcon(second)],
-    );
-  }
-}
-
-class _KeyPrompt extends StatelessWidget {
-  const _KeyPrompt(this.icon, this.name);
-
-  final IconData icon;
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _HintIcon(icon),
-        const SizedBox(width: 4),
-        Text(
-          name,
-          style: const TextStyle(
-            color: _textColor,
-            fontSize: _labelFontSize,
-            fontVariations: [FontVariation.weight(700)],
-          ),
-        ),
-      ],
-    );
-  }
 }
