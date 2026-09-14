@@ -42,7 +42,7 @@ class UNROM extends Mapper {
       return;
     }
 
-    prgBank = value & 0x0f;
+    prgBank = value;
 
     _updatePrgPages();
   }

@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Battery saves, save states and thumbnails now follow a renamed ROM file
+- UNROM (mapper 2) games larger than 256 KiB now reach all of their banks
 - Short Zapper trigger pulls are no longer ignored
 - Two ROMs with the same file name no longer share their saves and save states
 - Cheats and breakpoints now follow a renamed ROM file
