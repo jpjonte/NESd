@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_host_hints.dart';
 import 'package:nesd/ui/emulator/tools/tool_widgets.dart';
 import 'package:nesd/ui/theme/dark.dart';
 
@@ -113,6 +114,7 @@ class CompactToolHost extends HookConsumerWidget {
                       child: _body(active, cartridgeInfo),
                     ),
                   ),
+                  ToolHostHints(focused: focused),
                 ],
               ),
             ),

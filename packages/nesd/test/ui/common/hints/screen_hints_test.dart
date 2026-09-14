@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 
 import '../../robot.dart';
 
@@ -16,8 +18,11 @@ const _rom = {
   ],
 };
 
-Future<Robot> _startGame(WidgetTester tester) async {
-  final r = Robot(tester)..initSettings(_rom);
+Future<Robot> _startGame(
+  WidgetTester tester, {
+  List<String> openTools = const [],
+}) async {
+  final r = Robot(tester)..initSettings({..._rom, 'openTools': openTools});
 
   await r.pumpApp();
   await r.mainMenu.tapFirstRomTile();
@@ -25,6 +30,12 @@ Future<Robot> _startGame(WidgetTester tester) async {
   await r.pumpFrames(const Duration(seconds: 2));
 
   return r;
+}
+
+Future<void> _quitGame(Robot r) async {
+  await r.emulator.tapMenu();
+  await r.menuScreen.tapQuitGame();
+  await r.waitUntil(() => r.container.read(nesStateProvider) == null);
 }
 
 Future<void> _useKeyboard(Robot r) => r.pressKey(LogicalKeyboardKey.shiftLeft);
@@ -102,5 +113,29 @@ void main() {
     expect(find.text('Change'), findsOneWidget);
     expect(find.text('←'), findsOneWidget);
     expect(find.text('→'), findsOneWidget);
+  });
+
+  testWidgets('the tool host names how to switch tools and leave', (
+    tester,
+  ) async {
+    final r = await _startGame(tester, openTools: ['display', 'audio']);
+
+    await _useKeyboard(r);
+
+    expect(find.text('Switch tool'), findsNothing);
+
+    r.sendInputAction(focusTools);
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(r.container.read(toolFocusControllerProvider), isTrue);
+    expect(find.text('Switch tool'), findsOneWidget);
+    expect(find.text('Back to game'), findsOneWidget);
+
+    r.container.read(toolFocusControllerProvider.notifier).exit();
+    await r.pumpFrames(const Duration(milliseconds: 100));
+
+    expect(find.text('Switch tool'), findsNothing);
+
+    await _quitGame(r);
   });
 }
