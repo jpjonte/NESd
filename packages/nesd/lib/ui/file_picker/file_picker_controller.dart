@@ -156,11 +156,29 @@ class FilePickerController {
     await _update(directory);
   }
 
-  Future<void> _listFilesFromDirectory(FilesystemFile directory) async {
-    _listFilesFromFileSystem(filesystem, directory);
+  int _generation = 0;
+
+  bool _publish(int generation, FilePickerState state) {
+    if (generation != _generation) {
+      return false;
+    }
+
+    notifier.update(state);
+
+    return true;
   }
 
-  Future<void> _listFilesFromArchive(FilesystemFile directory) async {
+  Future<void> _listFilesFromDirectory(
+    FilesystemFile directory,
+    int generation,
+  ) async {
+    await _listFilesFromFileSystem(filesystem, directory, generation);
+  }
+
+  Future<void> _listFilesFromArchive(
+    FilesystemFile directory,
+    int generation,
+  ) async {
     final archivePath =
         splitArchivePath(directory.path)?.archivePath ?? directory.path;
 
@@ -169,15 +187,20 @@ class FilePickerController {
       data: await filesystem.read(archivePath),
     );
 
-    _listFilesFromFileSystem(archive, directory);
+    await _listFilesFromFileSystem(archive, directory, generation);
   }
 
   Future<void> _listFilesFromFileSystem(
     Filesystem filesystem,
     FilesystemFile directory,
+    int generation,
   ) async {
     try {
       final allFiles = await filesystem.list(directory.path);
+
+      if (generation != _generation) {
+        return;
+      }
 
       final matches =
           allFiles
@@ -210,7 +233,10 @@ class FilePickerController {
 
       final children = [for (final match in matches) match.file];
 
-      notifier.update(FilePickerData(directory: directory, files: children));
+      _publish(
+        generation,
+        FilePickerData(directory: directory, files: children),
+      );
     } on NesdException catch (e) {
       log.storage.warning(
         'Could not list archive contents',
@@ -218,25 +244,37 @@ class FilePickerController {
         error: e,
       );
 
-      notifier.update(FilePickerError(e.message));
+      _publishError(generation, directory, e);
+    }
+  }
 
-      if (directory.path == settingsController.lastRomPath?.path) {
-        settingsController.lastRomPath = null;
-      }
+  void _publishError(
+    int generation,
+    FilesystemFile directory,
+    NesdException e,
+  ) {
+    if (!_publish(generation, FilePickerError(e.message))) {
+      return;
+    }
+
+    if (directory.path == settingsController.lastRomPath?.path) {
+      settingsController.lastRomPath = null;
     }
   }
 
   Future<void> _update(FilesystemFile directory) async {
+    final generation = ++_generation;
+
     try {
       if (isArchiveFile(directory.path) ||
           splitArchivePath(directory.path) != null) {
-        await _listFilesFromArchive(directory);
+        await _listFilesFromArchive(directory, generation);
 
         return;
       }
 
       if (await filesystem.isDirectory(directory.path)) {
-        await _listFilesFromDirectory(directory);
+        await _listFilesFromDirectory(directory, generation);
 
         return;
       }
@@ -247,16 +285,13 @@ class FilePickerController {
         error: e,
       );
 
-      notifier.update(FilePickerError(e.message));
-
-      if (directory.path == settingsController.lastRomPath?.path) {
-        settingsController.lastRomPath = null;
-      }
+      _publishError(generation, directory, e);
 
       return;
     }
 
-    notifier.update(
+    _publish(
+      generation,
       FilePickerError('${directory.path} is not a valid directory or archive'),
     );
   }

@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The main menu now dims and shows a spinner on the tile while its ROM loads
 - Improved gamepad and keyboard menu navigation
 - Increased process priority on macOS
+- Improved file picker list speed on Android
 - The privacy policy now describes the website's page-view counter
 
 ### Fixed
@@ -30,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Two ROMs with the same file name now both stay in the recent ROM list
 - Quitting NESd no longer loses the SRAM save it was writing
 - The file picker now stays open when a ROM fails to load
+- Fixed the file picker freezing on Android in large directories
 - The web version now has sound on plain HTTP
 - Fixed APU length counter halt and reload write timing
 - Fixed DMC DMA idle cycle reads
