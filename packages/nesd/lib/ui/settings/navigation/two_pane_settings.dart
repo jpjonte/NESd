@@ -181,6 +181,16 @@ class TwoPaneSettings extends HookConsumerWidget {
               return null;
             }
 
+            if (navigation.query.trim().isNotEmpty) {
+              navigation.query = '';
+
+              afterRebuild(
+                () => focusFirstDescendant(categoryFocusNodes[category]!),
+              );
+
+              return null;
+            }
+
             return Actions.maybeInvoke(context, intent);
           },
         ),

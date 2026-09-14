@@ -553,4 +553,23 @@ void main() {
 
     expect(focusInside(tester, resultRows().at(1)), isTrue);
   });
+
+  testWidgets('dismiss on a search result clears the search', (tester) async {
+    final container = await pumpTwoPane(tester);
+
+    await search(tester, 'player 2 start');
+
+    final row = find.byKey(SettingsSearchResults.rowKey(startId));
+
+    focusInto(tester, row);
+    await tester.pumpAndSettle();
+
+    invokeAt(tester, row, const DismissIntent());
+    await tester.pumpAndSettle();
+
+    expect(container.read(settingsNavigationProvider).query, isEmpty);
+    expect(find.byType(SettingsSearchResults), findsNothing);
+    expect(focusInside(tester, navItem(SettingsCategory.general)), isTrue);
+    expect(outerDismissals, 0);
+  });
 }
