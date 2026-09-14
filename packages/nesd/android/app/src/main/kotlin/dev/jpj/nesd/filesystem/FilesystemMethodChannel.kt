@@ -12,6 +12,7 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.StandardMethodCodec
 
 class FilesystemMethodChannel(
   binaryMessenger: BinaryMessenger,
@@ -24,7 +25,10 @@ class FilesystemMethodChannel(
   }
 
   init {
-    MethodChannel(binaryMessenger, CHANNEL).setMethodCallHandler(this)
+    val taskQueue = binaryMessenger.makeBackgroundTaskQueue()
+
+    MethodChannel(binaryMessenger, CHANNEL, StandardMethodCodec.INSTANCE, taskQueue)
+      .setMethodCallHandler(this)
   }
 
   private val filesystem = FilesystemService(contentResolver)
@@ -134,7 +138,9 @@ class FilesystemMethodChannel(
 
     this.directoryResult = result
 
-    mainActivity.startActivityForResult(intent, REQUEST_CODE_CHOOSE_DIRECTORY)
+    mainActivity.runOnUiThread {
+      mainActivity.startActivityForResult(intent, REQUEST_CODE_CHOOSE_DIRECTORY)
+    }
   }
 
   private fun list(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -151,6 +153,73 @@ void main() {
       expect(currentFileNames(), isEmpty);
     },
   );
+
+  group('stale listings', () {
+    const other = FilesystemFile(
+      path: '/other',
+      name: '/other',
+      type: FilesystemFileType.directory,
+    );
+
+    setUp(() {
+      when(
+        () => filesystem.isDirectory('/other'),
+      ).thenAnswer((_) async => true);
+    });
+
+    test(
+      'a listing that finishes after a newer navigation is dropped',
+      () async {
+        final slow = Completer<List<FilesystemFile>>();
+
+        when(() => filesystem.list('/roms')).thenAnswer((_) => slow.future);
+        when(
+          () => filesystem.list('/other'),
+        ).thenAnswer((_) async => [_file('b.nes')]);
+
+        final first = controller.go(_directory);
+
+        await controller.go(other);
+
+        slow.complete([_file('a.nes')]);
+
+        await first;
+
+        final state = container.read(filePickerStateProvider);
+
+        expect((state as FilePickerData).directory.path, '/other');
+        expect(currentFileNames(), ['b.nes']);
+      },
+    );
+
+    test('a listing that finishes after a newer filter is dropped', () async {
+      final answers = <Future<List<FilesystemFile>>>[];
+
+      when(
+        () => filesystem.list('/roms'),
+      ).thenAnswer((_) => answers.removeAt(0));
+
+      answers.add(Future.value([_file('a.nes'), _file('alpha.nes')]));
+
+      await controller.go(_directory);
+
+      final slowReload = Completer<List<FilesystemFile>>();
+
+      answers
+        ..add(slowReload.future)
+        ..add(Future.value([_file('a.nes')]));
+
+      final reload = controller.go(_directory);
+
+      await applyFilter('a');
+
+      slowReload.complete([_file('a.nes'), _file('alpha.nes')]);
+
+      await reload;
+
+      expect(currentFileNames(), ['a.nes']);
+    });
+  });
 
   group('goUp', () {
     const root = FilesystemFile(

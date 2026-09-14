@@ -100,14 +100,13 @@ class FilesystemService(private val contentResolver: ContentResolver) {
         val id = cursor.getString(0)
         val mimeType = cursor.getString(1)
         val childUri = DocumentsContract.buildDocumentUriUsingTree(uri, id)
-        val name = getDisplayName(context, childUri) ?: childUri.toString()
 
         files.add(
           mapOf(
             "path" to childUri.toString(),
             "type" to if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) "directory"
             else "file",
-            "name" to name,
+            "name" to id,
           )
         )
       }
