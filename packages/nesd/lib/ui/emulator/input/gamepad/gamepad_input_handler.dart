@@ -18,7 +18,8 @@ part 'gamepad_input_handler.g.dart';
 typedef GamepadBindings =
     List<({int slot, Set<GamepadInput> state, Binding binding})>;
 
-const _inputOnThreshold = 0.2;
+const gamepadInputOnThreshold = 0.2;
+
 const _inputOffThreshold = 0.1;
 
 const _repeatDelay = Duration(milliseconds: 500);
@@ -138,7 +139,7 @@ class GamepadInputHandler {
 
     final value = event.value.abs();
 
-    if (value > _inputOnThreshold) {
+    if (value > gamepadInputOnThreshold) {
       // handle all actions that are new
       // until we reach an action with lower priority
       _addActions(
@@ -199,7 +200,7 @@ class GamepadInputHandler {
     final initialState = _state[event.gamepadId] ?? {};
     final value = event.value.abs();
 
-    if (value > _inputOnThreshold) {
+    if (value > gamepadInputOnThreshold) {
       _state[event.gamepadId] = {...initialState}
         ..removeWhere((button) => button.id == event.inputId)
         ..add(

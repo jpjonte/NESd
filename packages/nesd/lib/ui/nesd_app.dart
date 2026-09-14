@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_handler.dart';
+import 'package:nesd/ui/emulator/input/input_method.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -47,6 +48,7 @@ class _NesdAppState extends ConsumerState<NesdApp> {
       ..watch(soakRunnerProvider)
       ..watch(actionHandlerProvider)
       ..watch(gamepadInputHandlerProvider)
+      ..watch(recentInputMethodProvider)
       ..watch(toasterProvider)
       ..watch(nesControllerProvider)
       ..watch(romManagerProvider);
