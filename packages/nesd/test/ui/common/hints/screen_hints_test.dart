@@ -87,4 +87,20 @@ void main() {
     expect(find.text('Back'), findsOneWidget);
     expect(find.text('Tab'), findsNWidgets(2));
   });
+
+  testWidgets('settings names the category and adjust keys', (tester) async {
+    final r = Robot(tester)..initSettings(_rom);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButtonAsync();
+    r.settingsScreen.expectSettingsScreenFound();
+
+    await _useKeyboard(r);
+
+    expect(find.text('Switch category'), findsOneWidget);
+    expect(find.text('Adjust'), findsOneWidget);
+    expect(find.text('Change'), findsOneWidget);
+    expect(find.text('←'), findsOneWidget);
+    expect(find.text('→'), findsOneWidget);
+  });
 }
