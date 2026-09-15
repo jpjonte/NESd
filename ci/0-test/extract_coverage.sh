@@ -1,12 +1,18 @@
 #!/usr/bin/env sh
 
+ignore=unused
+
+if lcov --version | grep -qE 'version 2'; then
+  ignore=unused,empty
+fi
+
 lcov -r packages/nesd/coverage/lcov.info \
-  --ignore-errors unused \
+  --ignore-errors "$ignore" \
   'lib/*/*.freezed.dart' \
   'lib/*/*.g.dart' \
   -o packages/nesd/coverage/lcov_cleaned.info
 
-output=$(lcov --summary packages/nesd/coverage/lcov_cleaned.info)
+output=$(lcov --summary --ignore-errors "$ignore" packages/nesd/coverage/lcov_cleaned.info)
 
 lines_coverage=$(echo "$output" | grep "lines......." | awk '{print $2}' | xargs printf "%.0f")
 
