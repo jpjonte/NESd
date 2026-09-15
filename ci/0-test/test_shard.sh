@@ -4,7 +4,7 @@ set -euo pipefail
 index=$1
 count=$2
 
-cd "$(git rev-parse --show-toplevel)/packages/nesd"
+cd "$(dirname "$0")/../../packages/nesd"
 
 files=$(find test -name '*_test.dart' | sort | awk -v n="$count" -v i="$index" 'NR % n == i')
 

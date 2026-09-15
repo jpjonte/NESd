@@ -3,7 +3,7 @@ set -euo pipefail
 
 shards=$1
 
-cd "$(git rev-parse --show-toplevel)"
+cd "$(dirname "$0")/../.."
 
 args=()
 
