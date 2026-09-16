@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.20.0] - 2026-09-16
 
 ### Added
 - Konami VRC2 and VRC4 (mappers 21, 22, 23, 25) support
@@ -17,20 +17,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - All settings can now be changed with the keyboard or a gamepad
 
 ### Changed
-- The main menu now dims and shows a spinner on the tile while its ROM loads
+- The main menu and file picker now show that they're loading a ROM
 - Improved gamepad and keyboard menu navigation
-- Increased process priority on macOS
 - Improved file picker list speed on Android
-- The privacy policy now describes the website's page-view counter
+- Increased process priority on macOS
+- The privacy policy now describes the website's statistics
 
 ### Fixed
-- Battery saves, save states and thumbnails now follow a renamed ROM file
+- Battery saves, save states, and thumbnails are matched to a ROM and not its filename
+- Cheats and breakpoints are matched to a ROM and not its filename
 - UNROM (mapper 2) games larger than 256 KiB now reach all of their banks
 - Short Zapper trigger pulls are no longer ignored
-- Two ROMs with the same file name no longer share their saves and save states
-- Cheats and breakpoints now follow a renamed ROM file
-- Two ROMs with the same file name no longer share their breakpoints
-- Two ROMs with the same file name now both stay in the recent ROM list
+- Two ROMs with the same file name no longer share their saves, save states, and breakpoints
 - Quitting NESd no longer loses the SRAM save it was writing
 - The file picker now stays open when a ROM fails to load
 - Fixed the file picker freezing on Android in large directories
