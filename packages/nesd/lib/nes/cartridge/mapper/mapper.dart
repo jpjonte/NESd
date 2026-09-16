@@ -8,6 +8,7 @@ import 'package:nesd/nes/cartridge/mapper/axrom.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
+import 'package:nesd/nes/cartridge/mapper/color_dreams.dart';
 import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/fme7.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
@@ -79,6 +80,7 @@ abstract class Mapper {
       5 => MMC5(),
       7 => AxROM(),
       9 => MMC2(),
+      11 => ColorDreams(),
       16 => BandaiFCG(subMapperId, prgSaveRamSize),
       19 => Namco163(subMapperId),
       21 || 22 || 23 || 25 => VRC24(mapperId, subMapperId),
