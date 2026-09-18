@@ -142,6 +142,7 @@ roms/
 !roms/test/pal_apu_tests/08.irq_timing.nes
 !roms/test/pal_apu_tests/10.len_halt_timing.nes
 !roms/test/pal_apu_tests/11.len_reload_timing.nes
+!roms/test/AccuracyCoin/AccuracyCoin.nes
 
 packages/nesd/android/play-service-account.json
 packages/nesd/android/app/src/main/play/release-notes/

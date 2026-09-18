@@ -172,7 +172,7 @@ NESd supports 3,498 games.
 
 <!-- test-roms:start -->
 
-121 of 125 test ROMs run in CI and pass.
+121 of 126 test ROMs run in CI and pass.
 
 <details>
 <summary>Test ROM results</summary>
@@ -216,6 +216,7 @@ The ROMs live in `roms/test/`, the tests that run them in `packages/nesd/test/te
 | Mapper | `mmc3_test_2` | blargg | 5 / 6 | Newer build of the `mmc3_test` ROMs, `6-MMC3_alt` targets the alternate IRQ revision |
 | Mapper | `mmc5test_v2` | AWJ | 1 / 1 | Framebuffer golden |
 | Mapper | `m22chrbankingtest` | lidnariq | 1 / 1 | Framebuffer golden, VRC2a CHR bank shift |
+| All | `AccuracyCoin` | 100thCoin | 0 / 1 | 124 of 144 tests pass |
 
 </details>
 
@@ -273,7 +274,7 @@ Thank you to the following projects and people for their amazing work:
 - SourMesen for the excellent [Mesen](https://github.com/SourMesen/Mesen2/) emulator
 - [Modern Vintage Gamer](https://www.youtube.com/@ModernVintageGamer) for the inspiration to write my own emulator
 - NewRisingSun for the [NES 2.0 XML Database](https://forums.nesdev.org/viewtopic.php?t=19940) of known ROMs
-- blargg, bisqwit, kevtris, Quietust, tepples and AWJ for the [test ROMs](#accuracy) that keep the emulation honest
+- blargg, bisqwit, kevtris, Quietust, tepples, AWJ and 100thCoin for the [test ROMs](#accuracy)
 - [Andrea Bizzotto](https://codewithandrea.com/) for his excellent Flutter tips and tricks
 
 ## License
