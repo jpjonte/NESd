@@ -112,12 +112,7 @@ class JSR extends Instruction {
   String get name => 'JSR';
 
   @override
-  void execute(CPU cpu, AddressMode _) {
-    cpu
-      ..read(cpu.PC) // dummy read
-      ..pushStack16(cpu.PC - 1)
-      ..PC = cpu.address;
-  }
+  void execute(CPU cpu, AddressMode _) => cpu.PC = cpu.address;
 
   @override
   InstructionType get type => InstructionType.jump;
@@ -182,7 +177,7 @@ class PLP extends Instruction {
 
   @override
   void execute(CPU cpu, AddressMode _) {
-    cpu.read(cpu.PC); // dummy read
+    cpu.read(0x100 + cpu.SP); // dummy read
 
     final result = cpu.popStack();
 
@@ -222,7 +217,7 @@ class RTI extends Instruction {
   @override
   void execute(CPU cpu, AddressMode _) {
     cpu
-      ..read(cpu.PC) // dummy read
+      ..read(0x100 + cpu.SP) // dummy read
       ..P = cpu.popStack().setBit(5, 1).setBit(4, 0)
       ..PC = cpu.popStack16();
   }
@@ -309,11 +304,12 @@ class RTS extends Instruction {
 
   @override
   void execute(CPU cpu, AddressMode _) {
+    cpu.read(0x100 + cpu.SP); // dummy read
+
     final target = cpu.popStack16();
 
     cpu
-      ..read(cpu.PC) // dummy read
-      ..read(cpu.PC) // dummy read
+      ..read(target) // dummy read
       ..PC = target + 1;
   }
 }
@@ -365,7 +361,7 @@ class PLA extends Instruction {
 
   @override
   void execute(CPU cpu, AddressMode _) {
-    cpu.read(cpu.PC); // dummy read
+    cpu.read(0x100 + cpu.SP); // dummy read
 
     final result = cpu.popStack();
 
@@ -1036,10 +1032,27 @@ class XAA extends Instruction {
     final operand = read(cpu, mode);
 
     cpu
-      ..negative(cpu.A)
+      ..A = (cpu.A | 0xee) & cpu.X & operand
       ..zero(cpu.A)
-      ..A = (cpu.A | 0xee) & cpu.X & operand;
+      ..negative(cpu.A);
   }
+}
+
+void _writeWithHighByte(
+  CPU cpu,
+  AddressMode mode, {
+  required int index,
+  required int value,
+}) {
+  final address = cpu.address & 0xffff;
+  final base = (address - index) & 0xffff;
+  final high = cpu.lastReadWasHalted ? 0xff : (base >> 8) + 1;
+
+  if (wasPageCrossed(base, address)) {
+    cpu.address = (address & 0xff) | ((address >> 8) & value) << 8;
+  }
+
+  mode.write(cpu, value & high);
 }
 
 class AHX extends Instruction {
@@ -1048,7 +1061,7 @@ class AHX extends Instruction {
 
   @override
   void execute(CPU cpu, AddressMode mode) =>
-      write(cpu, mode, cpu.A & cpu.X & ((cpu.address >> 8) + 1));
+      _writeWithHighByte(cpu, mode, index: cpu.Y, value: cpu.A & cpu.X);
 
   @override
   bool get isWrite => true;
@@ -1062,7 +1075,7 @@ class TAS extends Instruction {
   void execute(CPU cpu, AddressMode mode) {
     cpu.SP = cpu.A & cpu.X;
 
-    write(cpu, mode, cpu.SP & ((cpu.address >> 8) + 1));
+    _writeWithHighByte(cpu, mode, index: cpu.Y, value: cpu.SP);
   }
 
   @override
@@ -1074,22 +1087,8 @@ class SHY extends Instruction {
   String get name => 'SHY';
 
   @override
-  void execute(CPU cpu, AddressMode mode) {
-    final address = cpu.address;
-    final baseAddress = cpu.address - cpu.X;
-
-    final addressLow = address & 0xff;
-
-    var addressHigh = address >> 8;
-
-    if (wasPageCrossed(baseAddress, address)) {
-      addressHigh &= cpu.Y;
-    }
-
-    cpu.address = (addressHigh << 8) | addressLow;
-
-    write(cpu, mode, cpu.Y & ((cpu.address >> 8) + 1));
-  }
+  void execute(CPU cpu, AddressMode mode) =>
+      _writeWithHighByte(cpu, mode, index: cpu.X, value: cpu.Y);
 
   @override
   bool get isWrite => true;
@@ -1100,22 +1099,8 @@ class SHX extends Instruction {
   String get name => 'SHX';
 
   @override
-  void execute(CPU cpu, AddressMode mode) {
-    final address = cpu.address;
-    final baseAddress = cpu.address - cpu.Y;
-
-    final addressLow = address & 0xff;
-
-    var addressHigh = address >> 8;
-
-    if (wasPageCrossed(baseAddress, address)) {
-      addressHigh &= cpu.X;
-    }
-
-    cpu.address = (addressHigh << 8) | addressLow;
-
-    write(cpu, mode, cpu.X & ((cpu.address >> 8) + 1));
-  }
+  void execute(CPU cpu, AddressMode mode) =>
+      _writeWithHighByte(cpu, mode, index: cpu.Y, value: cpu.X);
 
   @override
   bool get isWrite => true;

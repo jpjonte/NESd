@@ -123,6 +123,18 @@ class Absolute extends AddressMode {
   int get operandCount => 2;
 }
 
+class AbsoluteSubroutine extends Absolute {
+  @override
+  void execute(CPU cpu, {required bool isWrite}) {
+    final low = cpu.read(cpu.PC++);
+
+    cpu
+      ..read(0x100 + cpu.SP) // dummy read
+      ..pushStack16(cpu.PC)
+      ..address = cpu.read(cpu.PC) << 8 | low;
+  }
+}
+
 class AbsoluteX extends AddressMode {
   @override
   void execute(CPU cpu, {required bool isWrite}) {
@@ -214,6 +226,7 @@ final zeroPageX = ZeroPageX();
 final zeroPageY = ZeroPageY();
 final relative = Relative();
 final absolute = Absolute();
+final absoluteSubroutine = AbsoluteSubroutine();
 final absoluteX = AbsoluteX();
 final absoluteY = AbsoluteY();
 final indirect = Indirect();

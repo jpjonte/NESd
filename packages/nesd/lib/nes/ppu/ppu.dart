@@ -911,6 +911,15 @@ class PPU {
   }
 
   int _readOAMDATA() {
+    final busy =
+        (_showBackground || _showSprites) &&
+        scanline < 240 &&
+        (cycle >= 1 && cycle <= 64 || cycle >= 257 && cycle <= 320);
+
+    if (busy) {
+      return _readWithDecay(0xff, 0xff);
+    }
+
     final value = oam[OAMADDR];
 
     final driven = !mapperNeedsExtendedPpuRegisters && OAMADDR & 0x3 == 2
@@ -932,6 +941,10 @@ class PPU {
       // nametable byte that sits underneath the palette on the PPU bus.
       value = readPpuMemory(address, updateBusAddress: !disableSideEffects);
 
+      if (PPUMASK_Gr == 1) {
+        value &= 0x30;
+      }
+
       if (!disableSideEffects) {
         PPUDATA = _readPpuData(address & 0x2fff);
       }
@@ -940,9 +953,7 @@ class PPU {
     }
 
     if (!disableSideEffects) {
-      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
-
-      _updateBusAddress(v & 0x3fff);
+      _incrementAfterPpuData();
     }
 
     if (disableSideEffects) {
@@ -993,10 +1004,9 @@ class PPU {
   }
 
   void _writeOAMDATA(int value) {
-    if ((_showBackground || _showSprites) &&
-        scanline < 240 &&
-        cycle >= 1 &&
-        cycle <= 256) {
+    if (_isRenderingLine) {
+      OAMADDR = (OAMADDR + 4) & 0xff;
+
       return;
     }
 
@@ -1040,7 +1050,20 @@ class PPU {
   void _writePPUDATA(int value) {
     writePpuMemory(v & 0x3fff, value);
 
-    v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
+    _incrementAfterPpuData();
+  }
+
+  bool get _isRenderingLine =>
+      (_showBackground || _showSprites) &&
+      (scanline < 240 || scanline == _preRenderScanline);
+
+  void _incrementAfterPpuData() {
+    if (_isRenderingLine) {
+      _incrementX();
+      _incrementY();
+    } else {
+      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
+    }
 
     _updateBusAddress(v & 0x3fff);
   }

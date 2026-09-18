@@ -11,6 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The web version can be installed to the home screen with offline support
 - Screenshot action (F12 by default) that saves the current frame 
 
+### Fixed
+- Fixed minor bugs in multiple CPU instructions
+- Fixed an issue with the open bus implementation
+- More accurate APU frame interrupt flag
+- Fixed an inaccuracy in the controller input implementation
+- More accurate PPU implementation
+
 ## [0.20.0] - 2026-09-16
 
 ### Added

@@ -2,13 +2,18 @@ import 'package:binarize/binarize.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nesd/nes/apu/frame_counter/frame_counter_state.dart';
 
-FrameCounterState buildState({int counter = 20781, int resetDelay = 0}) {
+FrameCounterState buildState({
+  int counter = 20781,
+  int resetDelay = 0,
+  bool interruptClearPending = false,
+}) {
   return FrameCounterState(
     counter: counter,
     resetDelay: resetDelay,
     fiveStep: true,
     interrupt: false,
     interruptInhibit: true,
+    interruptClearPending: interruptClearPending,
   );
 }
 
@@ -18,17 +23,22 @@ void expectStatesEqual(FrameCounterState actual, FrameCounterState expected) {
   expect(actual.fiveStep, expected.fiveStep);
   expect(actual.interrupt, expected.interrupt);
   expect(actual.interruptInhibit, expected.interruptInhibit);
+  expect(actual.interruptClearPending, expected.interruptClearPending);
 }
 
 void main() {
-  test('serialize writes version 2 and round-trips sequencer positions', () {
-    final original = buildState(counter: 37281, resetDelay: 3);
+  test('serialize writes version 3 and round-trips sequencer positions', () {
+    final original = buildState(
+      counter: 37281,
+      resetDelay: 3,
+      interruptClearPending: true,
+    );
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 2, reason: 'FrameCounterState version');
+    expect(bytes[0], 3, reason: 'FrameCounterState version');
 
     final decoded = FrameCounterState.deserialize(Payload.read(bytes));
 
@@ -65,5 +75,21 @@ void main() {
     );
 
     expectStatesEqual(decoded, buildState(counter: 29828));
+  });
+
+  test('still reads version 2 payloads without a pending interrupt clear', () {
+    final writer = Payload.write()
+      ..set(uint8, 2)
+      ..set(uint16, 37281)
+      ..set(uint8, 3)
+      ..set(boolean, true)
+      ..set(boolean, false)
+      ..set(boolean, true);
+
+    final decoded = FrameCounterState.deserialize(
+      Payload.read(binarize(writer)),
+    );
+
+    expectStatesEqual(decoded, buildState(counter: 37281, resetDelay: 3));
   });
 }

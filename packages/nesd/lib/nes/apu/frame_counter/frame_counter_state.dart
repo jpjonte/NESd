@@ -8,6 +8,7 @@ class FrameCounterState {
     required this.fiveStep,
     required this.interrupt,
     required this.interruptInhibit,
+    this.interruptClearPending = false,
   });
 
   factory FrameCounterState.deserialize(PayloadReader reader) {
@@ -17,6 +18,7 @@ class FrameCounterState {
       0 => FrameCounterState._version0(reader),
       1 => FrameCounterState._version1(reader),
       2 => FrameCounterState._version2(reader),
+      3 => FrameCounterState._version3(reader),
       _ => throw InvalidSerializationVersion('FrameCounterState', version),
     };
   }
@@ -51,6 +53,17 @@ class FrameCounterState {
     );
   }
 
+  factory FrameCounterState._version3(PayloadReader reader) {
+    return FrameCounterState(
+      counter: reader.get(uint16),
+      resetDelay: reader.get(uint8),
+      fiveStep: reader.get(boolean),
+      interrupt: reader.get(boolean),
+      interruptInhibit: reader.get(boolean),
+      interruptClearPending: reader.get(boolean),
+    );
+  }
+
   final int counter;
   final int resetDelay;
 
@@ -58,14 +71,16 @@ class FrameCounterState {
 
   final bool interrupt;
   final bool interruptInhibit;
+  final bool interruptClearPending;
 
   void serialize(PayloadWriter writer) {
     writer
-      ..set(uint8, 2) // version
+      ..set(uint8, 3) // version
       ..set(uint16, counter)
       ..set(uint8, resetDelay)
       ..set(boolean, fiveStep)
       ..set(boolean, interrupt)
-      ..set(boolean, interruptInhibit);
+      ..set(boolean, interruptInhibit)
+      ..set(boolean, interruptClearPending);
   }
 }
