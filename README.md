@@ -133,7 +133,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 
 <!-- game-counts:start -->
 
-NESd supports 3,447 games.
+NESd supports 3,498 games.
 
 <details>
 <summary>Supported mappers</summary>
@@ -146,6 +146,7 @@ NESd supports 3,447 games.
 - 5: MMC5 (31 games)
 - 7: AxROM (59 games)
 - 9: MMC2 (9 games)
+- 11: Color Dreams (51 games)
 - 16: Bandai FCG (16 games)
 - 19: Namco 163 (31 games)
 - 21: Konami VRC4 (3 games)
