@@ -2,11 +2,13 @@
     "name": "NESd",
     "short_name": "NESd",
     "start_url": ".",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#1a1a2a",
-    "theme_color": "#1a1a2a",
+    "background_color": "#000000",
+    "theme_color": "#000000",
     "description": "A cycle-accurate NES emulator.",
     "orientation": "landscape",
+    "categories": ["games", "entertainment"],
     "prefer_related_applications": false,
     "icons": [
         {

@@ -40,7 +40,8 @@ Grab the file for your platform from the [latest release](https://github.com/jpj
 
 ### Web
 
-Play at [https://nesd.jpj.dev/play/](https://nesd.jpj.dev/play/). A self-hostable Docker image is
+Play at [https://nesd.jpj.dev/play/](https://nesd.jpj.dev/play/). It can be installed to the
+home screen and works offline after the first visit. A self-hostable Docker image is
 also available (see [Self-hosting](#self-hosting) below).
 
 ### Android
@@ -253,11 +254,11 @@ Any static file server works.
 
 - Download the web build (`nesd.<version>.web.zip`) from the [latest release](https://github.com/jpjonte/NESd/releases/latest)
 - or `nesd.nightly.web.zip` from the [nightly release](https://github.com/jpjonte/NESd/releases/tag/nightly)
-- or build it from source (`flutter build web --wasm --no-web-resources-cdn` in `packages/nesd`).
+- or build it from source (`flutter build web --wasm --no-web-resources-cdn` followed by `dart run tool/generate_service_worker.dart` in `packages/nesd`).
 
 Serve the directory as-is.  
 `.mjs` files must be served as JavaScript (`Content-Type: application/javascript`), otherwise browsers reject the WebAssembly runtime's module, and you get a blank page.  
-Serve `index.html` and `flutter_bootstrap.js` uncached.  
+Serve `index.html`, `flutter_bootstrap.js` and `sw.js` uncached.  
 
 ## Contributing
 
