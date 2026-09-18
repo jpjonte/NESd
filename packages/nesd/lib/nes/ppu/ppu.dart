@@ -250,7 +250,6 @@ class PPU {
   // Cached pattern table base for background when using 8x8 sprites.
   int _bgPatternBase = 0;
 
-  int oamAddress = 0;
   int oamBuffer = 0;
 
   /// [oamBuffer] as it was one dot earlier, for $2004 reads.
@@ -334,13 +333,14 @@ class PPU {
     patternTableHigh2Latch: patternTableHigh2Latch,
     attributeTableLatch: attributeTableLatch,
     attribute: attribute,
-    oamAddress: oamAddress,
     oamBuffer: oamBuffer,
     spriteEvalPhase: spriteEvalPhase,
     spriteCount: spriteCount,
     secondarySpriteCount: secondarySpriteCount,
     sprite0OnNextLine: sprite0OnNextLine,
     sprite0OnCurrentLine: sprite0OnCurrentLine,
+    oam2Address: _oam2Address,
+    oam2Frozen: _oam2Frozen,
     decay: decay,
     decayRefreshedAt: decayRefreshedAt,
     spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
@@ -396,10 +396,12 @@ class PPU {
     patternTableLow2Latch = state.patternTableLow2Latch;
     patternTableHigh2Latch = state.patternTableHigh2Latch;
 
-    oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
 
     _resetSpriteLatches();
+
+    _oam2Address = state.oam2Address;
+    _oam2Frozen = state.oam2Frozen;
     spriteEvalPhase = state.spriteEvalPhase;
     spriteCount = state.spriteCount;
     secondarySpriteCount = state.secondarySpriteCount;
@@ -482,7 +484,6 @@ class PPU {
     _bgWindow.fillRange(0, _bgWindow.length, 0);
     _bgWindowPos = 0;
 
-    oamAddress = 0;
     oamBuffer = 0;
 
     _resetSpriteLatches();
