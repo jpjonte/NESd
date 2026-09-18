@@ -4,7 +4,7 @@ import 'accuracy_coin_robot.dart';
 
 const _base = '../../roms/test';
 
-const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 20};
+const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 13};
 
 final _rom = _knownFailures.keys.single;
 
@@ -14,21 +14,14 @@ const _failingTests = <String, int>{
   'APU Registers and DMA tests / Implicit DMA Abort': 2,
   'APU Tests / APU Register Activation': 4,
   'Sprite Evaluation / \$2002 flag timing': 1,
-  'Sprite Evaluation / Suddenly Resize Sprite': 4,
-  'Sprite Evaluation / Arbitrary Sprite zero': 2,
-  'Sprite Evaluation / Misaligned OAM behavior': 1,
   'Sprite Evaluation / OAM Corruption': 2,
-  'PPU Misc. / Address \$2004 behavior': 8,
-  'PPU Misc. / \$2004 Stress Test': 2,
   'PPU Misc. / \$2007 Stress Test': 2,
   'Advanced Background Evaluation / Stale BG Shift Registers': 3,
   'Advanced Background Evaluation / BG Serial In': 2,
   'Advanced Background Evaluation / ALE + Read': 2,
   'Advanced Background Evaluation / Hybrid Addresses': 2,
   'Advanced Sprite Evaluation / Sprites On Scanline 0': 2,
-  'Advanced Sprite Evaluation / Stale Sprite Shift Regs': 3,
-  'Advanced Sprite Evaluation / Frozen OAM2 Increment': 2,
-  'Advanced Sprite Evaluation / Misaligned OAM2 Address': 3,
+  'Advanced Sprite Evaluation / Stale Sprite Shift Regs': 2,
 };
 
 void main() {

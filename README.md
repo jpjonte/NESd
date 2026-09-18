@@ -216,7 +216,7 @@ The ROMs live in `roms/test/`, the tests that run them in `packages/nesd/test/te
 | Mapper | `mmc3_test_2` | blargg | 5 / 6 | Newer build of the `mmc3_test` ROMs, `6-MMC3_alt` targets the alternate IRQ revision |
 | Mapper | `mmc5test_v2` | AWJ | 1 / 1 | Framebuffer golden |
 | Mapper | `m22chrbankingtest` | lidnariq | 1 / 1 | Framebuffer golden, VRC2a CHR bank shift |
-| All | `AccuracyCoin` | 100thCoin | 0 / 1 | 124 of 144 tests pass |
+| All | `AccuracyCoin` | 100thCoin | 131 / 144 | |
 
 </details>
 

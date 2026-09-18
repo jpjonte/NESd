@@ -102,6 +102,21 @@ class AccuracyCoinRobot {
     }
   }
 
+  /// Runs a single test and returns the console it ran on, so the RAM the
+  /// test left behind can be inspected.
+  RomRobot runOnly(String id) {
+    final robot = RomRobot(path);
+
+    final skipped = {
+      for (final test in scoredTests)
+        if (test.id != id) test,
+    };
+
+    _runOnce(robot, skipped, 1800);
+
+    return robot;
+  }
+
   AccuracyCoinTest? _runOnce(
     RomRobot robot,
     Set<AccuracyCoinTest> skipped,
