@@ -252,12 +252,6 @@ class PPU {
 
   int oamBuffer = 0;
 
-  /// [oamBuffer] as it was one dot earlier, for $2004 reads.
-  int _oamBufferBefore = 0;
-
-  /// What secondary OAM held before dot 1 cleared it, for $2004 reads.
-  int _secondaryOamStart = 0xff;
-
   /// Secondary OAM address. It stops advancing once it has wrapped, until
   /// dot 63, 255 or 339 of a rendered line releases it.
   int _oam2Address = 0;
@@ -308,8 +302,6 @@ class PPU {
   final Uint8List _spriteLine = Uint8List(256);
 
   void _resetSpriteLatches() {
-    _oamBufferBefore = oamBuffer;
-    _secondaryOamStart = 0xff;
     _oam2Address = 0;
     _oam2Frozen = false;
     _fetchedSpriteY = 0xff;
@@ -889,6 +881,11 @@ class PPU {
       readPpuMemory(_nametableAddress());
     }
 
+    if (cycle == 0) {
+      PPUSTATUS_O = 0;
+      PPUSTATUS_S = 0;
+    }
+
     // Clear status flags at cycle 1
     if (cycle == 1) {
       PPUSTATUS_O = 0;
@@ -988,19 +985,14 @@ class PPU {
 
   /// While rendering, $2004 shows whatever sprite evaluation has on its bus.
   int get _oamBusDuringRendering {
-    // The CPU read ends a dot before the last one the PPU has already run
-    final dot = cycle - 2;
-
-    if (dot == 0) {
-      return _secondaryOamStart;
-    }
+    final dot = cycle - 1;
 
     if (dot >= 1 && dot <= 64) {
       return 0xff;
     }
 
     if (dot >= 65 && dot <= 256) {
-      return dot == 256 ? oamBuffer : _oamBufferBefore;
+      return oamBuffer;
     }
 
     if (dot >= 257 && dot <= 320) {
@@ -1240,7 +1232,7 @@ class PPU {
     for (var i = 0; i < 8; i++) {
       final from = i + slide;
 
-      _bgWindow[i] = from < 16 ? _bgWindow[from] : 0;
+      _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
     }
 
     final low = patternTableLowLatch;
@@ -1283,7 +1275,7 @@ class PPU {
     for (var i = 0; i < 16; i++) {
       final from = i + _bgWindowPos;
 
-      window[i] = from < 16 ? _bgWindow[from] : 0;
+      window[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
     }
 
     return window;
@@ -1382,11 +1374,10 @@ class PPU {
 
     final slot = _bgWindowPos + x;
 
-    // Beyond the window the hardware registers have shifted in zeros;
-    // only reachable when rendering was disabled and re-enabled
-    // between reload dots.
-    return slot < 16 ? _bgWindow[slot] : 0;
+    return slot < 16 ? _bgWindow[slot] : _bgSerialIn;
   }
+
+  int get _bgSerialIn => bgFourBpp ? 0 : (attributeTableLatch & 0x3) << 2 | 2;
 
   @pragma('vm:prefer-inline')
   int _getSpritePixelColor(int backgroundColor) {
@@ -1607,10 +1598,6 @@ class PPU {
   void _clearSecondaryOam() {
     // Cycles 1-64: Clear secondary OAM on odd cycles
     if (cycle.isOdd) {
-      if (cycle == 1) {
-        _secondaryOamStart = secondaryOam[_oam2Address];
-      }
-
       secondaryOam[_oam2Address] = 0xff;
 
       _advanceOam2();
@@ -1629,8 +1616,6 @@ class PPU {
       spriteEvalPhase = _spriteEvalY;
       _resetSpriteEvaluationRange();
     }
-
-    _oamBufferBefore = oamBuffer;
 
     if (cycle.isOdd) {
       oamBuffer = _readOam(OAMADDR);
