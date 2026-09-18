@@ -129,6 +129,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(swapDutyCyclesSubscription.close);
 
+  final oamCorruptionSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.oamCorruption),
+    (_, enabled) => controller.nes?.oamCorruption = enabled,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(oamCorruptionSubscription.close);
+
   final mixerSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.mixer),
     (_, mixer) => controller.nes?.mixer = mixer,
@@ -584,6 +592,7 @@ class NesController {
         ..fastForwardSpeed = settingsController.fastForwardSpeed
         ..turboSpeed = settingsController.turboSpeed
         ..swapDutyCycles = settingsController.swapDutyCycles
+        ..oamCorruption = settingsController.oamCorruption
         ..mixer = settingsController.mixer
         ..systemPalette = _systemPalette;
 

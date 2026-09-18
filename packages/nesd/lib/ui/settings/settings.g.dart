@@ -10,6 +10,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   volume: (json['volume'] as num?)?.toDouble() ?? 1.0,
   lowPassFilter: json['lowPassFilter'] as bool? ?? false,
   swapDutyCycles: json['swapDutyCycles'] as bool? ?? false,
+  oamCorruption: json['oamCorruption'] as bool? ?? true,
   mixer: json['mixer'] == null
       ? const MixerSettings()
       : _mixerFromJson(json['mixer']),
@@ -115,15 +116,13 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       ? const NtscPaletteSettings()
       : _ntscPaletteFromJson(json['ntscPalette']),
   userPalette: json['userPalette'] as String? ?? null,
-  screenshotMode:
-      $enumDecodeNullable(_$ScreenshotModeEnumMap, json['screenshotMode']) ??
-      ScreenshotMode.raw,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'volume': instance.volume,
   'lowPassFilter': instance.lowPassFilter,
   'swapDutyCycles': instance.swapDutyCycles,
+  'oamCorruption': instance.oamCorruption,
   'mixer': _mixerToJson(instance.mixer),
   'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
   'turboSpeed': _$TurboSpeedEnumMap[instance.turboSpeed]!,
@@ -163,7 +162,6 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'paletteId': _$NesPaletteIdEnumMap[instance.paletteId]!,
   'ntscPalette': _ntscPaletteToJson(instance.ntscPalette),
   'userPalette': instance.userPalette,
-  'screenshotMode': _$ScreenshotModeEnumMap[instance.screenshotMode]!,
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -235,11 +233,6 @@ const _$NesPaletteIdEnumMap = {
   NesPaletteId.user: 'user',
 };
 
-const _$ScreenshotModeEnumMap = {
-  ScreenshotMode.raw: 'raw',
-  ScreenshotMode.displayed: 'displayed',
-};
-
 const _$EmulatorToolEnumMap = {
   EmulatorTool.display: 'display',
   EmulatorTool.audio: 'audio',
@@ -290,7 +283,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'a05f3a196ba2cd7466f15669bc75c73679be141a';
+    r'1e72c8cbb4d861a46938591ece7c8c6a1a89366b';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

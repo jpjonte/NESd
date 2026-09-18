@@ -201,6 +201,10 @@ class RemoteNes {
       _send(SetSwapDutyCyclesCommand(enabled: enabled));
 
   // ignore: avoid_setters_without_getters
+  set oamCorruption(bool enabled) =>
+      _send(SetOamCorruptionCommand(enabled: enabled));
+
+  // ignore: avoid_setters_without_getters
   set mixer(MixerSettings mixer) => _send(SetMixerCommand(mixer: mixer));
 
   // ignore: avoid_setters_without_getters

@@ -139,6 +139,7 @@ sealed class Settings with _$Settings {
     @Default(1.0) double volume,
     @Default(false) bool lowPassFilter,
     @Default(false) bool swapDutyCycles,
+    @Default(true) bool oamCorruption,
     @JsonKey(toJson: _mixerToJson, fromJson: _mixerFromJson)
     @Default(MixerSettings())
     MixerSettings mixer,
@@ -243,6 +244,12 @@ class SettingsController extends _$SettingsController {
 
   set swapDutyCycles(bool swapDutyCycles) {
     _update(state.copyWith(swapDutyCycles: swapDutyCycles));
+  }
+
+  bool get oamCorruption => state.oamCorruption;
+
+  set oamCorruption(bool oamCorruption) {
+    _update(state.copyWith(oamCorruption: oamCorruption));
   }
 
   MixerSettings get mixer => state.mixer;

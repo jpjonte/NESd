@@ -752,6 +752,19 @@ void main() {
     expect(nes.apu.pulse2.swapDutyCycles, isTrue);
   });
 
+  test('SetOamCorruptionCommand reaches the PPU', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.ppu.oamCorruption, isTrue);
+
+    await worker.handleCommand(const SetOamCorruptionCommand(enabled: false));
+
+    expect(nes.ppu.oamCorruption, isFalse);
+  });
+
   test('SetMixerCommand reaches the APU', () async {
     await worker.handleCommand(_loadRomCommand());
     await waitFor<RomLoadedEvent>();

@@ -263,6 +263,20 @@ class PPU {
   int _oam2Address = 0;
   bool _oam2Frozen = false;
 
+  bool get oamCorruption => _oamCorruption;
+
+  set oamCorruption(bool value) {
+    _oamCorruption = value;
+
+    if (!value) {
+      oamCorruptionSeed = 0;
+    }
+  }
+
+  bool _oamCorruption = true;
+
+  int oamCorruptionSeed = 0;
+
   int _fetchedSpriteY = 0xff;
   int _fetchedSpriteTile = 0xff;
 
@@ -301,6 +315,7 @@ class PPU {
     _fetchedSpriteY = 0xff;
     _fetchedSpriteTile = 0xff;
     _maskDelay = 0;
+    oamCorruptionSeed = 0;
   }
 
   PPUState get state => PPUState(
@@ -341,6 +356,7 @@ class PPU {
     sprite0OnCurrentLine: sprite0OnCurrentLine,
     oam2Address: _oam2Address,
     oam2Frozen: _oam2Frozen,
+    oamCorruptionSeed: oamCorruptionSeed,
     decay: decay,
     decayRefreshedAt: decayRefreshedAt,
     spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
@@ -402,6 +418,7 @@ class PPU {
 
     _oam2Address = state.oam2Address;
     _oam2Frozen = state.oam2Frozen;
+    oamCorruptionSeed = oamCorruption ? state.oamCorruptionSeed : 0;
     spriteEvalPhase = state.spriteEvalPhase;
     spriteCount = state.spriteCount;
     secondarySpriteCount = state.secondarySpriteCount;
@@ -767,7 +784,7 @@ class PPU {
 
   void step() {
     if (_maskDelay != 0 && --_maskDelay == 0) {
-      _updateMaskFlags();
+      _applyMaskWrite();
     }
 
     _scanlinePhase();
@@ -780,6 +797,10 @@ class PPU {
     final renderingActive = _showBackground || _showSprites;
 
     if (renderingActive) {
+      if (oamCorruptionSeed != 0) {
+        _corruptOam();
+      }
+
       if (cycle == 328) {
         sprite0OnCurrentLine = sprite0OnNextLine;
       }
@@ -826,6 +847,10 @@ class PPU {
     final renderingActive = _showBackground || _showSprites;
 
     if (renderingActive) {
+      if (oamCorruptionSeed != 0) {
+        _corruptOam();
+      }
+
       // Fetch cycles (no pixel rendering on pre-render line)
       if (cycle >= 1 && cycle <= 256) {
         _shiftRegisters();
@@ -1054,6 +1079,39 @@ class PPU {
     _maskDelay = _maskLatency;
 
     _rebuildPaletteLut();
+  }
+
+  void _applyMaskWrite() {
+    final wasRendering = _showBackground || _showSprites;
+
+    _updateMaskFlags();
+
+    if (wasRendering && oamCorruption && !_showBackground && !_showSprites) {
+      _seedOamCorruption();
+    }
+  }
+
+  void _seedOamCorruption() {
+    if (scanline >= 240 && scanline != _preRenderScanline) {
+      return;
+    }
+
+    final seed = cycle > 65 && cycle <= 257
+        ? (_oam2Address + 3) & 0x1c
+        : _oam2Address;
+
+    if (seed != 0) {
+      oamCorruptionSeed = seed;
+    }
+  }
+
+  void _corruptOam() {
+    final seed = oamCorruptionSeed;
+
+    oamCorruptionSeed = 0;
+
+    oam.setRange(seed << 3, (seed << 3) + 8, oam);
+    secondaryOam[seed] = secondaryOam[0];
   }
 
   void _updateMaskFlags() {

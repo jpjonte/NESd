@@ -23,6 +23,7 @@ import 'package:nesd/ui/settings/general/auto_load_switch.dart';
 import 'package:nesd/ui/settings/general/auto_save_interval.dart';
 import 'package:nesd/ui/settings/general/auto_save_switch.dart';
 import 'package:nesd/ui/settings/general/fast_forward_speed_selector.dart';
+import 'package:nesd/ui/settings/general/oam_corruption_switch.dart';
 import 'package:nesd/ui/settings/general/region_selector.dart';
 import 'package:nesd/ui/settings/general/rewind_switch.dart';
 import 'package:nesd/ui/settings/general/theme_mode_selector.dart';
@@ -212,6 +213,11 @@ final _general = [
       SettingsEntry(
         title: 'Fast Forward Speed',
         builder: (_, _) => const FastForwardSpeedSelector(),
+      ),
+      SettingsEntry(
+        title: 'OAM Corruption',
+        subtitle: OamCorruptionSwitch.subtitle,
+        builder: (_, _) => const OamCorruptionSwitch(),
       ),
     ],
   ),

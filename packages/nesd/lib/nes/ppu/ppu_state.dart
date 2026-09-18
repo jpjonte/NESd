@@ -55,6 +55,7 @@ class PPUState {
     this.spriteEvalPhase = 0,
     this.oam2Address = 0,
     this.oam2Frozen = false,
+    this.oamCorruptionSeed = 0,
   }) : decayRefreshedAt = decayRefreshedAt ?? const [0, 0, 0, 0, 0, 0, 0, 0];
 
   factory PPUState.deserialize(PayloadReader reader) {
@@ -68,7 +69,8 @@ class PPUState {
       4 => PPUState.version4(reader),
       5 => PPUState.version5(reader),
       6 => PPUState.version6(reader),
-      7 => PPUState.version7(reader),
+      7 => PPUState._version7(reader, hasOamCorruptionSeed: false),
+      8 => PPUState._version7(reader, hasOamCorruptionSeed: true),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -340,7 +342,10 @@ class PPUState {
     );
   }
 
-  factory PPUState.version7(PayloadReader reader) {
+  factory PPUState._version7(
+    PayloadReader reader, {
+    required bool hasOamCorruptionSeed,
+  }) {
     return PPUState(
       PPUCTRL: reader.get(uint8),
       PPUMASK: reader.get(uint8),
@@ -384,6 +389,7 @@ class PPUState {
       spriteOutputs: SpriteOutputState.deserializeList(reader),
       decay: reader.get(uint8),
       decayRefreshedAt: reader.get(uint32List()),
+      oamCorruptionSeed: hasOamCorruptionSeed ? reader.get(uint8) : 0,
     );
   }
 
@@ -452,6 +458,8 @@ class PPUState {
   final int oam2Address;
   final bool oam2Frozen;
 
+  final int oamCorruptionSeed;
+
   final bool sprite0OnNextLine;
   final bool sprite0OnCurrentLine;
 
@@ -467,7 +475,7 @@ class PPUState {
     final frame = includeFrame ? frameBuffer : null;
 
     writer
-      ..set(uint8, 7) // version
+      ..set(uint8, 8) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -514,6 +522,7 @@ class PPUState {
 
     writer
       ..set(uint8, decay)
-      ..set(uint32List(), Uint32List.fromList(decayRefreshedAt));
+      ..set(uint32List(), Uint32List.fromList(decayRefreshedAt))
+      ..set(uint8, oamCorruptionSeed);
   }
 }

@@ -197,6 +197,8 @@ class NesWorker {
         _audioOutput?.lowPassFilter = command.enabled;
       case SetSwapDutyCyclesCommand():
         _nes?.apu.swapDutyCycles = command.enabled;
+      case SetOamCorruptionCommand():
+        _nes?.ppu.oamCorruption = command.enabled;
       case SetMixerCommand():
         _nes?.apu.mixer = command.mixer;
       case SetPaletteCommand():

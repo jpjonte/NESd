@@ -23,6 +23,7 @@ PPUState buildState({
   int spriteEvalPhase = 3,
   int oam2Address = 0,
   bool oam2Frozen = false,
+  int oamCorruptionSeed = 0,
 }) {
   return PPUState(
     decay: decay,
@@ -70,6 +71,7 @@ PPUState buildState({
     patternTableHigh2Latch: 0x0f,
     oam2Address: oam2Address,
     oam2Frozen: oam2Frozen,
+    oamCorruptionSeed: oamCorruptionSeed,
   );
 }
 
@@ -172,6 +174,7 @@ void expectStatesEqual(PPUState actual, PPUState expected) {
   expect(actual.sprite0OnCurrentLine, expected.sprite0OnCurrentLine);
   expect(actual.oam2Address, expected.oam2Address);
   expect(actual.oam2Frozen, expected.oam2Frozen);
+  expect(actual.oamCorruptionSeed, expected.oamCorruptionSeed);
   expect(actual.spriteOutputs.length, expected.spriteOutputs.length);
 
   for (var i = 0; i < expected.spriteOutputs.length; i++) {
@@ -390,16 +393,35 @@ void writeVersion6(PayloadWriter writer, PPUState state) {
 }
 
 void main() {
-  test('serialize writes version 7 and round-trips adversarial values', () {
-    final original = buildState(oam2Address: 0x1b, oam2Frozen: true);
+  test('serialize writes version 8 and round-trips adversarial values', () {
+    final original = buildState(
+      oam2Address: 0x1b,
+      oam2Frozen: true,
+      oamCorruptionSeed: 0x1c,
+    );
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 7, reason: 'PPUState version');
+    expect(bytes[0], 8, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
+
+    expectStatesEqual(decoded, original);
+  });
+
+  test('still reads version 7 payloads, which end before the OAM seed', () {
+    final original = buildState(oam2Address: 0x1b, oam2Frozen: true);
+
+    final writer = Payload.write();
+    original.serialize(writer);
+
+    final bytes = binarize(writer);
+    final legacy = Uint8List.fromList(bytes.sublist(0, bytes.length - 1))
+      ..[0] = 7;
+
+    final decoded = PPUState.deserialize(Payload.read(legacy));
 
     expectStatesEqual(decoded, original);
   });

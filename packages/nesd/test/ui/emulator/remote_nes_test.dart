@@ -457,6 +457,7 @@ void main() {
         ..volume = 0.5
         ..lowPassFilter = true
         ..swapDutyCycles = true
+        ..oamCorruption = false
         ..breakpoints = const []
         ..addBreakpoint(Breakpoint(0x8000))
         ..removeBreakpoint(0x8000)
@@ -492,6 +493,7 @@ void main() {
         isA<SetVolumeCommand>(),
         isA<SetLowPassFilterCommand>(),
         isA<SetSwapDutyCyclesCommand>(),
+        isA<SetOamCorruptionCommand>(),
         isA<SetBreakpointsCommand>(),
         isA<AddBreakpointCommand>(),
         isA<RemoveBreakpointCommand>(),

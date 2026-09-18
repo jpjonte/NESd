@@ -201,6 +201,12 @@ class SetSwapDutyCyclesCommand extends NesCommand {
   final bool enabled;
 }
 
+class SetOamCorruptionCommand extends NesCommand {
+  const SetOamCorruptionCommand({required this.enabled});
+
+  final bool enabled;
+}
+
 class SetMixerCommand extends NesCommand {
   const SetMixerCommand({required this.mixer});
 
