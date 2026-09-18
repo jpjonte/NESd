@@ -94,7 +94,6 @@ class PPU {
   final Uint8List ram = Uint8List(0x0800);
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
-  late final Uint32List _secondaryOamWords = secondaryOam.buffer.asUint32List();
   final Uint8List palette = Uint8List(0x100);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
@@ -295,6 +294,16 @@ class PPU {
   /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
 
+  void _resetSpriteLatches() {
+    _oamBufferBefore = oamBuffer;
+    _secondaryOamStart = 0xff;
+    _oam2Address = 0;
+    _oam2Frozen = false;
+    _fetchedSpriteY = 0xff;
+    _fetchedSpriteTile = 0xff;
+    _maskDelay = 0;
+  }
+
   PPUState get state => PPUState(
     PPUCTRL: PPUCTRL,
     PPUMASK: PPUMASK,
@@ -389,6 +398,8 @@ class PPU {
 
     oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
+
+    _resetSpriteLatches();
     spriteEvalPhase = state.spriteEvalPhase;
     spriteCount = state.spriteCount;
     secondarySpriteCount = state.secondarySpriteCount;
@@ -473,6 +484,8 @@ class PPU {
 
     oamAddress = 0;
     oamBuffer = 0;
+
+    _resetSpriteLatches();
     spriteEvalPhase = _spriteEvalDone;
 
     spriteCount = 0;
@@ -768,7 +781,6 @@ class PPU {
     if (renderingActive) {
       if (cycle == 328) {
         sprite0OnCurrentLine = sprite0OnNextLine;
-        sprite0OnNextLine = false;
       }
 
       _evaluateSprites();
@@ -835,9 +847,11 @@ class PPU {
         _copyVerticalBits();
       }
 
-      if (cycle >= 257 && cycle <= 320) {
-        _fetchSpritesForBusOnly();
+      if (cycle == 328) {
+        sprite0OnCurrentLine = sprite0OnNextLine;
       }
+
+      _evaluateSprites();
     }
 
     if (renderingActive && cycle >= 257 && cycle <= 320) {
@@ -1131,6 +1145,8 @@ class PPU {
       scanline = 0;
       cycle = 0;
       frames++;
+
+      _rasterizeSpriteLine(afterSkippedDot: true);
 
       _pixelBase = 0;
       _scanlinePhase = _phaseForScanline();
@@ -1549,6 +1565,7 @@ class PPU {
   @pragma('vm:prefer-inline')
   void _evaluateSpriteRange() {
     if (cycle == 65) {
+      sprite0OnNextLine = false;
       secondarySpriteCount = 0;
       spriteEvalPhase = _spriteEvalY;
       _resetSpriteEvaluationRange();
@@ -1697,7 +1714,7 @@ class PPU {
   void _fetchSprites() {
     // Cycles 257-320: Sprite fetch
     if (cycle == 257) {
-      spriteCount = secondarySpriteCount;
+      spriteCount = scanline == _preRenderScanline ? 8 : secondarySpriteCount;
 
       // Only a fetch phase that starts with rendering on rewinds the address
       if (!_oam2Frozen) {
@@ -1731,27 +1748,7 @@ class PPU {
     }
   }
 
-  @pragma('vm:prefer-inline')
-  void _fetchSpritesForBusOnly() {
-    final subcycle = cycle - 257;
-
-    switch (subcycle & 0x7) {
-      case 0:
-        readPpuMemory(_nametableAddress());
-      case 2:
-        readPpuMemory(_attributeAddress());
-      case 4:
-        final spriteWord = _secondaryOamWords[subcycle >> 3];
-        final tileIndex = (spriteWord >> 8) & 0xff;
-        final patternTable = PPUCTRL_H == 1 ? tileIndex & 1 : PPUCTRL_S;
-        final address = ((patternTable & 1) << 12) | (tileIndex << 4);
-
-        readPpuMemory(address);
-        readPpuMemory(address | 8);
-    }
-  }
-
-  void _rasterizeSpriteLine() {
+  void _rasterizeSpriteLine({bool afterSkippedDot = false}) {
     _spriteLine.fillRange(0, 256, 0);
 
     final fourBpp = spriteFourBpp;
@@ -1773,7 +1770,11 @@ class PPU {
       final width = sixteenPixels ? 16 : 8;
 
       for (var xOffset = 0; xOffset < width; xOffset++) {
-        final x = spriteOutput.x + xOffset;
+        var x = spriteOutput.x + xOffset;
+
+        if (afterSkippedDot && spriteOutput.x != 0) {
+          x = xOffset == 0 ? 0 : x - 1;
+        }
 
         if (x > 255) {
           break;
@@ -1811,6 +1812,12 @@ class PPU {
   }
 
   void _resetSpriteEvaluationRange() {
+    if (scanline == _preRenderScanline) {
+      _spriteRangeMinY = 0x100;
+
+      return;
+    }
+
     final spriteHeight = PPUCTRL_H == 0 ? 8 : 16;
 
     _spriteRangeMinY = scanline - spriteHeight + 1;
@@ -1825,7 +1832,7 @@ class PPU {
 
     // The range check runs again during the fetch, with the sprite height
     // of that moment, and a sprite failing it loads no pixels.
-    final yOffset = scanline - _fetchedSpriteY;
+    final yOffset = (scanline & 0xff) - _fetchedSpriteY;
     final height = PPUCTRL_H == 1 ? 16 : 8;
 
     if (yOffset >= 0 && yOffset < height) {
@@ -1845,7 +1852,9 @@ class PPU {
     final attribute = _spriteOutputs[sprite].attribute;
     final flipV = (attribute >> 7) > 0;
 
-    final yOffset = scanline - _fetchedSpriteY;
+    // The comparison only has 8 bits, so the pre-render line counts as 5
+    final yOffset =
+        ((scanline & 0xff) - _fetchedSpriteY) & (bigSprites ? 0xf : 0x7);
     final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
 
     final isBigSpriteSecondTile = yOffset < 8;
