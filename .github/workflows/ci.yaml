@@ -6,7 +6,7 @@ env:
 
 jobs:
   detect-changes:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       build-relevant: ${{ steps.filter.outputs.build-relevant }}
     steps:
@@ -25,7 +25,7 @@ jobs:
               - 'ci/1-build/web/**'
 
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -37,13 +37,13 @@ jobs:
       - run: dart analyze packages/nesd packages/nesd_texture packages/nesd_audio website
 
   check-play-listing:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - run: ci/check/android/play_listing.sh
 
   check-pages-gate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - run: ci/check/website/pages_gate.sh
@@ -51,13 +51,13 @@ jobs:
       - run: ci/check/website/inject_visit_script.sh
 
   check-linux-packaging:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - run: ci/check/linux/packaging.sh
 
   check-readme:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: [0, 1, 2]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -89,7 +89,7 @@ jobs:
           retention-days: 1
 
   coverage:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     needs: [test]
@@ -109,7 +109,7 @@ jobs:
 
   test-web:
     # run the web tests directly on the runner (Chrome is preinstalled)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - id: env
@@ -122,7 +122,7 @@ jobs:
       - run: ci/0-test/web_test.sh
 
   test-site:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -134,7 +134,7 @@ jobs:
 
   pages-gate:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [check-pages-gate]
     outputs:
       deploy: ${{ steps.gate.outputs.deploy }}
@@ -145,7 +145,7 @@ jobs:
 
   publish-pages:
     if: github.ref == 'refs/heads/main' && needs.pages-gate.outputs.deploy == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [lint, test, test-web, test-site, coverage, pages-gate, build-web, check-readme]
     permissions:
       contents: read
@@ -164,7 +164,7 @@ jobs:
 
   publish-pages-release:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [lint, test, test-web, test-site, coverage, release, build-web, check-readme]
     permissions:
       contents: read
@@ -219,7 +219,7 @@ jobs:
     env:
       ARCH: ${{ matrix.arch }}
     container:
-      image: ubuntu:22.04
+      image: ubuntu:26.04
     steps:
       - name: Bootstrap container
         run: |
@@ -271,7 +271,7 @@ jobs:
           if-no-files-found: error
 
   build-android:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     env:
@@ -314,7 +314,7 @@ jobs:
           if-no-files-found: error
 
   build-web:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-ci
     steps:
@@ -330,7 +330,7 @@ jobs:
 
   publish-play:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     needs: [ lint, test, test-web, test-site, build-android, check-play-listing ]
@@ -369,7 +369,7 @@ jobs:
       (github.ref == 'refs/heads/main' &&
        needs.detect-changes.outputs.build-relevant == 'true') ||
       startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [lint, test, test-web, test-site, detect-changes, build-web]
     permissions:
       contents: read
@@ -558,7 +558,7 @@ jobs:
 
   release_nightly:
     if: github.ref == 'refs/heads/main' && needs.detect-changes.outputs.build-relevant == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     concurrency:
       group: flatpak-push
       cancel-in-progress: false
@@ -642,7 +642,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     concurrency:
       group: flatpak-push
       cancel-in-progress: false
