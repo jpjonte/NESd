@@ -26,16 +26,21 @@ $TouchEditorStateCopyWith<TouchEditorState> get copyWith => _$TouchEditorStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TouchEditorState&&(identical(other.showHint, showHint) || other.showHint == showHint)&&(identical(other.editingIndex, editingIndex) || other.editingIndex == editingIndex)&&(identical(other.editingOrientation, editingOrientation) || other.editingOrientation == editingOrientation)&&(identical(other.editingConfig, editingConfig) || other.editingConfig == editingConfig));
+  final _this = this as TouchEditorState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TouchEditorState&&(identical(other.showHint, _this.showHint) || other.showHint == _this.showHint)&&(identical(other.editingIndex, _this.editingIndex) || other.editingIndex == _this.editingIndex)&&(identical(other.editingOrientation, _this.editingOrientation) || other.editingOrientation == _this.editingOrientation)&&(identical(other.editingConfig, _this.editingConfig) || other.editingConfig == _this.editingConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,showHint,editingIndex,editingOrientation,editingConfig);
+int get hashCode {
+  final _this = this as TouchEditorState;
+  return Object.hash(runtimeType,_this.showHint,_this.editingIndex,_this.editingOrientation,_this.editingConfig);
+}
 
 @override
 String toString() {
-  return 'TouchEditorState(showHint: $showHint, editingIndex: $editingIndex, editingOrientation: $editingOrientation, editingConfig: $editingConfig)';
+  final _this = this as TouchEditorState;
+  return 'TouchEditorState(showHint: ${_this.showHint}, editingIndex: ${_this.editingIndex}, editingOrientation: ${_this.editingOrientation}, editingConfig: ${_this.editingConfig})';
 }
 
 
@@ -234,16 +239,18 @@ _$TouchEditorStateCopyWith<_TouchEditorState> get copyWith => __$TouchEditorStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TouchEditorState&&(identical(other.showHint, showHint) || other.showHint == showHint)&&(identical(other.editingIndex, editingIndex) || other.editingIndex == editingIndex)&&(identical(other.editingOrientation, editingOrientation) || other.editingOrientation == editingOrientation)&&(identical(other.editingConfig, editingConfig) || other.editingConfig == editingConfig));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TouchEditorState&&(identical(other.showHint, showHint) || other.showHint == showHint)&&(identical(other.editingIndex, editingIndex) || other.editingIndex == editingIndex)&&(identical(other.editingOrientation, editingOrientation) || other.editingOrientation == editingOrientation)&&(identical(other.editingConfig, editingConfig) || other.editingConfig == editingConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,showHint,editingIndex,editingOrientation,editingConfig);
+int get hashCode {
+    return Object.hash(runtimeType,showHint,editingIndex,editingOrientation,editingConfig);
+}
 
 @override
 String toString() {
-  return 'TouchEditorState(showHint: $showHint, editingIndex: $editingIndex, editingOrientation: $editingOrientation, editingConfig: $editingConfig)';
+    return 'TouchEditorState(showHint: $showHint, editingIndex: $editingIndex, editingOrientation: $editingOrientation, editingConfig: $editingConfig)';
 }
 
 

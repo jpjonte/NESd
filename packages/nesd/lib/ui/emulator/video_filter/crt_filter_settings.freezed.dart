@@ -29,16 +29,21 @@ $CrtFilterSettingsCopyWith<CrtFilterSettings> get copyWith => _$CrtFilterSetting
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CrtFilterSettings&&(identical(other.scanlineIntensity, scanlineIntensity) || other.scanlineIntensity == scanlineIntensity)&&(identical(other.maskStrength, maskStrength) || other.maskStrength == maskStrength)&&(identical(other.curvature, curvature) || other.curvature == curvature));
+  final _this = this as CrtFilterSettings;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CrtFilterSettings&&(identical(other.scanlineIntensity, _this.scanlineIntensity) || other.scanlineIntensity == _this.scanlineIntensity)&&(identical(other.maskStrength, _this.maskStrength) || other.maskStrength == _this.maskStrength)&&(identical(other.curvature, _this.curvature) || other.curvature == _this.curvature));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,scanlineIntensity,maskStrength,curvature);
+int get hashCode {
+  final _this = this as CrtFilterSettings;
+  return Object.hash(runtimeType,_this.scanlineIntensity,_this.maskStrength,_this.curvature);
+}
 
 @override
 String toString() {
-  return 'CrtFilterSettings(scanlineIntensity: $scanlineIntensity, maskStrength: $maskStrength, curvature: $curvature)';
+  final _this = this as CrtFilterSettings;
+  return 'CrtFilterSettings(scanlineIntensity: ${_this.scanlineIntensity}, maskStrength: ${_this.maskStrength}, curvature: ${_this.curvature})';
 }
 
 
@@ -226,16 +231,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CrtFilterSettings&&(identical(other.scanlineIntensity, scanlineIntensity) || other.scanlineIntensity == scanlineIntensity)&&(identical(other.maskStrength, maskStrength) || other.maskStrength == maskStrength)&&(identical(other.curvature, curvature) || other.curvature == curvature));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CrtFilterSettings&&(identical(other.scanlineIntensity, scanlineIntensity) || other.scanlineIntensity == scanlineIntensity)&&(identical(other.maskStrength, maskStrength) || other.maskStrength == maskStrength)&&(identical(other.curvature, curvature) || other.curvature == curvature));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,scanlineIntensity,maskStrength,curvature);
+int get hashCode {
+    return Object.hash(runtimeType,scanlineIntensity,maskStrength,curvature);
+}
 
 @override
 String toString() {
-  return 'CrtFilterSettings(scanlineIntensity: $scanlineIntensity, maskStrength: $maskStrength, curvature: $curvature)';
+    return 'CrtFilterSettings(scanlineIntensity: $scanlineIntensity, maskStrength: $maskStrength, curvature: $curvature)';
 }
 
 

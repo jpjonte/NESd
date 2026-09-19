@@ -26,16 +26,21 @@ $DebugOverlayStateCopyWith<DebugOverlayState> get copyWith => _$DebugOverlayStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepTime, sleepTime) || other.sleepTime == sleepTime)&&(identical(other.frame, frame) || other.frame == frame)&&(identical(other.rewindSize, rewindSize) || other.rewindSize == rewindSize)&&(identical(other.frameDelivery, frameDelivery) || other.frameDelivery == frameDelivery)&&(identical(other.underruns, underruns) || other.underruns == underruns)&&(identical(other.fillMin, fillMin) || other.fillMin == fillMin));
+  final _this = this as DebugOverlayState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DebugOverlayState&&(identical(other.frameTime, _this.frameTime) || other.frameTime == _this.frameTime)&&(identical(other.fps, _this.fps) || other.fps == _this.fps)&&(identical(other.sleepTime, _this.sleepTime) || other.sleepTime == _this.sleepTime)&&(identical(other.frame, _this.frame) || other.frame == _this.frame)&&(identical(other.rewindSize, _this.rewindSize) || other.rewindSize == _this.rewindSize)&&(identical(other.frameDelivery, _this.frameDelivery) || other.frameDelivery == _this.frameDelivery)&&(identical(other.underruns, _this.underruns) || other.underruns == _this.underruns)&&(identical(other.fillMin, _this.fillMin) || other.fillMin == _this.fillMin));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepTime,frame,rewindSize,frameDelivery,underruns,fillMin);
+int get hashCode {
+  final _this = this as DebugOverlayState;
+  return Object.hash(runtimeType,_this.frameTime,_this.fps,_this.sleepTime,_this.frame,_this.rewindSize,_this.frameDelivery,_this.underruns,_this.fillMin);
+}
 
 @override
 String toString() {
-  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepTime: $sleepTime, frame: $frame, rewindSize: $rewindSize, frameDelivery: $frameDelivery, underruns: $underruns, fillMin: $fillMin)';
+  final _this = this as DebugOverlayState;
+  return 'DebugOverlayState(frameTime: ${_this.frameTime}, fps: ${_this.fps}, sleepTime: ${_this.sleepTime}, frame: ${_this.frame}, rewindSize: ${_this.rewindSize}, frameDelivery: ${_this.frameDelivery}, underruns: ${_this.underruns}, fillMin: ${_this.fillMin})';
 }
 
 
@@ -230,16 +235,18 @@ _$DebugOverlayStateCopyWith<_DebugOverlayState> get copyWith => __$DebugOverlayS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepTime, sleepTime) || other.sleepTime == sleepTime)&&(identical(other.frame, frame) || other.frame == frame)&&(identical(other.rewindSize, rewindSize) || other.rewindSize == rewindSize)&&(identical(other.frameDelivery, frameDelivery) || other.frameDelivery == frameDelivery)&&(identical(other.underruns, underruns) || other.underruns == underruns)&&(identical(other.fillMin, fillMin) || other.fillMin == fillMin));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DebugOverlayState&&(identical(other.frameTime, frameTime) || other.frameTime == frameTime)&&(identical(other.fps, fps) || other.fps == fps)&&(identical(other.sleepTime, sleepTime) || other.sleepTime == sleepTime)&&(identical(other.frame, frame) || other.frame == frame)&&(identical(other.rewindSize, rewindSize) || other.rewindSize == rewindSize)&&(identical(other.frameDelivery, frameDelivery) || other.frameDelivery == frameDelivery)&&(identical(other.underruns, underruns) || other.underruns == underruns)&&(identical(other.fillMin, fillMin) || other.fillMin == fillMin));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,frameTime,fps,sleepTime,frame,rewindSize,frameDelivery,underruns,fillMin);
+int get hashCode {
+    return Object.hash(runtimeType,frameTime,fps,sleepTime,frame,rewindSize,frameDelivery,underruns,fillMin);
+}
 
 @override
 String toString() {
-  return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepTime: $sleepTime, frame: $frame, rewindSize: $rewindSize, frameDelivery: $frameDelivery, underruns: $underruns, fillMin: $fillMin)';
+    return 'DebugOverlayState(frameTime: $frameTime, fps: $fps, sleepTime: $sleepTime, frame: $frame, rewindSize: $rewindSize, frameDelivery: $frameDelivery, underruns: $underruns, fillMin: $fillMin)';
 }
 
 

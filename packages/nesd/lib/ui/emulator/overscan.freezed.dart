@@ -29,16 +29,21 @@ $OverscanCopyWith<Overscan> get copyWith => _$OverscanCopyWithImpl<Overscan>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Overscan&&(identical(other.top, top) || other.top == top)&&(identical(other.bottom, bottom) || other.bottom == bottom)&&(identical(other.left, left) || other.left == left)&&(identical(other.right, right) || other.right == right));
+  final _this = this as Overscan;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Overscan&&(identical(other.top, _this.top) || other.top == _this.top)&&(identical(other.bottom, _this.bottom) || other.bottom == _this.bottom)&&(identical(other.left, _this.left) || other.left == _this.left)&&(identical(other.right, _this.right) || other.right == _this.right));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,top,bottom,left,right);
+int get hashCode {
+  final _this = this as Overscan;
+  return Object.hash(runtimeType,_this.top,_this.bottom,_this.left,_this.right);
+}
 
 @override
 String toString() {
-  return 'Overscan(top: $top, bottom: $bottom, left: $left, right: $right)';
+  final _this = this as Overscan;
+  return 'Overscan(top: ${_this.top}, bottom: ${_this.bottom}, left: ${_this.left}, right: ${_this.right})';
 }
 
 
@@ -228,16 +233,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Overscan&&(identical(other.top, top) || other.top == top)&&(identical(other.bottom, bottom) || other.bottom == bottom)&&(identical(other.left, left) || other.left == left)&&(identical(other.right, right) || other.right == right));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Overscan&&(identical(other.top, top) || other.top == top)&&(identical(other.bottom, bottom) || other.bottom == bottom)&&(identical(other.left, left) || other.left == left)&&(identical(other.right, right) || other.right == right));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,top,bottom,left,right);
+int get hashCode {
+    return Object.hash(runtimeType,top,bottom,left,right);
+}
 
 @override
 String toString() {
-  return 'Overscan(top: $top, bottom: $bottom, left: $left, right: $right)';
+    return 'Overscan(top: $top, bottom: $bottom, left: $left, right: $right)';
 }
 
 

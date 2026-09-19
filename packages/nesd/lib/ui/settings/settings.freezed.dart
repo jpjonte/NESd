@@ -76,6 +76,7 @@ class _$SettingsCopyWithImpl<$Res>
 volume: null == volume ? _self.volume : volume // ignore: cast_nullable_to_non_nullable
 as double,lowPassFilter: null == lowPassFilter ? _self.lowPassFilter : lowPassFilter // ignore: cast_nullable_to_non_nullable
 as bool,swapDutyCycles: null == swapDutyCycles ? _self.swapDutyCycles : swapDutyCycles // ignore: cast_nullable_to_non_nullable
+as bool,oamCorruption: null == oamCorruption ? _self.oamCorruption : oamCorruption // ignore: cast_nullable_to_non_nullable
 as bool,mixer: null == mixer ? _self.mixer : mixer // ignore: cast_nullable_to_non_nullable
 as MixerSettings,fastForwardSpeed: null == fastForwardSpeed ? _self.fastForwardSpeed : fastForwardSpeed // ignore: cast_nullable_to_non_nullable
 as FastForwardSpeed,turboSpeed: null == turboSpeed ? _self.turboSpeed : turboSpeed // ignore: cast_nullable_to_non_nullable
@@ -289,6 +290,7 @@ class _Settings implements Settings {
 @override@JsonKey() final  double volume;
 @override@JsonKey() final  bool lowPassFilter;
 @override@JsonKey() final  bool swapDutyCycles;
+@override@JsonKey() final  bool oamCorruption;
 @override@JsonKey(toJson: _mixerToJson, fromJson: _mixerFromJson) final  MixerSettings mixer;
 @override@JsonKey() final  FastForwardSpeed fastForwardSpeed;
 @override@JsonKey() final  TurboSpeed turboSpeed;
@@ -384,6 +386,7 @@ class _Settings implements Settings {
 @override@JsonKey() final  NesPaletteId paletteId;
 @override@JsonKey(toJson: _ntscPaletteToJson, fromJson: _ntscPaletteFromJson) final  NtscPaletteSettings ntscPalette;
 @override@JsonKey() final  String? userPalette;
+@override@JsonKey() final  ScreenshotMode screenshotMode;
 
 /// Create a copy of Settings
 /// with the given fields replaced by the non-null parameter values.
@@ -442,6 +445,7 @@ class __$SettingsCopyWithImpl<$Res>
 volume: null == volume ? _self.volume : volume // ignore: cast_nullable_to_non_nullable
 as double,lowPassFilter: null == lowPassFilter ? _self.lowPassFilter : lowPassFilter // ignore: cast_nullable_to_non_nullable
 as bool,swapDutyCycles: null == swapDutyCycles ? _self.swapDutyCycles : swapDutyCycles // ignore: cast_nullable_to_non_nullable
+as bool,oamCorruption: null == oamCorruption ? _self.oamCorruption : oamCorruption // ignore: cast_nullable_to_non_nullable
 as bool,mixer: null == mixer ? _self.mixer : mixer // ignore: cast_nullable_to_non_nullable
 as MixerSettings,fastForwardSpeed: null == fastForwardSpeed ? _self.fastForwardSpeed : fastForwardSpeed // ignore: cast_nullable_to_non_nullable
 as FastForwardSpeed,turboSpeed: null == turboSpeed ? _self.turboSpeed : turboSpeed // ignore: cast_nullable_to_non_nullable

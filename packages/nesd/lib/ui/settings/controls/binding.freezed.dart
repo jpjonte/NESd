@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Binding {
 
- int get index; InputCombination get input; BindingType get type; InputAction get action;
+
 /// Create a copy of Binding
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,21 @@ $BindingCopyWith<Binding> get copyWith => _$BindingCopyWithImpl<Binding>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Binding&&(identical(other.index, index) || other.index == index)&&(identical(other.input, input) || other.input == input)&&(identical(other.type, type) || other.type == type)&&(identical(other.action, action) || other.action == action));
+  final _this = this as Binding;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Binding&&(identical(other.index, _this.index) || other.index == _this.index)&&(identical(other.input, _this.input) || other.input == _this.input)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.action, _this.action) || other.action == _this.action));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,index,input,type,action);
+int get hashCode {
+  final _this = this as Binding;
+  return Object.hash(runtimeType,_this.index,_this.input,_this.type,_this.action);
+}
 
 @override
 String toString() {
-  return 'Binding(index: $index, input: $input, type: $type, action: $action)';
+  final _this = this as Binding;
+  return 'Binding(index: ${_this.index}, input: ${_this.input}, type: ${_this.type}, action: ${_this.action})';
 }
 
 

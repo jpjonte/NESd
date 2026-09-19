@@ -116,6 +116,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       ? const NtscPaletteSettings()
       : _ntscPaletteFromJson(json['ntscPalette']),
   userPalette: json['userPalette'] as String? ?? null,
+  screenshotMode:
+      $enumDecodeNullable(_$ScreenshotModeEnumMap, json['screenshotMode']) ??
+      ScreenshotMode.raw,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -162,6 +165,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'paletteId': _$NesPaletteIdEnumMap[instance.paletteId]!,
   'ntscPalette': _ntscPaletteToJson(instance.ntscPalette),
   'userPalette': instance.userPalette,
+  'screenshotMode': _$ScreenshotModeEnumMap[instance.screenshotMode]!,
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -231,6 +235,11 @@ const _$NesPaletteIdEnumMap = {
   NesPaletteId.flat: 'flat',
   NesPaletteId.generated: 'generated',
   NesPaletteId.user: 'user',
+};
+
+const _$ScreenshotModeEnumMap = {
+  ScreenshotMode.raw: 'raw',
+  ScreenshotMode.displayed: 'displayed',
 };
 
 const _$EmulatorToolEnumMap = {
