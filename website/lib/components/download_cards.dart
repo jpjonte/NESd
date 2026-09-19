@@ -19,7 +19,10 @@ class const DownloadCards({required final ReleaseManifest release, super.key})
       a(classes: 'dl primary', href: playUrl, [.text('Play in browser')]),
     ]),
     p(classes: 'card-note', [
-      .text('Nothing to install. Works on iPhone and iPad too.'),
+      .text(
+        'Nothing to download. Installs to the home screen and works '
+        'offline, on iPhone and iPad too.',
+      ),
     ]),
   ]);
 

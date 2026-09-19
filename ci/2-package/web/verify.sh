@@ -22,3 +22,8 @@ curl -fsSI http://127.0.0.1:8080/main.dart.mjs \
 # verify correct cache header
 curl -fsSI http://127.0.0.1:8080/index.html \
   | grep -i '^cache-control: no-store'
+
+curl -fsSI http://127.0.0.1:8080/sw.js \
+  | grep -i '^cache-control: no-store'
+
+curl -fsS http://127.0.0.1:8080/sw.js | grep -q "'main.dart.wasm':"

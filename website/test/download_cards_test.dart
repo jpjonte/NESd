@@ -159,6 +159,6 @@ void main() {
       DownloadCards(release: _manifest(_singleAssets)),
     );
 
-    expect(html, contains('Works on iPhone and iPad too'));
+    expect(html, contains('works offline, on iPhone and iPad too'));
   });
 }

@@ -11,4 +11,6 @@ pushd "$repo_root/packages/nesd" >/dev/null
 flutter build web --wasm --release --no-web-resources-cdn \
   --dart-define=NESD_BUILD_ID="$build_id"
 
+dart run tool/generate_service_worker.dart
+
 popd >/dev/null

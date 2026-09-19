@@ -136,11 +136,16 @@ pushd packages/nesd && fvm flutter run -d chrome --wasm --release
 ```
 
 Build the WebAssembly release variant (the CDN flag keeps it
-self-contained, matching CI):
+self-contained, matching CI), then fill in the service worker's file
+manifest so the build works offline:
 
 ```bash
 fvm flutter build web --wasm --no-web-resources-cdn
+fvm dart run tool/generate_service_worker.dart
 ```
+
+`web/sw.js` ships with an empty manifest, so `flutter run` registers an
+inert worker.
 
 ## Website
 
