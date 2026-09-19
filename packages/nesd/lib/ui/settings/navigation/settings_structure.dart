@@ -39,6 +39,7 @@ import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
+import 'package:nesd/ui/settings/graphics/screenshot_mode_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/video_filter_switches.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
@@ -253,6 +254,10 @@ final _video = [
       SettingsEntry(
         title: 'Show Border',
         builder: (_, _) => const BorderSwitch(),
+      ),
+      SettingsEntry(
+        title: 'Screenshots',
+        builder: (_, _) => const ScreenshotModeDropdown(),
       ),
     ],
   ),

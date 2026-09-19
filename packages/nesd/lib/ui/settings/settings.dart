@@ -20,6 +20,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/screenshot/screenshot_mode.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
@@ -193,6 +194,7 @@ sealed class Settings with _$Settings {
     @Default(NtscPaletteSettings())
     NtscPaletteSettings ntscPalette,
     @Default(null) String? userPalette,
+    @Default(ScreenshotMode.raw) ScreenshotMode screenshotMode,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -297,6 +299,12 @@ class SettingsController extends _$SettingsController {
 
   set scaling(Scaling scaling) {
     _update(state.copyWith(scaling: scaling));
+  }
+
+  ScreenshotMode get screenshotMode => state.screenshotMode;
+
+  set screenshotMode(ScreenshotMode mode) {
+    _update(state.copyWith(screenshotMode: mode));
   }
 
   bool get autoSave => state.autoSave;

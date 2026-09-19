@@ -115,6 +115,9 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       ? const NtscPaletteSettings()
       : _ntscPaletteFromJson(json['ntscPalette']),
   userPalette: json['userPalette'] as String? ?? null,
+  screenshotMode:
+      $enumDecodeNullable(_$ScreenshotModeEnumMap, json['screenshotMode']) ??
+      ScreenshotMode.raw,
 );
 
 Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
@@ -160,6 +163,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'paletteId': _$NesPaletteIdEnumMap[instance.paletteId]!,
   'ntscPalette': _ntscPaletteToJson(instance.ntscPalette),
   'userPalette': instance.userPalette,
+  'screenshotMode': _$ScreenshotModeEnumMap[instance.screenshotMode]!,
 };
 
 const _$FastForwardSpeedEnumMap = {
@@ -231,6 +235,11 @@ const _$NesPaletteIdEnumMap = {
   NesPaletteId.user: 'user',
 };
 
+const _$ScreenshotModeEnumMap = {
+  ScreenshotMode.raw: 'raw',
+  ScreenshotMode.displayed: 'displayed',
+};
+
 const _$EmulatorToolEnumMap = {
   EmulatorTool.display: 'display',
   EmulatorTool.audio: 'audio',
@@ -281,7 +290,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'fc44c3f506c85b0d72feddea9a495ed4f68bcc4f';
+    r'76a62aa6de0b262183f69e8f2a0c2c72a02f31da';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
