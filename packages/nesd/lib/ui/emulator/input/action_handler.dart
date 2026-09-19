@@ -9,6 +9,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/screenshot/screenshot_controller.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
@@ -67,6 +68,7 @@ ActionHandler actionHandler(Ref ref) {
     toolsController: ref.watch(emulatorToolsControllerProvider.notifier),
     toolFocusController: ref.watch(toolFocusControllerProvider.notifier),
     scrubController: ref.watch(rewindScrubControllerProvider.notifier),
+    screenshotController: ref.watch(screenshotControllerProvider),
     actionStream: actionStream.stream,
   );
 
@@ -109,6 +111,7 @@ class ActionHandler {
     required this.toolsController,
     required this.toolFocusController,
     required this.scrubController,
+    required this.screenshotController,
     required Stream<InputActionEvent> actionStream,
   }) {
     _actionSubscription = actionStream.listen(handleAction);
@@ -122,6 +125,7 @@ class ActionHandler {
   final EmulatorToolsController toolsController;
   final ToolFocusController toolFocusController;
   final RewindScrubController scrubController;
+  final ScreenshotController screenshotController;
 
   late final StreamSubscription<InputActionEvent> _actionSubscription;
 
@@ -355,6 +359,8 @@ class ActionHandler {
         _saveState(action.slot);
       case LoadState():
         _loadState(action.slot);
+      case ScreenshotAction():
+        unawaited(screenshotController.takeScreenshot());
       case FastForward():
         nes?.fastForward = true;
       case Rewind():
@@ -507,6 +513,7 @@ bool isInGameAction(InputAction action) => switch (action) {
   ResetAction() ||
   StopAction() ||
   DecreaseVolume() ||
-  IncreaseVolume() => true,
+  IncreaseVolume() ||
+  ScreenshotAction() => true,
   _ => false,
 };
