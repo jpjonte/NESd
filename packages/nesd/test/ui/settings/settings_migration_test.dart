@@ -230,10 +230,10 @@ void main() {
     expect(controller.gamepadSlots[0], const GamepadDeviceKey(name: 'Pad'));
   });
 
-  test('a v4 settings file is left alone', () {
+  test('a v5 settings file is left alone', () {
     final controller = load('''
       {
-        "bindingsVersion": 4,
+        "bindingsVersion": 5,
         "gamepadSlots": {"1": {"name": "Kept"}},
         "bindings": [
           {
@@ -254,7 +254,7 @@ void main() {
 
     expect(gamepad.slot, 1);
     expect(controller.gamepadSlots[1], const GamepadDeviceKey(name: 'Kept'));
-    expect(container.read(settingsControllerProvider).bindingsVersion, 4);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
   });
 
   test('one physical gamepad bound to many actions maps to one slot', () {
@@ -300,7 +300,9 @@ void main() {
     ''');
 
     final slots = controller.bindings
-        .map((b) => (b.input as GamepadInputCombination).slot)
+        .map((b) => b.input)
+        .whereType<GamepadInputCombination>()
+        .map((input) => input.slot)
         .toSet();
 
     expect(slots, {0});
@@ -486,7 +488,7 @@ void main() {
       gamepadInputOf(bindings, secondaryAction).inputs.single,
       gamepadButtonInput(GamepadButton.x),
     );
-    expect(container.read(settingsControllerProvider).bindingsVersion, 4);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
   });
 
   test('version 3 settings with the keyboard menu defaults still gain the '
@@ -566,5 +568,48 @@ void main() {
     ''');
 
     expect(controller.bindings.where((b) => b.action == inputLeft), isEmpty);
+  });
+
+  test('version 4 settings gain the F12 screenshot binding', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 4,
+        "bindings": [${keyboardBinding('ui.confirm', LogicalKeyboardKey.enter)}]
+      }
+    ''');
+
+    final binding = controller.bindings.singleWhere(
+      (b) => b.action == screenshot,
+    );
+
+    expect(binding.index, 0);
+    expect(binding.input, InputCombination.keyboard({LogicalKeyboardKey.f12}));
+    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
+  });
+
+  test('the screenshot default is skipped when F12 is already bound', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 4,
+        "bindings": [${keyboardBinding('state.pause', LogicalKeyboardKey.f12)}]
+      }
+    ''');
+
+    expect(controller.bindings.map((b) => b.action), [pause]);
+  });
+
+  test('an existing screenshot binding is kept on migration', () {
+    final controller = load('''
+      {
+        "bindingsVersion": 4,
+        "bindings": [${keyboardBinding('state.screenshot', LogicalKeyboardKey.f9)}]
+      }
+    ''');
+
+    final binding = controller.bindings.singleWhere(
+      (b) => b.action == screenshot,
+    );
+
+    expect(binding.input, InputCombination.keyboard({LogicalKeyboardKey.f9}));
   });
 }

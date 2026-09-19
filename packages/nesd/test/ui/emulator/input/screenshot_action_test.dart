@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart' hide reset;
 import 'package:nesd/ui/emulator/input/action/all_actions.dart';
@@ -11,6 +12,7 @@ import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
+import 'package:nesd/ui/settings/controls/input_combination.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 class _MockNesController extends Mock implements NesController {}
@@ -36,6 +38,13 @@ void main() {
     expect(allActions.whereType<ScreenshotAction>(), hasLength(1));
     expect(InputAction.fromCode('state.screenshot'), screenshot);
     expect(isInGameAction(screenshot), isTrue);
+  });
+
+  test('defaults to F12', () {
+    final binding = defaultBindings.firstWhere((b) => b.action == screenshot);
+
+    expect(binding, defaultScreenshotBinding);
+    expect(binding.input, InputCombination.keyboard({LogicalKeyboardKey.f12}));
   });
 
   test('pressing it in game takes a screenshot', () {

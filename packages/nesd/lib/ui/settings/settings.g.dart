@@ -39,7 +39,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   bindings: json['bindings'] == null
       ? const []
       : bindingsFromJson(json['bindings']),
-  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 4,
+  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 5,
   gamepadSlots: json['gamepadSlots'] == null
       ? const <int, GamepadDeviceKey>{}
       : gamepadSlotsFromJson(json['gamepadSlots'] as Map<String, dynamic>?),
@@ -290,7 +290,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'76a62aa6de0b262183f69e8f2a0c2c72a02f31da';
+    r'a05f3a196ba2cd7466f15669bc75c73679be141a';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
