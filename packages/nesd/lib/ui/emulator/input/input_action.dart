@@ -6,6 +6,7 @@ import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 part 'action/controller_press.dart';
 part 'action/load_state.dart';
 part 'action/save_state.dart';
+part 'action/screenshot.dart';
 part 'action/state.dart';
 part 'action/tools.dart';
 part 'action/ui.dart';

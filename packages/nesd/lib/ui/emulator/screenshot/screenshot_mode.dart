@@ -1,0 +1,1 @@
+enum ScreenshotMode { raw, displayed }

@@ -36,6 +36,12 @@ class FilesystemMethodChannel(
   private var directoryResult: MethodChannel.Result? = null
 
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+    if (call.method == "savePicture") {
+      savePicture(call, result)
+
+      return
+    }
+
     val arguments = call.arguments<Map<String, String>>() ?: mapOf()
 
     when (call.method) {
@@ -153,6 +159,30 @@ class FilesystemMethodChannel(
     arguments: Map<String, String>, result: MethodChannel.Result
   ) {
     expectPath(arguments, result) { uri -> filesystem.parent(mainActivity, uri) }
+  }
+
+  private fun savePicture(call: MethodCall, result: MethodChannel.Result) {
+    val name = call.argument<String>("name")
+    val directory = call.argument<String>("directory")
+    val bytes = call.argument<ByteArray>("bytes")
+
+    if (name == null || directory == null || bytes == null) {
+      result.error("missing_argument", "Missing argument name, directory or bytes", null)
+
+      return
+    }
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+      result.error("unsupported", "Shared pictures need API 29", null)
+
+      return
+    }
+
+    try {
+      result.success(filesystem.savePicture(name, directory, bytes))
+    } catch (e: Exception) {
+      result.error("internal_error", "Internal error: ${e.message}", null)
+    }
   }
 
   private fun handleChooseDirectoryResult(resultCode: Int, resultData: Intent?) {

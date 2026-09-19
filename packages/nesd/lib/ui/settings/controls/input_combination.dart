@@ -112,6 +112,12 @@ final defaultGamepadBindings = [
   ...defaultMenuGamepadBindings,
 ];
 
+final defaultScreenshotBinding = Binding(
+  index: 0,
+  action: screenshot,
+  input: InputCombination.keyboard({LogicalKeyboardKey.f12}),
+);
+
 final defaultBindings = [
   Binding(
     index: 0,
@@ -299,6 +305,7 @@ final defaultBindings = [
       LogicalKeyboardKey.backspace,
     }),
   ),
+  defaultScreenshotBinding,
   Binding(
     index: 0,
     action: openMenu,

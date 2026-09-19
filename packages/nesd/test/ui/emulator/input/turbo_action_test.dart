@@ -8,6 +8,7 @@ import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/remote_nes.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/screenshot/screenshot_controller.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tools_controller.dart';
 import 'package:nesd/ui/emulator/tools/tool_focus_controller.dart';
 import 'package:nesd/ui/router/router.dart';
@@ -32,6 +33,8 @@ class _MockToolFocusController extends Mock implements ToolFocusController {}
 class _MockRewindScrubController extends Mock
     implements RewindScrubController {}
 
+class _MockScreenshotController extends Mock implements ScreenshotController {}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -50,6 +53,7 @@ void main() {
       toolsController: _MockEmulatorToolsController(),
       toolFocusController: _MockToolFocusController(),
       scrubController: _MockRewindScrubController(),
+      screenshotController: _MockScreenshotController(),
       actionStream: const Stream.empty(),
     )..emulatorActive = true;
 

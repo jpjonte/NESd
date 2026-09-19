@@ -27,6 +27,7 @@ const emulatorActions = [
   rewindTimeline,
   decreaseVolume,
   increaseVolume,
+  screenshot,
 ];
 
 const inputActions = [

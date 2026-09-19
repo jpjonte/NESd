@@ -20,6 +20,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
+import 'package:nesd/ui/emulator/screenshot/screenshot_mode.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
@@ -155,7 +156,7 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
-    @Default(4) int bindingsVersion,
+    @Default(5) int bindingsVersion,
     @JsonKey(fromJson: gamepadSlotsFromJson, toJson: gamepadSlotsToJson)
     @Default(<int, GamepadDeviceKey>{})
     Map<int, GamepadDeviceKey> gamepadSlots,
@@ -193,6 +194,7 @@ sealed class Settings with _$Settings {
     @Default(NtscPaletteSettings())
     NtscPaletteSettings ntscPalette,
     @Default(null) String? userPalette,
+    @Default(ScreenshotMode.raw) ScreenshotMode screenshotMode,
   }) = _Settings;
 
   factory Settings.fromJson(Map<String, dynamic> json) =>
@@ -297,6 +299,12 @@ class SettingsController extends _$SettingsController {
 
   set scaling(Scaling scaling) {
     _update(state.copyWith(scaling: scaling));
+  }
+
+  ScreenshotMode get screenshotMode => state.screenshotMode;
+
+  set screenshotMode(ScreenshotMode mode) {
+    _update(state.copyWith(screenshotMode: mode));
   }
 
   bool get autoSave => state.autoSave;
@@ -748,10 +756,14 @@ class SettingsController extends _$SettingsController {
         ? _withMenuDefaults(withDefaults)
         : withDefaults;
 
+    final withScreenshotDefault = storedVersion < 5
+        ? _withScreenshotDefault(withMenuDefaults)
+        : withMenuDefaults;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: withMenuDefaults,
-      bindingsVersion: 4,
+      bindings: withScreenshotDefault,
+      bindingsVersion: 5,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }
@@ -841,6 +853,17 @@ class SettingsController extends _$SettingsController {
         (b) => !taken.contains((b.action, b.index)),
       ),
     ];
+  }
+
+  Bindings _withScreenshotDefault(Bindings bindings) {
+    final taken = bindings.any(
+      (b) =>
+          b.index == defaultScreenshotBinding.index &&
+          (b.action == defaultScreenshotBinding.action ||
+              b.input == defaultScreenshotBinding.input),
+    );
+
+    return taken ? bindings : [...bindings, defaultScreenshotBinding];
   }
 
   List<RomInfo> _migrateRecentRoms(List<String> recentRomPaths) {

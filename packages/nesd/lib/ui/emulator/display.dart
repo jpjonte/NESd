@@ -11,6 +11,7 @@ import 'package:nesd/ui/emulator/emulator_painters.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/overscan.dart';
 import 'package:nesd/ui/emulator/overscan_crop.dart';
+import 'package:nesd/ui/emulator/screenshot/display_capture.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/shader_frame_painter.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
@@ -177,7 +178,12 @@ class DisplayBuilder extends ConsumerWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Positioned.fill(child: baseLayer),
+              Positioned.fill(
+                child: RepaintBoundary(
+                  key: displayCaptureKey,
+                  child: baseLayer,
+                ),
+              ),
               overlayLayer,
             ],
           ),
