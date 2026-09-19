@@ -18,16 +18,12 @@ class Binding with _$Binding {
     this.type = BindingType.hold,
   });
 
-  @override
   final int index;
 
-  @override
   final InputCombination input;
 
-  @override
   final BindingType type;
 
-  @override
   final InputAction action;
 
   Map<String, dynamic> toJson() {

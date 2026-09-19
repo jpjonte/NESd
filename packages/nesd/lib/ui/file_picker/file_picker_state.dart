@@ -21,12 +21,9 @@ class FilePickerData extends FilePickerState with _$FilePickerData {
     this.refreshing = false,
   });
 
-  @override
   final FilesystemFile directory;
 
-  @override
   final List<FilesystemFile> files;
 
-  @override
   final bool refreshing;
 }
