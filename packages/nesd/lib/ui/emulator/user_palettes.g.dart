@@ -55,15 +55,11 @@ final class UserPaletteStoreProvider
 
 String _$userPaletteStoreHash() => r'8a54694dcfb1b526242fc0bd53a918a908504313';
 
-/// The imported palettes by name, as 512-entry tables ready for the PPU.
-
 @ProviderFor(UserPalettes)
 final userPalettesProvider = UserPalettesProvider._();
 
-/// The imported palettes by name, as 512-entry tables ready for the PPU.
 final class UserPalettesProvider
     extends $AsyncNotifierProvider<UserPalettes, Map<String, Uint32List>> {
-  /// The imported palettes by name, as 512-entry tables ready for the PPU.
   UserPalettesProvider._()
     : super(
         from: null,
@@ -83,9 +79,7 @@ final class UserPalettesProvider
   UserPalettes create() => UserPalettes();
 }
 
-String _$userPalettesHash() => r'43b5fea4c905b6589af2f42bc2f9e78f3c663386';
-
-/// The imported palettes by name, as 512-entry tables ready for the PPU.
+String _$userPalettesHash() => r'380f44bb546444aa029cfca7824045d4af8c94fe';
 
 abstract class _$UserPalettes extends $AsyncNotifier<Map<String, Uint32List>> {
   FutureOr<Map<String, Uint32List>> build();

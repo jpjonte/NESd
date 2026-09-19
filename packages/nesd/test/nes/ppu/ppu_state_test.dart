@@ -16,7 +16,15 @@ FrameBuffer buildFrameBuffer() {
 
 /// Adversarial fixture: every widened field holds a value the old uint8
 /// wire format cannot represent.
-PPUState buildState({int decay = 0x5a, int spriteEvalPhase = 3}) {
+const _legacyEvaluationPointer = 33;
+
+PPUState buildState({
+  int decay = 0x5a,
+  int spriteEvalPhase = 3,
+  int oam2Address = 0,
+  bool oam2Frozen = false,
+  int oamCorruptionSeed = 0,
+}) {
   return PPUState(
     decay: decay,
     decayRefreshedAt: List<int>.generate(8, (i) => 1000 + i),
@@ -48,7 +56,6 @@ PPUState buildState({int decay = 0x5a, int spriteEvalPhase = 3}) {
     patternTableLowLatch: 0xa5,
     attributeTableLatch: 2,
     attribute: 3,
-    oamAddress: 257, // sprite evaluation may stop as high as 257
     oamBuffer: 0x77,
     spriteEvalPhase: spriteEvalPhase,
     spriteCount: 8,
@@ -62,6 +69,9 @@ PPUState buildState({int decay = 0x5a, int spriteEvalPhase = 3}) {
     bgWindow: Uint8List.fromList(List.generate(16, (i) => 0x60 | i)),
     patternTableLow2Latch: 0xf0,
     patternTableHigh2Latch: 0x0f,
+    oam2Address: oam2Address,
+    oam2Frozen: oam2Frozen,
+    oamCorruptionSeed: oamCorruptionSeed,
   );
 }
 
@@ -102,7 +112,6 @@ PPUState buildLegacyState({int consoleCycles = 987654321}) {
     attributeTableHighShift: 0xf0,
     attributeTableLowShift: 0x0f,
     attribute: 3,
-    oamAddress: 33,
     oamBuffer: 0x77,
     spriteCount: 8,
     secondarySpriteCount: 8,
@@ -157,13 +166,15 @@ void expectStatesEqual(PPUState actual, PPUState expected) {
   expect(actual.attributeTableHighShift, expected.attributeTableHighShift);
   expect(actual.attributeTableLowShift, expected.attributeTableLowShift);
   expect(actual.attribute, expected.attribute);
-  expect(actual.oamAddress, expected.oamAddress);
   expect(actual.oamBuffer, expected.oamBuffer);
   expect(actual.spriteEvalPhase, expected.spriteEvalPhase);
   expect(actual.spriteCount, expected.spriteCount);
   expect(actual.secondarySpriteCount, expected.secondarySpriteCount);
   expect(actual.sprite0OnNextLine, expected.sprite0OnNextLine);
   expect(actual.sprite0OnCurrentLine, expected.sprite0OnCurrentLine);
+  expect(actual.oam2Address, expected.oam2Address);
+  expect(actual.oam2Frozen, expected.oam2Frozen);
+  expect(actual.oamCorruptionSeed, expected.oamCorruptionSeed);
   expect(actual.spriteOutputs.length, expected.spriteOutputs.length);
 
   for (var i = 0; i < expected.spriteOutputs.length; i++) {
@@ -240,7 +251,7 @@ void writeVersion3(PayloadWriter writer, PPUState state) {
     ..set(uint8, state.attributeTableHighShift)
     ..set(uint8, state.attributeTableLowShift)
     ..set(uint8, state.attribute)
-    ..set(uint16, state.oamAddress)
+    ..set(uint16, _legacyEvaluationPointer)
     ..set(uint8, state.oamBuffer)
     ..set(uint8, state.spriteCount)
     ..set(uint8, state.secondarySpriteCount)
@@ -291,7 +302,7 @@ void writeVersion4(PayloadWriter writer, PPUState state) {
     ..set(uint8, state.attributeTableHighShift)
     ..set(uint8, state.attributeTableLowShift)
     ..set(uint8, state.attribute)
-    ..set(uint16, state.oamAddress)
+    ..set(uint16, _legacyEvaluationPointer)
     ..set(uint8, state.oamBuffer)
     ..set(uint8, state.spriteCount)
     ..set(uint8, state.secondarySpriteCount)
@@ -320,7 +331,7 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
     ..set(uint8, state.attributeTableHighShift)
     ..set(uint8, state.attributeTableLowShift)
     ..set(uint8, state.attribute)
-    ..set(uint8, state.oamAddress)
+    ..set(uint8, _legacyEvaluationPointer)
     ..set(uint8, state.oamBuffer)
     ..set(uint8, state.spriteCount)
     ..set(uint8, state.secondarySpriteCount)
@@ -330,19 +341,104 @@ void writeLegacyTail(PayloadWriter writer, PPUState state) {
   SpriteOutputState.serializeList(writer, state.spriteOutputs);
 }
 
+void writeVersion6(PayloadWriter writer, PPUState state) {
+  writer
+    ..set(uint8, 6)
+    ..set(uint8, state.PPUCTRL)
+    ..set(uint8, state.PPUMASK)
+    ..set(uint8, state.PPUSTATUS)
+    ..set(uint8, state.OAMADDR)
+    ..set(uint8, state.OAMDATA)
+    ..set(uint8, state.PPUSCROLL)
+    ..set(uint8, state.PPUDATA)
+    ..set(uint16, state.v)
+    ..set(uint16, state.t)
+    ..set(uint8, state.x)
+    ..set(uint8, state.w)
+    ..set(uint8List(lengthType: uint32), state.ram)
+    ..set(uint8List(lengthType: uint32), state.oam)
+    ..set(uint8List(lengthType: uint32), state.secondaryOam)
+    ..set(uint8List(lengthType: uint32), state.palette)
+    ..set(uint8, 1);
+
+  state.frameBuffer!.serialize(writer);
+
+  writer
+    ..set(nesdUint64, state.consoleCycles)
+    ..set(nesdUint64, state.cycles)
+    ..set(uint16, state.cycle)
+    ..set(uint16, state.scanline)
+    ..set(uint32, state.frames)
+    ..set(uint8, state.nametableLatch)
+    ..set(uint8, state.patternTableHighLatch)
+    ..set(uint8, state.patternTableLowLatch)
+    ..set(uint8, state.patternTableHigh2Latch)
+    ..set(uint8, state.patternTableLow2Latch)
+    ..set(uint8List(lengthType: uint32), state.bgWindow!)
+    ..set(uint8, state.attributeTableLatch)
+    ..set(uint8, state.attribute)
+    ..set(uint16, 257) // the evaluation pointer could stop as high as 257
+    ..set(uint8, state.oamBuffer)
+    ..set(uint8, state.spriteEvalPhase)
+    ..set(uint8, state.spriteCount)
+    ..set(uint8, state.secondarySpriteCount)
+    ..set(boolean, state.sprite0OnNextLine)
+    ..set(boolean, state.sprite0OnCurrentLine);
+
+  SpriteOutputState.serializeList(writer, state.spriteOutputs);
+
+  writer
+    ..set(uint8, state.decay)
+    ..set(uint32List(), Uint32List.fromList(state.decayRefreshedAt));
+}
+
 void main() {
-  test('serialize writes version 6 and round-trips adversarial values', () {
-    final original = buildState();
+  test('serialize writes version 8 and round-trips adversarial values', () {
+    final original = buildState(
+      oam2Address: 0x1b,
+      oam2Frozen: true,
+      oamCorruptionSeed: 0x1c,
+    );
 
     final writer = Payload.write();
     original.serialize(writer);
     final bytes = binarize(writer);
 
-    expect(bytes[0], 6, reason: 'PPUState version');
+    expect(bytes[0], 8, reason: 'PPUState version');
 
     final decoded = PPUState.deserialize(Payload.read(bytes));
 
     expectStatesEqual(decoded, original);
+  });
+
+  test('still reads version 7 payloads, which end before the OAM seed', () {
+    final original = buildState(oam2Address: 0x1b, oam2Frozen: true);
+
+    final writer = Payload.write();
+    original.serialize(writer);
+
+    final bytes = binarize(writer);
+    final legacy = Uint8List.fromList(bytes.sublist(0, bytes.length - 1))
+      ..[0] = 7;
+
+    final decoded = PPUState.deserialize(Payload.read(legacy));
+
+    expectStatesEqual(decoded, original);
+  });
+
+  test('still reads version 6 payloads, dropping the evaluation pointer', () {
+    final original = buildState();
+
+    final writer = Payload.write();
+    writeVersion6(writer, original);
+
+    final decoded = PPUState.deserialize(Payload.read(binarize(writer)));
+
+    expect(decoded.oamBuffer, original.oamBuffer);
+    expect(decoded.spriteEvalPhase, original.spriteEvalPhase);
+    expect(decoded.decay, original.decay);
+    expect(decoded.oam2Address, 0);
+    expect(decoded.oam2Frozen, isFalse);
   });
 
   test('omits the frame when asked and restores it as null', () {

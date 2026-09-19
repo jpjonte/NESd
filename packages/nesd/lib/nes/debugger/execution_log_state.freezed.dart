@@ -26,16 +26,21 @@ $ExecutionLogStateCopyWith<ExecutionLogState> get copyWith => _$ExecutionLogStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExecutionLogState&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other.lines, lines));
+  final _this = this as ExecutionLogState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExecutionLogState&&(identical(other.enabled, _this.enabled) || other.enabled == _this.enabled)&&const DeepCollectionEquality().equals(other.lines, _this.lines));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(lines));
+int get hashCode {
+  final _this = this as ExecutionLogState;
+  return Object.hash(runtimeType,_this.enabled,const DeepCollectionEquality().hash(_this.lines));
+}
 
 @override
 String toString() {
-  return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
+  final _this = this as ExecutionLogState;
+  return 'ExecutionLogState(enabled: ${_this.enabled}, lines: ${_this.lines})';
 }
 
 
@@ -224,16 +229,18 @@ _$ExecutionLogStateCopyWith<_ExecutionLogState> get copyWith => __$ExecutionLogS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExecutionLogState&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other._lines, _lines));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExecutionLogState&&(identical(other.enabled, enabled) || other.enabled == enabled)&&const DeepCollectionEquality().equals(other.lines, _lines));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(_lines));
+int get hashCode {
+    return Object.hash(runtimeType,enabled,const DeepCollectionEquality().hash(_lines));
+}
 
 @override
 String toString() {
-  return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
+    return 'ExecutionLogState(enabled: $enabled, lines: $lines)';
 }
 
 

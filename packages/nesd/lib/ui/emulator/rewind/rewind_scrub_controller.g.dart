@@ -42,7 +42,7 @@ final class RewindScrubControllerProvider
 }
 
 String _$rewindScrubControllerHash() =>
-    r'49ebc5712de36156658e2b67a8233e0b9bcb32fa';
+    r'2717a430305f73d6062be7c6f17865f8147780ee';
 
 abstract class _$RewindScrubController extends $Notifier<RewindScrubState> {
   RewindScrubState build();

@@ -42,7 +42,7 @@ final class SettingsNavigationProvider
 }
 
 String _$settingsNavigationHash() =>
-    r'6e96c084c59bf22f322ff640c4edd0b109bcb14a';
+    r'fc28139245ffb3189625f065b7b7960312de4c12';
 
 abstract class _$SettingsNavigation extends $Notifier<SettingsNavigationState> {
   SettingsNavigationState build();

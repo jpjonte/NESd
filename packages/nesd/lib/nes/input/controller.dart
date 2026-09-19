@@ -8,6 +8,9 @@ class Controller implements InputDevice {
 
   bool _strobe = false;
 
+  int _shiftBeforeWrite = 0;
+  bool _strobeBeforeWrite = false;
+
   bool turboPhase = true;
 
   int get _output => turboPhase ? _status | _turbo : _status;
@@ -25,8 +28,20 @@ class Controller implements InputDevice {
 
   @override
   void write(int address, int value) {
+    _shiftBeforeWrite = _shift;
+    _strobeBeforeWrite = _strobe;
+
     _strobe = (value & 1) == 1;
-    _shift = 0;
+
+    if (_strobe) {
+      _shift = 0;
+    }
+  }
+
+  @override
+  void revertWrite() {
+    _shift = _shiftBeforeWrite;
+    _strobe = _strobeBeforeWrite;
   }
 
   void buttonDown(NesButton button, {bool turbo = false}) {

@@ -8,21 +8,12 @@ part of 'tool_focus_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Whether the tool panel owns input instead of the game.
-///
-/// Transient: deliberately not part of the persisted `settings.openTools`.
 
 @ProviderFor(ToolFocusController)
 final toolFocusControllerProvider = ToolFocusControllerProvider._();
 
-/// Whether the tool panel owns input instead of the game.
-///
-/// Transient: deliberately not part of the persisted `settings.openTools`.
 final class ToolFocusControllerProvider
     extends $NotifierProvider<ToolFocusController, bool> {
-  /// Whether the tool panel owns input instead of the game.
-  ///
-  /// Transient: deliberately not part of the persisted `settings.openTools`.
   ToolFocusControllerProvider._()
     : super(
         from: null,
@@ -52,10 +43,6 @@ final class ToolFocusControllerProvider
 
 String _$toolFocusControllerHash() =>
     r'98010d48f53346a5d1b55cdf3685145fea41200e';
-
-/// Whether the tool panel owns input instead of the game.
-///
-/// Transient: deliberately not part of the persisted `settings.openTools`.
 
 abstract class _$ToolFocusController extends $Notifier<bool> {
   bool build();

@@ -26,16 +26,21 @@ $BinderStateCopyWith<BinderState> get copyWith => _$BinderStateCopyWithImpl<Bind
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BinderState&&(identical(other.editing, editing) || other.editing == editing)&&(identical(other.input, input) || other.input == input));
+  final _this = this as BinderState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BinderState&&(identical(other.editing, _this.editing) || other.editing == _this.editing)&&(identical(other.input, _this.input) || other.input == _this.input));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,editing,input);
+int get hashCode {
+  final _this = this as BinderState;
+  return Object.hash(runtimeType,_this.editing,_this.input);
+}
 
 @override
 String toString() {
-  return 'BinderState(editing: $editing, input: $input)';
+  final _this = this as BinderState;
+  return 'BinderState(editing: ${_this.editing}, input: ${_this.input})';
 }
 
 
@@ -230,16 +235,18 @@ _$BinderStateCopyWith<_BinderState> get copyWith => __$BinderStateCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BinderState&&(identical(other.editing, editing) || other.editing == editing)&&(identical(other.input, input) || other.input == input));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BinderState&&(identical(other.editing, editing) || other.editing == editing)&&(identical(other.input, input) || other.input == input));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,editing,input);
+int get hashCode {
+    return Object.hash(runtimeType,editing,input);
+}
 
 @override
 String toString() {
-  return 'BinderState(editing: $editing, input: $input)';
+    return 'BinderState(editing: $editing, input: $input)';
 }
 
 

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FilePickerData {
 
- FilesystemFile get directory; List<FilesystemFile> get files; bool get refreshing;
+
 /// Create a copy of FilePickerData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,21 @@ $FilePickerDataCopyWith<FilePickerData> get copyWith => _$FilePickerDataCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePickerData&&(identical(other.directory, directory) || other.directory == directory)&&const DeepCollectionEquality().equals(other.files, files)&&(identical(other.refreshing, refreshing) || other.refreshing == refreshing));
+  final _this = this as FilePickerData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilePickerData&&(identical(other.directory, _this.directory) || other.directory == _this.directory)&&const DeepCollectionEquality().equals(other.files, _this.files)&&(identical(other.refreshing, _this.refreshing) || other.refreshing == _this.refreshing));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,directory,const DeepCollectionEquality().hash(files),refreshing);
+int get hashCode {
+  final _this = this as FilePickerData;
+  return Object.hash(runtimeType,_this.directory,const DeepCollectionEquality().hash(_this.files),_this.refreshing);
+}
 
 @override
 String toString() {
-  return 'FilePickerData(directory: $directory, files: $files, refreshing: $refreshing)';
+  final _this = this as FilePickerData;
+  return 'FilePickerData(directory: ${_this.directory}, files: ${_this.files}, refreshing: ${_this.refreshing})';
 }
 
 

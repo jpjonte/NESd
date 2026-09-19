@@ -54,6 +54,7 @@ void main() {
     when(() => settings.volume).thenReturn(1.0);
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(false);
+    when(() => settings.oamCorruption).thenReturn(true);
     when(() => settings.mixer).thenReturn(mixer);
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.autoSave).thenReturn(false);

@@ -94,7 +94,6 @@ class PPU {
   final Uint8List ram = Uint8List(0x0800);
   final Uint8List oam = Uint8List(0x0100);
   final Uint8List secondaryOam = Uint8List(0x20);
-  late final Uint32List _secondaryOamWords = secondaryOam.buffer.asUint32List();
   final Uint8List palette = Uint8List(0x100);
   // Precomputed final RGB colors per palette entry
   // (greyscale + emphasis already applied)
@@ -160,6 +159,10 @@ class PPU {
 
   bool _showBackground = false;
   bool _showSprites = false;
+
+  static const _maskLatency = 3;
+
+  int _maskDelay = 0;
 
   int decay = 0;
 
@@ -247,8 +250,29 @@ class PPU {
   // Cached pattern table base for background when using 8x8 sprites.
   int _bgPatternBase = 0;
 
-  int oamAddress = 0;
   int oamBuffer = 0;
+
+  /// Secondary OAM address. It stops advancing once it has wrapped, until
+  /// dot 63, 255 or 339 of a rendered line releases it.
+  int _oam2Address = 0;
+  bool _oam2Frozen = false;
+
+  bool get oamCorruption => _oamCorruption;
+
+  set oamCorruption(bool value) {
+    _oamCorruption = value;
+
+    if (!value) {
+      oamCorruptionSeed = 0;
+    }
+  }
+
+  bool _oamCorruption = true;
+
+  int oamCorruptionSeed = 0;
+
+  int _fetchedSpriteY = 0xff;
+  int _fetchedSpriteTile = 0xff;
 
   int spriteEvalPhase = _spriteEvalDone;
 
@@ -256,7 +280,7 @@ class PPU {
   static const _spriteEvalCopy1 = 2;
   static const _spriteEvalCopy3 = 4;
   static const _spriteEvalScan0 = 5;
-  static const _spriteEvalScan3 = 8;
+  static const _spriteEvalOverflowEnd = 8;
   static const _spriteEvalDone = 9;
 
   int spriteCount = 0;
@@ -276,6 +300,15 @@ class PPU {
   /// bits 5-6 = planes 2/3 (4bpp only)
   /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
+
+  void _resetSpriteLatches() {
+    _oam2Address = 0;
+    _oam2Frozen = false;
+    _fetchedSpriteY = 0xff;
+    _fetchedSpriteTile = 0xff;
+    _maskDelay = 0;
+    oamCorruptionSeed = 0;
+  }
 
   PPUState get state => PPUState(
     PPUCTRL: PPUCTRL,
@@ -307,13 +340,15 @@ class PPU {
     patternTableHigh2Latch: patternTableHigh2Latch,
     attributeTableLatch: attributeTableLatch,
     attribute: attribute,
-    oamAddress: oamAddress,
     oamBuffer: oamBuffer,
     spriteEvalPhase: spriteEvalPhase,
     spriteCount: spriteCount,
     secondarySpriteCount: secondarySpriteCount,
     sprite0OnNextLine: sprite0OnNextLine,
     sprite0OnCurrentLine: sprite0OnCurrentLine,
+    oam2Address: _oam2Address,
+    oam2Frozen: _oam2Frozen,
+    oamCorruptionSeed: oamCorruptionSeed,
     decay: decay,
     decayRefreshedAt: decayRefreshedAt,
     spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
@@ -369,8 +404,13 @@ class PPU {
     patternTableLow2Latch = state.patternTableLow2Latch;
     patternTableHigh2Latch = state.patternTableHigh2Latch;
 
-    oamAddress = state.oamAddress;
     oamBuffer = state.oamBuffer;
+
+    _resetSpriteLatches();
+
+    _oam2Address = state.oam2Address;
+    _oam2Frozen = state.oam2Frozen;
+    oamCorruptionSeed = oamCorruption ? state.oamCorruptionSeed : 0;
     spriteEvalPhase = state.spriteEvalPhase;
     spriteCount = state.spriteCount;
     secondarySpriteCount = state.secondarySpriteCount;
@@ -453,8 +493,9 @@ class PPU {
     _bgWindow.fillRange(0, _bgWindow.length, 0);
     _bgWindowPos = 0;
 
-    oamAddress = 0;
     oamBuffer = 0;
+
+    _resetSpriteLatches();
     spriteEvalPhase = _spriteEvalDone;
 
     spriteCount = 0;
@@ -734,6 +775,10 @@ class PPU {
   void _stepIdleScanline() {}
 
   void step() {
+    if (_maskDelay != 0 && --_maskDelay == 0) {
+      _applyMaskWrite();
+    }
+
     _scanlinePhase();
 
     _updateCounters();
@@ -743,12 +788,15 @@ class PPU {
   void _stepVisibleScanline() {
     final renderingActive = _showBackground || _showSprites;
 
-    if (cycle == 328) {
-      sprite0OnCurrentLine = sprite0OnNextLine;
-      sprite0OnNextLine = false;
-    }
-
     if (renderingActive) {
+      if (oamCorruptionSeed != 0) {
+        _corruptOam();
+      }
+
+      if (cycle == 328) {
+        sprite0OnCurrentLine = sprite0OnNextLine;
+      }
+
       _evaluateSprites();
 
       // Pixel rendering at cycles 1-256
@@ -791,6 +839,10 @@ class PPU {
     final renderingActive = _showBackground || _showSprites;
 
     if (renderingActive) {
+      if (oamCorruptionSeed != 0) {
+        _corruptOam();
+      }
+
       // Fetch cycles (no pixel rendering on pre-render line)
       if (cycle >= 1 && cycle <= 256) {
         _shiftRegisters();
@@ -813,9 +865,11 @@ class PPU {
         _copyVerticalBits();
       }
 
-      if (cycle >= 257 && cycle <= 320) {
-        _fetchSpritesForBusOnly();
+      if (cycle == 328) {
+        sprite0OnCurrentLine = sprite0OnNextLine;
       }
+
+      _evaluateSprites();
     }
 
     if (renderingActive && cycle >= 257 && cycle <= 320) {
@@ -825,6 +879,11 @@ class PPU {
     // Nametable reads at cycles 337, 339 (regardless of rendering)
     if (cycle == 337 || cycle == 339) {
       readPpuMemory(_nametableAddress());
+    }
+
+    if (cycle == 0) {
+      PPUSTATUS_O = 0;
+      PPUSTATUS_S = 0;
     }
 
     // Clear status flags at cycle 1
@@ -911,6 +970,10 @@ class PPU {
   }
 
   int _readOAMDATA() {
+    if ((_showBackground || _showSprites) && scanline < 240) {
+      return _readWithDecay(_oamBusDuringRendering, 0xff);
+    }
+
     final value = oam[OAMADDR];
 
     final driven = !mapperNeedsExtendedPpuRegisters && OAMADDR & 0x3 == 2
@@ -918,6 +981,28 @@ class PPU {
         : value;
 
     return _readWithDecay(driven, 0xff);
+  }
+
+  /// While rendering, $2004 shows whatever sprite evaluation has on its bus.
+  int get _oamBusDuringRendering {
+    final dot = cycle - 1;
+
+    if (dot >= 1 && dot <= 64) {
+      return 0xff;
+    }
+
+    if (dot >= 65 && dot <= 256) {
+      return oamBuffer;
+    }
+
+    if (dot >= 257 && dot <= 320) {
+      final subcycle = dot - 257;
+      final byte = subcycle & 0x7;
+
+      return secondaryOam[(subcycle >> 3) << 2 | (byte > 3 ? 3 : byte)];
+    }
+
+    return secondaryOam[_oam2Address];
   }
 
   int _readPPUDATA({bool disableSideEffects = false}) {
@@ -932,6 +1017,10 @@ class PPU {
       // nametable byte that sits underneath the palette on the PPU bus.
       value = readPpuMemory(address, updateBusAddress: !disableSideEffects);
 
+      if (PPUMASK_Gr == 1) {
+        value &= 0x30;
+      }
+
       if (!disableSideEffects) {
         PPUDATA = _readPpuData(address & 0x2fff);
       }
@@ -940,9 +1029,7 @@ class PPU {
     }
 
     if (!disableSideEffects) {
-      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
-
-      _updateBusAddress(v & 0x3fff);
+      _incrementAfterPpuData();
     }
 
     if (disableSideEffects) {
@@ -980,9 +1067,43 @@ class PPU {
   void _writePPUMASK(int value) {
     PPUMASK = value;
 
-    _updateMaskFlags();
+    // The rendering switches reach the rest of the PPU a dot late
+    _maskDelay = _maskLatency;
 
     _rebuildPaletteLut();
+  }
+
+  void _applyMaskWrite() {
+    final wasRendering = _showBackground || _showSprites;
+
+    _updateMaskFlags();
+
+    if (wasRendering && oamCorruption && !_showBackground && !_showSprites) {
+      _seedOamCorruption();
+    }
+  }
+
+  void _seedOamCorruption() {
+    if (scanline >= 240 && scanline != _preRenderScanline) {
+      return;
+    }
+
+    final seed = cycle > 65 && cycle <= 257
+        ? (_oam2Address + 3) & 0x1c
+        : _oam2Address;
+
+    if (seed != 0) {
+      oamCorruptionSeed = seed;
+    }
+  }
+
+  void _corruptOam() {
+    final seed = oamCorruptionSeed;
+
+    oamCorruptionSeed = 0;
+
+    oam.setRange(seed << 3, (seed << 3) + 8, oam);
+    secondaryOam[seed] = secondaryOam[0];
   }
 
   void _updateMaskFlags() {
@@ -993,10 +1114,9 @@ class PPU {
   }
 
   void _writeOAMDATA(int value) {
-    if ((_showBackground || _showSprites) &&
-        scanline < 240 &&
-        cycle >= 1 &&
-        cycle <= 256) {
+    if (_isRenderingLine) {
+      OAMADDR = (OAMADDR + 4) & 0xfc;
+
       return;
     }
 
@@ -1040,7 +1160,20 @@ class PPU {
   void _writePPUDATA(int value) {
     writePpuMemory(v & 0x3fff, value);
 
-    v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
+    _incrementAfterPpuData();
+  }
+
+  bool get _isRenderingLine =>
+      (_showBackground || _showSprites) &&
+      (scanline < 240 || scanline == _preRenderScanline);
+
+  void _incrementAfterPpuData() {
+    if (_isRenderingLine) {
+      _incrementX();
+      _incrementY();
+    } else {
+      v = (v + (PPUCTRL_I == 0 ? 1 : 32)) & 0x7fff;
+    }
 
     _updateBusAddress(v & 0x3fff);
   }
@@ -1052,7 +1185,8 @@ class PPU {
     cycle++;
 
     if (scanline == _preRenderScanline && cycle == 339) {
-      _renderingAtSkipDecision = _showBackground || _showSprites;
+      // Sampled from the register itself, ahead of the mask latency
+      _renderingAtSkipDecision = PPUMASK & 0x18 != 0;
     }
 
     if (scanline == _preRenderScanline &&
@@ -1062,6 +1196,8 @@ class PPU {
       scanline = 0;
       cycle = 0;
       frames++;
+
+      _rasterizeSpriteLine(afterSkippedDot: true);
 
       _pixelBase = 0;
       _scanlinePhase = _phaseForScanline();
@@ -1096,7 +1232,7 @@ class PPU {
     for (var i = 0; i < 8; i++) {
       final from = i + slide;
 
-      _bgWindow[i] = from < 16 ? _bgWindow[from] : 0;
+      _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
     }
 
     final low = patternTableLowLatch;
@@ -1139,7 +1275,7 @@ class PPU {
     for (var i = 0; i < 16; i++) {
       final from = i + _bgWindowPos;
 
-      window[i] = from < 16 ? _bgWindow[from] : 0;
+      window[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
     }
 
     return window;
@@ -1238,11 +1374,10 @@ class PPU {
 
     final slot = _bgWindowPos + x;
 
-    // Beyond the window the hardware registers have shifted in zeros;
-    // only reachable when rendering was disabled and re-enabled
-    // between reload dots.
-    return slot < 16 ? _bgWindow[slot] : 0;
+    return slot < 16 ? _bgWindow[slot] : _bgSerialIn;
   }
+
+  int get _bgSerialIn => bgFourBpp ? 0 : (attributeTableLatch & 0x3) << 2 | 2;
 
   @pragma('vm:prefer-inline')
   int _getSpritePixelColor(int backgroundColor) {
@@ -1444,29 +1579,50 @@ class PPU {
       _fetchSprites();
     } else if (cycle == 321) {
       _rasterizeSpriteLine();
+    } else if (cycle == 339) {
+      _oam2Frozen = false;
     }
+  }
+
+  @pragma('vm:prefer-inline')
+  void _advanceOam2() {
+    if (_oam2Frozen) {
+      return;
+    }
+
+    _oam2Address = (_oam2Address + 1) & 0x1f;
+    _oam2Frozen = _oam2Address == 0;
   }
 
   @pragma('vm:prefer-inline')
   void _clearSecondaryOam() {
     // Cycles 1-64: Clear secondary OAM on odd cycles
     if (cycle.isOdd) {
-      secondaryOam[currentX >> 1] = 0xff;
+      secondaryOam[_oam2Address] = 0xff;
+
+      _advanceOam2();
+
+      if (cycle == 63) {
+        _oam2Frozen = false;
+      }
     }
   }
 
   @pragma('vm:prefer-inline')
   void _evaluateSpriteRange() {
     if (cycle == 65) {
-      oamAddress = OAMADDR;
+      sprite0OnNextLine = false;
       secondarySpriteCount = 0;
-      oamBuffer = 0;
       spriteEvalPhase = _spriteEvalY;
       _resetSpriteEvaluationRange();
     }
 
     if (cycle.isOdd) {
-      oamBuffer = oam[oamAddress & 0xff];
+      oamBuffer = _readOam(OAMADDR);
+
+      if (cycle == 255) {
+        _oam2Frozen = false;
+      }
 
       return;
     }
@@ -1476,34 +1632,61 @@ class PPU {
         _judgeSpriteY();
       case >= _spriteEvalCopy1 && <= _spriteEvalCopy3:
         _copySpriteByte();
-      case >= _spriteEvalScan0 && <= _spriteEvalScan3:
+      case _spriteEvalScan0:
         _scanForOverflow();
+      case > _spriteEvalScan0 && <= _spriteEvalOverflowEnd:
+        _finishOverflow();
+      case _spriteEvalDone:
+        _idleAfterEvaluation();
     }
   }
 
+  /// Bits 2-4 of the attribute byte do not exist in OAM.
+  @pragma('vm:prefer-inline')
+  int _readOam(int address) {
+    final value = oam[address];
+
+    if (address & 0x3 == 2 && !mapperNeedsExtendedPpuRegisters) {
+      return value & 0xe3;
+    }
+
+    return value;
+  }
+
+  /// With nothing left to copy, secondary OAM writes turn into reads of the
+  /// slot a copy would go to.
+  @pragma('vm:prefer-inline')
+  int get _idleSecondaryOam => secondaryOam[_oam2Address];
+
   void _judgeSpriteY() {
     // The Y lands in the next free slot whether it is in range or not.
-    secondaryOam[secondarySpriteCount << 2] = oamBuffer;
+    secondaryOam[_oam2Address] = oamBuffer;
 
     if (!_spriteVisibleOnScanline(oamBuffer)) {
-      _advanceToNextSprite(4);
+      OAMADDR = (OAMADDR + 4) & 0xfc;
+      spriteEvalPhase = OAMADDR == 0 ? _spriteEvalDone : _spriteEvalY;
 
       return;
     }
 
-    if (oamAddress == 0) {
+    // Whatever is evaluated first is "sprite 0", even if a $2003 write
+    // moved the start away from OAM index 0.
+    if (cycle == 66) {
       sprite0OnNextLine = true;
     }
 
-    oamAddress++;
+    _advanceOam2();
+
+    OAMADDR = (OAMADDR + 1) & 0xff;
     spriteEvalPhase = _spriteEvalCopy1;
   }
 
   void _copySpriteByte() {
-    final byte = spriteEvalPhase - _spriteEvalCopy1 + 1;
+    secondaryOam[_oam2Address] = oamBuffer;
 
-    secondaryOam[(secondarySpriteCount << 2) | byte] = oamBuffer;
-    oamAddress++;
+    _advanceOam2();
+
+    OAMADDR = (OAMADDR + 1) & 0xff;
 
     if (spriteEvalPhase < _spriteEvalCopy3) {
       spriteEvalPhase++;
@@ -1511,16 +1694,17 @@ class PPU {
       return;
     }
 
+    // The range comparison also runs on the X byte; failing it realigns a
+    // misaligned OAMADDR.
+    if (!_spriteVisibleOnScanline(oamBuffer)) {
+      OAMADDR &= 0xfc;
+    }
+
     secondarySpriteCount++;
-    _advanceToNextSprite(0);
-  }
 
-  void _advanceToNextSprite(int stride) {
-    oamAddress += stride;
-
-    if (oamAddress > 255) {
+    if (OAMADDR < 4) {
       spriteEvalPhase = _spriteEvalDone;
-    } else if (secondarySpriteCount == 8) {
+    } else if (_oam2Frozen) {
       spriteEvalPhase = _spriteEvalScan0;
     } else {
       spriteEvalPhase = _spriteEvalY;
@@ -1528,73 +1712,87 @@ class PPU {
   }
 
   void _scanForOverflow() {
-    if (_spriteVisibleOnScanline(oamBuffer)) {
+    final value = oamBuffer;
+
+    oamBuffer = _idleSecondaryOam;
+
+    if (_spriteVisibleOnScanline(value)) {
       PPUSTATUS_O = 1;
-      spriteEvalPhase = _spriteEvalDone;
+      OAMADDR = (OAMADDR + 1) & 0xff;
+      spriteEvalPhase++;
 
       return;
     }
 
-    if (spriteEvalPhase < _spriteEvalScan3) {
-      oamAddress += 5;
-      spriteEvalPhase++;
-    } else {
-      oamAddress += 1;
-      spriteEvalPhase = _spriteEvalScan0;
-    }
+    // Hardware bug: the byte index advances together with the sprite index,
+    // without carrying into it
+    final next = (OAMADDR + 4) & 0xfc;
 
-    if (oamAddress > 255) {
+    OAMADDR = next | ((OAMADDR + 1) & 0x03);
+
+    if (next == 0) {
       spriteEvalPhase = _spriteEvalDone;
     }
+  }
+
+  void _finishOverflow() {
+    oamBuffer = _idleSecondaryOam;
+    OAMADDR = (OAMADDR + 1) & 0xff;
+
+    if (spriteEvalPhase < _spriteEvalOverflowEnd) {
+      spriteEvalPhase++;
+
+      return;
+    }
+
+    OAMADDR &= 0xfc;
+    spriteEvalPhase = _spriteEvalDone;
+  }
+
+  void _idleAfterEvaluation() {
+    oamBuffer = _idleSecondaryOam;
+    OAMADDR = (OAMADDR + 4) & 0xff;
   }
 
   @pragma('vm:prefer-inline')
   void _fetchSprites() {
     // Cycles 257-320: Sprite fetch
     if (cycle == 257) {
-      spriteCount = secondarySpriteCount;
+      spriteCount = scanline == _preRenderScanline ? 8 : secondarySpriteCount;
+
+      // Only a fetch phase that starts with rendering on rewinds the address
+      if (!_oam2Frozen) {
+        _oam2Address = 0;
+      }
     }
 
     final subcycle = cycle - 257;
     final sprite = subcycle >> 3;
-    final offset = subcycle & 0x7;
-    final spriteWord = _secondaryOamWords[sprite];
-
-    switch (offset) {
-      case 0:
-        readPpuMemory(_nametableAddress());
-      case 2:
-        readPpuMemory(_attributeAddress());
-
-        _spriteOutputs[sprite].attribute = (spriteWord >> 16) & 0xff;
-      case 3:
-        _spriteOutputs[sprite].x = spriteWord >> 24;
-      case 4:
-        _loadSprite(sprite);
-    }
-  }
-
-  @pragma('vm:prefer-inline')
-  void _fetchSpritesForBusOnly() {
-    final subcycle = cycle - 257;
 
     switch (subcycle & 0x7) {
       case 0:
         readPpuMemory(_nametableAddress());
+
+        _fetchedSpriteY = secondaryOam[_oam2Address];
+        _advanceOam2();
+      case 1:
+        _fetchedSpriteTile = secondaryOam[_oam2Address];
+        _advanceOam2();
       case 2:
         readPpuMemory(_attributeAddress());
-      case 4:
-        final spriteWord = _secondaryOamWords[subcycle >> 3];
-        final tileIndex = (spriteWord >> 8) & 0xff;
-        final patternTable = PPUCTRL_H == 1 ? tileIndex & 1 : PPUCTRL_S;
-        final address = ((patternTable & 1) << 12) | (tileIndex << 4);
 
-        readPpuMemory(address);
-        readPpuMemory(address | 8);
+        _spriteOutputs[sprite].attribute = secondaryOam[_oam2Address];
+        _advanceOam2();
+      case 3:
+        _spriteOutputs[sprite].x = secondaryOam[_oam2Address];
+      case 4:
+        _loadSprite(sprite);
+      case 7:
+        _advanceOam2();
     }
   }
 
-  void _rasterizeSpriteLine() {
+  void _rasterizeSpriteLine({bool afterSkippedDot = false}) {
     _spriteLine.fillRange(0, 256, 0);
 
     final fourBpp = spriteFourBpp;
@@ -1616,7 +1814,11 @@ class PPU {
       final width = sixteenPixels ? 16 : 8;
 
       for (var xOffset = 0; xOffset < width; xOffset++) {
-        final x = spriteOutput.x + xOffset;
+        var x = spriteOutput.x + xOffset;
+
+        if (afterSkippedDot && spriteOutput.x != 0) {
+          x = xOffset == 0 ? 0 : x - 1;
+        }
 
         if (x > 255) {
           break;
@@ -1654,6 +1856,12 @@ class PPU {
   }
 
   void _resetSpriteEvaluationRange() {
+    if (scanline == _preRenderScanline) {
+      _spriteRangeMinY = 0x100;
+
+      return;
+    }
+
     final spriteHeight = PPUCTRL_H == 0 ? 8 : 16;
 
     _spriteRangeMinY = scanline - spriteHeight + 1;
@@ -1664,14 +1872,33 @@ class PPU {
   }
 
   void _loadSprite(int sprite) {
+    _loadSpritePatterns(sprite);
+
+    // The range check runs again during the fetch, with the sprite height
+    // of that moment, and a sprite failing it loads no pixels.
+    final yOffset = (scanline & 0xff) - _fetchedSpriteY;
+    final height = PPUCTRL_H == 1 ? 16 : 8;
+
+    if (yOffset >= 0 && yOffset < height) {
+      return;
+    }
+
+    _spriteOutputs[sprite]
+      ..patternLow = 0
+      ..patternHigh = 0
+      ..patternLow2 = 0
+      ..patternHigh2 = 0;
+  }
+
+  void _loadSpritePatterns(int sprite) {
     final bigSprites = PPUCTRL_H == 1;
-    final spriteWord = _secondaryOamWords[sprite];
-    final tileIndex = (spriteWord >> 8) & 0xff;
+    final tileIndex = _fetchedSpriteTile;
     final attribute = _spriteOutputs[sprite].attribute;
     final flipV = (attribute >> 7) > 0;
 
-    final y = spriteWord & 0xff;
-    final yOffset = scanline - y;
+    // The comparison only has 8 bits, so the pre-render line counts as 5
+    final yOffset =
+        ((scanline & 0xff) - _fetchedSpriteY) & (bigSprites ? 0xf : 0x7);
     final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
 
     final isBigSpriteSecondTile = yOffset < 8;

@@ -37,7 +37,6 @@ class PPUState {
     required this.patternTableLowLatch,
     required this.attributeTableLatch,
     required this.attribute,
-    required this.oamAddress,
     required this.oamBuffer,
     required this.spriteCount,
     required this.secondarySpriteCount,
@@ -54,6 +53,9 @@ class PPUState {
     this.patternTableLow2Latch = 0,
     this.patternTableHigh2Latch = 0,
     this.spriteEvalPhase = 0,
+    this.oam2Address = 0,
+    this.oam2Frozen = false,
+    this.oamCorruptionSeed = 0,
   }) : decayRefreshedAt = decayRefreshedAt ?? const [0, 0, 0, 0, 0, 0, 0, 0];
 
   factory PPUState.deserialize(PayloadReader reader) {
@@ -67,6 +69,8 @@ class PPUState {
       4 => PPUState.version4(reader),
       5 => PPUState.version5(reader),
       6 => PPUState.version6(reader),
+      7 => PPUState._version7(reader, hasOamCorruptionSeed: false),
+      8 => PPUState._version7(reader, hasOamCorruptionSeed: true),
       _ => throw InvalidSerializationVersion('PPUState', version),
     };
   }
@@ -103,8 +107,7 @@ class PPUState {
       attributeTableHighShift: reader.get(uint8),
       attributeTableLowShift: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint8),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint8),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
       sprite0OnNextLine: reader.get(boolean),
@@ -145,8 +148,7 @@ class PPUState {
       attributeTableHighShift: reader.get(uint8),
       attributeTableLowShift: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint8),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint8),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
       sprite0OnNextLine: reader.get(boolean),
@@ -187,8 +189,7 @@ class PPUState {
       attributeTableHighShift: reader.get(uint8),
       attributeTableLowShift: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint16),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint16),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
       sprite0OnNextLine: reader.get(boolean),
@@ -241,8 +242,7 @@ class PPUState {
       attributeTableHighShift: reader.get(uint8),
       attributeTableLowShift: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint16),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint16),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
       sprite0OnNextLine: reader.get(boolean),
@@ -286,8 +286,7 @@ class PPUState {
       bgWindow: reader.get(uint8List(lengthType: uint32)),
       attributeTableLatch: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint16),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint16),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
       sprite0OnNextLine: reader.get(boolean),
@@ -331,8 +330,7 @@ class PPUState {
       bgWindow: reader.get(uint8List(lengthType: uint32)),
       attributeTableLatch: reader.get(uint8),
       attribute: reader.get(uint8),
-      oamAddress: reader.get(uint16),
-      oamBuffer: reader.get(uint8),
+      oamBuffer: _oamBufferAfterLegacyPointer(reader, uint16),
       spriteEvalPhase: reader.get(uint8),
       spriteCount: reader.get(uint8),
       secondarySpriteCount: reader.get(uint8),
@@ -342,6 +340,66 @@ class PPUState {
       decay: reader.get(uint8),
       decayRefreshedAt: reader.get(uint32List()),
     );
+  }
+
+  factory PPUState._version7(
+    PayloadReader reader, {
+    required bool hasOamCorruptionSeed,
+  }) {
+    return PPUState(
+      PPUCTRL: reader.get(uint8),
+      PPUMASK: reader.get(uint8),
+      PPUSTATUS: reader.get(uint8),
+      OAMADDR: reader.get(uint8),
+      OAMDATA: reader.get(uint8),
+      PPUSCROLL: reader.get(uint8),
+      PPUDATA: reader.get(uint8),
+      v: reader.get(uint16),
+      t: reader.get(uint16),
+      x: reader.get(uint8),
+      w: reader.get(uint8),
+      ram: reader.get(uint8List(lengthType: uint32)),
+      oam: reader.get(uint8List(lengthType: uint32)),
+      secondaryOam: reader.get(uint8List(lengthType: uint32)),
+      palette: reader.get(uint8List(lengthType: uint32)),
+      frameBuffer: reader.get(uint8) == 1
+          ? FrameBuffer.deserialize(reader)
+          : null,
+      consoleCycles: reader.get(nesdUint64),
+      cycles: reader.get(nesdUint64),
+      cycle: reader.get(uint16),
+      scanline: reader.get(uint16),
+      frames: reader.get(uint32),
+      nametableLatch: reader.get(uint8),
+      patternTableHighLatch: reader.get(uint8),
+      patternTableLowLatch: reader.get(uint8),
+      patternTableHigh2Latch: reader.get(uint8),
+      patternTableLow2Latch: reader.get(uint8),
+      bgWindow: reader.get(uint8List(lengthType: uint32)),
+      attributeTableLatch: reader.get(uint8),
+      attribute: reader.get(uint8),
+      oamBuffer: reader.get(uint8),
+      spriteEvalPhase: reader.get(uint8),
+      spriteCount: reader.get(uint8),
+      secondarySpriteCount: reader.get(uint8),
+      sprite0OnNextLine: reader.get(boolean),
+      sprite0OnCurrentLine: reader.get(boolean),
+      oam2Address: reader.get(uint8),
+      oam2Frozen: reader.get(boolean),
+      spriteOutputs: SpriteOutputState.deserializeList(reader),
+      decay: reader.get(uint8),
+      decayRefreshedAt: reader.get(uint32List()),
+      oamCorruptionSeed: hasOamCorruptionSeed ? reader.get(uint8) : 0,
+    );
+  }
+
+  static int _oamBufferAfterLegacyPointer(
+    PayloadReader reader,
+    PayloadType<int> pointerType,
+  ) {
+    reader.get(pointerType);
+
+    return reader.get(uint8);
   }
 
   final int PPUCTRL;
@@ -390,13 +448,17 @@ class PPUState {
 
   final int attribute;
 
-  final int oamAddress;
   final int oamBuffer;
 
   final int spriteEvalPhase;
 
   final int spriteCount;
   final int secondarySpriteCount;
+
+  final int oam2Address;
+  final bool oam2Frozen;
+
+  final int oamCorruptionSeed;
 
   final bool sprite0OnNextLine;
   final bool sprite0OnCurrentLine;
@@ -413,7 +475,7 @@ class PPUState {
     final frame = includeFrame ? frameBuffer : null;
 
     writer
-      ..set(uint8, 6) // version
+      ..set(uint8, 8) // version
       ..set(uint8, PPUCTRL)
       ..set(uint8, PPUMASK)
       ..set(uint8, PPUSTATUS)
@@ -447,18 +509,20 @@ class PPUState {
       ..set(uint8List(lengthType: uint32), bgWindow ?? Uint8List(16))
       ..set(uint8, attributeTableLatch)
       ..set(uint8, attribute)
-      ..set(uint16, oamAddress)
       ..set(uint8, oamBuffer)
       ..set(uint8, spriteEvalPhase)
       ..set(uint8, spriteCount)
       ..set(uint8, secondarySpriteCount)
       ..set(boolean, sprite0OnNextLine)
-      ..set(boolean, sprite0OnCurrentLine);
+      ..set(boolean, sprite0OnCurrentLine)
+      ..set(uint8, oam2Address)
+      ..set(boolean, oam2Frozen);
 
     SpriteOutputState.serializeList(writer, spriteOutputs);
 
     writer
       ..set(uint8, decay)
-      ..set(uint32List(), Uint32List.fromList(decayRefreshedAt));
+      ..set(uint32List(), Uint32List.fromList(decayRefreshedAt))
+      ..set(uint8, oamCorruptionSeed);
   }
 }

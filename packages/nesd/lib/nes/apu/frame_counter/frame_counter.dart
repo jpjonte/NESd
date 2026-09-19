@@ -33,6 +33,8 @@ class FrameCounter {
   bool interrupt = false;
   bool interruptInhibit = false;
 
+  bool _interruptClearPending = false;
+
   int _quarter1 = ntscQuarter1;
   int _quarter2 = ntscQuarter2;
   int _quarter3 = ntscQuarter3;
@@ -45,6 +47,7 @@ class FrameCounter {
     fiveStep: fiveStep,
     interrupt: interrupt,
     interruptInhibit: interruptInhibit,
+    interruptClearPending: _interruptClearPending,
   );
 
   set state(FrameCounterState value) {
@@ -53,6 +56,7 @@ class FrameCounter {
     fiveStep = value.fiveStep;
     interrupt = value.interrupt;
     interruptInhibit = value.interruptInhibit;
+    _interruptClearPending = value.interruptClearPending;
   }
 
   // we don't need a getter
@@ -82,6 +86,8 @@ class FrameCounter {
 
     interrupt = false;
     interruptInhibit = false;
+
+    _interruptClearPending = false;
   }
 
   void softReset() {
@@ -102,9 +108,7 @@ class FrameCounter {
     final value = interrupt ? 1 : 0;
 
     if (!disableSideEffects) {
-      interrupt = false;
-
-      apu.bus.clearIrq(IrqSource.apuFrameCounter);
+      _interruptClearPending = true;
     }
 
     return value;
@@ -129,6 +133,13 @@ class FrameCounter {
 
   @pragma('vm:prefer-inline')
   void step() {
+    if (_interruptClearPending && apu.cycles.isOdd) {
+      _interruptClearPending = false;
+      interrupt = false;
+
+      apu.bus.clearIrq(IrqSource.apuFrameCounter);
+    }
+
     if (resetDelay > 0) {
       resetDelay--;
 
@@ -173,6 +184,11 @@ class FrameCounter {
       _clockHalfFrame();
     } else if (counter == _fourStepEnd) {
       _raiseInterrupt();
+
+      if (interruptInhibit) {
+        interrupt = false;
+      }
+
       counter = 0;
     }
   }
@@ -187,13 +203,11 @@ class FrameCounter {
   }
 
   void _raiseInterrupt() {
-    if (interruptInhibit) {
-      return;
-    }
-
     interrupt = true;
 
-    apu.bus.triggerIrq(IrqSource.apuFrameCounter);
+    if (!interruptInhibit) {
+      apu.bus.triggerIrq(IrqSource.apuFrameCounter);
+    }
   }
 
   void _clockQuarterFrame() {

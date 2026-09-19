@@ -58,7 +58,7 @@ final class CheatManagerProvider
   }
 }
 
-String _$cheatManagerHash() => r'5f331ab45511e7a3214efa3372b9d161d7bae969';
+String _$cheatManagerHash() => r'1effa51868bb3b5c70b208988b718f0b5b8884e2';
 
 final class CheatManagerFamily extends $Family
     with

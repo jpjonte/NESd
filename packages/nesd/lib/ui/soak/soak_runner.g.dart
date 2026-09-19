@@ -89,4 +89,4 @@ final class SoakRunnerProvider
   }
 }
 
-String _$soakRunnerHash() => r'c9a4d7605cd1624751aaf51768928f8dc13ccde7';
+String _$soakRunnerHash() => r'6946076e1224308ddd2e4a9bd3dac7d5b103f082';

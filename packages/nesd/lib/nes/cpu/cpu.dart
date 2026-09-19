@@ -115,6 +115,9 @@ class CPU {
 
   int _dmcDmaHaltAt = 0;
 
+  int _dmaResumeCycle = -1;
+  int _busBeforeDma = 0;
+
   final List<int> callStack = [];
 
   CPUState get state => CPUState(
@@ -176,6 +179,7 @@ class CPU {
         ? _dmcDmaWaiting
         : state.dmcDmaPhase;
     _dmcDmaHaltAt = state.dmcDmaHaltAt;
+    _dmaResumeCycle = -1;
 
     ram.setAll(0, state.ram);
 
@@ -379,6 +383,8 @@ class CPU {
     final joypad = address == 0x4016 || address == 0x4017;
     var repeated = false;
 
+    _busBeforeDma = openBus;
+
     while (runningDma) {
       _startCycle();
 
@@ -390,7 +396,13 @@ class CPU {
 
       repeated = true;
     }
+
+    _dmaResumeCycle = cycles + 1;
   }
+
+  bool get lastReadWasHalted => cycles == _dmaResumeCycle;
+
+  int get internalBus => lastReadWasHalted ? _busBeforeDma : openBus;
 
   bool _stepDma() {
     switch (_dmcDmaPhase) {
@@ -544,7 +556,7 @@ class CPU {
       read(PC); // dummy read
 
       if (wasPageCrossed(PC, address)) {
-        read(PC); // dummy read
+        read(uncarriedAddress(PC, address)); // dummy read
       } else {
         // A taken branch without page cross doesn't poll on its last cycle
         _usePreviousSample = true;

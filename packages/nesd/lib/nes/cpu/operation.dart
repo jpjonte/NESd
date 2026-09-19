@@ -50,7 +50,7 @@ final ops = [
   Operation(ORA(), absoluteX),
   Operation(ASL(), absoluteX),
   Operation(SLO(), absoluteX, unofficial: true),
-  Operation(JSR(), absolute),
+  Operation(JSR(), absoluteSubroutine),
   Operation(AND(), indexedIndirect),
   Operation(STP(), implicit, unofficial: true),
   Operation(RLA(), indexedIndirect, unofficial: true),

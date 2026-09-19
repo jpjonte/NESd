@@ -8,17 +8,13 @@ part of 'palette_import_button.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The dialog that picks a `.pal` file; tests override it with a fake.
 
 @ProviderFor(palettePicker)
 final palettePickerProvider = PalettePickerProvider._();
 
-/// The dialog that picks a `.pal` file; tests override it with a fake.
-
 final class PalettePickerProvider
     extends $FunctionalProvider<PickFile, PickFile, PickFile>
     with $Provider<PickFile> {
-  /// The dialog that picks a `.pal` file; tests override it with a fake.
   PalettePickerProvider._()
     : super(
         from: null,

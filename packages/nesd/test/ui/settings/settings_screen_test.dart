@@ -3,6 +3,7 @@ import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
 import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
+import 'package:nesd/ui/settings/general/oam_corruption_switch.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
@@ -19,6 +20,18 @@ void main() {
     r.settingsScreen.expectSettingsScreenFound();
     r.settingsScreen.expectCategoriesListed();
     r.settingsScreen.expectCategoryShown(SettingsCategory.general);
+  });
+
+  testWidgets('General category toggles OAM corruption', (tester) async {
+    final r = Robot(tester);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButton();
+
+    await r.expectSwitch(
+      find.byType(OamCorruptionSwitch),
+      getValue: () => r.settings.oamCorruption,
+    );
   });
 
   testWidgets('About dialog can be opened from the settings navigation', (

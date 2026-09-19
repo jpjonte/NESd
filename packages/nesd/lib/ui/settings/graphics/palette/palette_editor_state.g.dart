@@ -41,7 +41,7 @@ final class PaletteEditorProvider
   }
 }
 
-String _$paletteEditorHash() => r'c489bfb82c05ac841fc87bb241c84018a419006a';
+String _$paletteEditorHash() => r'80e94c93e62ce5cfe4be28d2e97274a4b8218a60';
 
 abstract class _$PaletteEditor extends $Notifier<PaletteEditorState?> {
   PaletteEditorState? build();

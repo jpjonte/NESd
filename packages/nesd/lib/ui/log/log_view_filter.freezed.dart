@@ -26,16 +26,21 @@ $LogViewFilterStateCopyWith<LogViewFilterState> get copyWith => _$LogViewFilterS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogViewFilterState&&const DeepCollectionEquality().equals(other.channels, channels)&&(identical(other.level, level) || other.level == level)&&(identical(other.search, search) || other.search == search));
+  final _this = this as LogViewFilterState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LogViewFilterState&&const DeepCollectionEquality().equals(other.channels, _this.channels)&&(identical(other.level, _this.level) || other.level == _this.level)&&(identical(other.search, _this.search) || other.search == _this.search));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(channels),level,search);
+int get hashCode {
+  final _this = this as LogViewFilterState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.channels),_this.level,_this.search);
+}
 
 @override
 String toString() {
-  return 'LogViewFilterState(channels: $channels, level: $level, search: $search)';
+  final _this = this as LogViewFilterState;
+  return 'LogViewFilterState(channels: ${_this.channels}, level: ${_this.level}, search: ${_this.search})';
 }
 
 
@@ -226,16 +231,18 @@ _$LogViewFilterStateCopyWith<_LogViewFilterState> get copyWith => __$LogViewFilt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogViewFilterState&&const DeepCollectionEquality().equals(other._channels, _channels)&&(identical(other.level, level) || other.level == level)&&(identical(other.search, search) || other.search == search));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LogViewFilterState&&const DeepCollectionEquality().equals(other.channels, _channels)&&(identical(other.level, level) || other.level == level)&&(identical(other.search, search) || other.search == search));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_channels),level,search);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_channels),level,search);
+}
 
 @override
 String toString() {
-  return 'LogViewFilterState(channels: $channels, level: $level, search: $search)';
+    return 'LogViewFilterState(channels: $channels, level: $level, search: $search)';
 }
 
 

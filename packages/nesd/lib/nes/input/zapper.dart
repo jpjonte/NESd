@@ -58,6 +58,9 @@ class Zapper implements InputDevice {
   @override
   void write(int address, int value) {}
 
+  @override
+  void revertWrite() {}
+
   int _calculateLightValue() {
     if (position case final position?) {
       final centerX = position.dx.floor();

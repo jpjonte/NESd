@@ -44,6 +44,8 @@ class Bus {
 
   final CheatEngine cheatEngine = CheatEngine();
 
+  int _strobeOffCycleWrite = -2;
+
   int cpuRead(int address, {bool disableSideEffects = false}) {
     if (address == addressA) {
       return cpu.A;
@@ -51,7 +53,7 @@ class Bus {
 
     final value = _cpuRead(address & 0xffff, disableSideEffects);
 
-    if (!disableSideEffects) {
+    if (!disableSideEffects && address != 0x4015) {
       cpu.openBus = value;
     }
 
@@ -83,7 +85,12 @@ class Bus {
     }
 
     if (address == 0x4015) {
-      return apu.readRegister(address, disableSideEffects: disableSideEffects);
+      final status = apu.readRegister(
+        address,
+        disableSideEffects: disableSideEffects,
+      );
+
+      return status | (cpu.internalBus & 0x20);
     }
 
     if (address == 0x4016) {
@@ -95,6 +102,20 @@ class Bus {
     }
 
     return cpu.openBus;
+  }
+
+  void _writeStrobe(int value) {
+    final superseded = cpu.cycles == _strobeOffCycleWrite + 1;
+
+    _strobeOffCycleWrite = cpu.cycles.isOdd ? cpu.cycles : -2;
+
+    for (final input in _inputs) {
+      if (superseded) {
+        input.revertWrite();
+      }
+
+      input.write(0x4016, value);
+    }
   }
 
   @pragma('vm:prefer-inline')
@@ -153,8 +174,7 @@ class Bus {
     }
 
     if (address == 0x4016) {
-      _inputs[0].write(address, value);
-      _inputs[1].write(address, value);
+      _writeStrobe(value);
 
       return;
     }

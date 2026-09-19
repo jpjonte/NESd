@@ -48,4 +48,4 @@ final class NesPaletteProvider
   }
 }
 
-String _$nesPaletteHash() => r'4f6430eb7ec3e38722421acdd34c8ab43f60a225';
+String _$nesPaletteHash() => r'0917761b29bb2eae3d491808760e120bb0d3755f';

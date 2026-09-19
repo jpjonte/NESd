@@ -8,18 +8,12 @@ part of 'input_method.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Tracks the input method used most recently anywhere in the app: any key
-/// press, mouse click or scroll, gamepad press, or touch switches it.
 
 @ProviderFor(RecentInputMethod)
 final recentInputMethodProvider = RecentInputMethodProvider._();
 
-/// Tracks the input method used most recently anywhere in the app: any key
-/// press, mouse click or scroll, gamepad press, or touch switches it.
 final class RecentInputMethodProvider
     extends $NotifierProvider<RecentInputMethod, RecentInput> {
-  /// Tracks the input method used most recently anywhere in the app: any key
-  /// press, mouse click or scroll, gamepad press, or touch switches it.
   RecentInputMethodProvider._()
     : super(
         from: null,
@@ -48,9 +42,6 @@ final class RecentInputMethodProvider
 }
 
 String _$recentInputMethodHash() => r'4cf0a39ee8619501a754f49f42b899f134310d99';
-
-/// Tracks the input method used most recently anywhere in the app: any key
-/// press, mouse click or scroll, gamepad press, or touch switches it.
 
 abstract class _$RecentInputMethod extends $Notifier<RecentInput> {
   RecentInput build();

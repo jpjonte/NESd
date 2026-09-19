@@ -60,16 +60,21 @@ $TouchInputConfigCopyWith<TouchInputConfig> get copyWith => _$TouchInputConfigCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TouchInputConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType));
+  final _this = this as TouchInputConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TouchInputConfig&&(identical(other.x, _this.x) || other.x == _this.x)&&(identical(other.y, _this.y) || other.y == _this.y)&&(identical(other.bindingType, _this.bindingType) || other.bindingType == _this.bindingType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,x,y,bindingType);
+int get hashCode {
+  final _this = this as TouchInputConfig;
+  return Object.hash(runtimeType,_this.x,_this.y,_this.bindingType);
+}
 
 @override
 String toString() {
-  return 'TouchInputConfig(x: $x, y: $y, bindingType: $bindingType)';
+  final _this = this as TouchInputConfig;
+  return 'TouchInputConfig(x: ${_this.x}, y: ${_this.y}, bindingType: ${_this.bindingType})';
 }
 
 
@@ -283,16 +288,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RectangleButtonConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.action, action) || other.action == action)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.label, label) || other.label == label));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is RectangleButtonConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.action, action) || other.action == action)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,x,y,bindingType,action,width,height,label);
+int get hashCode {
+    return Object.hash(runtimeType,x,y,bindingType,action,width,height,label);
+}
 
 @override
 String toString() {
-  return 'TouchInputConfig.rectangleButton(x: $x, y: $y, bindingType: $bindingType, action: $action, width: $width, height: $height, label: $label)';
+    return 'TouchInputConfig.rectangleButton(x: $x, y: $y, bindingType: $bindingType, action: $action, width: $width, height: $height, label: $label)';
 }
 
 
@@ -367,16 +374,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CircleButtonConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.action, action) || other.action == action)&&(identical(other.size, size) || other.size == size)&&(identical(other.label, label) || other.label == label));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CircleButtonConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.action, action) || other.action == action)&&(identical(other.size, size) || other.size == size)&&(identical(other.label, label) || other.label == label));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,x,y,bindingType,action,size,label);
+int get hashCode {
+    return Object.hash(runtimeType,x,y,bindingType,action,size,label);
+}
 
 @override
 String toString() {
-  return 'TouchInputConfig.circleButton(x: $x, y: $y, bindingType: $bindingType, action: $action, size: $size, label: $label)';
+    return 'TouchInputConfig.circleButton(x: $x, y: $y, bindingType: $bindingType, action: $action, size: $size, label: $label)';
 }
 
 
@@ -454,16 +463,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JoyStickConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.upAction, upAction) || other.upAction == upAction)&&(identical(other.downAction, downAction) || other.downAction == downAction)&&(identical(other.leftAction, leftAction) || other.leftAction == leftAction)&&(identical(other.rightAction, rightAction) || other.rightAction == rightAction)&&(identical(other.size, size) || other.size == size)&&(identical(other.innerSize, innerSize) || other.innerSize == innerSize)&&(identical(other.deadZone, deadZone) || other.deadZone == deadZone));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is JoyStickConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.upAction, upAction) || other.upAction == upAction)&&(identical(other.downAction, downAction) || other.downAction == downAction)&&(identical(other.leftAction, leftAction) || other.leftAction == leftAction)&&(identical(other.rightAction, rightAction) || other.rightAction == rightAction)&&(identical(other.size, size) || other.size == size)&&(identical(other.innerSize, innerSize) || other.innerSize == innerSize)&&(identical(other.deadZone, deadZone) || other.deadZone == deadZone));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,x,y,bindingType,upAction,downAction,leftAction,rightAction,size,innerSize,deadZone);
+int get hashCode {
+    return Object.hash(runtimeType,x,y,bindingType,upAction,downAction,leftAction,rightAction,size,innerSize,deadZone);
+}
 
 @override
 String toString() {
-  return 'TouchInputConfig.joyStick(x: $x, y: $y, bindingType: $bindingType, upAction: $upAction, downAction: $downAction, leftAction: $leftAction, rightAction: $rightAction, size: $size, innerSize: $innerSize, deadZone: $deadZone)';
+    return 'TouchInputConfig.joyStick(x: $x, y: $y, bindingType: $bindingType, upAction: $upAction, downAction: $downAction, leftAction: $leftAction, rightAction: $rightAction, size: $size, innerSize: $innerSize, deadZone: $deadZone)';
 }
 
 
@@ -544,16 +555,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DPadConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.upAction, upAction) || other.upAction == upAction)&&(identical(other.downAction, downAction) || other.downAction == downAction)&&(identical(other.leftAction, leftAction) || other.leftAction == leftAction)&&(identical(other.rightAction, rightAction) || other.rightAction == rightAction)&&(identical(other.size, size) || other.size == size)&&(identical(other.deadZone, deadZone) || other.deadZone == deadZone));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DPadConfig&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.bindingType, bindingType) || other.bindingType == bindingType)&&(identical(other.upAction, upAction) || other.upAction == upAction)&&(identical(other.downAction, downAction) || other.downAction == downAction)&&(identical(other.leftAction, leftAction) || other.leftAction == leftAction)&&(identical(other.rightAction, rightAction) || other.rightAction == rightAction)&&(identical(other.size, size) || other.size == size)&&(identical(other.deadZone, deadZone) || other.deadZone == deadZone));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,x,y,bindingType,upAction,downAction,leftAction,rightAction,size,deadZone);
+int get hashCode {
+    return Object.hash(runtimeType,x,y,bindingType,upAction,downAction,leftAction,rightAction,size,deadZone);
+}
 
 @override
 String toString() {
-  return 'TouchInputConfig.dPad(x: $x, y: $y, bindingType: $bindingType, upAction: $upAction, downAction: $downAction, leftAction: $leftAction, rightAction: $rightAction, size: $size, deadZone: $deadZone)';
+    return 'TouchInputConfig.dPad(x: $x, y: $y, bindingType: $bindingType, upAction: $upAction, downAction: $downAction, leftAction: $leftAction, rightAction: $rightAction, size: $size, deadZone: $deadZone)';
 }
 
 
