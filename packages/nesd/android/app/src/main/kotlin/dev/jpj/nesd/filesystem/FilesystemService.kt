@@ -1,11 +1,16 @@
 package dev.jpj.nesd.filesystem
 
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.provider.DocumentsContractCompat
 
 class FilesystemService(private val contentResolver: ContentResolver) {
@@ -115,6 +120,50 @@ class FilesystemService(private val contentResolver: ContentResolver) {
     } finally {
       cursor?.close()
     }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.Q)
+  fun savePicture(name: String, directory: String, bytes: ByteArray): String {
+    val collection =
+      MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+    val values = ContentValues().apply {
+      put(MediaStore.Images.Media.DISPLAY_NAME, name)
+      put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+      put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/$directory")
+      put(MediaStore.Images.Media.IS_PENDING, 1)
+    }
+
+    val uri = contentResolver.insert(collection, values)
+      ?: throw IllegalStateException("MediaStore insert failed")
+
+    try {
+      val outputStream = contentResolver.openOutputStream(uri)
+        ?: throw IllegalStateException("Cannot open $uri for writing")
+
+      outputStream.use { it.write(bytes) }
+    } catch (e: Exception) {
+      contentResolver.delete(uri, null, null)
+
+      throw e
+    }
+
+    values.clear()
+    values.put(MediaStore.Images.Media.IS_PENDING, 0)
+    contentResolver.update(uri, values, null, null)
+
+    return getDisplayName(uri) ?: name
+  }
+
+  private fun getDisplayName(uri: Uri): String? {
+    contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DISPLAY_NAME), null, null, null)
+      .use { cursor ->
+        if (cursor == null || !cursor.moveToFirst()) {
+          return null
+        }
+
+        return cursor.getString(0)
+      }
   }
 
   fun persistPermission(uri: Uri) {
