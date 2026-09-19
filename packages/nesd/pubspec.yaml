@@ -25,7 +25,7 @@ dependencies:
   flutter_material_design_icons: ^3.1.0+7447
   flutter_riverpod: ^3.4.3
   freezed_annotation: ^3.1.0
-  gamepads: ^0.1.11
+  gamepads: ^0.1.12
   hooks_riverpod: ^3.4.3
   idb_shim: ^2.9.9
   image: ^4.10.1

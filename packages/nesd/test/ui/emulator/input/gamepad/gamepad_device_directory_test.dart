@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_directory.dart';
@@ -8,6 +9,8 @@ import 'package:nesd/ui/emulator/input/gamepad/gamepad_input_mapper.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_slot_registry.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const dualSense = GamepadDeviceKey(
     name: 'Sony DualSense',
     vendorId: 1356,
@@ -186,5 +189,45 @@ void main() {
 
     expect(registry.slotOf('0'), 0);
     expect(calls, 1);
+  });
+
+  group('the default lookup', () {
+    const channel = MethodChannel('xyz.luan/gamepads');
+
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+    void listGamepads(List<Map<String, Object>> gamepads) =>
+        messenger.setMockMethodCallHandler(
+          channel,
+          (call) async => call.method == 'listGamepads' ? gamepads : null,
+        );
+
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    test('carries the ids the platform reports', () async {
+      listGamepads([
+        {
+          'id': '0',
+          'name': 'Sony DualSense',
+          'vendorId': 1356,
+          'productId': 3302,
+        },
+      ]);
+
+      expect(await defaultGamepadDeviceLookup(), {'0': dualSense});
+    });
+
+    test('leaves the ids null where the platform has none', () async {
+      listGamepads([
+        {'id': '0', 'name': 'Sony Interactive Entertainment - DualSense'},
+      ]);
+
+      expect(await defaultGamepadDeviceLookup(), {
+        '0': const GamepadDeviceKey(
+          name: 'Sony Interactive Entertainment - DualSense',
+        ),
+      });
+    });
   });
 }

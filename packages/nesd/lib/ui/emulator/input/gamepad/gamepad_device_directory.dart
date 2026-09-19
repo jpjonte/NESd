@@ -18,7 +18,11 @@ Future<Map<String, GamepadDeviceKey>> defaultGamepadDeviceLookup() async {
 
   final devices = {
     for (final controller in controllers)
-      controller.id: GamepadDeviceKey(name: controller.name),
+      controller.id: GamepadDeviceKey(
+        name: controller.name,
+        vendorId: controller.vendorId,
+        productId: controller.productId,
+      ),
   };
 
   for (final controller in controllers) {
