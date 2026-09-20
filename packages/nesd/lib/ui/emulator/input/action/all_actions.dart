@@ -73,6 +73,7 @@ const saveStateActions = [
   loadState8,
   saveState9,
   loadState9,
+  undoLoadState,
 ];
 
 const toolActions = [

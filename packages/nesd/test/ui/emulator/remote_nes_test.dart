@@ -170,6 +170,7 @@ void main() {
           fastForward: true,
           rewind: true,
           scrubbing: false,
+          canUndoLoadState: false,
         ),
       );
 
@@ -179,6 +180,44 @@ void main() {
       expect(remote.paused, isTrue);
       expect(remote.fastForward, isTrue);
       expect(remote.rewind, isTrue);
+
+      remote.dispose();
+    });
+
+    test('canUndoLoadState mirrors the worker status', () async {
+      final remote = build();
+
+      expect(remote.canUndoLoadState, isFalse);
+
+      handle.emit(
+        const StatusEvent(
+          running: true,
+          paused: false,
+          fastForward: false,
+          rewind: false,
+          scrubbing: false,
+          canUndoLoadState: true,
+        ),
+      );
+
+      await pumpEventQueue();
+
+      expect(remote.canUndoLoadState, isTrue);
+
+      handle.emit(
+        const StatusEvent(
+          running: true,
+          paused: false,
+          fastForward: false,
+          rewind: false,
+          scrubbing: false,
+          canUndoLoadState: false,
+        ),
+      );
+
+      await pumpEventQueue();
+
+      expect(remote.canUndoLoadState, isFalse);
 
       remote.dispose();
     });
@@ -467,6 +506,7 @@ void main() {
         ..zapperPull()
         ..zapperRelease()
         ..loadState(Uint8List.fromList([1]))
+        ..undoLoadState()
         ..loadSram(Uint8List.fromList([2]));
 
       expect(remote.zapperPosition.value, const Offset(1, 2));
@@ -503,6 +543,7 @@ void main() {
         isA<ZapperPullCommand>(),
         isA<ZapperReleaseCommand>(),
         isA<LoadStateCommand>(),
+        isA<UndoLoadStateCommand>(),
         isA<LoadSramCommand>(),
       ]);
 
@@ -674,6 +715,7 @@ void main() {
           fastForward: false,
           rewind: false,
           scrubbing: true,
+          canUndoLoadState: false,
         ),
       );
 
@@ -719,6 +761,7 @@ void main() {
             fastForward: false,
             rewind: false,
             scrubbing: false,
+            canUndoLoadState: false,
           ),
         );
 

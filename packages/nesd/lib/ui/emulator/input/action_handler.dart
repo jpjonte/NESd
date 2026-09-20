@@ -359,6 +359,8 @@ class ActionHandler {
         _saveState(action.slot);
       case LoadState():
         _loadState(action.slot);
+      case UndoLoadState():
+        nesController.undoLoadState();
       case ScreenshotAction():
         unawaited(screenshotController.takeScreenshot());
       case FastForward():
@@ -506,6 +508,7 @@ bool isInGameAction(InputAction action) => switch (action) {
   ControllerPress() ||
   SaveState() ||
   LoadState() ||
+  UndoLoadState() ||
   FastForward() ||
   Rewind() ||
   RewindTimelineAction() ||

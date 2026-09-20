@@ -186,6 +186,26 @@ void main() {
     );
   }
 
+  Future<Uint8List> saveState({required int requestId}) async {
+    await worker.handleCommand(SaveStateRequest(requestId: requestId));
+
+    final response = await waitForWhere<SaveStateResponse>(
+      (e) => e.requestId == requestId,
+    );
+
+    return response.state!.materialize().asUint8List();
+  }
+
+  Future<Uint8List> readSram({required int requestId}) async {
+    await worker.handleCommand(SaveSramRequest(requestId: requestId));
+
+    final response = await waitForWhere<SramResponse>(
+      (e) => e.requestId == requestId,
+    );
+
+    return response.sram!.materialize().asUint8List();
+  }
+
   test('LoadRomCommand emits RomLoadedEvent and then FrameEvents', () async {
     await worker.handleCommand(_loadRomCommand());
 
@@ -1079,5 +1099,205 @@ void main() {
 
     expect(worker.nesForTesting, same(nes));
     expect(nes.scrubbing, isFalse);
+  });
+
+  group('undo load state', () {
+    Future<void> loadBatteryRomWithSram(int fill) async {
+      await worker.handleCommand(
+        _batteryRomCommand(sram: Uint8List(0x2000)..fillRange(0, 0x2000, fill)),
+      );
+
+      await waitFor<RomLoadedEvent>();
+    }
+
+    test('is unavailable until a state is loaded', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isFalse);
+
+      await worker.handleCommand(const UndoLoadStateCommand());
+
+      expect(await readSram(requestId: 1), everyElement(0xaa));
+    });
+
+    test('restores the position the load replaced', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadSramCommand(
+          sram: NesBytes.fromList([
+            Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+          ]),
+        ),
+      );
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      expect(await readSram(requestId: 2), everyElement(0xaa));
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isTrue);
+
+      await worker.handleCommand(const UndoLoadStateCommand());
+
+      expect(await readSram(requestId: 3), everyElement(0x55));
+    });
+
+    test('a second undo swaps back to the loaded position', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadSramCommand(
+          sram: NesBytes.fromList([
+            Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+          ]),
+        ),
+      );
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      await worker.handleCommand(const UndoLoadStateCommand());
+      await worker.handleCommand(const UndoLoadStateCommand());
+
+      expect(await readSram(requestId: 2), everyElement(0xaa));
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isTrue);
+    });
+
+    test(
+      'a state that clobbers the console part-way is still undoable',
+      () async {
+        await loadBatteryRomWithSram(0xaa);
+
+        final nromState = await saveState(requestId: 1);
+
+        await worker.handleCommand(
+          _batteryRomCommand(
+            mapper: 1,
+            sram: Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+          ),
+        );
+
+        await waitForCount<RomLoadedEvent>(2);
+
+        await worker.handleCommand(
+          LoadStateCommand(state: NesBytes.fromList([nromState])),
+        );
+
+        await waitForWhere<ErrorEvent>(
+          (e) => e.message.startsWith('Failed to load state'),
+        );
+
+        expect(events.whereType<StatusEvent>().last.canUndoLoadState, isTrue);
+
+        await worker.handleCommand(const UndoLoadStateCommand());
+
+        expect(await readSram(requestId: 2), everyElement(0x55));
+      },
+    );
+
+    test('an unparsable state leaves the existing snapshot alone', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadSramCommand(
+          sram: NesBytes.fromList([
+            Uint8List(0x2000)..fillRange(0, 0x2000, 0x55),
+          ]),
+        ),
+      );
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      await worker.handleCommand(
+        LoadStateCommand(
+          state: NesBytes.fromList([
+            Uint8List.fromList([1, 2, 3, 4, 5]),
+          ]),
+        ),
+      );
+
+      await waitFor<ErrorEvent>();
+
+      await worker.handleCommand(const UndoLoadStateCommand());
+
+      expect(await readSram(requestId: 2), everyElement(0x55));
+    });
+
+    test('ResetCommand drops the snapshot', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isTrue);
+
+      await worker.handleCommand(const ResetCommand());
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isFalse);
+    });
+
+    test('loading another ROM drops the snapshot', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isTrue);
+
+      await worker.handleCommand(_loadRomCommand());
+      await waitForCount<RomLoadedEvent>(2);
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isFalse);
+    });
+
+    test('StopCommand drops the snapshot', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      await worker.handleCommand(const StopCommand());
+      await waitFor<StoppedEvent>();
+
+      expect(worker.hasUndoLoadStateForTesting, isFalse);
+    });
+
+    test(
+      'LoadStateCommand ends an open scrub session before snapshotting',
+      () async {
+        await loadWithHistory();
+
+        final state = await saveState(requestId: 20);
+
+        await beginScrub(requestId: 21);
+
+        await worker.handleCommand(
+          LoadStateCommand(state: NesBytes.fromList([state])),
+        );
+
+        await worker.handleCommand(const UndoLoadStateCommand());
+
+        expect(worker.nesForTesting!.scrubbing, isFalse);
+      },
+    );
   });
 }

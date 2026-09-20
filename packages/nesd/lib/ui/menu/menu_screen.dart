@@ -24,6 +24,7 @@ import 'package:nesd/ui/settings/settings.dart';
 class MenuScreen extends ConsumerWidget {
   static const resumeKey = Key('resume');
   static const saveStatesKey = Key('saveStates');
+  static const undoLoadStateKey = Key('undoLoadState');
   static const rewindTimelineKey = Key('rewindTimeline');
   static const resetGameKey = Key('resetGame');
   static const quitGameKey = Key('quitGame');
@@ -38,6 +39,9 @@ class MenuScreen extends ConsumerWidget {
     final rewindOn = ref.watch(
       settingsControllerProvider.select((settings) => settings.rewind),
     );
+
+    final canUndoLoadState =
+        ref.read(nesStateProvider)?.canUndoLoadState ?? false;
 
     return NesdScaffold(
       backgroundColor: Colors.black.withAlpha(200),
@@ -89,6 +93,21 @@ class MenuScreen extends ConsumerWidget {
                     child: const Text('Save States'),
                   ),
                 ),
+                if (canUndoLoadState) ...[
+                  const NesdVerticalDivider(),
+                  Center(
+                    child: NesdButton(
+                      key: undoLoadStateKey,
+                      onPressed: () {
+                        ref.read(nesControllerProvider).undoLoadState();
+                        ref
+                            .read(routerProvider)
+                            .navigate(const EmulatorRoute());
+                      },
+                      child: const Text('Undo Load State'),
+                    ),
+                  ),
+                ],
                 if (Features.rewind && rewindOn) ...[
                   const NesdVerticalDivider(),
                   Center(

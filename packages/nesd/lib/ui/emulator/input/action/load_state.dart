@@ -29,3 +29,12 @@ const loadState7 = LoadState(7, title: 'Load State 7', code: 'loadState7.load');
 const loadState8 = LoadState(8, title: 'Load State 8', code: 'loadState8.load');
 
 const loadState9 = LoadState(9, title: 'Load State 9', code: 'loadState9.load');
+
+class UndoLoadState extends InputAction {
+  const UndoLoadState({required super.title, required super.code});
+}
+
+const undoLoadState = UndoLoadState(
+  title: 'Undo Load State',
+  code: 'loadState.undo',
+);

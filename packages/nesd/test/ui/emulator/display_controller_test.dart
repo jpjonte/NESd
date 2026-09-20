@@ -110,6 +110,7 @@ StatusEvent _status({required bool running}) => StatusEvent(
   fastForward: false,
   rewind: false,
   scrubbing: false,
+  canUndoLoadState: false,
 );
 
 void main() {
