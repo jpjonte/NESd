@@ -83,6 +83,7 @@ class StatusEvent extends NesIsolateEvent {
     required this.fastForward,
     required this.rewind,
     required this.scrubbing,
+    required this.canUndoLoadState,
   });
 
   final bool running;
@@ -90,6 +91,8 @@ class StatusEvent extends NesIsolateEvent {
   final bool fastForward;
   final bool rewind;
   final bool scrubbing;
+
+  final bool canUndoLoadState;
 }
 
 class RewindScrubBeganResponse extends NesIsolateEvent {

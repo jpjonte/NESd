@@ -66,6 +66,7 @@ class RemoteNes {
   bool _fastForward = false;
   bool _rewind = false;
   bool _scrubbing = false;
+  bool _canUndoLoadState = false;
 
   bool get running => _running;
 
@@ -76,6 +77,8 @@ class RemoteNes {
   bool get rewind => _rewind;
 
   bool get scrubbing => _scrubbing;
+
+  bool get canUndoLoadState => _canUndoLoadState;
 
   /// Forwards a hold-mode fast-forward change to the worker. The mirror is
   /// updated optimistically so an immediate read reflects the request; the
@@ -253,6 +256,8 @@ class RemoteNes {
   void loadState(Uint8List bytes) =>
       _send(LoadStateCommand(state: NesBytes.fromList([bytes])));
 
+  void undoLoadState() => _send(const UndoLoadStateCommand());
+
   void loadSram(Uint8List bytes) =>
       _send(LoadSramCommand(sram: NesBytes.fromList([bytes])));
 
@@ -389,6 +394,7 @@ class RemoteNes {
         _fastForward = event.fastForward;
         _rewind = event.rewind;
         _scrubbing = event.scrubbing;
+        _canUndoLoadState = event.canUndoLoadState;
       case RewindScrubPositionEvent():
         _scrubSettled = event.settled;
       case FrameEvent():

@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Color Dreams (mapper 11) support
 - The web version can be installed to the home screen with offline support
 - Screenshot action (F12 by default) that saves the current frame 
-- OAM corruption: sprites glitch like on real hardware, can be turned off under Settings > General > Emulation
+- Undo Load State
+- OAM corruption: sprites glitch like on real hardware
 
 ### Fixed
 - Fixed minor bugs in multiple CPU instructions

@@ -293,6 +293,10 @@ class LoadStateCommand extends NesCommand {
   final NesBytes state;
 }
 
+class UndoLoadStateCommand extends NesCommand {
+  const UndoLoadStateCommand();
+}
+
 class SaveSramRequest extends NesCommand {
   const SaveSramRequest({required this.requestId});
 

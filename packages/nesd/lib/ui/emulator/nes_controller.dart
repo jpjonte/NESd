@@ -765,6 +765,20 @@ class NesController {
     }
   }
 
+  void undoLoadState() {
+    if (nes case final nes?) {
+      if (!nes.canUndoLoadState) {
+        toaster.send(Toast.warning('Nothing to undo'));
+
+        return;
+      }
+
+      nes.undoLoadState();
+
+      toaster.send(Toast.info('Load state undone'));
+    }
+  }
+
   void dispose() {
     _autoSaveTimer?.cancel();
 

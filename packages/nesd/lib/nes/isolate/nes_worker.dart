@@ -58,6 +58,7 @@ typedef _WorkerStatus = ({
   bool fastForward,
   bool rewind,
   bool scrubbing,
+  bool canUndoLoadState,
 });
 
 /// Plain, non-isolate command handler for the NES emulator core.
@@ -125,6 +126,7 @@ class NesWorker {
       case ResetCommand():
         _nes?.softReset();
         _audioOutput?.reset();
+        _undoLoadState = null;
         _sendStatus();
       case PauseCommand():
         _nes?.pause();
@@ -231,6 +233,8 @@ class NesWorker {
         _handleSaveState(command.requestId);
       case LoadStateCommand():
         _handleLoadState(command.state);
+      case UndoLoadStateCommand():
+        _handleUndoLoadState();
       case SaveSramRequest():
         _handleSaveSram(command.requestId);
       case LoadSramCommand():
@@ -272,6 +276,8 @@ class NesWorker {
 
   Future<void> _loadRom(LoadRomCommand command) async {
     _cancelScrubSession();
+
+    _undoLoadState = null;
 
     await _stopNesLoop();
 
@@ -444,6 +450,8 @@ class NesWorker {
   Future<void> _stop() async {
     _cancelScrubSession();
 
+    _undoLoadState = null;
+
     await _stopNesLoop();
 
     _debugger?.dispose();
@@ -559,6 +567,7 @@ class NesWorker {
       fastForward: nes?.fastForward ?? false,
       rewind: nes?.rewind ?? false,
       scrubbing: nes?.scrubbing ?? false,
+      canUndoLoadState: _undoLoadState != null,
     );
   }
 
@@ -574,6 +583,7 @@ class NesWorker {
         fastForward: status.fastForward,
         rewind: status.rewind,
         scrubbing: status.scrubbing,
+        canUndoLoadState: status.canUndoLoadState,
       ),
     );
   }
@@ -707,6 +717,11 @@ class NesWorker {
     );
   }
 
+  Uint8List? _undoLoadState;
+
+  @visibleForTesting
+  bool get hasUndoLoadStateForTesting => _undoLoadState != null;
+
   void _handleLoadState(NesBytes state) {
     final nes = _nes;
 
@@ -716,10 +731,15 @@ class NesWorker {
 
     _cancelScrubSession();
 
+    final previous = nes.state?.serialize();
+
     try {
       final bytes = state.materialize().asUint8List();
+      final loaded = NESState.fromBytes(bytes);
 
-      nes.state = NESState.fromBytes(bytes);
+      _undoLoadState = previous;
+
+      nes.state = loaded;
 
       log.emulator.info('State loaded', context: {'bytes': bytes.length});
     } on Object catch (e) {
@@ -727,6 +747,38 @@ class NesWorker {
 
       send(ErrorEvent(message: 'Failed to load state: $e'));
     }
+
+    _sendStatus();
+  }
+
+  void _handleUndoLoadState() {
+    final nes = _nes;
+    final snapshot = _undoLoadState;
+
+    if (nes == null || snapshot == null) {
+      return;
+    }
+
+    _cancelScrubSession();
+
+    final current = nes.state?.serialize();
+
+    try {
+      nes.state = NESState.fromBytes(snapshot);
+
+      _undoLoadState = current;
+
+      log.emulator.info(
+        'Load state undone',
+        context: {'bytes': snapshot.length},
+      );
+    } on Object catch (e) {
+      log.emulator.error('Failed to undo load state', error: e);
+
+      send(ErrorEvent(message: 'Failed to undo load state: $e'));
+    }
+
+    _sendStatus();
   }
 
   void _handleLoadSram(NesBytes sram) {
