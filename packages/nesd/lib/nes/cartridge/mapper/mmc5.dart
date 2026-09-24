@@ -70,6 +70,8 @@ class MMC5 extends Mapper {
 
   bool _lastExtraChr = false;
 
+  bool _mappedExtraChr = false;
+
   bool _splitEnabled = false;
   bool _splitActive = false;
   SplitSide _splitSide = SplitSide.left;
@@ -302,7 +304,8 @@ class MMC5 extends Mapper {
 
     if (_ppuInFrame &&
         ((previous < 32 && _tileCounter >= 32) ||
-            (previous < 40 && _tileCounter >= 40))) {
+            (previous < 40 && _tileCounter >= 40)) &&
+        _extraChr != _mappedExtraChr) {
       _updateChrMapping();
     }
   }
@@ -662,13 +665,15 @@ class MMC5 extends Mapper {
     };
   }
 
-  void _updateChrMapping() {
-    final bigSprites = bus.ppu.PPUCTRL_H == 1;
+  bool get _extraChr =>
+      bus.ppu.PPUCTRL_H == 1 &&
+      (_tileCounter < 32 || _tileCounter >= 40) &&
+      (_ppuInFrame || _lastChrAddress > 0x5127);
 
-    final extraChr =
-        bigSprites &&
-        (_tileCounter < 32 || _tileCounter >= 40) &&
-        (_ppuInFrame || _lastChrAddress > 0x5127);
+  void _updateChrMapping() {
+    final extraChr = _extraChr;
+
+    _mappedExtraChr = extraChr;
 
     switch (_chrBankMode) {
       case 0:
