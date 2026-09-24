@@ -13,6 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Undo Load State
 - OAM corruption: sprites glitch like on real hardware
 
+### Changed
+- Improved emulation performance
+
 ### Fixed
 - Fixed minor bugs in multiple CPU instructions
 - Fixed an issue with the open bus implementation

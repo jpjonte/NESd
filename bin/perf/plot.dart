@@ -1,7 +1,8 @@
 // Simple plot generator: reads JSONL runs (one JSON object per line)
 // from bin/perf/results/results.jsonl and writes perf/plot.html with
 // inline SVG charts of FPS, one chart per benchmark type (cpu, ppu, ...)
-// and one point per phase label (baseline, task2, ..., phase4-final).
+// or device and ROM, and one point per phase label (baseline, task2, ...,
+// phase4-final). Audio soak rows carry no FPS and are skipped.
 // Usage:
 //   dart run bin/perf/plot.dart [--jsonl bin/perf/results/results.jsonl] \
 //     [--out bin/perf/results/plot.html]
@@ -27,18 +28,18 @@ void main(List<String> args) {
 
   final groups = <String, List<Record>>{};
 
-  for (final line in lines) {
+  for (final (index, line) in lines.indexed) {
     if (line.trim().isEmpty) {
       continue;
     }
 
-    final rec = Record.fromJson(line);
+    final rec = Record.fromJson(line, order: index);
+
+    if (rec == null) {
+      continue;
+    }
 
     groups.putIfAbsent(rec.type, () => []).add(rec);
-  }
-
-  for (final list in groups.values) {
-    list.sort((a, b) => a.ts.compareTo(b.ts));
   }
 
   final html = _renderHtml(groups);
@@ -70,19 +71,38 @@ class Record {
   Record({
     required this.commit,
     required this.ts,
+    required this.order,
     required this.label,
     required this.type,
     required this.fps,
   });
 
-  final String commit;
-  final DateTime ts;
+  final String? commit;
+
+  final DateTime? ts;
+
+  final int order;
   final String label;
   final String type;
   final double fps;
 
-  factory Record.fromJson(String line) {
+  static Record? fromJson(String line, {required int order}) {
     final m = jsonDecode(line) as Map<String, dynamic>;
+
+    if (m['kind'] != null) {
+      return null;
+    }
+
+    if (m['device'] case final String device) {
+      return Record(
+        commit: m['commit'] as String?,
+        ts: null,
+        order: order,
+        label: m['label'] as String,
+        type: '$device ${m['rom']}',
+        fps: (m['flatout_fps'] as num).toDouble(),
+      );
+    }
 
     final rawLabel = m['label'] as String?;
     final rawType = m['type'] as String?;
@@ -100,12 +120,21 @@ class Record {
     }
 
     return Record(
-      commit: m['commit'] as String,
+      commit: m['commit'] as String?,
       ts: DateTime.parse(m['ts'] as String),
+      order: order,
       label: label,
       type: type,
       fps: (m['fps'] as num).toDouble(),
     );
+  }
+
+  int compareTo(Record other) {
+    if ((ts, other.ts) case (final a?, final b?)) {
+      return a.compareTo(b);
+    }
+
+    return order.compareTo(other.order);
   }
 }
 
@@ -131,12 +160,12 @@ class _Point {
   _Point({
     required this.label,
     required this.commit,
-    required this.ts,
+    required this.first,
     required this.fps,
   });
   final String label;
-  final String commit;
-  final DateTime ts;
+  final String? commit;
+  final Record first;
   final double fps;
 }
 
@@ -151,15 +180,20 @@ List<_Point> _aggregateByLabel(List<Record> data) {
   byLabel.forEach((label, rows) {
     rows.sort((a, b) => a.fps.compareTo(b.fps));
     final median = rows[rows.length ~/ 2];
-    // choose earliest timestamp for ordering on x-axis
-    final ts = rows.map((e) => e.ts).reduce((a, b) => a.isBefore(b) ? a : b);
+    // choose the earliest row for ordering on x-axis
+    final first = rows.reduce((a, b) => a.compareTo(b) <= 0 ? a : b);
     points.add(
-      _Point(label: label, commit: median.commit, ts: ts, fps: median.fps),
+      _Point(
+        label: label,
+        commit: median.commit,
+        first: first,
+        fps: median.fps,
+      ),
     );
   });
 
-  // Order points by timestamp to give a temporal left-to-right trend
-  points.sort((a, b) => a.ts.compareTo(b.ts));
+  // Order points by their earliest row to give a temporal left-to-right trend
+  points.sort((a, b) => a.first.compareTo(b.first));
   return points;
 }
 
@@ -277,7 +311,7 @@ String _renderHtml(Map<String, List<Record>> groups) {
 
       // lollipop head
       final tip = htmlEscape.convert(
-        '${series[i].label} | ${series[i].commit} | '
+        '${series[i].label} | ${series[i].commit ?? '-'} | '
         '${series[i].fps.toStringAsFixed(2)} fps',
       );
 
