@@ -1201,6 +1201,10 @@ class PPU {
     cycles++;
     cycle++;
 
+    if (cycle < 339) {
+      return;
+    }
+
     if (scanline == _preRenderScanline && cycle == 339) {
       // Sampled from the register itself, ahead of the mask latency
       _renderingAtSkipDecision = PPUMASK & 0x18 != 0;
