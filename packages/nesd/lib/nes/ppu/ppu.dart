@@ -231,6 +231,10 @@ class PPU {
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
 
+  bool mapperNeedsOnlyA12Edges = false;
+
+  int _mapperA12 = -1;
+
   bool mapperNeedsPpuReads = false;
 
   bool mapperNeedsExtendedPpuRegisters = false;
@@ -618,9 +622,25 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _updateBusAddress(int address) {
-    if (mapperNeedsPpuAddress) {
-      bus.cartridge.mapper.updatePpuAddress(address);
+    if (!mapperNeedsPpuAddress) {
+      return;
     }
+
+    if (mapperNeedsOnlyA12Edges) {
+      final a12 = address & 0x1000;
+
+      if (a12 == _mapperA12) {
+        return;
+      }
+
+      _mapperA12 = a12;
+    }
+
+    bus.cartridge.mapper.updatePpuAddress(address);
+  }
+
+  void resyncA12() {
+    _mapperA12 = -1;
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
