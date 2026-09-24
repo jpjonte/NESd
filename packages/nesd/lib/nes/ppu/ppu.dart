@@ -30,15 +30,19 @@ const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 class PPU {
   PPU(this.bus);
 
-  final Bus bus;
+  // In the Dart VM, only an object's first 256 bytes are unboxed, so declare
+  // frequently used variables first
+  int cycle = 0;
+  int scanline = 0;
+  int cycles = 0;
+  int consoleCycles = 0;
+  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+  int _preRenderScanline = ntscPreRenderScanline;
+  int frames = 0;
 
-  int PPUCTRL = 0x00;
-  int PPUMASK = 0x00;
-  int PPUSTATUS = 0x00;
-  int OAMADDR = 0x00;
-  int OAMDATA = 0x00;
-  int PPUSCROLL = 0x00;
-  int PPUDATA = 0x00;
+  int _pixelBase = 0;
+  int _maskDelay = 0;
+  int oamCorruptionSeed = 0;
 
   // during rendering: scroll position, outside rendering: VRAM address
   int v = 0;
@@ -47,6 +51,39 @@ class PPU {
   int t = 0;
   // fine X scroll
   int x = 0;
+
+  int _bgWindowPos = 0;
+
+  int _bgPatternBase = 0;
+
+  int nametableLatch = 0;
+  int attributeTableLatch = 0;
+  int attribute = 0;
+  int patternTableLowLatch = 0;
+  int patternTableHighLatch = 0;
+
+  int OAMADDR = 0x00;
+  int oamBuffer = 0;
+
+  int _oam2Address = 0;
+
+  int spriteEvalPhase = _spriteEvalDone;
+  int _spriteRangeMinY = 0;
+  int secondarySpriteCount = 0;
+  int spriteCount = 0;
+  int _fetchedSpriteY = 0xff;
+  int _fetchedSpriteTile = 0xff;
+
+  int PPUCTRL = 0x00;
+  int PPUSTATUS = 0x00;
+
+  final Bus bus;
+
+  int PPUMASK = 0x00;
+  int OAMDATA = 0x00;
+  int PPUSCROLL = 0x00;
+  int PPUDATA = 0x00;
+
   // first or second write toggle
   int w = 0;
 
@@ -162,8 +199,6 @@ class PPU {
 
   static const _maskLatency = 3;
 
-  int _maskDelay = 0;
-
   int decay = 0;
 
   final List<int> decayRefreshedAt = List<int>.filled(8, 0);
@@ -176,9 +211,6 @@ class PPU {
   bool _nmiEnabled = false;
 
   bool _suppressVblank = false;
-
-  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
-  int consoleCycles = 0;
 
   /// Set by NES at power-on; skips the empty mapper hook for mappers
   /// that don't watch the PPU address bus.
@@ -217,44 +249,15 @@ class PPU {
   int bgEvaBit2 = 0;
   int vrwb = 0;
 
-  int cycles = 0;
-  int cycle = 0;
-  int scanline = 0;
-  int frames = 0;
-
-  int _preRenderScanline = ntscPreRenderScanline;
-
   int get preRenderScanline => _preRenderScanline;
-
-  int _pixelBase = 0;
-
-  int nametableLatch = 0;
-
-  int patternTableHighLatch = 0;
-  int patternTableLowLatch = 0;
 
   int patternTableHigh2Latch = 0;
   int patternTableLow2Latch = 0;
-
-  int attributeTableLatch = 0;
-
-  int attribute = 0;
 
   /// Decoded background pixels for the two tiles currently held by the
   /// shift registers.
   final Uint8List _bgWindow = Uint8List(16);
 
-  /// Shifts since the window was last rebuilt.
-  int _bgWindowPos = 0;
-
-  // Cached pattern table base for background when using 8x8 sprites.
-  int _bgPatternBase = 0;
-
-  int oamBuffer = 0;
-
-  /// Secondary OAM address. It stops advancing once it has wrapped, until
-  /// dot 63, 255 or 339 of a rendered line releases it.
-  int _oam2Address = 0;
   bool _oam2Frozen = false;
 
   bool get oamCorruption => _oamCorruption;
@@ -269,24 +272,12 @@ class PPU {
 
   bool _oamCorruption = true;
 
-  int oamCorruptionSeed = 0;
-
-  int _fetchedSpriteY = 0xff;
-  int _fetchedSpriteTile = 0xff;
-
-  int spriteEvalPhase = _spriteEvalDone;
-
   static const _spriteEvalY = 1;
   static const _spriteEvalCopy1 = 2;
   static const _spriteEvalCopy3 = 4;
   static const _spriteEvalScan0 = 5;
   static const _spriteEvalOverflowEnd = 8;
   static const _spriteEvalDone = 9;
-
-  int spriteCount = 0;
-  int secondarySpriteCount = 0;
-
-  int _spriteRangeMinY = 0;
 
   bool sprite0OnNextLine = false;
   bool sprite0OnCurrentLine = false;
