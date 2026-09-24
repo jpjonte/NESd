@@ -157,6 +157,8 @@ class FrameCounter {
     } else if (counter == _quarter2) {
       _clockQuarterFrame();
       _clockHalfFrame();
+    } else if (counter < _fourStepEnd - 2) {
+      return;
     } else if (fiveStep) {
       _stepFiveStepEnd();
     } else {
