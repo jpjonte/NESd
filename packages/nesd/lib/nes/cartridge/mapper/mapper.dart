@@ -21,6 +21,7 @@ import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5.dart';
 import 'package:nesd/nes/cartridge/mapper/namco108.dart';
 import 'package:nesd/nes/cartridge/mapper/namco163.dart';
+import 'package:nesd/nes/cartridge/mapper/nina003006.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom.dart';
 import 'package:nesd/nes/cartridge/mapper/txsrom.dart';
 import 'package:nesd/nes/cartridge/mapper/unrom.dart';
@@ -91,6 +92,7 @@ abstract class Mapper {
       66 => GxROM(),
       69 => FME7(),
       71 => BR909x(),
+      79 => NINA003006(),
       118 => TxSROM(),
       176 => Mapper176(subMapperId),
       206 => Namco108(),

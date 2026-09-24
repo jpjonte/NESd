@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Color Dreams (mapper 11) support
+- AVE NINA-03/NINA-06 (mapper 79) support
 - The web version can be installed to the home screen with offline support
 - Screenshot action (F12 by default) that saves the current frame 
 - Undo Load State
