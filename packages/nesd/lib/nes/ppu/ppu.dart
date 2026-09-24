@@ -292,6 +292,8 @@ class PPU {
   /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
 
+  final Uint8List _blankSpriteLine = Uint8List(256);
+
   void _resetSpriteLatches() {
     _oam2Address = 0;
     _oam2Frozen = false;
@@ -913,7 +915,7 @@ class PPU {
       spriteCount = 0;
       secondarySpriteCount = 0;
 
-      _spriteLine.fillRange(0, 256, 0);
+      _spriteLine.setRange(0, 256, _blankSpriteLine);
     }
 
     // Cycle 0 bus address update
@@ -1784,7 +1786,7 @@ class PPU {
   }
 
   void _rasterizeSpriteLine({bool afterSkippedDot = false}) {
-    _spriteLine.fillRange(0, 256, 0);
+    _spriteLine.setRange(0, 256, _blankSpriteLine);
 
     final fourBpp = spriteFourBpp;
 
