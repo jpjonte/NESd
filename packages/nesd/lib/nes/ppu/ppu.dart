@@ -581,7 +581,11 @@ class PPU {
 
     final maskedAddress = _foldNametableMirror(address);
 
-    if (maskedAddress < 0x3f00 && !mapperNeedsPpuReads) {
+    if (maskedAddress < 0x3f00) {
+      if (mapperNeedsPpuReads) {
+        return bus.cartridge.mapper.ppuRead(maskedAddress);
+      }
+
       final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
 
       if (source != null) {
