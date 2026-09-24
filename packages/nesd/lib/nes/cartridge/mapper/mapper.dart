@@ -92,7 +92,7 @@ abstract class Mapper {
       66 => GxROM(),
       69 => FME7(),
       71 => BR909x(),
-      79 => NINA003006(),
+      79 || 146 => NINA003006(mapperId),
       118 => TxSROM(),
       176 => Mapper176(subMapperId),
       206 => Namco108(),

@@ -7,7 +7,7 @@ import 'package:nesd/nes/cartridge/mapper/nina003006_state.dart';
 void main() {
   group('NINA003006State', () {
     test('round-trips through serialization', () {
-      const original = NINA003006State(prgBank: 1, chrBank: 5);
+      const original = NINA003006State(prgBank: 1, chrBank: 5, id: 79);
 
       final writer = Payload.write();
 
@@ -26,6 +26,22 @@ void main() {
       expect(decoded.id, 79);
       expect(decoded.prgBank, 1);
       expect(decoded.chrBank, 5);
+    });
+
+    test('keeps mapper id 146 through serialization', () {
+      const original = NINA003006State(prgBank: 1, chrBank: 2, id: 146);
+
+      final writer = Payload.write();
+
+      original.serialize(writer);
+
+      final decoded =
+          MapperState.deserialize(Payload.read(binarize(writer)))
+              as NINA003006State;
+
+      expect(decoded.id, 146);
+      expect(decoded.prgBank, 1);
+      expect(decoded.chrBank, 2);
     });
 
     test('rejects unknown versions', () {

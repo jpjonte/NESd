@@ -161,6 +161,7 @@ NESd supports 3,546 games.
 - 71: BR909x (30 games)
 - 79: NINA-003-006 (48 games)
 - 118: TxSROM (8 games)
+- 146: Sachen 3015 (0 games)
 - 176: 8025 (344 games)
 - 206: Namco 108 (63 games)
 - 256: VT03 OneBus (235 games)

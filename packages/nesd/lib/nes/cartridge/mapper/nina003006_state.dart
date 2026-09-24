@@ -6,20 +6,21 @@ class NINA003006State extends MapperState {
   const NINA003006State({
     required this.prgBank,
     required this.chrBank,
-    super.id = 79,
+    required super.id,
   });
 
-  factory NINA003006State.deserialize(PayloadReader reader) {
+  factory NINA003006State.deserialize(PayloadReader reader, int id) {
     final version = reader.get(uint8);
 
     return switch (version) {
-      0 => NINA003006State._version0(reader),
+      0 => NINA003006State._version0(reader, id),
       _ => throw InvalidSerializationVersion('NINA-003-006', version),
     };
   }
 
-  factory NINA003006State._version0(PayloadReader reader) {
+  factory NINA003006State._version0(PayloadReader reader, int id) {
     return NINA003006State(
+      id: id,
       prgBank: reader.get(uint8),
       chrBank: reader.get(uint8),
     );

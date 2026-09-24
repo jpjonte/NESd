@@ -2,10 +2,10 @@ import 'package:nesd/nes/cartridge/mapper/mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/nina003006_state.dart';
 
 class NINA003006 extends Mapper {
-  NINA003006() : super(79);
+  NINA003006(super.id);
 
   @override
-  String name = 'NINA-003-006';
+  String get name => id == 146 ? 'Sachen 3015' : 'NINA-003-006';
 
   @override
   int prgRomPageSize = 0x8000;
@@ -19,7 +19,7 @@ class NINA003006 extends Mapper {
 
   @override
   NINA003006State get state =>
-      NINA003006State(prgBank: _prgBank, chrBank: _chrBank);
+      NINA003006State(prgBank: _prgBank, chrBank: _chrBank, id: id);
 
   @override
   set state(covariant NINA003006State state) {

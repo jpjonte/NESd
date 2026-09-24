@@ -54,7 +54,7 @@ abstract class MapperState {
       66 => GxROMState.deserialize(reader),
       69 => FME7State.deserialize(reader),
       71 => SinglePrgBankState.deserialize(reader, 71),
-      79 => NINA003006State.deserialize(reader),
+      79 || 146 => NINA003006State.deserialize(reader, id),
       176 => Mapper176State.deserialize(reader),
       206 => Namco108State.deserialize(reader),
       256 => VT02State.deserialize(reader, 256),

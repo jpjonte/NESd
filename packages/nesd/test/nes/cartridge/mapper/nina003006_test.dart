@@ -16,7 +16,7 @@ const _chrBanks = 8;
 const _prgBankSize = 0x8000;
 const _chrBankSize = 0x2000;
 
-Uint8List _buildRom() {
+Uint8List _buildRom(int mapperId) {
   const prgSize = _prgBanks * _prgBankSize;
   const chrSize = _chrBanks * _chrBankSize;
 
@@ -25,8 +25,8 @@ Uint8List _buildRom() {
       0x4e, 0x45, 0x53, 0x1a, //
       _prgBanks * 2, // 16 KiB PRG units
       _chrBanks, // 8 KiB CHR units
-      0xf1, // mapper 79 low nibble, vertical mirroring
-      0x40, // mapper 79 high nibble
+      (mapperId & 0x0f) << 4 | 0x01, // vertical mirroring
+      mapperId & 0xf0,
     ]);
 
   for (var bank = 0; bank < _prgBanks; bank++) {
@@ -40,14 +40,14 @@ Uint8List _buildRom() {
   return rom;
 }
 
-Cartridge _buildCartridge() {
+Cartridge _buildCartridge({int mapperId = 79}) {
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(
       path: 'nina-003-006-test.nes',
       name: 'nina-003-006-test.nes',
       type: FilesystemFileType.file,
     ),
-    _buildRom(),
+    _buildRom(mapperId),
   )..databaseEntry = null;
 
   NES(cartridge: cartridge, eventBus: EventBus());
@@ -60,7 +60,26 @@ Cartridge _buildCartridge() {
 void main() {
   group('NINA003006', () {
     test('is selected for mapper 79', () {
-      expect(_buildCartridge().mapper, isA<NINA003006>());
+      final mapper = _buildCartridge().mapper;
+
+      expect(mapper, isA<NINA003006>());
+      expect(mapper.name, 'NINA-003-006');
+    });
+
+    test('is selected for mapper 146', () {
+      final cartridge = _buildCartridge(mapperId: 146);
+
+      expect(cartridge.mapper, isA<NINA003006>());
+      expect(cartridge.mapper.id, 146);
+      expect(cartridge.mapper.name, 'Sachen 3015');
+    });
+
+    test('switches banks as mapper 146', () {
+      final cartridge = _buildCartridge(mapperId: 146)..cpuWrite(0x4100, 0x0b);
+
+      expect(cartridge.cpuRead(0x8000), 1);
+      expect(cartridge.ppuRead(0x0000), 0x10 + 3);
+      expect(cartridge.mapper.state.id, 146);
     });
 
     test('maps PRG bank 0 and CHR bank 0 after reset', () {
