@@ -314,7 +314,7 @@ class APU {
       _applyLengthWrites();
     }
 
-    if (cycles.isEven) {
+    if (cycles & 1 == 0) {
       // other channels are stepped every other CPU cycle
       pulse1.step();
       pulse2.step();

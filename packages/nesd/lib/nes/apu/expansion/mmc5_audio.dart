@@ -79,7 +79,7 @@ class Mmc5Audio implements ExpansionAudio {
   @override
   @pragma('vm:prefer-inline')
   void step() {
-    if (cycles.isEven) {
+    if (cycles & 1 == 0) {
       pulse1.step();
       pulse2.step();
 

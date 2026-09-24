@@ -1618,7 +1618,7 @@ class PPU {
   @pragma('vm:prefer-inline')
   void _clearSecondaryOam() {
     // Cycles 1-64: Clear secondary OAM on odd cycles
-    if (cycle.isOdd) {
+    if (cycle & 1 == 1) {
       secondaryOam[_oam2Address] = 0xff;
 
       _advanceOam2();
@@ -1638,7 +1638,7 @@ class PPU {
       _resetSpriteEvaluationRange();
     }
 
-    if (cycle.isOdd) {
+    if (cycle & 1 == 1) {
       oamBuffer = _readOam(OAMADDR);
 
       if (cycle == 255) {

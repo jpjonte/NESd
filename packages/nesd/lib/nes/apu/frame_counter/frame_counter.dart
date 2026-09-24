@@ -133,7 +133,7 @@ class FrameCounter {
 
   @pragma('vm:prefer-inline')
   void step() {
-    if (_interruptClearPending && apu.cycles.isOdd) {
+    if (_interruptClearPending && apu.cycles & 1 == 1) {
       _interruptClearPending = false;
       interrupt = false;
 
