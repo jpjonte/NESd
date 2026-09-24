@@ -69,8 +69,6 @@ class MemoryMapping {
   final bool writable;
 }
 
-typedef MappingCache = Map<Uint8List, Map<int, MemoryMapping>>;
-
 abstract class Mapper {
   Mapper(this.id, [this.subMapperId = 0]);
 
@@ -164,39 +162,24 @@ abstract class Mapper {
 
   void load(Uint8List save) {}
 
-  late final List<MemoryMapping?> _cpuMapping = List.filled(
-    _cpuBlockCount,
-    null,
-  );
-
-  final MappingCache _cpuMappingCache = {};
+  final List<MemoryMapping?> _cpuMapping = List.filled(_cpuBlockCount, null);
 
   int get chrPageSize => 0x2000;
 
-  late final List<MemoryMapping?> _ppuMapping = List.filled(
+  final List<MemoryMapping?> _ppuMapping = List.filled(_ppuBlockCount, null);
+
+  final List<MemoryMapping?> _ppuFourBppMapping = List.filled(
     _ppuBlockCount,
     null,
   );
 
-  final MappingCache _ppuMappingCache = {};
+  final List<MemoryMapping?> _ppuEva2bppMapping = List.filled(64, null);
 
-  late final List<MemoryMapping?> _ppuFourBppMapping = List.filled(
-    _ppuBlockCount,
-    null,
-  );
+  final List<MemoryMapping?> _ppuEva4bppMapping = List.filled(128, null);
 
-  final MappingCache _ppuFourBppMappingCache = {};
+  final _mappingCache = _MappingCache();
 
-  late final List<MemoryMapping?> _ppuEva2bppMapping = List.filled(64, null);
-
-  final MappingCache _ppuEva2bppMappingCache = {};
-
-  late final List<MemoryMapping?> _ppuEva4bppMapping = List.filled(128, null);
-
-  final MappingCache _ppuEva4bppMappingCache = {};
-
-  MemoryMapping? _cachedMapping(
-    MappingCache cache,
+  MemoryMapping? _blockMapping(
     Uint8List source,
     int offset,
     int size,
@@ -206,14 +189,7 @@ abstract class Mapper {
       return null;
     }
 
-    final bySource = cache[source] ??= {};
-    final key = (offset << 2) | access.value;
-
-    return bySource[key] ??= MemoryMapping(
-      source: source,
-      offset: offset,
-      access: access,
-    );
+    return _mappingCache.lookup(source, offset, access);
   }
 
   void reset() {
@@ -376,8 +352,7 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _cpuMapping[block] = _cachedMapping(
-        _cpuMappingCache,
+      _cpuMapping[block] = _blockMapping(
         resolvedSource,
         offset,
         _cpuBlockSize,
@@ -445,8 +420,7 @@ abstract class Mapper {
       final offset =
           (page * resolvedPageSize + addressDiff) % resolvedSource.length;
 
-      _ppuMapping[block] = _cachedMapping(
-        _ppuMappingCache,
+      _ppuMapping[block] = _blockMapping(
         resolvedSource,
         offset,
         _ppuBlockSize,
@@ -496,8 +470,7 @@ abstract class Mapper {
       final addressDiff = address - fromAddress;
       final offset = (page * resolvedPageSize + addressDiff) % source.length;
 
-      _ppuFourBppMapping[block] = _cachedMapping(
-        _ppuFourBppMappingCache,
+      _ppuFourBppMapping[block] = _blockMapping(
         source,
         offset,
         _ppuBlockSize,
@@ -561,8 +534,7 @@ abstract class Mapper {
       final addressDiff = address - fromAddress;
       final offset = (page * resolvedPageSize + addressDiff) % source.length;
 
-      _ppuEva2bppMapping[block] = _cachedMapping(
-        _ppuEva2bppMappingCache,
+      _ppuEva2bppMapping[block] = _blockMapping(
         source,
         offset,
         _ppuBlockSize,
@@ -602,8 +574,7 @@ abstract class Mapper {
       final addressDiff = address - fromAddress;
       final offset = (page * resolvedPageSize + addressDiff) % source.length;
 
-      _ppuEva4bppMapping[block] = _cachedMapping(
-        _ppuEva4bppMappingCache,
+      _ppuEva4bppMapping[block] = _blockMapping(
         source,
         offset,
         _ppuBlockSize,
@@ -612,5 +583,34 @@ abstract class Mapper {
 
       bus.ppu.updateEva4bppMapping(block, _ppuEva4bppMapping[block]);
     }
+  }
+}
+
+class _MappingCache {
+  final Map<Uint8List, List<MemoryMapping?>> _blocksBySource = Map.identity();
+
+  Uint8List? _lastSource;
+  List<MemoryMapping?> _lastBlocks = const [];
+
+  MemoryMapping lookup(Uint8List source, int offset, MemoryAccess access) {
+    if (offset & (_ppuBlockSize - 1) != 0) {
+      return MemoryMapping(source: source, offset: offset, access: access);
+    }
+
+    if (!identical(source, _lastSource)) {
+      _lastSource = source;
+      _lastBlocks = _blocksBySource[source] ??= List.filled(
+        ((source.length + _ppuBlockSize - 1) >> _ppuBlockAddressWidth) << 2,
+        null,
+      );
+    }
+
+    final key = (offset >> _ppuBlockAddressWidth) << 2 | access.value;
+
+    return _lastBlocks[key] ??= MemoryMapping(
+      source: source,
+      offset: offset,
+      access: access,
+    );
   }
 }
