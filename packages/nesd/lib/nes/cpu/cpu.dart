@@ -342,6 +342,7 @@ class CPU {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void _pollInterruptLines() {
     _previousDoNmi = doNmi;
     _previousDoIrq = _doIrq;
@@ -375,11 +376,16 @@ class CPU {
 
   bool get runningDma => _oamDma || _dmcDmaPhase >= _dmcDmaHalted || _dmcDmaDue;
 
+  @pragma('vm:prefer-inline')
   void _handleDMA(int address) {
     if (!_oamDma && !_dmcDmaDue) {
       return;
     }
 
+    _runDma(address);
+  }
+
+  void _runDma(int address) {
     final joypad = address == 0x4016 || address == 0x4017;
     var repeated = false;
 

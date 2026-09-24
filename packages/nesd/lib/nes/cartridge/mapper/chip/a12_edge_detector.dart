@@ -3,6 +3,7 @@ import 'package:nesd/extension/bit_extension.dart';
 class A12EdgeDetector {
   int lowStart = 0;
 
+  @pragma('vm:prefer-inline')
   bool detect(int address, int cycles) {
     if (address.bit(12) == 1) {
       // in our implementation, the NT/AT fetch low at the end of a scanline

@@ -604,6 +604,7 @@ class PPU {
     bus.ppuWrite(_foldNametableMirror(address), value);
   }
 
+  @pragma('vm:prefer-inline')
   void _updateBusAddress(int address) {
     if (mapperNeedsPpuAddress) {
       bus.cartridge.mapper.updatePpuAddress(address);
@@ -726,6 +727,7 @@ class PPU {
 
   int get currentX => cycle - 1;
 
+  @pragma('vm:prefer-inline')
   void stepUntil(int targetCycles) {
     if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle) {
       final delta = targetCycles - consoleCycles;
