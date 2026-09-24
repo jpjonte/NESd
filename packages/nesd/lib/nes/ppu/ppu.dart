@@ -801,34 +801,43 @@ class PPU {
         _corruptOam();
       }
 
+      if (cycle >= 1 && cycle <= 256) {
+        if (cycle <= 64) {
+          _clearSecondaryOam();
+        } else {
+          _evaluateSpriteRange();
+        }
+
+        _renderPixel();
+        _shiftRegisters();
+        _stepFetchCycle();
+
+        if (cycle == 256) {
+          _incrementY();
+        }
+
+        return;
+      }
+
       if (cycle == 328) {
         sprite0OnCurrentLine = sprite0OnNextLine;
       }
 
       _evaluateSprites();
 
-      // Pixel rendering at cycles 1-256
-      if (cycle >= 1 && cycle <= 256) {
-        _renderPixel();
-        _shiftRegisters();
-        _stepFetchCycle();
-      } else if (cycle >= 321 && cycle <= 336) {
+      if (cycle >= 321 && cycle <= 336) {
         // Pre-fetch for next scanline
         _shiftRegisters();
         _stepFetchCycle();
       }
 
-      if (cycle == 256) {
-        _incrementY();
-      }
-
       if (cycle == 257) {
         _copyHorizontalBits();
       }
-    }
 
-    if (renderingActive && cycle >= 257 && cycle <= 320) {
-      OAMADDR = 0x0000;
+      if (cycle >= 257 && cycle <= 320) {
+        OAMADDR = 0x0000;
+      }
     }
 
     // Nametable reads at cycles 337, 339 (regardless of rendering)
