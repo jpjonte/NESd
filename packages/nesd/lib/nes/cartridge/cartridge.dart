@@ -99,10 +99,12 @@ class Cartridge {
     mapper.step();
   }
 
+  @pragma('vm:prefer-inline')
   int cpuRead(int address, {bool disableSideEffects = false}) {
     return mapper.cpuRead(address, disableSideEffects: disableSideEffects);
   }
 
+  @pragma('vm:prefer-inline')
   int ppuRead(int address, {bool disableSideEffects = false}) {
     return mapper.ppuRead(address, disableSideEffects: disableSideEffects);
   }

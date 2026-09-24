@@ -84,16 +84,26 @@ class MMC2 extends Mapper {
     }
 
     if (address == 0x0fd8) {
-      _chrLatch0 = 0;
-      _updateChr = true;
+      _setChrLatch0(0);
     } else if (address == 0x0fe8) {
-      _chrLatch0 = 1;
-      _updateChr = true;
+      _setChrLatch0(1);
     } else if (address >= 0x1fd8 && address <= 0x1fdf) {
-      _chrLatch1 = 0;
-      _updateChr = true;
+      _setChrLatch1(0);
     } else if (address >= 0x1fe8 && address <= 0x1fef) {
-      _chrLatch1 = 1;
+      _setChrLatch1(1);
+    }
+  }
+
+  void _setChrLatch0(int value) {
+    if (value != _chrLatch0) {
+      _chrLatch0 = value;
+      _updateChr = true;
+    }
+  }
+
+  void _setChrLatch1(int value) {
+    if (value != _chrLatch1) {
+      _chrLatch1 = value;
       _updateChr = true;
     }
   }

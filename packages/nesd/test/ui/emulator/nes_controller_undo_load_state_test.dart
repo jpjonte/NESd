@@ -164,7 +164,7 @@ void main() {
     await waitUntil(() => controller.nes!.canUndoLoadState);
   }
 
-  test('undo without a preceding load warns and sends no command', () async {
+  test('undo without a preceding load warns and sends no command', () {
     controller.undoLoadState();
 
     expect(handle.sentCommands.whereType<UndoLoadStateCommand>(), isEmpty);

@@ -130,8 +130,7 @@ class NoiseChannel {
 
       final feedback = shiftRegister.bit(mode ? 6 : 1) ^ shiftRegister.bit(0);
 
-      shiftRegister >>= 1;
-      shiftRegister = shiftRegister.setBit(14, feedback);
+      shiftRegister = (feedback << 14) | (shiftRegister >> 1);
 
       _updateOutput();
     }

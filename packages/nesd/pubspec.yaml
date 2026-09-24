@@ -11,13 +11,13 @@ resolution: workspace
 
 dependencies:
   archive: ^4.3.0
-  auto_route: ^11.1.0
+  auto_route: ^11.2.0
   binarize: ^2.0.0
   build_runner: ^2.16.1
   collection: ^1.19.1
   crypto: ^3.0.7
   ffi: ^2.2.0
-  file_picker: ^13.0.0
+  file_picker: ^13.1.0
   flutter:
     sdk: flutter
   flutter_hooks: ^0.21.3+1

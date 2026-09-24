@@ -133,7 +133,7 @@ class FrameCounter {
 
   @pragma('vm:prefer-inline')
   void step() {
-    if (_interruptClearPending && apu.cycles.isOdd) {
+    if (_interruptClearPending && apu.cycles & 1 == 1) {
       _interruptClearPending = false;
       interrupt = false;
 
@@ -157,6 +157,8 @@ class FrameCounter {
     } else if (counter == _quarter2) {
       _clockQuarterFrame();
       _clockHalfFrame();
+    } else if (counter < _fourStepEnd - 2) {
+      return;
     } else if (fiveStep) {
       _stepFiveStepEnd();
     } else {

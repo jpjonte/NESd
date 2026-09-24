@@ -92,6 +92,7 @@ class MMC3 extends Mapper {
     _irqReload = state.irqReload;
     _irqEnabled = state.irqEnabled;
     _a12Detector.lowStart = state.a12LowStart;
+    bus.ppu.resyncA12();
 
     _remapAll();
   }
@@ -121,6 +122,7 @@ class MMC3 extends Mapper {
     _irqEnabled = false;
 
     _a12Detector.lowStart = 0;
+    bus.ppu.resyncA12();
 
     _remapAll();
   }
@@ -146,6 +148,9 @@ class MMC3 extends Mapper {
 
   @override
   bool get needsPpuAddressUpdates => true;
+
+  @override
+  bool get needsOnlyA12Edges => true;
 
   @override
   void cpuWrite(int address, int value) {

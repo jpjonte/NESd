@@ -6,11 +6,16 @@ import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/nes/ppu/frame_buffer_memory.dart';
 
 class FrameBuffer {
-  FrameBuffer({required this.width, required this.height})
-    : size = width * height * 4 {
-    pixels = _allocateBuffer();
-    pixels32 = FrameBufferMemory.words(pixels);
-  }
+  FrameBuffer({required int width, required int height})
+    : this._(
+        width,
+        height,
+        FrameBufferMemory.allocate(wordCount: width * height),
+      );
+
+  FrameBuffer._(this.width, this.height, this.pixels)
+    : size = width * height * 4,
+      pixels32 = FrameBufferMemory.words(pixels);
 
   factory FrameBuffer.deserialize(PayloadReader reader) {
     final version = reader.get(uint8);
@@ -30,8 +35,8 @@ class FrameBuffer {
   final int height;
   final int size;
 
-  late Uint8List pixels;
-  late Uint32List pixels32;
+  Uint8List pixels;
+  Uint32List pixels32;
 
   final Queue<Uint8List> _ready = Queue<Uint8List>();
   final List<Uint8List> _available = <Uint8List>[];

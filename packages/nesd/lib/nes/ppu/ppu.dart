@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart' show MemoryMapping;
 import 'package:nesd/nes/ppu/four_bpp_address.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
@@ -27,18 +28,29 @@ const _ppuBlockSize = 1 << _ppuBlockAddressWidth;
 const _ppuBlockMask = _ppuBlockSize - 1;
 const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 
+const _visiblePhase = 0;
+const _preRenderPhase = 1;
+const _vblankPhase = 2;
+const _idlePhase = 3;
+
 class PPU {
   PPU(this.bus);
 
-  final Bus bus;
+  // In the Dart VM, only an object's first 256 bytes are unboxed, so declare
+  // frequently used variables first
+  int cycle = 0;
+  int scanline = 0;
+  int cycles = 0;
+  int consoleCycles = 0;
+  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
+  int _preRenderScanline = ntscPreRenderScanline;
+  int frames = 0;
 
-  int PPUCTRL = 0x00;
-  int PPUMASK = 0x00;
-  int PPUSTATUS = 0x00;
-  int OAMADDR = 0x00;
-  int OAMDATA = 0x00;
-  int PPUSCROLL = 0x00;
-  int PPUDATA = 0x00;
+  int _scanlinePhase = _visiblePhase;
+
+  int _pixelBase = 0;
+  int _maskDelay = 0;
+  int oamCorruptionSeed = 0;
 
   // during rendering: scroll position, outside rendering: VRAM address
   int v = 0;
@@ -47,6 +59,40 @@ class PPU {
   int t = 0;
   // fine X scroll
   int x = 0;
+
+  int _bgWindowPos = 0;
+
+  int _bgPatternBase = 0;
+
+  int nametableLatch = 0;
+  int attributeTableLatch = 0;
+  int attribute = 0;
+  int patternTableLowLatch = 0;
+  int patternTableHighLatch = 0;
+
+  int OAMADDR = 0x00;
+  int oamBuffer = 0;
+
+  int _oam2Address = 0;
+
+  int spriteEvalPhase = _spriteEvalDone;
+  int _spriteRangeMinY = 0;
+  int secondarySpriteCount = 0;
+  int _fetchedSpriteY = 0xff;
+  int _fetchedSpriteTile = 0xff;
+
+  int PPUCTRL = 0x00;
+  int PPUSTATUS = 0x00;
+
+  final Bus bus;
+
+  int spriteCount = 0;
+
+  int PPUMASK = 0x00;
+  int OAMDATA = 0x00;
+  int PPUSCROLL = 0x00;
+  int PPUDATA = 0x00;
+
   // first or second write toggle
   int w = 0;
 
@@ -140,29 +186,33 @@ class PPU {
   bool _frameUsedExtendedColors = false;
 
   bool get frameIndicesValid => _frameIndicesValid;
-  final List<Uint8List?> _ppuBlocks = List<Uint8List?>.filled(
+  final List<MemoryMapping?> _ppuBlocks = List<MemoryMapping?>.filled(
     _ppuBlockCount,
     null,
   );
 
   /// Block table for the VT03+ 16 KiB 4bpp pattern space.
-  final List<Uint8List?> _fourBppBlocks = List<Uint8List?>.filled(
+  final List<MemoryMapping?> _fourBppBlocks = List<MemoryMapping?>.filled(
     _ppuBlockCount,
     null,
   );
 
   /// EVA pattern space, 2bpp view: 8 EVA x 8 blocks.
-  final List<Uint8List?> _evaBlocks2bpp = List<Uint8List?>.filled(64, null);
+  final List<MemoryMapping?> _evaBlocks2bpp = List<MemoryMapping?>.filled(
+    64,
+    null,
+  );
 
   /// EVA pattern space, 4bpp view: 8 EVA x 16 blocks.
-  final List<Uint8List?> _evaBlocks4bpp = List<Uint8List?>.filled(128, null);
+  final List<MemoryMapping?> _evaBlocks4bpp = List<MemoryMapping?>.filled(
+    128,
+    null,
+  );
 
   bool _showBackground = false;
   bool _showSprites = false;
 
   static const _maskLatency = 3;
-
-  int _maskDelay = 0;
 
   int decay = 0;
 
@@ -177,12 +227,13 @@ class PPU {
 
   bool _suppressVblank = false;
 
-  int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
-  int consoleCycles = 0;
-
   /// Set by NES at power-on; skips the empty mapper hook for mappers
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
+
+  bool mapperNeedsOnlyA12Edges = false;
+
+  int _mapperA12 = -1;
 
   bool mapperNeedsPpuReads = false;
 
@@ -217,44 +268,20 @@ class PPU {
   int bgEvaBit2 = 0;
   int vrwb = 0;
 
-  int cycles = 0;
-  int cycle = 0;
-  int scanline = 0;
-  int frames = 0;
-
-  int _preRenderScanline = ntscPreRenderScanline;
-
   int get preRenderScanline => _preRenderScanline;
-
-  int _pixelBase = 0;
-
-  int nametableLatch = 0;
-
-  int patternTableHighLatch = 0;
-  int patternTableLowLatch = 0;
 
   int patternTableHigh2Latch = 0;
   int patternTableLow2Latch = 0;
-
-  int attributeTableLatch = 0;
-
-  int attribute = 0;
 
   /// Decoded background pixels for the two tiles currently held by the
   /// shift registers.
   final Uint8List _bgWindow = Uint8List(16);
 
-  /// Shifts since the window was last rebuilt.
-  int _bgWindowPos = 0;
+  late final Uint32List _bgWindowWords = _bgWindow.buffer.asUint32List();
 
-  // Cached pattern table base for background when using 8x8 sprites.
-  int _bgPatternBase = 0;
+  final Uint32List _patternSpreadLeft = _patternSpread(4);
+  final Uint32List _patternSpreadRight = _patternSpread(0);
 
-  int oamBuffer = 0;
-
-  /// Secondary OAM address. It stops advancing once it has wrapped, until
-  /// dot 63, 255 or 339 of a rendered line releases it.
-  int _oam2Address = 0;
   bool _oam2Frozen = false;
 
   bool get oamCorruption => _oamCorruption;
@@ -269,24 +296,12 @@ class PPU {
 
   bool _oamCorruption = true;
 
-  int oamCorruptionSeed = 0;
-
-  int _fetchedSpriteY = 0xff;
-  int _fetchedSpriteTile = 0xff;
-
-  int spriteEvalPhase = _spriteEvalDone;
-
   static const _spriteEvalY = 1;
   static const _spriteEvalCopy1 = 2;
   static const _spriteEvalCopy3 = 4;
   static const _spriteEvalScan0 = 5;
   static const _spriteEvalOverflowEnd = 8;
   static const _spriteEvalDone = 9;
-
-  int spriteCount = 0;
-  int secondarySpriteCount = 0;
-
-  int _spriteRangeMinY = 0;
 
   bool sprite0OnNextLine = false;
   bool sprite0OnCurrentLine = false;
@@ -300,6 +315,8 @@ class PPU {
   /// bits 5-6 = planes 2/3 (4bpp only)
   /// bit 7 = opaque pixel of sprite 0
   final Uint8List _spriteLine = Uint8List(256);
+
+  final Uint8List _blankSpriteLine = Uint8List(256);
 
   void _resetSpriteLatches() {
     _oam2Address = 0;
@@ -580,11 +597,15 @@ class PPU {
 
     final maskedAddress = _foldNametableMirror(address);
 
-    if (maskedAddress < 0x3f00 && !mapperNeedsPpuReads) {
-      final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
+    if (maskedAddress < 0x3f00) {
+      if (mapperNeedsPpuReads) {
+        return bus.cartridge.mapper.ppuRead(maskedAddress);
+      }
 
-      if (source != null) {
-        return source[maskedAddress & _ppuBlockMask];
+      final mapping = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
+
+      if (mapping != null) {
+        return mapping.source[mapping.offset + (maskedAddress & _ppuBlockMask)];
       }
     }
 
@@ -599,10 +620,27 @@ class PPU {
     bus.ppuWrite(_foldNametableMirror(address), value);
   }
 
+  @pragma('vm:prefer-inline')
   void _updateBusAddress(int address) {
-    if (mapperNeedsPpuAddress) {
-      bus.cartridge.mapper.updatePpuAddress(address);
+    if (!mapperNeedsPpuAddress) {
+      return;
     }
+
+    if (mapperNeedsOnlyA12Edges) {
+      final a12 = address & 0x1000;
+
+      if (a12 == _mapperA12) {
+        return;
+      }
+
+      _mapperA12 = a12;
+    }
+
+    bus.cartridge.mapper.updatePpuAddress(address);
+  }
+
+  void resyncA12() {
+    _mapperA12 = -1;
   }
 
   int readRegister(int address, {bool disableSideEffects = false}) {
@@ -721,6 +759,7 @@ class PPU {
 
   int get currentX => cycle - 1;
 
+  @pragma('vm:prefer-inline')
   void stepUntil(int targetCycles) {
     if (_consoleCyclesPerCycle == ntscConsoleCyclesPerCycle) {
       final delta = targetCycles - consoleCycles;
@@ -752,34 +791,35 @@ class PPU {
     }
   }
 
-  /// Selected once per scanline change; step() calls it directly
-  /// instead of re-classifying the scanline every dot.
-  late void Function() _scanlinePhase = _phaseForScanline();
-
-  void Function() _phaseForScanline() {
+  int _phaseForScanline() {
     if (scanline < 240) {
-      return _stepVisibleScanline;
+      return _visiblePhase;
     }
 
     if (scanline == _preRenderScanline) {
-      return _stepPreRenderScanline;
+      return _preRenderPhase;
     }
 
     if (scanline == vblankScanline) {
-      return _stepVblankLine;
+      return _vblankPhase;
     }
 
-    return _stepIdleScanline;
+    return _idlePhase;
   }
-
-  void _stepIdleScanline() {}
 
   void step() {
     if (_maskDelay != 0 && --_maskDelay == 0) {
       _applyMaskWrite();
     }
 
-    _scanlinePhase();
+    switch (_scanlinePhase) {
+      case _visiblePhase:
+        _stepVisibleScanline();
+      case _preRenderPhase:
+        _stepPreRenderScanline();
+      case _vblankPhase:
+        _stepVblankLine();
+    }
 
     _updateCounters();
   }
@@ -793,34 +833,43 @@ class PPU {
         _corruptOam();
       }
 
+      if (cycle >= 1 && cycle <= 256) {
+        if (cycle <= 64) {
+          _clearSecondaryOam();
+        } else {
+          _evaluateSpriteRange();
+        }
+
+        _renderPixel();
+        _shiftRegisters();
+        _stepFetchCycle();
+
+        if (cycle == 256) {
+          _incrementY();
+        }
+
+        return;
+      }
+
       if (cycle == 328) {
         sprite0OnCurrentLine = sprite0OnNextLine;
       }
 
       _evaluateSprites();
 
-      // Pixel rendering at cycles 1-256
-      if (cycle >= 1 && cycle <= 256) {
-        _renderPixel();
-        _shiftRegisters();
-        _stepFetchCycle();
-      } else if (cycle >= 321 && cycle <= 336) {
+      if (cycle >= 321 && cycle <= 336) {
         // Pre-fetch for next scanline
         _shiftRegisters();
         _stepFetchCycle();
       }
 
-      if (cycle == 256) {
-        _incrementY();
-      }
-
       if (cycle == 257) {
         _copyHorizontalBits();
       }
-    }
 
-    if (renderingActive && cycle >= 257 && cycle <= 320) {
-      OAMADDR = 0x0000;
+      if (cycle >= 257 && cycle <= 320) {
+        OAMADDR = 0x0000;
+      }
     }
 
     // Nametable reads at cycles 337, 339 (regardless of rendering)
@@ -922,7 +971,7 @@ class PPU {
       spriteCount = 0;
       secondarySpriteCount = 0;
 
-      _spriteLine.fillRange(0, 256, 0);
+      _spriteLine.setRange(0, 256, _blankSpriteLine);
     }
 
     // Cycle 0 bus address update
@@ -1184,6 +1233,10 @@ class PPU {
     cycles++;
     cycle++;
 
+    if (cycle < 339) {
+      return;
+    }
+
     if (scanline == _preRenderScanline && cycle == 339) {
       // Sampled from the register itself, ahead of the mask latency
       _renderingAtSkipDecision = PPUMASK & 0x18 != 0;
@@ -1229,10 +1282,15 @@ class PPU {
     // next-tile slots.
     final slide = _bgWindowPos;
 
-    for (var i = 0; i < 8; i++) {
-      final from = i + slide;
+    if (slide == 8) {
+      _bgWindowWords[0] = _bgWindowWords[2];
+      _bgWindowWords[1] = _bgWindowWords[3];
+    } else {
+      for (var i = 0; i < 8; i++) {
+        final from = i + slide;
 
-      _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
+        _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
+      }
     }
 
     final low = patternTableLowLatch;
@@ -1256,17 +1314,26 @@ class PPU {
     } else {
       final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
 
-      for (var i = 0; i < 8; i++) {
-        final shift = 7 - i;
-        final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
-
-        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
-      }
+      _bgWindowWords[2] = _decodePatternWord(
+        _patternSpreadLeft[low] | _patternSpreadLeft[high] << 1,
+        attrBits,
+      );
+      _bgWindowWords[3] = _decodePatternWord(
+        _patternSpreadRight[low] | _patternSpreadRight[high] << 1,
+        attrBits,
+      );
     }
 
     _bgWindowPos = 0;
 
     attribute = attributeTableLatch;
+  }
+
+  @pragma('vm:prefer-inline')
+  int _decodePatternWord(int patterns, int attrBits) {
+    final opaque = (patterns | patterns >> 1) & 0x01010101;
+
+    return patterns | opaque * attrBits;
   }
 
   Uint8List _normalizedWindow() {
@@ -1597,7 +1664,7 @@ class PPU {
   @pragma('vm:prefer-inline')
   void _clearSecondaryOam() {
     // Cycles 1-64: Clear secondary OAM on odd cycles
-    if (cycle.isOdd) {
+    if (cycle & 1 == 1) {
       secondaryOam[_oam2Address] = 0xff;
 
       _advanceOam2();
@@ -1617,7 +1684,7 @@ class PPU {
       _resetSpriteEvaluationRange();
     }
 
-    if (cycle.isOdd) {
+    if (cycle & 1 == 1) {
       oamBuffer = _readOam(OAMADDR);
 
       if (cycle == 255) {
@@ -1793,7 +1860,7 @@ class PPU {
   }
 
   void _rasterizeSpriteLine({bool afterSkippedDot = false}) {
-    _spriteLine.fillRange(0, 256, 0);
+    _spriteLine.setRange(0, 256, _blankSpriteLine);
 
     final fourBpp = spriteFourBpp;
 
@@ -2104,70 +2171,86 @@ class PPU {
     };
   }
 
-  void updatePpuMapping(int block, Uint8List? source) {
+  void updatePpuMapping(int block, MemoryMapping? mapping) {
     if (block < 0 || block >= _ppuBlocks.length) {
       return;
     }
 
-    _ppuBlocks[block] = source;
+    _ppuBlocks[block] = mapping;
   }
 
-  void updateFourBppMapping(int block, Uint8List? source) {
+  void updateFourBppMapping(int block, MemoryMapping? mapping) {
     if (block < 0 || block >= _fourBppBlocks.length) {
       return;
     }
 
-    _fourBppBlocks[block] = source;
+    _fourBppBlocks[block] = mapping;
   }
 
   @pragma('vm:prefer-inline')
   int readFourBpp(int address) {
-    final source = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
+    final mapping = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
-  void updateEva2bppMapping(int index, Uint8List? source) {
+  void updateEva2bppMapping(int index, MemoryMapping? mapping) {
     if (index < 0 || index >= _evaBlocks2bpp.length) {
       return;
     }
 
-    _evaBlocks2bpp[index] = source;
+    _evaBlocks2bpp[index] = mapping;
   }
 
-  void updateEva4bppMapping(int index, Uint8List? source) {
+  void updateEva4bppMapping(int index, MemoryMapping? mapping) {
     if (index < 0 || index >= _evaBlocks4bpp.length) {
       return;
     }
 
-    _evaBlocks4bpp[index] = source;
+    _evaBlocks4bpp[index] = mapping;
   }
 
   @pragma('vm:prefer-inline')
   int readEva2bpp(int eva, int address) {
-    final source =
+    final mapping =
         _evaBlocks2bpp[(eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7)];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
   @pragma('vm:prefer-inline')
   int readEva4bpp(int eva, int address) {
-    final source =
+    final mapping =
         _evaBlocks4bpp[(eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf)];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
+}
+
+Uint32List _patternSpread(int firstBit) {
+  final table = Uint32List(256);
+
+  for (var value = 0; value < 256; value++) {
+    var spread = 0;
+
+    for (var lane = 0; lane < 4; lane++) {
+      spread |= ((value >> (firstBit + 3 - lane)) & 1) << (8 * lane);
+    }
+
+    table[value] = spread;
+  }
+
+  return table;
 }
