@@ -273,6 +273,11 @@ class PPU {
   /// shift registers.
   final Uint8List _bgWindow = Uint8List(16);
 
+  late final Uint32List _bgWindowWords = _bgWindow.buffer.asUint32List();
+
+  final Uint32List _patternSpreadLeft = _patternSpread(4);
+  final Uint32List _patternSpreadRight = _patternSpread(0);
+
   bool _oam2Frozen = false;
 
   bool get oamCorruption => _oamCorruption;
@@ -1257,10 +1262,15 @@ class PPU {
     // next-tile slots.
     final slide = _bgWindowPos;
 
-    for (var i = 0; i < 8; i++) {
-      final from = i + slide;
+    if (slide == 8) {
+      _bgWindowWords[0] = _bgWindowWords[2];
+      _bgWindowWords[1] = _bgWindowWords[3];
+    } else {
+      for (var i = 0; i < 8; i++) {
+        final from = i + slide;
 
-      _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
+        _bgWindow[i] = from < 16 ? _bgWindow[from] : _bgSerialIn;
+      }
     }
 
     final low = patternTableLowLatch;
@@ -1284,17 +1294,26 @@ class PPU {
     } else {
       final attrBits = bgExtension ? 0 : attributeTableLatch << 2;
 
-      for (var i = 0; i < 8; i++) {
-        final shift = 7 - i;
-        final pattern = ((high >> shift) & 0x1) << 1 | ((low >> shift) & 0x1);
-
-        _bgWindow[8 + i] = pattern == 0 ? 0 : attrBits | pattern;
-      }
+      _bgWindowWords[2] = _decodePatternWord(
+        _patternSpreadLeft[low] | _patternSpreadLeft[high] << 1,
+        attrBits,
+      );
+      _bgWindowWords[3] = _decodePatternWord(
+        _patternSpreadRight[low] | _patternSpreadRight[high] << 1,
+        attrBits,
+      );
     }
 
     _bgWindowPos = 0;
 
     attribute = attributeTableLatch;
+  }
+
+  @pragma('vm:prefer-inline')
+  int _decodePatternWord(int patterns, int attrBits) {
+    final opaque = (patterns | patterns >> 1) & 0x01010101;
+
+    return patterns | opaque * attrBits;
   }
 
   Uint8List _normalizedWindow() {
@@ -2198,4 +2217,20 @@ class PPU {
 
     return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
+}
+
+Uint32List _patternSpread(int firstBit) {
+  final table = Uint32List(256);
+
+  for (var value = 0; value < 256; value++) {
+    var spread = 0;
+
+    for (var lane = 0; lane < 4; lane++) {
+      spread |= ((value >> (firstBit + 3 - lane)) & 1) << (8 * lane);
+    }
+
+    table[value] = spread;
+  }
+
+  return table;
 }
