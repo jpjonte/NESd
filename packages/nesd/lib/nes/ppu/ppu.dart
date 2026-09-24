@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:nesd/extension/bit_extension.dart';
 import 'package:nesd/nes/bus.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper.dart' show MemoryMapping;
 import 'package:nesd/nes/ppu/four_bpp_address.dart';
 import 'package:nesd/nes/ppu/frame_buffer.dart';
 import 'package:nesd/nes/ppu/palette/nes_palette.dart';
@@ -185,22 +186,28 @@ class PPU {
   bool _frameUsedExtendedColors = false;
 
   bool get frameIndicesValid => _frameIndicesValid;
-  final List<Uint8List?> _ppuBlocks = List<Uint8List?>.filled(
+  final List<MemoryMapping?> _ppuBlocks = List<MemoryMapping?>.filled(
     _ppuBlockCount,
     null,
   );
 
   /// Block table for the VT03+ 16 KiB 4bpp pattern space.
-  final List<Uint8List?> _fourBppBlocks = List<Uint8List?>.filled(
+  final List<MemoryMapping?> _fourBppBlocks = List<MemoryMapping?>.filled(
     _ppuBlockCount,
     null,
   );
 
   /// EVA pattern space, 2bpp view: 8 EVA x 8 blocks.
-  final List<Uint8List?> _evaBlocks2bpp = List<Uint8List?>.filled(64, null);
+  final List<MemoryMapping?> _evaBlocks2bpp = List<MemoryMapping?>.filled(
+    64,
+    null,
+  );
 
   /// EVA pattern space, 4bpp view: 8 EVA x 16 blocks.
-  final List<Uint8List?> _evaBlocks4bpp = List<Uint8List?>.filled(128, null);
+  final List<MemoryMapping?> _evaBlocks4bpp = List<MemoryMapping?>.filled(
+    128,
+    null,
+  );
 
   bool _showBackground = false;
   bool _showSprites = false;
@@ -586,10 +593,10 @@ class PPU {
         return bus.cartridge.mapper.ppuRead(maskedAddress);
       }
 
-      final source = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
+      final mapping = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
 
-      if (source != null) {
-        return source[maskedAddress & _ppuBlockMask];
+      if (mapping != null) {
+        return mapping.source[mapping.offset + (maskedAddress & _ppuBlockMask)];
       }
     }
 
@@ -2125,70 +2132,70 @@ class PPU {
     };
   }
 
-  void updatePpuMapping(int block, Uint8List? source) {
+  void updatePpuMapping(int block, MemoryMapping? mapping) {
     if (block < 0 || block >= _ppuBlocks.length) {
       return;
     }
 
-    _ppuBlocks[block] = source;
+    _ppuBlocks[block] = mapping;
   }
 
-  void updateFourBppMapping(int block, Uint8List? source) {
+  void updateFourBppMapping(int block, MemoryMapping? mapping) {
     if (block < 0 || block >= _fourBppBlocks.length) {
       return;
     }
 
-    _fourBppBlocks[block] = source;
+    _fourBppBlocks[block] = mapping;
   }
 
   @pragma('vm:prefer-inline')
   int readFourBpp(int address) {
-    final source = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
+    final mapping = _fourBppBlocks[(address >> _ppuBlockAddressWidth) & 0xf];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
-  void updateEva2bppMapping(int index, Uint8List? source) {
+  void updateEva2bppMapping(int index, MemoryMapping? mapping) {
     if (index < 0 || index >= _evaBlocks2bpp.length) {
       return;
     }
 
-    _evaBlocks2bpp[index] = source;
+    _evaBlocks2bpp[index] = mapping;
   }
 
-  void updateEva4bppMapping(int index, Uint8List? source) {
+  void updateEva4bppMapping(int index, MemoryMapping? mapping) {
     if (index < 0 || index >= _evaBlocks4bpp.length) {
       return;
     }
 
-    _evaBlocks4bpp[index] = source;
+    _evaBlocks4bpp[index] = mapping;
   }
 
   @pragma('vm:prefer-inline')
   int readEva2bpp(int eva, int address) {
-    final source =
+    final mapping =
         _evaBlocks2bpp[(eva << 3) | ((address >> _ppuBlockAddressWidth) & 0x7)];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
   @pragma('vm:prefer-inline')
   int readEva4bpp(int eva, int address) {
-    final source =
+    final mapping =
         _evaBlocks4bpp[(eva << 4) | ((address >> _ppuBlockAddressWidth) & 0xf)];
 
-    if (source == null) {
+    if (mapping == null) {
       return 0;
     }
 
-    return source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 }

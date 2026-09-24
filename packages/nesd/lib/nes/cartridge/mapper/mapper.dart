@@ -54,11 +54,15 @@ const _ppuBlockMask = _ppuBlockSize - 1;
 const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 
 class MemoryMapping {
-  MemoryMapping({required this.source, this.access = MemoryAccess.read})
-    : readable = (access.value & MemoryAccess.read.value) != 0,
-      writable = (access.value & MemoryAccess.write.value) != 0;
+  MemoryMapping({
+    required this.source,
+    required this.offset,
+    this.access = MemoryAccess.read,
+  }) : readable = (access.value & MemoryAccess.read.value) != 0,
+       writable = (access.value & MemoryAccess.write.value) != 0;
 
   final Uint8List source;
+  final int offset;
   final MemoryAccess access;
 
   final bool readable;
@@ -206,7 +210,8 @@ abstract class Mapper {
     final key = (offset << 2) | access.value;
 
     return bySource[key] ??= MemoryMapping(
-      source: Uint8List.sublistView(source, offset, offset + size),
+      source: source,
+      offset: offset,
       access: access,
     );
   }
@@ -241,10 +246,7 @@ abstract class Mapper {
     }
 
     if (mapping.readable) {
-      final source = mapping.source;
-      final offset = address & _cpuBlockMask;
-
-      return source[offset];
+      return mapping.source[mapping.offset + (address & _cpuBlockMask)];
     }
 
     return bus.cpu.openBus;
@@ -259,10 +261,7 @@ abstract class Mapper {
       }
 
       if (mapping.readable) {
-        final source = mapping.source;
-        final offset = address & _ppuBlockMask;
-
-        return source[offset];
+        return mapping.source[mapping.offset + (address & _ppuBlockMask)];
       }
     }
 
@@ -285,7 +284,7 @@ abstract class Mapper {
     }
 
     if (mapping.writable) {
-      mapping.source[address & _cpuBlockMask] = value;
+      mapping.source[mapping.offset + (address & _cpuBlockMask)] = value;
     }
   }
 
@@ -297,7 +296,7 @@ abstract class Mapper {
     }
 
     if (mapping.writable) {
-      mapping.source[address & _ppuBlockMask] = value;
+      mapping.source[mapping.offset + (address & _ppuBlockMask)] = value;
     }
   }
 
@@ -454,7 +453,7 @@ abstract class Mapper {
         resolvedAccess,
       );
 
-      bus.ppu.updatePpuMapping(block, _ppuMapping[block]?.source);
+      bus.ppu.updatePpuMapping(block, _ppuMapping[block]);
     }
   }
 
@@ -466,7 +465,7 @@ abstract class Mapper {
       return 0;
     }
 
-    return mapping.source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
   void mapPpu4bpp(
@@ -505,7 +504,7 @@ abstract class Mapper {
         access,
       );
 
-      bus.ppu.updateFourBppMapping(block, _ppuFourBppMapping[block]?.source);
+      bus.ppu.updateFourBppMapping(block, _ppuFourBppMapping[block]);
     }
   }
 
@@ -518,7 +517,7 @@ abstract class Mapper {
       return 0;
     }
 
-    return mapping.source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
   int eva4bppRead(int eva, int address) {
@@ -530,7 +529,7 @@ abstract class Mapper {
       return 0;
     }
 
-    return mapping.source[address & _ppuBlockMask];
+    return mapping.source[mapping.offset + (address & _ppuBlockMask)];
   }
 
   void mapPpuEva2bpp(
@@ -570,7 +569,7 @@ abstract class Mapper {
         access,
       );
 
-      bus.ppu.updateEva2bppMapping(block, _ppuEva2bppMapping[block]?.source);
+      bus.ppu.updateEva2bppMapping(block, _ppuEva2bppMapping[block]);
     }
   }
 
@@ -611,7 +610,7 @@ abstract class Mapper {
         access,
       );
 
-      bus.ppu.updateEva4bppMapping(block, _ppuEva4bppMapping[block]?.source);
+      bus.ppu.updateEva4bppMapping(block, _ppuEva4bppMapping[block]);
     }
   }
 }
