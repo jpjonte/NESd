@@ -27,6 +27,11 @@ const _ppuBlockSize = 1 << _ppuBlockAddressWidth;
 const _ppuBlockMask = _ppuBlockSize - 1;
 const _ppuBlockCount = 0x4000 ~/ _ppuBlockSize;
 
+const _visiblePhase = 0;
+const _preRenderPhase = 1;
+const _vblankPhase = 2;
+const _idlePhase = 3;
+
 class PPU {
   PPU(this.bus);
 
@@ -39,6 +44,8 @@ class PPU {
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int _preRenderScanline = ntscPreRenderScanline;
   int frames = 0;
+
+  int _scanlinePhase = _visiblePhase;
 
   int _pixelBase = 0;
   int _maskDelay = 0;
@@ -70,7 +77,6 @@ class PPU {
   int spriteEvalPhase = _spriteEvalDone;
   int _spriteRangeMinY = 0;
   int secondarySpriteCount = 0;
-  int spriteCount = 0;
   int _fetchedSpriteY = 0xff;
   int _fetchedSpriteTile = 0xff;
 
@@ -78,6 +84,8 @@ class PPU {
   int PPUSTATUS = 0x00;
 
   final Bus bus;
+
+  int spriteCount = 0;
 
   int PPUMASK = 0x00;
   int OAMDATA = 0x00;
@@ -745,34 +753,35 @@ class PPU {
     }
   }
 
-  /// Selected once per scanline change; step() calls it directly
-  /// instead of re-classifying the scanline every dot.
-  late void Function() _scanlinePhase = _phaseForScanline();
-
-  void Function() _phaseForScanline() {
+  int _phaseForScanline() {
     if (scanline < 240) {
-      return _stepVisibleScanline;
+      return _visiblePhase;
     }
 
     if (scanline == _preRenderScanline) {
-      return _stepPreRenderScanline;
+      return _preRenderPhase;
     }
 
     if (scanline == vblankScanline) {
-      return _stepVblankLine;
+      return _vblankPhase;
     }
 
-    return _stepIdleScanline;
+    return _idlePhase;
   }
-
-  void _stepIdleScanline() {}
 
   void step() {
     if (_maskDelay != 0 && --_maskDelay == 0) {
       _applyMaskWrite();
     }
 
-    _scanlinePhase();
+    switch (_scanlinePhase) {
+      case _visiblePhase:
+        _stepVisibleScanline();
+      case _preRenderPhase:
+        _stepPreRenderScanline();
+      case _vblankPhase:
+        _stepVblankLine();
+    }
 
     _updateCounters();
   }
