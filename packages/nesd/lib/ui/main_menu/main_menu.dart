@@ -13,6 +13,7 @@ import 'package:nesd/ui/common/nesd_button.dart';
 import 'package:nesd/ui/common/paginated_grid.dart';
 import 'package:nesd/ui/common/paginated_grid_controller.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_link/rom_link_controller.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_picker_screen.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
@@ -26,14 +27,30 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'main_menu.g.dart';
 
+sealed class InitialRomSource {
+  const InitialRomSource();
+}
+
+final class InitialRomPath extends InitialRomSource {
+  const InitialRomPath(this.path);
+
+  final String path;
+}
+
+final class InitialRomLink extends InitialRomSource {
+  const InitialRomLink(this.page);
+
+  final Uri page;
+}
+
 @riverpod
 class InitialRom extends _$InitialRom {
   InitialRom({this.initialValue});
 
-  final String? initialValue;
+  final InitialRomSource? initialValue;
 
   @override
-  String? build() => initialValue;
+  InitialRomSource? build() => initialValue;
 
   void clear() {
     state = null;
@@ -113,18 +130,23 @@ class MainMenu extends HookConsumerWidget {
     );
   }
 
-  void _startInitialRom(WidgetRef ref, String initialRom) {
-    unawaited(
-      ref
-          .read(nesControllerProvider)
-          .startRom(
-            FilesystemFile(
-              path: initialRom,
-              name: p.basename(initialRom),
-              type: FilesystemFileType.file,
+  void _startInitialRom(WidgetRef ref, InitialRomSource initialRom) {
+    final started = switch (initialRom) {
+      InitialRomPath(:final path) =>
+        ref
+            .read(nesControllerProvider)
+            .startRom(
+              FilesystemFile(
+                path: path,
+                name: p.basename(path),
+                type: FilesystemFileType.file,
+              ),
             ),
-          ),
-    );
+      InitialRomLink(:final page) =>
+        ref.read(romLinkControllerProvider.notifier).open(page),
+    };
+
+    unawaited(started);
 
     ref.read(initialRomProvider.notifier).clear();
   }

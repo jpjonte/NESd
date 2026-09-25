@@ -413,12 +413,16 @@ class NesController {
     Uint8List? stateBytes,
     Uint8List? data,
     bool suspended = false,
+    bool autoLoadState = true,
+    bool addToRecents = true,
   }) async {
     Future<bool> start(FilesystemFile rom) => _startRom(
       rom,
       stateBytes: stateBytes,
       data: data,
       suspended: suspended,
+      autoLoadState: autoLoadState,
+      addToRecents: addToRecents,
     );
 
     if (data == null &&
@@ -435,12 +439,16 @@ class NesController {
     Uint8List? stateBytes,
     Uint8List? data,
     bool suspended = false,
+    bool autoLoadState = true,
+    bool addToRecents = true,
   }) async {
     final loaded = await loadRom(
       file,
       stateBytes: stateBytes,
       data: data,
       suspended: suspended,
+      autoLoadState: autoLoadState,
+      addToRecents: addToRecents,
     );
 
     if (!loaded) {
@@ -497,6 +505,8 @@ class NesController {
     Uint8List? stateBytes,
     Uint8List? data,
     bool suspended = false,
+    bool autoLoadState = true,
+    bool addToRecents = true,
   }) async {
     nes?.suspend();
 
@@ -530,7 +540,7 @@ class NesController {
       final isolate = await _ensureIsolate();
 
       final sram = await romManager.load(romInfo);
-      final latestState = stateBytes == null
+      final latestState = stateBytes == null && autoLoadState
           ? await _autoLoadState(romInfo)
           : null;
       final initialState = stateBytes ?? latestState?.data;
@@ -628,7 +638,9 @@ class NesController {
         interval: settingsController.autoSaveInterval,
       );
 
-      settingsController.addRecentRom(romInfo);
+      if (addToRecents) {
+        settingsController.addRecentRom(romInfo);
+      }
 
       // The NES that existed when the active-screen signal last changed was
       // a different one (or none at all), so apply the current run state to

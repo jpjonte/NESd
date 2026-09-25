@@ -17,12 +17,14 @@ import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
 import 'package:nesd/ui/emulator/rewind/rewind_scrub_controller.dart';
+import 'package:nesd/ui/emulator/rom_link/rom_link_controller.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
 @RoutePage()
 class MenuScreen extends ConsumerWidget {
   static const resumeKey = Key('resume');
+  static const saveRomKey = Key('saveRom');
   static const saveStatesKey = Key('saveStates');
   static const undoLoadStateKey = Key('undoLoadState');
   static const rewindTimelineKey = Key('rewindTimeline');
@@ -42,6 +44,8 @@ class MenuScreen extends ConsumerWidget {
 
     final canUndoLoadState =
         ref.read(nesStateProvider)?.canUndoLoadState ?? false;
+
+    final unsavedRom = ref.watch(romLinkControllerProvider) != null;
 
     return NesdScaffold(
       backgroundColor: Colors.black.withAlpha(200),
@@ -75,6 +79,20 @@ class MenuScreen extends ConsumerWidget {
                     child: const Text('Resume'),
                   ),
                 ),
+                if (unsavedRom) ...[
+                  const NesdVerticalDivider(),
+                  Center(
+                    child: NesdButton(
+                      key: saveRomKey,
+                      onPressed: () => unawaited(
+                        ref
+                            .read(romLinkControllerProvider.notifier)
+                            .saveToBrowser(),
+                      ),
+                      child: const Text('Save ROM to Browser'),
+                    ),
+                  ),
+                ],
                 const NesdVerticalDivider(),
                 Center(
                   child: NesdButton(

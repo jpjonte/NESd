@@ -112,6 +112,7 @@ class _Harness {
     return _Harness._(
       controller: controller,
       romManager: romManager,
+      settings: settings,
       toaster: toaster,
     );
   }
@@ -119,11 +120,13 @@ class _Harness {
   _Harness._({
     required this.controller,
     required this.romManager,
+    required this.settings,
     required this.toaster,
   });
 
   final NesController controller;
   final _MockRomManager romManager;
+  final _MockSettingsController settings;
   final _MockToaster toaster;
 
   Future<Uint8List> captureState() async {
@@ -303,5 +306,50 @@ void main() {
       harness.takeMessages(),
       contains(contains('Could not keep a copy: Exception: disk full')),
     );
+  });
+
+  test('autoLoadState: false skips the latest state', () async {
+    final harness = _Harness();
+    final state = await harness.captureState();
+
+    when(
+      () => harness.romManager.loadLatestState(any()),
+    ).thenAnswer((_) async => _latest(state));
+
+    clearInteractions(harness.toaster);
+    clearInteractions(harness.romManager);
+
+    final loaded = await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+      autoLoadState: false,
+    );
+
+    expect(loaded, isTrue);
+    verifyNever(() => harness.romManager.loadLatestState(any()));
+    verifyNever(
+      () => harness.toaster.send(
+        any(
+          that: isA<Toast>().having(
+            (toast) => toast.message,
+            'message',
+            'Loaded latest save state',
+          ),
+        ),
+      ),
+    );
+  });
+
+  test('addToRecents: false leaves the recent ROMs alone', () async {
+    final harness = _Harness();
+
+    final loaded = await harness.controller.loadRom(
+      _file,
+      data: minimalValidRom(),
+      addToRecents: false,
+    );
+
+    expect(loaded, isTrue);
+    verifyNever(() => harness.settings.addRecentRom(any()));
   });
 }
