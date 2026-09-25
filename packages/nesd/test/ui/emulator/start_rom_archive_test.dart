@@ -236,7 +236,7 @@ void main() {
       },
       overrides: [
         initialRomProvider.overrideWith(
-          () => InitialRom(initialValue: _collection.path),
+          () => InitialRom(initialValue: InitialRomPath(_collection.path)),
         ),
       ],
       settle: false,

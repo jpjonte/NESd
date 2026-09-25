@@ -263,6 +263,16 @@ Serve the directory as-is.
 `.mjs` files must be served as JavaScript (`Content-Type: application/javascript`), otherwise browsers reject the WebAssembly runtime's module, and you get a blank page.  
 Serve `index.html`, `flutter_bootstrap.js` and `sw.js` uncached.  
 
+### Link to a ROM
+
+Add a `rom` parameter to start with a ROM: `https://nesd.jpj.dev/play/?rom=https://example.com/game.nes`.
+
+You can load `.nes`, `.zip` and `.7z` files up to 16 MB.
+
+Add `&slot=<0-9>` to load a save state slot.
+
+Select *Save ROM to Browser* in the in-game menu to store the ROM.
+
 ## Contributing
 
 Contributions are very welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup and how to report bugs (please include the log).

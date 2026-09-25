@@ -129,9 +129,7 @@ void main(List<String> arguments) async {
           applicationSupportPath,
         ),
         initialRomProvider.overrideWith(
-          () => InitialRom(
-            initialValue: arguments.isNotEmpty ? arguments.first : null,
-          ),
+          () => InitialRom(initialValue: _initialRom(arguments)),
         ),
         if (startupWarning != null)
           startupWarningProvider.overrideWithValue(startupWarning),
@@ -141,6 +139,18 @@ void main(List<String> arguments) async {
       child: const NesdApp(),
     ),
   );
+}
+
+InitialRomSource? _initialRom(List<String> arguments) {
+  if (kIsWeb) {
+    final page = Uri.base;
+
+    return page.queryParameters.containsKey('rom')
+        ? InitialRomLink(page)
+        : null;
+  }
+
+  return arguments.isEmpty ? null : InitialRomPath(arguments.first);
 }
 
 void _addLicenses() {

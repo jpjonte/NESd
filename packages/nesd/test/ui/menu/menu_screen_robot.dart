@@ -14,6 +14,10 @@ class MenuScreenRobot extends BaseRobot {
     await goAsync(find.byKey(MenuScreen.resumeKey));
   }
 
+  Future<void> tapSaveRom() async {
+    await goAsync(find.byKey(MenuScreen.saveRomKey));
+  }
+
   Future<void> tapSaveStates() async {
     await goAsync(find.byKey(MenuScreen.saveStatesKey));
   }

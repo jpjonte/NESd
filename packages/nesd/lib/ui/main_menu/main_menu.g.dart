@@ -12,7 +12,8 @@ part of 'main_menu.dart';
 @ProviderFor(InitialRom)
 final initialRomProvider = InitialRomProvider._();
 
-final class InitialRomProvider extends $NotifierProvider<InitialRom, String?> {
+final class InitialRomProvider
+    extends $NotifierProvider<InitialRom, InitialRomSource?> {
   InitialRomProvider._()
     : super(
         from: null,
@@ -32,27 +33,27 @@ final class InitialRomProvider extends $NotifierProvider<InitialRom, String?> {
   InitialRom create() => InitialRom();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(String? value) {
+  Override overrideWithValue(InitialRomSource? value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<String?>(value),
+      providerOverride: $SyncValueProvider<InitialRomSource?>(value),
     );
   }
 }
 
-String _$initialRomHash() => r'ff3fa5ae8bc382ca1b1f86e007519a22a04da47e';
+String _$initialRomHash() => r'ab8e2d0b39e4a9c816e439226d31b302ba2a85dc';
 
-abstract class _$InitialRom extends $Notifier<String?> {
-  String? build();
+abstract class _$InitialRom extends $Notifier<InitialRomSource?> {
+  InitialRomSource? build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<String?, String?>;
+    final ref = this.ref as $Ref<InitialRomSource?, InitialRomSource?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<String?, String?>,
-              String?,
+              AnyNotifier<InitialRomSource?, InitialRomSource?>,
+              InitialRomSource?,
               Object?,
               Object?
             >;

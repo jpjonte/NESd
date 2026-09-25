@@ -15,7 +15,9 @@ void main() {
     await r.pumpApp(
       overrides: [
         initialRomProvider.overrideWith(
-          () => InitialRom(initialValue: '/test/roms/nestest.nes'),
+          () => InitialRom(
+            initialValue: const InitialRomPath('/test/roms/nestest.nes'),
+          ),
         ),
       ],
       settle: false,

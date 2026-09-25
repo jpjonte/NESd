@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Screenshot action (F12 by default) that saves the current frame 
 - Undo Load State
 - OAM corruption: sprites glitch like on real hardware
+- The web version can start a ROM from a link
 
 ### Changed
 - Improved emulation performance
