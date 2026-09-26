@@ -22,7 +22,8 @@
       "groupName": "Dart packages",
       "groupSlug": "dart",
       "matchManagers": ["pub"],
-      "matchPackageNames": ["*"]
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "matchManagers": ["pub"],
