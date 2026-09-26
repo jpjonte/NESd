@@ -4,16 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.21.0] - 2026-09-26
 
 > NESd is now available on Google Play! 🥳 Get it at https://play.google.com/store/apps/details?id=dev.jpj.nesd
 
 ### Added
 - Color Dreams (mapper 11) support
 - AVE NINA-03/NINA-06 (mapper 79) and Sachen 3015 (mapper 146) support
-- The web version can be installed to the home screen with offline support
-- Screenshot action (F12 by default) that saves the current frame 
 - Undo Load State
+- Screenshot action (F12 by default) that saves the current frame 
+- The web version can be installed to the home screen with offline support
 - OAM corruption: sprites glitch like on real hardware
 - The web version can start a ROM from a link
 
