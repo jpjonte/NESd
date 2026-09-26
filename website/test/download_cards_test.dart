@@ -145,13 +145,13 @@ void main() {
     expect(html, contains('install the Flatpak instead'));
   });
 
-  test('asks for Play Store testers on the Android card', () async {
+  test('links the Google Play badge on the Android card', () async {
     final html = await renderHtml(
       DownloadCards(release: _manifest(_singleAssets)),
     );
 
-    expect(html, contains('Not on Google Play yet'));
-    expect(html, contains('href="$testersUrl">Testers wanted</a>'));
+    expect(html, contains('href="$googlePlayUrl"'));
+    expect(html, contains('alt="Get it on Google Play"'));
   });
 
   test('tells phone visitors the browser build needs no install', () async {

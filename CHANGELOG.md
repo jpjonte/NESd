@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+> NESd is now available on Google Play! 🥳 Get it at https://play.google.com/store/apps/details?id=dev.jpj.nesd
+
 ### Added
 - Color Dreams (mapper 11) support
 - AVE NINA-03/NINA-06 (mapper 79) and Sachen 3015 (mapper 146) support

@@ -51,6 +51,12 @@ class const PageShell({
               a(href: 'mailto:$contactEmail', [.text(contactEmail)]),
             ]),
           ]),
+          p(classes: 'legal', [
+            .text(
+              'Google Play and the Google Play logo are trademarks of '
+              'Google LLC.',
+            ),
+          ]),
         ]),
       ]),
     ]);

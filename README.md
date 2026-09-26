@@ -15,6 +15,10 @@ Runs on macOS, Windows, Linux, Android, and on the web.
 **[▶ Play it in your browser](https://nesd.jpj.dev/play/)**, [Download a build](#installation) or visit [nesd.jpj.dev](https://nesd.jpj.dev).
 
 <p align="center">
+    <a href="https://play.google.com/store/apps/details?id=dev.jpj.nesd"><img src="docs/google-play-badge.svg" alt="Get it on Google Play" height="60" /></a>
+</p>
+
+<p align="center">
   <img src="docs/Battletoads.png" width="49%" />
   <img src="docs/Castlevania%20III.png" width="49%" />
 </p>
@@ -46,12 +50,9 @@ also available (see [Self-hosting](#self-hosting) below).
 
 ### Android
 
-> **Looking for Android testers!**  
-> Google Play requires 12 testers to opt in and
-> actually use the app for 14 days before a new app can be published. If you'd like
-> to help NESd get onto the Play Store,
-> sign up in [Discussions](https://github.com/jpjonte/NESd/discussions/322).  
-> You'll need an Android device and a Google account.
+Download and install the APK above, or get it in the Play Store:
+
+<a href="https://play.google.com/store/apps/details?id=dev.jpj.nesd"><img src="docs/google-play-badge.svg" alt="Get it on Google Play" height="60" /></a>
 
 ### Linux (Flatpak)
 
@@ -294,3 +295,5 @@ Thank you to the following projects and people for their amazing work:
 NESd is released under the [MIT License](LICENSE).
 
 Nintendo Entertainment System and NES are trademarks of Nintendo. NESd is not affiliated with or endorsed by Nintendo, and ships no game ROMs or copyrighted Nintendo material.
+
+Google Play and the Google Play logo are trademarks of Google LLC.

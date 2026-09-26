@@ -94,7 +94,7 @@ FLUTTER="fvm flutter" ci/0-test/web_test.sh  # browser subset, needs Chrome
 
 ### Supported game counts
 
-The mapper list and game counts in `README.md`, and `supportedGameCount` in `website/lib/content.dart`, are generated from `assets/nes20db.xml`. After adding a mapper or updating the database, regenerate them:
+The mapper list and game counts in `README.md`, `supportedGameCount` in `website/lib/content.dart` and the count in the Play Store description (`packages/nesd/android/app/src/main/play/listings/en-US/full-description.txt`) are generated from `assets/nes20db.xml`. After adding a mapper or updating the database, regenerate them:
 
 ```bash
 pushd packages/nesd && fvm dart run tool/update_game_counts.dart && popd

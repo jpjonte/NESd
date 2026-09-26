@@ -48,6 +48,15 @@ class const DownloadCards({required final ReleaseManifest release, super.key})
 
     return div(classes: 'download-card', [
       h3([.text(platform.label)]),
+      if (platform == DownloadPlatform.android)
+        const a(classes: 'play-badge', href: googlePlayUrl, [
+          img(
+            src: 'img/google-play-badge.svg',
+            alt: 'Get it on Google Play',
+            width: 135,
+            height: 40,
+          ),
+        ]),
       div(classes: 'download-links', [primary]),
       if (more.isNotEmpty)
         details(classes: 'download-more', [
@@ -59,12 +68,6 @@ class const DownloadCards({required final ReleaseManifest release, super.key})
         if (note.firstLaunch case final firstLaunch?)
           p(classes: 'card-note card-warn', [.text(firstLaunch)]),
       ],
-      if (platform == DownloadPlatform.android)
-        const p(classes: 'card-note', [
-          .text('Not on Google Play yet. '),
-          a(href: testersUrl, [.text('Testers wanted')]),
-          .text('!'),
-        ]),
     ]);
   }
 }

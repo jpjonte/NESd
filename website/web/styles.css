@@ -221,6 +221,16 @@ ul {
   margin: 0;
 }
 
+.play-badge {
+  display: block;
+  width: fit-content;
+  margin: 0.75rem 0;
+}
+
+.play-badge img {
+  display: block;
+}
+
 .download-links {
   display: flex;
   flex-wrap: wrap;
@@ -500,6 +510,11 @@ ul {
   display: flex;
   flex-wrap: wrap;
   gap: 1.25rem;
+}
+
+.site-footer .legal {
+  flex-basis: 100%;
+  font-size: 0.8rem;
 }
 
 .site-footer a {

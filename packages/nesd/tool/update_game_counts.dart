@@ -1,5 +1,6 @@
-// Regenerates the number of supported games in README.md and
-// website/lib/content.dart from assets/nes20db.xml.
+// Regenerates the number of supported games in README.md,
+// website/lib/content.dart and the Play Store description from
+// assets/nes20db.xml.
 
 import 'dart:io';
 
@@ -71,11 +72,16 @@ void main(List<String> args) {
 
   final block = _renderBlock(mappers, labels, counts, total);
   final content = File('${root.path}/website/lib/content.dart');
+  final playListing = File(
+    '${root.path}/packages/nesd/android/app/src/main/play/listings/en-US/'
+    'full-description.txt',
+  );
 
   final readmeChanged = _applyReadme(readme, block, checkOnly);
   final contentChanged = _applyContent(content, total, checkOnly);
+  final playListingChanged = _applyPlayListing(playListing, total, checkOnly);
 
-  if (!readmeChanged && !contentChanged) {
+  if (!readmeChanged && !contentChanged && !playListingChanged) {
     stdout.writeln('game counts up to date (${_formatCount(total)} games)');
 
     return;
@@ -237,6 +243,22 @@ bool _applyContent(File content, int total, bool checkOnly) {
   );
 
   return _write(content, source, updated, checkOnly);
+}
+
+bool _applyPlayListing(File listing, int total, bool checkOnly) {
+  final source = listing.readAsStringSync();
+  final pattern = RegExp(r'Supports [\d,]+ games');
+
+  if (!pattern.hasMatch(source)) {
+    _fail('could not find "Supports <n> games" in ${listing.path}');
+  }
+
+  final updated = source.replaceFirst(
+    pattern,
+    'Supports ${_formatCount(total)} games',
+  );
+
+  return _write(listing, source, updated, checkOnly);
 }
 
 bool _write(File file, String source, String updated, bool checkOnly) {

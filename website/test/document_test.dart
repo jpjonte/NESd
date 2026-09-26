@@ -69,6 +69,12 @@ void main() {
     expect((data['offers']! as Map)['price'], '0');
   });
 
+  test('links the Google Play listing for search engines', () async {
+    final data = _structuredData(await _renderPage('/'));
+
+    expect(data['sameAs'], [googlePlayUrl]);
+  });
+
   test('carries alt text for the social preview image', () async {
     final html = await _renderPage('/');
 

@@ -16,7 +16,8 @@ const releasesUrl = '$repoUrl/releases';
 const nightlyUrl = '$repoUrl/releases/tag/nightly';
 const changelogUrl = '$repoUrl/blob/main/CHANGELOG.md';
 const mappersUrl = '$repoUrl#supported-games-and-mappers';
-const testersUrl = '$repoUrl/discussions/322';
+const googlePlayUrl =
+    'https://play.google.com/store/apps/details?id=dev.jpj.nesd';
 const flatpakRepoUrl = 'https://jpjonte.github.io/flatpak/jpj.flatpakrepo';
 const playUrl = '$siteUrl/play/';
 const selfHostingUrl = '$repoUrl#self-hosting';
@@ -155,8 +156,8 @@ const platformNotes = {
   DownloadPlatform.android: PlatformNote(
     requirement: 'Android 7 or later',
     firstLaunch:
-        'Install the APK. Android asks you to allow installs from your '
-        'browser once.',
+        'Or install the APK directly. Android asks you to allow installs '
+        'from your browser once.',
   ),
 };
 

@@ -335,7 +335,7 @@ jobs:
       image: ghcr.io/jpjonte/flutter:stable-android-ci
     needs: [ lint, test, test-web, test-site, build-android, check-play-listing ]
     env:
-      PLAY_TRACK: alpha
+      PLAY_TRACK: production
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8

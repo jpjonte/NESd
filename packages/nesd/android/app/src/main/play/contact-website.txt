@@ -1,1 +1,1 @@
-https://github.com/jpjonte/NESd
+https://nesd.jpj.dev

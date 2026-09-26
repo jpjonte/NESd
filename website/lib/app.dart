@@ -21,6 +21,7 @@ String _structuredData(ReleaseManifest release) => jsonEncode({
   'isAccessibleForFree': true,
   'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'EUR'},
   'author': {'@type': 'Person', 'name': 'Buddy Jonte'},
+  'sameAs': [googlePlayUrl],
 });
 
 class const App({required final SiteContent content, super.key})
