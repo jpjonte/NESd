@@ -29,12 +29,18 @@ cp -r "$bundle"/* nesd.AppDir
 
 id=$(bash "$packaging/render.sh" "$FLAVOR" nesd nesd.AppDir/usr/share)
 
-# appimagetool wants the desktop entry and its icon at the AppDir root.
+case "$FLAVOR" in
+  prod) logo="logo.png" ;;
+  dev) logo="logo-dev.png" ;;
+esac
+
+# copy desktop entry to AppDir root for appimagetool
 cp "nesd.AppDir/usr/share/applications/$id.desktop" nesd.AppDir/
-cp "nesd.AppDir/usr/share/icons/hicolor/scalable/apps/$id.svg" nesd.AppDir/
+# copy PNG image for AppImage catalog https://github.com/AppImage/appimage.github.io
+cp "$app_root/assets/$logo" "nesd.AppDir/$id.png"
 
 cp "$packaging/appimage/AppRun" nesd.AppDir/AppRun
 
 chmod +x nesd.AppDir/AppRun
 
-appimagetool --no-appstream nesd.AppDir "$ARTIFACT_FLAVORED".linux-"$ARCH".AppImage
+appimagetool --no-appstream nesd.AppDir "$ARTIFACT_FLAVORED.$full_arch.AppImage"

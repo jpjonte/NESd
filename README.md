@@ -35,11 +35,12 @@ Grab the file for your platform from the [latest release](https://github.com/jpj
 | Windows                      | `nesd.<version>.windows-x64.zip`                |
 | Linux (Debian, Ubuntu, …)    | `nesd.<version>.linux-<arch>.deb`               |
 | Linux (Fedora, RHEL, …)      | `nesd.<version>.linux-<arch>.rpm`               |
-| Linux (portable)             | `nesd.<version>.linux-<arch>.AppImage`          |
+| Linux (portable)             | `nesd.<version>.<appimage-arch>.AppImage`       |
 | Android                      | `nesd.<version>.android.apk`                    |
 | Web (self-hosted)            | `nesd.<version>.web.zip`                        |
 
-`<arch>` is `x64` or `arm64`. Nightly builds of `main` live in the
+`<arch>` is `x64` or `arm64`; `<appimage-arch>` is `x86_64` or `aarch64`.
+Nightly builds of `main` live in the
 [nightly release](https://github.com/jpjonte/NESd/releases/tag/nightly).
 
 ### Web

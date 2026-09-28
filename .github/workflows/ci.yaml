@@ -552,7 +552,7 @@ jobs:
       - run: ci/2-package/linux/package_appimage.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ARTIFACT_FLAVORED }}.linux-${{ matrix.arch }}.AppImage
+          name: ${{ env.ARTIFACT_FLAVORED }}.${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}.AppImage
           path: '*.AppImage'
           if-no-files-found: error
 
