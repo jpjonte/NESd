@@ -219,7 +219,7 @@ jobs:
     env:
       ARCH: ${{ matrix.arch }}
     container:
-      image: ubuntu:26.04
+      image: ubuntu:22.04
     steps:
       - name: Bootstrap container
         run: |
@@ -241,6 +241,7 @@ jobs:
           cache: true
       - run: ci/1-build/prepare.sh
       - run: ci/1-build/linux/build.sh
+      - run: ci/check/linux/abi.sh packages/nesd/build/linux/${{ matrix.arch }}/${{ env.FLAVOR }}/release/bundle
       - name: Archive bundle
         run: |
           tar -C packages/nesd/build/linux/${{ matrix.arch }}/${{ env.FLAVOR }}/release \
@@ -552,7 +553,7 @@ jobs:
       - run: ci/2-package/linux/package_appimage.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ARTIFACT_FLAVORED }}.linux-${{ matrix.arch }}.AppImage
+          name: ${{ env.ARTIFACT_FLAVORED }}.${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}.AppImage
           path: '*.AppImage'
           if-no-files-found: error
 

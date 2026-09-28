@@ -29,6 +29,12 @@
       "matchManagers": ["pub"],
       "matchPackageNames": ["dart"],
       "rangeStrategy": "auto"
+    },
+    {
+      "description": "Linux bundles are built on Ubuntu 22.04 for maximum compatibility",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ubuntu"],
+      "enabled": false
     }
   ]
 }

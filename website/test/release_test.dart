@@ -102,6 +102,21 @@ void main() {
       );
     });
 
+    test('matches AppImages named by AppImage architecture', () {
+      final manifest = ReleaseManifest.fromJson(
+        _manifestWith([
+          'nesd.1.0.0.aarch64.AppImage',
+          'nesd.1.0.0.x86_64.AppImage',
+          'nesd.1.0.0.linux-x64.deb',
+        ]),
+      );
+
+      expect(
+        [for (final a in manifest.forPlatform(DownloadPlatform.linux)) a.label],
+        ['AppImage (x64)', 'AppImage (arm64)', '.deb (x64)'],
+      );
+    });
+
     test('returns an empty list for a platform without assets', () {
       final manifest = ReleaseManifest.fromJson(
         _manifestWith(['nesd.1.0.0.macos-universal.dmg']),
