@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - AppImages are now named `nesd.<version>.x86_64.AppImage` / `nesd.<version>.aarch64.AppImage`
 
+### Fixed
+- NESd runs on Ubuntu 22.04 and other older distros again
 
 ## [0.21.0] - 2026-09-26
 
