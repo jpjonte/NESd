@@ -1,5 +1,6 @@
 [Desktop Entry]
-Version=1.5
+# keep at 1.4 for AppImage catalog https://github.com/AppImage/appimage.github.io
+Version=1.4
 Type=Application
 
 Name=@NAME@
