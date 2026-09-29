@@ -14,6 +14,29 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+
+static void set_default_size(GtkWindow* window) {
+  int width = 1280;
+  int height = 720;
+
+  GdkDisplay* display = gdk_display_get_default();
+  GdkMonitor* monitor = gdk_display_get_primary_monitor(display);
+
+  if (monitor == nullptr && gdk_display_get_n_monitors(display) > 0) {
+    monitor = gdk_display_get_monitor(display, 0);
+  }
+
+  if (monitor != nullptr) {
+    GdkRectangle workarea;
+    gdk_monitor_get_workarea(monitor, &workarea);
+
+    width = MIN(width, workarea.width * 9 / 10);
+    height = MIN(height, workarea.height * 9 / 10);
+  }
+
+  gtk_window_set_default_size(window, width, height);
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
@@ -47,7 +70,7 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, APPLICATION_NAME);
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  set_default_size(window);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
