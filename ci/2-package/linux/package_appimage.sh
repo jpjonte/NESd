@@ -12,7 +12,7 @@ repo_root=$(git rev-parse --show-toplevel)
 app_root="$repo_root/packages/nesd"
 
 sudo apt-get update -y
-sudo apt-get install -y locate
+sudo apt-get install -y locate zsync
 
 wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$full_arch.AppImage"
 chmod +x appimagetool
@@ -30,9 +30,17 @@ cp -r "$bundle"/* nesd.AppDir
 id=$(bash "$packaging/render.sh" "$FLAVOR" nesd nesd.AppDir/usr/share)
 
 case "$FLAVOR" in
-  prod) logo="logo.png" ;;
-  dev) logo="logo-dev.png" ;;
+  prod)
+    logo="logo.png"
+    release="latest"
+    ;;
+  dev)
+    logo="logo-dev.png"
+    release="nightly"
+    ;;
 esac
+
+update_info="gh-releases-zsync|jpjonte|NESd|$release|${ARTIFACT_FLAVORED%%.*}.*.$full_arch.AppImage.zsync"
 
 # copy desktop entry to AppDir root for appimagetool
 cp "nesd.AppDir/usr/share/applications/$id.desktop" nesd.AppDir/
@@ -43,4 +51,5 @@ cp "$packaging/appimage/AppRun" nesd.AppDir/AppRun
 
 chmod +x nesd.AppDir/AppRun
 
-appimagetool --no-appstream nesd.AppDir "$ARTIFACT_FLAVORED.$full_arch.AppImage"
+appimagetool --no-appstream --updateinformation "$update_info" \
+  nesd.AppDir "$ARTIFACT_FLAVORED.$full_arch.AppImage"

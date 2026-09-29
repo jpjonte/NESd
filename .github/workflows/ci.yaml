@@ -554,7 +554,9 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_FLAVORED }}.${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}.AppImage
-          path: '*.AppImage'
+          path: |
+            *.AppImage
+            *.AppImage.zsync
           if-no-files-found: error
 
   release_nightly:
