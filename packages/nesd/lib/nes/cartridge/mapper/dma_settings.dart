@@ -1,7 +1,7 @@
 class DmaSettings {
-  DmaSettings.fromRegister(int value)
+  DmaSettings.fromRegister(int value, {bool skipFirstByte = false})
     : toPpuData = (value & 0x01) != 0,
-      start = value & 0xf0,
+      start = (value & 0xf0) + (skipFirstByte ? 1 : 0),
       end = ((value & 0xf0) & ~(_lengthOf(value) - 1)) + _lengthOf(value);
 
   final bool toPpuData;

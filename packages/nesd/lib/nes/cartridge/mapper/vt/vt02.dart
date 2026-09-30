@@ -56,7 +56,20 @@ abstract class VT02 extends Mapper {
   bool get handlesDma => true;
 
   @override
-  void startDma(int page) => bus.cpu.triggerOamDma(page);
+  void startDma(int page) {
+    _dmaSettings = DmaSettings.fromRegister(
+      _extraRegisters[0],
+      skipFirstByte: _paletteDmaDropsFirstByte,
+    );
+
+    bus.cpu.triggerOamDma(page);
+  }
+
+  bool get _paletteDmaDropsFirstByte =>
+      bus.region == Region.ntsc &&
+      _extraRegisters[0].bit(0) == 1 &&
+      bus.ppu.v & 0xff00 == 0x3f00 &&
+      _graphicsRegisters[0x01].bit(7) == 0;
 
   @override
   DmaSettings get dmaSettings => _dmaSettings;

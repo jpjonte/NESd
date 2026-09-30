@@ -104,6 +104,7 @@ void main() {
       }
 
       nes.bus
+        ..cpuWrite(0x2011, 0x80) // no palette DMA quirk
         ..cpuWrite(0x2006, 0x3f) // PPUADDR high: target the palette
         ..cpuWrite(0x2006, 0x00) // PPUADDR low: $3F00
         ..cpuWrite(0x4034, 0x0b) // video, 32 bytes, start 0
@@ -114,6 +115,44 @@ void main() {
       expect(nes.ppu.palette[1], 1);
       expect(nes.ppu.palette[31], 31);
       expect(nes.ppu.oam[0], 0);
+    });
+
+    test('an NTSC palette transfer drops the first source byte', () {
+      final (:nes, :mapper) = buildVt02();
+
+      for (var i = 0; i < 32; i++) {
+        nes.bus.cpuWrite(0x0300 + i, 0x20 + i);
+      }
+
+      nes.bus
+        ..cpuWrite(0x2006, 0x3f)
+        ..cpuWrite(0x2006, 0x01) // games aim one past to stay aligned
+        ..cpuWrite(0x4034, 0x0b) // video, 32 bytes, start 0
+        ..cpuWrite(0x4014, 0x03);
+
+      nes.cpu.step();
+
+      expect(nes.ppu.palette[1], 0x21);
+      expect(nes.ppu.palette[31], 0x3f);
+      expect(nes.ppu.v, 0x3f20);
+    });
+
+    test('a transfer outside the palette keeps its first byte', () {
+      final (:nes, :mapper) = buildVt02();
+
+      for (var i = 0; i < 32; i++) {
+        nes.bus.cpuWrite(0x0300 + i, i);
+      }
+
+      nes.bus
+        ..cpuWrite(0x2006, 0x20)
+        ..cpuWrite(0x2006, 0x00)
+        ..cpuWrite(0x4034, 0x0b) // video, 32 bytes, start 0
+        ..cpuWrite(0x4014, 0x03);
+
+      nes.cpu.step();
+
+      expect(nes.ppu.v, 0x2020);
     });
   });
 

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - ROMs with a PlayChoice-10 console type in the header can now be loaded
+- Fixed incorrect palette colors in VT03 games
 
 ## [0.21.2] - 2026-09-29
 
