@@ -12,7 +12,7 @@ enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
 enum RomFormat { iNes, nes20 }
 
-enum ConsoleType { nes, vsSystem, extended }
+enum ConsoleType { nes, vsSystem, playChoice10, extended }
 
 enum TvSystem { ntsc, pal }
 
