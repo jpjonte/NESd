@@ -30,6 +30,8 @@ abstract class VT02 extends Mapper {
 
   int _lastScanline = 0;
 
+  int _opcodeControl = 0;
+
   @override
   int get prgRomPageSize => 0x2000;
 
@@ -90,10 +92,66 @@ abstract class VT02 extends Mapper {
 
     _lastScanline = 0;
 
+    _opcodeControl = _opcodeControlAtPowerOn;
+
     _pushVideoMode();
+    _pushOpcodeTable();
     _updatePrgBanks();
     _updateChrBanks();
     _updateMirroring();
+  }
+
+  int? get _opcodeControlAddress => switch (subMapperId) {
+    11 || 12 || 14 => 0x411c,
+    13 || 15 => 0x4169,
+    _ => null,
+  };
+
+  int get _opcodeControlAtPowerOn => _opcodeControlAddress == 0x411c ? 0x42 : 0;
+
+  List<(int, int)> get _opcodeSwaps {
+    final primary = _opcodeControl.bit(6) == 1;
+    final unlocked = _opcodeControl.bit(0) == 1;
+
+    return switch (subMapperId) {
+      11 => [
+        if (primary) ...[(7, 6), (1, 2)],
+        if (_opcodeControl.bit(1) == 1) (5, 4),
+      ],
+      12 => [
+        if (primary) ...[(7, 6), (1, 2)],
+      ],
+      13 => [if (!unlocked) (1, 4)],
+      14 => [if (primary) (6, 7)],
+      15 => [if (!unlocked) (5, 6)],
+      _ => const [],
+    };
+  }
+
+  void _pushOpcodeTable() {
+    final swaps = _opcodeSwaps;
+
+    if (swaps.isEmpty) {
+      bus.cpu.opcodeTable = null;
+
+      return;
+    }
+
+    final table = Uint8List(0x100);
+
+    for (var opcode = 0; opcode < table.length; opcode++) {
+      var descrambled = opcode;
+
+      for (final (a, b) in swaps) {
+        if (opcode.bit(a) != opcode.bit(b)) {
+          descrambled ^= (1 << a) | (1 << b);
+        }
+      }
+
+      table[opcode] = descrambled;
+    }
+
+    bus.cpu.opcodeTable = table;
   }
 
   void _updatePrgBanks() {
@@ -359,6 +417,13 @@ abstract class VT02 extends Mapper {
 
   @override
   void cpuWrite(int address, int value) {
+    if (address == _opcodeControlAddress) {
+      _opcodeControl = value;
+      _pushOpcodeTable();
+
+      return;
+    }
+
     if (address >= 0x4100 && address <= 0x411b) {
       final target = _scrambledSystemAddress(address);
 
@@ -578,6 +643,7 @@ abstract class VT02 extends Mapper {
     timerEnabled: timer.enabled,
     a12LowStart: a12Detector.lowStart,
     lastScanline: _lastScanline,
+    opcodeControl: _opcodeControl,
   );
 
   @override
@@ -615,7 +681,10 @@ abstract class VT02 extends Mapper {
 
     _lastScanline = state.lastScanline;
 
+    _opcodeControl = state.opcodeControl ?? _opcodeControlAtPowerOn;
+
     _pushVideoMode();
+    _pushOpcodeTable();
     _updatePrgBanks();
     _updateChrBanks();
     _updateMirroring();

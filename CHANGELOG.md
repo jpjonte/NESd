@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- VT03 CPU opcode scrambling
+
 ### Fixed
 - ROMs with a PlayChoice-10 console type in the header can now be loaded
 

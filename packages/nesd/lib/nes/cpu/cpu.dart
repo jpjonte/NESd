@@ -49,6 +49,8 @@ class CPU {
   /// mappers without cycle-driven logic.
   bool cartridgeNeedsStep = false;
 
+  Uint8List? opcodeTable;
+
   int _consoleCyclesPerCycle = ntscConsoleCyclesPerCycle;
   int _consoleCyclesPerDot = ntscConsoleCyclesPerDot;
 
@@ -321,7 +323,13 @@ class CPU {
   }
 
   void step() {
-    final opcode = read(PC);
+    var opcode = read(PC);
+
+    final opcodeTable = this.opcodeTable;
+
+    if (opcodeTable != null) {
+      opcode = opcodeTable[opcode];
+    }
 
     final op = _ops[opcode];
 
