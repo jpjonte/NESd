@@ -95,6 +95,10 @@ class Cartridge {
     mapper.reset();
   }
 
+  void softReset() {
+    mapper.softReset();
+  }
+
   void step() {
     mapper.step();
   }

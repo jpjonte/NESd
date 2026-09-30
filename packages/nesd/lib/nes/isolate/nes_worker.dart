@@ -128,6 +128,11 @@ class NesWorker {
         _audioOutput?.reset();
         _undoLoadState = null;
         _sendStatus();
+      case HardResetCommand():
+        _nes?.powerCycle();
+        _audioOutput?.reset();
+        _undoLoadState = null;
+        _sendStatus();
       case PauseCommand():
         _nes?.pause();
       case UnpauseCommand():

@@ -450,6 +450,19 @@ class NES {
     }
   }
 
+  void powerCycle() {
+    final cartridge = bus.cartridge;
+
+    cartridge.prgRam.fillRange(0, cartridge.prgRam.length, 0);
+    cartridge.chrRam.fillRange(0, cartridge.chrRam.length, 0);
+
+    if (!cartridge.hasBattery) {
+      cartridge.prgSaveRam.fillRange(0, cartridge.prgSaveRam.length, 0);
+    }
+
+    reset();
+  }
+
   void softReset() {
     _resetPacing();
 
@@ -460,6 +473,8 @@ class NES {
     fastForward = false;
 
     cancelScrub();
+
+    bus.cartridge.softReset();
 
     ppu.softReset();
     cpu.softReset();

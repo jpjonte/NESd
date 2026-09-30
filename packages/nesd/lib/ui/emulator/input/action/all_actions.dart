@@ -21,6 +21,7 @@ const emulatorActions = [
   pause,
   unpause,
   reset,
+  hardReset,
   stop,
   fastForward,
   rewind,

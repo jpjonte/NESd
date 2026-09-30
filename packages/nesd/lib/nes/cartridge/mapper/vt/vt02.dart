@@ -167,6 +167,9 @@ abstract class VT02 extends Mapper {
     bus.cpu.opcodeTable = table;
   }
 
+  @override
+  void softReset() => reset();
+
   void _updatePrgBanks() {
     for (var slot = 0; slot < 4; slot++) {
       final address = 0x8000 + slot * 0x2000;

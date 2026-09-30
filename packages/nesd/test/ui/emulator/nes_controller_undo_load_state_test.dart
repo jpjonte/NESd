@@ -190,6 +190,13 @@ void main() {
     );
   });
 
+  test('a hard reset sends its own command', () async {
+    await controller.hardReset();
+
+    expect(handle.sentCommands.whereType<HardResetCommand>(), hasLength(1));
+    expect(handle.sentCommands.whereType<ResetCommand>(), isEmpty);
+  });
+
   test('a reset clears the undo offer', () async {
     await saveAndLoadSlot1();
 

@@ -30,6 +30,10 @@ class MenuScreenRobot extends BaseRobot {
     await goAsync(find.byKey(MenuScreen.resetGameKey));
   }
 
+  Future<void> tapHardResetGame() async {
+    await goAsync(find.byKey(MenuScreen.hardResetGameKey));
+  }
+
   Future<void> tapQuitGame() async {
     await goAsync(find.byKey(MenuScreen.quitGameKey));
   }

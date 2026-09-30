@@ -206,6 +206,8 @@ abstract class Mapper {
     mapPpu(0x0000, 0x1fff, 0);
   }
 
+  void softReset() {}
+
   void step() {}
 
   /// Whether [step] must be called every CPU cycle. Only mappers that

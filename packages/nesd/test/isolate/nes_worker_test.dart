@@ -1249,6 +1249,28 @@ void main() {
       expect(events.whereType<StatusEvent>().last.canUndoLoadState, isFalse);
     });
 
+    test('HardResetCommand drops the snapshot', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      final state = await saveState(requestId: 1);
+
+      await worker.handleCommand(
+        LoadStateCommand(state: NesBytes.fromList([state])),
+      );
+
+      await worker.handleCommand(const HardResetCommand());
+
+      expect(events.whereType<StatusEvent>().last.canUndoLoadState, isFalse);
+    });
+
+    test('HardResetCommand keeps battery-backed RAM', () async {
+      await loadBatteryRomWithSram(0xaa);
+
+      await worker.handleCommand(const HardResetCommand());
+
+      expect(await readSram(requestId: 1), everyElement(0xaa));
+    });
+
     test('loading another ROM drops the snapshot', () async {
       await loadBatteryRomWithSram(0xaa);
 

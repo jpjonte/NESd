@@ -484,6 +484,7 @@ void main() {
         ..suspend()
         ..resume()
         ..reset()
+        ..hardReset()
         ..toggleFastForward()
         ..toggleRewind()
         ..stepInto()
@@ -521,6 +522,7 @@ void main() {
         isA<SuspendCommand>(),
         isA<ResumeCommand>(),
         isA<ResetCommand>(),
+        isA<HardResetCommand>(),
         isA<ToggleFastForwardCommand>(),
         isA<ToggleRewindCommand>(),
         isA<StepIntoCommand>(),
