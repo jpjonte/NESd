@@ -20,6 +20,7 @@ const menuActions = [
 const emulatorActions = [
   pause,
   unpause,
+  nextFrame,
   reset,
   hardReset,
   stop,

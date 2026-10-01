@@ -23,6 +23,10 @@ class HardResetAction extends InputAction {
   const HardResetAction({required super.title, required super.code});
 }
 
+class NextFrameAction extends InputAction {
+  const NextFrameAction({required super.title, required super.code});
+}
+
 class FastForward extends InputAction {
   const FastForward({required super.title, required super.code})
     : super(toggleable: true);
@@ -61,6 +65,8 @@ const unpause = PauseAction(
 const reset = ResetAction(title: 'Reset', code: 'state.reset');
 
 const hardReset = HardResetAction(title: 'Hard Reset', code: 'state.hardReset');
+
+const nextFrame = NextFrameAction(title: 'Next Frame', code: 'state.nextFrame');
 
 const stop = StopAction(title: 'Stop Game', code: 'state.stop');
 

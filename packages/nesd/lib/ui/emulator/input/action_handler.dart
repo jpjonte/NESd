@@ -377,6 +377,8 @@ class ActionHandler {
         } else {
           nes?.unpause();
         }
+      case NextFrameAction():
+        nes?.nextFrame();
       case ResetAction():
         unawaited(nesController.reset());
       case HardResetAction():
@@ -515,6 +517,7 @@ bool isInGameAction(InputAction action) => switch (action) {
   Rewind() ||
   RewindTimelineAction() ||
   PauseAction() ||
+  NextFrameAction() ||
   ResetAction() ||
   HardResetAction() ||
   StopAction() ||

@@ -135,6 +135,8 @@ class KeyboardInputHandler {
         );
       }
 
+      _handleKeyRepeat((action) => action is NextFrameAction);
+
       return true;
     }
 

@@ -30,13 +30,16 @@ void main() {
     addTearDown(stream.dispose);
   });
 
-  Future<void> pumpFocused(WidgetTester tester) async {
+  Future<void> pumpFocusedWith(
+    WidgetTester tester,
+    KeyboardInputHandler h,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Focus(
           autofocus: true,
           onKeyEvent: (node, event) {
-            handler.handleKeyEvent(event);
+            h.handleKeyEvent(event);
 
             return KeyEventResult.handled;
           },
@@ -47,6 +50,9 @@ void main() {
 
     await tester.pump();
   }
+
+  Future<void> pumpFocused(WidgetTester tester) =>
+      pumpFocusedWith(tester, handler);
 
   KeyboardInputHandler handlerWith(List<Binding> bindings) {
     final stream = ActionStream()..stream.listen(events.add);
@@ -95,6 +101,61 @@ void main() {
     events.clear();
 
     await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowLeft);
+
+    expect(events, isEmpty);
+  });
+
+  testWidgets('in game a key repeat re-fires frame advance', (tester) async {
+    final h = handlerWith([key(nextFrame, LogicalKeyboardKey.keyF)]);
+
+    await pumpFocusedWith(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyF);
+    events.clear();
+
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.keyF);
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.keyF);
+
+    expect(events, hasLength(2));
+    expect(events.every((e) => e.action == nextFrame), isTrue);
+    expect(events.every((e) => e.value == 1.0), isTrue);
+  });
+
+  testWidgets('in game other repeats stay swallowed and handled', (
+    tester,
+  ) async {
+    final h = handlerWith([
+      key(nextFrame, LogicalKeyboardKey.keyF),
+      key(controller1A, LogicalKeyboardKey.keyX),
+    ]);
+
+    await pumpFocusedWith(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyX);
+    events.clear();
+
+    final handled = h.handleKeyEvent(
+      const KeyRepeatEvent(
+        physicalKey: PhysicalKeyboardKey.keyX,
+        logicalKey: LogicalKeyboardKey.keyX,
+        timeStamp: Duration.zero,
+      ),
+    );
+
+    expect(handled, isTrue);
+    expect(events, isEmpty);
+  });
+
+  testWidgets('in a menu a frame advance repeat is swallowed', (tester) async {
+    final h = handlerWith([key(nextFrame, LogicalKeyboardKey.keyF)])
+      ..menuMode = true;
+
+    await pumpFocusedWith(tester, h);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyF);
+    events.clear();
+
+    await tester.sendKeyRepeatEvent(LogicalKeyboardKey.keyF);
 
     expect(events, isEmpty);
   });
