@@ -37,11 +37,11 @@ class SegmentedSettingsTile<T> extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
           child: SegmentedButton<T>(
+            showSelectedIcon: false,
             onSelectionChanged: (selected) => onChanged(selected.first),
             segments: [
               for (final candidate in values)
                 ButtonSegment(
-                  icon: const SizedBox(width: 18, height: 18),
                   label: Center(
                     child: Text(
                       label(candidate),
