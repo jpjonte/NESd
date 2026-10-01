@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Unreleased
+## [Unreleased]
 
 ### Added
+- Bindable Next Frame action
 - Android: Touch controls vibrate on press, enabled by default
 
 ## [0.21.3] - 2026-10-01

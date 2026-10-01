@@ -27,6 +27,8 @@ class CpuFramePainter extends CustomPainter {
       image != oldDelegate.image || sourceRect != oldDelegate.sourceRect;
 }
 
+String frameSteppingLabel(int frame) => 'Frame $frame';
+
 class EmulatorOverlayPainter extends CustomPainter {
   EmulatorOverlayPainter({
     required this.scale,
@@ -35,6 +37,8 @@ class EmulatorOverlayPainter extends CustomPainter {
     required this.paused,
     required this.fastForward,
     required this.rewind,
+    required this.frameStepping,
+    required this.frame,
     this.overscan = Overscan.none,
     this.crossHairPosition,
   }) : super(repaint: crossHairPosition);
@@ -46,6 +50,8 @@ class EmulatorOverlayPainter extends CustomPainter {
   final bool paused;
   final bool fastForward;
   final bool rewind;
+  final bool frameStepping;
+  final int frame;
 
   /// Listenable so pointer moves repaint the crosshair directly (via
   /// `CustomPainter`'s `repaint` constructor parameter) — the widget tree
@@ -59,6 +65,10 @@ class EmulatorOverlayPainter extends CustomPainter {
     ..color = Colors.black
     ..style = PaintingStyle.stroke
     ..strokeWidth = 4;
+  final Paint _textOutlinePaint = Paint()
+    ..color = Colors.black
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3;
   final Paint _borderPaint = Paint()
     ..strokeWidth = 1
     ..color = Colors.white
@@ -80,7 +90,9 @@ class EmulatorOverlayPainter extends CustomPainter {
       _drawBorder(canvas, size);
     }
 
-    if (paused) {
+    if (frameStepping) {
+      _drawFrameSteppingBadge(canvas, size);
+    } else if (paused) {
       _drawPause(canvas, size);
     } else if (crossHairPosition?.value case final Offset position?) {
       _drawCrossHair(
@@ -120,6 +132,26 @@ class EmulatorOverlayPainter extends CustomPainter {
       ..drawRect(center.translate(-16, -16) & const Size(16, 48), _iconPaint)
       ..drawRect(center.translate(16, -16) & const Size(16, 48), _outlinePaint)
       ..drawRect(center.translate(16, -16) & const Size(16, 48), _iconPaint);
+  }
+
+  void _drawFrameSteppingBadge(Canvas canvas, Size size) {
+    for (final foreground in [_textOutlinePaint, _iconPaint]) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: frameSteppingLabel(frame),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            foreground: foreground,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      painter
+        ..paint(canvas, Offset(size.width - painter.width - 8, 8))
+        ..dispose();
+    }
   }
 
   void _drawFastForward(Canvas canvas, Offset origin, {required bool mirror}) {
@@ -164,6 +196,8 @@ class EmulatorOverlayPainter extends CustomPainter {
         paused != oldDelegate.paused ||
         fastForward != oldDelegate.fastForward ||
         rewind != oldDelegate.rewind ||
+        frameStepping != oldDelegate.frameStepping ||
+        frame != oldDelegate.frame ||
         crossHairPosition != oldDelegate.crossHairPosition;
   }
 }
