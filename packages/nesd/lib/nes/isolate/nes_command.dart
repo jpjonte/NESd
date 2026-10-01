@@ -64,6 +64,10 @@ class TogglePauseCommand extends NesCommand {
   const TogglePauseCommand();
 }
 
+class NextFrameCommand extends NesCommand {
+  const NextFrameCommand();
+}
+
 class SuspendCommand extends NesCommand {
   const SuspendCommand();
 }
@@ -261,10 +265,6 @@ class StepOverCommand extends NesCommand {
 
 class StepOutCommand extends NesCommand {
   const StepOutCommand();
-}
-
-class RunUntilFrameCommand extends NesCommand {
-  const RunUntilFrameCommand();
 }
 
 class SetDebuggerActiveCommand extends NesCommand {

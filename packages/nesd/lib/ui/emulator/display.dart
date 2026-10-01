@@ -164,6 +164,8 @@ class DisplayBuilder extends ConsumerWidget {
             paused: nes?.paused ?? false,
             fastForward: nes?.fastForward ?? false,
             rewind: nes?.rewind ?? false,
+            frameStepping: nes?.frameStepping ?? false,
+            frame: nes?.frame ?? 0,
             crossHairPosition: nes?.hasZapper == true
                 ? nes?.zapperPosition
                 : null,

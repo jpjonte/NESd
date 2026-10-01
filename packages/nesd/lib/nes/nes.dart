@@ -69,6 +69,7 @@ class NES {
   bool paused = false;
   bool stopAfterNextFrame = false;
   bool suspendAfterNextFrame = false;
+  bool frameStepping = false;
 
   bool _inLoop = false;
 
@@ -719,6 +720,7 @@ class NES {
         frame: ppu.frames,
         sleepTime: sleepTime,
         rewindSize: _rewindBuffer.size,
+        stepped: stopAfterNextFrame,
       ),
     );
 
@@ -754,6 +756,7 @@ class NES {
 
   void pause() {
     paused = true;
+    stopAfterNextFrame = false;
 
     suspend();
   }
@@ -784,6 +787,7 @@ class NES {
 
   void unpause() {
     paused = false;
+    frameStepping = false;
 
     resume();
   }
@@ -813,6 +817,26 @@ class NES {
     stopAfterNextFrame = true;
 
     unpause();
+  }
+
+  void nextFrame() {
+    if (!on || scrubbing || rewind || (running && stopAfterNextFrame)) {
+      return;
+    }
+
+    if (running) {
+      frameStepping = true;
+
+      pause();
+
+      return;
+    }
+
+    stopAfterNextFrame = true;
+
+    unpause();
+
+    frameStepping = true;
   }
 
   void buttonDown(int controller, NesButton button, {bool turbo = false}) {

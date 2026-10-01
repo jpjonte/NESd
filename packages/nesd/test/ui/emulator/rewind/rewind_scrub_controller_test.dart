@@ -99,6 +99,8 @@ class _FakeRemoteNes extends Mock implements RemoteNes {
         rewind: false,
         scrubbing: false,
         canUndoLoadState: false,
+        frame: 0,
+        frameStepping: false,
       ),
     );
   }
