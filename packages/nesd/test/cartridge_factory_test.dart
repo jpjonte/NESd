@@ -103,6 +103,21 @@ void main() {
     expect(cartridge.chrRam, isEmpty);
   });
 
+  group('console type', () {
+    for (final (bits, expected) in [
+      (0, ConsoleType.nes),
+      (1, ConsoleType.vsSystem),
+      (2, ConsoleType.playChoice10),
+      (3, ConsoleType.extended),
+    ]) {
+      test('byte 7 bits 0-1 = $bits is $expected', () {
+        final rom = _buildRom(chrBanks: 1)..[7] = 0x08 | bits;
+
+        expect(_load(rom).consoleType, expected);
+      });
+    }
+  });
+
   group('NES 2.0 size fields', () {
     test('CHR size MSB nibble is honoured', () {
       final cartridge = _load(

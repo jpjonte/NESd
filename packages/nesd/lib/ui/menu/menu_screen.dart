@@ -29,6 +29,7 @@ class MenuScreen extends ConsumerWidget {
   static const undoLoadStateKey = Key('undoLoadState');
   static const rewindTimelineKey = Key('rewindTimeline');
   static const resetGameKey = Key('resetGame');
+  static const hardResetGameKey = Key('hardResetGame');
   static const quitGameKey = Key('quitGame');
   static const quitNesdKey = Key('quitNesd');
   static const settingsKey = Key('settings');
@@ -171,6 +172,17 @@ class MenuScreen extends ConsumerWidget {
                       ref.read(routerProvider).navigate(const EmulatorRoute());
                     },
                     child: const Text('Reset Game'),
+                  ),
+                ),
+                const NesdVerticalDivider(),
+                Center(
+                  child: NesdButton(
+                    key: hardResetGameKey,
+                    onPressed: () {
+                      ref.read(nesControllerProvider).hardReset();
+                      ref.read(routerProvider).navigate(const EmulatorRoute());
+                    },
+                    child: const Text('Hard Reset'),
                   ),
                 ),
                 const NesdVerticalDivider(),

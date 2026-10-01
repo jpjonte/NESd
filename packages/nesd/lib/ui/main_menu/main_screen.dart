@@ -98,6 +98,11 @@ class MainScreen extends HookConsumerWidget {
           onSelected: controller.reset,
         ),
         PlatformMenuItem(
+          label: 'Hard Reset',
+          shortcut: const CharacterActivator('R', meta: true),
+          onSelected: controller.hardReset,
+        ),
+        PlatformMenuItem(
           label: 'Next Frame',
           shortcut: const CharacterActivator(']', meta: true),
           onSelected: controller.runUntilFrame,

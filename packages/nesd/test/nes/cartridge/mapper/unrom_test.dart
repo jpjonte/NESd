@@ -53,6 +53,28 @@ void main() {
       expect(mapper.cpuRead(0x8000), 31);
     });
 
+    test('keeps its bank through a soft reset', () {
+      final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
+        const FilesystemFile(
+          path: 'unrom-test.nes',
+          name: 'unrom-test.nes',
+          type: FilesystemFileType.file,
+        ),
+        _buildRom(),
+      )..databaseEntry = null;
+
+      final nes = NES(cartridge: cartridge, eventBus: EventBus());
+
+      addTearDown(() => nes.on = false);
+
+      cartridge.reset();
+      cartridge.cpuWrite(0x8000, 5);
+
+      nes.softReset();
+
+      expect(cartridge.cpuRead(0x8000), 5);
+    });
+
     test('keeps the last bank fixed at \$C000', () {
       final mapper = _buildUnrom()..cpuWrite(0x8000, 5);
 

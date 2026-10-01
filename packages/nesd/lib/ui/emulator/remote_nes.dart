@@ -169,6 +169,8 @@ class RemoteNes {
 
   void reset() => _send(const ResetCommand());
 
+  void hardReset() => _send(const HardResetCommand());
+
   void toggleFastForward() => _send(const ToggleFastForwardCommand());
 
   void toggleRewind() => _send(const ToggleRewindCommand());

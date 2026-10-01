@@ -48,6 +48,10 @@ class ResetCommand extends NesCommand {
   const ResetCommand();
 }
 
+class HardResetCommand extends NesCommand {
+  const HardResetCommand();
+}
+
 class PauseCommand extends NesCommand {
   const PauseCommand();
 }

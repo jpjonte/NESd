@@ -12,7 +12,7 @@ enum NametableLayout { horizontal, vertical, four, singleUpper, singleLower }
 
 enum RomFormat { iNes, nes20 }
 
-enum ConsoleType { nes, vsSystem, extended }
+enum ConsoleType { nes, vsSystem, playChoice10, extended }
 
 enum TvSystem { ntsc, pal }
 
@@ -93,6 +93,10 @@ class Cartridge {
 
   void reset() {
     mapper.reset();
+  }
+
+  void softReset() {
+    mapper.softReset();
   }
 
   void step() {

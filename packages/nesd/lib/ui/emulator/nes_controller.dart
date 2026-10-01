@@ -297,9 +297,11 @@ class NesController {
 
   void runUntilFrame() => nes?.runUntilFrame();
 
-  /// Reads the SRAM before issuing the reset so the restore lands right
-  /// behind it in the command queue instead of frames later.
-  Future<void> reset() async {
+  Future<void> reset() => _reset();
+
+  Future<void> hardReset() => _reset(hard: true);
+
+  Future<void> _reset({bool hard = false}) async {
     if (nes case final nes?) {
       Uint8List? data;
 
@@ -311,7 +313,11 @@ class NesController {
         toaster.send(Toast.error('Failed to load SRAM: $e'));
       }
 
-      nes.reset();
+      if (hard) {
+        nes.hardReset();
+      } else {
+        nes.reset();
+      }
 
       if (data != null) {
         nes.loadSram(data);

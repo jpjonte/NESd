@@ -379,6 +379,8 @@ class ActionHandler {
         }
       case ResetAction():
         unawaited(nesController.reset());
+      case HardResetAction():
+        unawaited(nesController.hardReset());
       case StopAction():
         unawaited(nesController.stop());
         router.navigate(const MainRoute());
@@ -514,6 +516,7 @@ bool isInGameAction(InputAction action) => switch (action) {
   RewindTimelineAction() ||
   PauseAction() ||
   ResetAction() ||
+  HardResetAction() ||
   StopAction() ||
   DecreaseVolume() ||
   IncreaseVolume() ||

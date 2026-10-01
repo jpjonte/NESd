@@ -31,6 +31,7 @@ class VT02State extends MapperState {
     required this.timerEnabled,
     required this.a12LowStart,
     required this.lastScanline,
+    required this.opcodeControl,
   });
 
   factory VT02State.deserialize(PayloadReader reader, int id) {
@@ -38,11 +39,22 @@ class VT02State extends MapperState {
 
     return switch (version) {
       0 => VT02State._version0(reader, id),
+      1 => VT02State._version1(reader, id),
       _ => throw InvalidSerializationVersion('VT02', version),
     };
   }
 
-  factory VT02State._version0(PayloadReader reader, int id) {
+  factory VT02State._version0(PayloadReader reader, int id) =>
+      VT02State._fields(reader, id, opcodeControl: () => null);
+
+  factory VT02State._version1(PayloadReader reader, int id) =>
+      VT02State._fields(reader, id, opcodeControl: () => reader.get(uint8));
+
+  factory VT02State._fields(
+    PayloadReader reader,
+    int id, {
+    required int? Function() opcodeControl,
+  }) {
     return VT02State(
       id: id,
       bank1: reader.get(uint8),
@@ -70,6 +82,7 @@ class VT02State extends MapperState {
       timerEnabled: reader.get(boolean),
       a12LowStart: reader.get(nesdUint64),
       lastScanline: reader.get(uint16),
+      opcodeControl: opcodeControl(),
     );
   }
 
@@ -105,12 +118,14 @@ class VT02State extends MapperState {
   final int a12LowStart;
   final int lastScanline;
 
+  final int? opcodeControl;
+
   @override
   void serialize(PayloadWriter writer) {
     super.serialize(writer);
 
     writer
-      ..set(uint8, 0) // version
+      ..set(uint8, 1) // version
       ..set(uint8, bank1)
       ..set(uint8, timerPreload)
       ..set(uint8, decodeControl)
@@ -135,6 +150,7 @@ class VT02State extends MapperState {
       ..set(boolean, timerRunning)
       ..set(boolean, timerEnabled)
       ..set(nesdUint64, a12LowStart)
-      ..set(uint16, lastScanline);
+      ..set(uint16, lastScanline)
+      ..set(uint8, opcodeControl ?? 0);
   }
 }

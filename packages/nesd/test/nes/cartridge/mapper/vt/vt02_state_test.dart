@@ -34,6 +34,7 @@ void main() {
       timerEnabled: true,
       a12LowStart: 0x123456789a,
       lastScanline: 261,
+      opcodeControl: 0x42,
     );
 
     final writer = Payload.write();
@@ -45,7 +46,7 @@ void main() {
     expect(bytes[0], 1, reason: 'MapperState envelope version');
     expect(bytes[1], 1, reason: 'mapper id high byte');
     expect(bytes[2], 0, reason: 'mapper id low byte');
-    expect(bytes[3], 0, reason: 'VT02State version');
+    expect(bytes[3], 1, reason: 'VT02State version');
 
     final decoded = MapperState.deserialize(Payload.read(bytes)) as VT02State;
 
@@ -60,6 +61,29 @@ void main() {
     expect(decoded.timerEnabled, isTrue);
     expect(decoded.a12LowStart, 0x123456789a);
     expect(decoded.lastScanline, 261);
+    expect(decoded.opcodeControl, 0x42);
+  });
+
+  test('a version 0 state keeps opcode scrambling at its power-on setting', () {
+    final (nes: _, mapper: source) = buildVt02(subMapperId: 15);
+    final (nes: targetNes, mapper: target) = buildVt02(subMapperId: 15);
+
+    final writer = Payload.write();
+
+    source.state.serialize(writer);
+
+    final current = binarize(writer);
+    final legacy = Uint8List.sublistView(current, 0, current.length - 1)
+      ..[3] = 0;
+
+    final decoded = MapperState.deserialize(Payload.read(legacy)) as VT02State;
+
+    expect(decoded.opcodeControl, isNull);
+
+    targetNes.bus.cpuWrite(0x4169, 0x01);
+    target.state = decoded;
+
+    expect(targetNes.cpu.opcodeTable, isNotNull);
   });
 
   test('round-trips the register file through the mapper state', () {

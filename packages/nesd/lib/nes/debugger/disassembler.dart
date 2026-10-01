@@ -90,7 +90,8 @@ class Disassembler implements DisassemblerInterface {
       debugCpu.state = state;
     }
 
-    final opcode = debugCpu.read(address);
+    final fetched = debugCpu.read(address);
+    final opcode = cpu.opcodeTable?[fetched] ?? fetched;
 
     final op = ops[opcode];
 

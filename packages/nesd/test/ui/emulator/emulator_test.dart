@@ -86,6 +86,10 @@ void main() {
     r.emulator.expectEmulatorWidgetFound();
 
     await r.emulator.tapMenu();
+    await r.menuScreen.tapHardResetGame();
+    r.emulator.expectEmulatorWidgetFound();
+
+    await r.emulator.tapMenu();
     await r.menuScreen.tapSettings();
     r.settingsScreen.expectSettingsScreenFound();
 

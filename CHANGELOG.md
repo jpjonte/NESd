@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- Bindable hard reset (power cycle) action
+- VT03 CPU opcode scrambling
+
+### Fixed
+- ROMs with a PlayChoice-10 console type in the header can now be loaded
+- Fixed incorrect palette colors in VT03 games
+
 ## [0.21.2] - 2026-09-29
 
 ### Added
