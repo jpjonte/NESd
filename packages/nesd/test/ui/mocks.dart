@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/nes_command.dart';
@@ -141,6 +142,10 @@ class MockStorageFilesystem extends Mock implements StorageFilesystem {}
 class FakeRomImporter implements RomImporter {
   @override
   Future<FilesystemFile?> pickRom() async => null;
+
+  @override
+  Future<FilesystemFile> importDropped(XFile file) =>
+      NativeRomImporter().importDropped(file);
 }
 
 /// A [FilesystemFile.path] that, when passed to [FakeNesIsolateHandle.send]

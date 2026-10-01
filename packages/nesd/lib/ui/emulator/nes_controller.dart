@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
@@ -397,6 +399,44 @@ class NesController {
     }
 
     if (file == null) {
+      applyRunState();
+
+      return;
+    }
+
+    final started = await startRom(file);
+
+    if (!started) {
+      applyRunState();
+    }
+  }
+
+  Future<void> openDroppedRom(List<XFile> files) async {
+    if (files.isEmpty) {
+      return;
+    }
+
+    final dropped = files.firstWhereOrNull(
+      (file) => isRomPickerFile(file.name),
+    );
+
+    if (dropped == null) {
+      toaster.send(Toast.warning('Unsupported file: ${files.first.name}'));
+
+      return;
+    }
+
+    suspend();
+
+    final FilesystemFile file;
+
+    try {
+      file = await romImporter.importDropped(dropped);
+    } on Exception catch (e) {
+      log.rom.error('Failed to import dropped ROM', error: e);
+
+      toaster.send(Toast.error('Failed to import ROM: $e'));
+
       applyRunState();
 
       return;

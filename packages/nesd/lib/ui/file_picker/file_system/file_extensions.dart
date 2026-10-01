@@ -50,6 +50,9 @@ bool isWithinDirectory(String directory, String path) {
 
 const romPickerExtensions = ['.nes', '.zip', '.7z'];
 
+bool isRomPickerFile(String path) =>
+    romPickerExtensions.contains(fileExtension(path));
+
 List<String> get romFileTypeExtensions => [
   for (final extension in romPickerExtensions) extension.substring(1),
 ];

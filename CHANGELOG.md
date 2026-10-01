@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Bindable Next Frame action
 - Android: Touch controls vibrate on press, enabled by default
+- Desktop and web: Drop a ROM onto the window to open it
 
 ### Fixed
 - DMA reads now handle bus conflicts like real hardware

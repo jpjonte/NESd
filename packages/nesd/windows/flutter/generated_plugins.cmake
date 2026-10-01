@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_drop
   gamepads_windows
   nesd_texture
   url_launcher_windows

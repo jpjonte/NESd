@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/app_controller.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/nes_controller.dart';
+import 'package:nesd/ui/emulator/rom_drop_target.dart';
 import 'package:nesd/ui/main_menu/main_menu.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -39,7 +40,9 @@ class MainScreen extends HookConsumerWidget {
         _gameMenu(controller),
         _audioMenu(settingsController),
       ],
-      child: const SafeArea(child: NesdScaffold(body: MainMenu())),
+      child: const SafeArea(
+        child: NesdScaffold(body: RomDropTarget(child: MainMenu())),
+      ),
     );
   }
 
