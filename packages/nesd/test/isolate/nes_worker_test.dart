@@ -87,6 +87,21 @@ LoadRomCommand _batteryRomCommand({
   );
 }
 
+class _CountingAudio extends FakeNesdAudio {
+  int pushes = 0;
+  int resets = 0;
+
+  @override
+  int push(Float32List samples) {
+    pushes++;
+
+    return samples.length;
+  }
+
+  @override
+  void reset() => resets++;
+}
+
 void main() {
   late List<NesIsolateEvent> events;
   late NesWorker worker;
@@ -380,6 +395,73 @@ void main() {
     // (Rewind may later auto-stop when the buffer empties; we assert the
     // immediate acknowledgement, matching the hold-mode press.)
     expect(events.whereType<StatusEvent>().last.rewind, isTrue);
+  });
+
+  test('a stepped frame pushes no audio and resets the output', () async {
+    final audio = _CountingAudio();
+
+    await worker.shutdown();
+
+    worker = NesWorker(send: events.add, audioFactory: () => audio);
+
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(3);
+    await worker.handleCommand(const PauseCommand());
+
+    final paused = await waitForWhere<StatusEvent>((e) => e.paused);
+    final pushesBefore = audio.pushes;
+    final resetsBefore = audio.resets;
+
+    await worker.handleCommand(const NextFrameCommand());
+
+    final stepped = await waitForWhere<StatusEvent>(
+      (e) => e.paused && e.frameStepping,
+    );
+
+    expect(stepped.frame, paused.frame + 1);
+    expect(audio.pushes, pushesBefore);
+    expect(audio.resets, greaterThan(resetsBefore));
+  });
+
+  test('NextFrameCommand while running pauses and reports it', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(3);
+
+    await worker.handleCommand(const NextFrameCommand());
+
+    final status = await waitForWhere<StatusEvent>(
+      (e) => e.paused && e.frameStepping,
+    );
+
+    expect(status.running, isFalse);
+    expect(status.frame, worker.nesForTesting!.ppu.frames);
+  });
+
+  test('unpausing after a step reports frame stepping off', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(3);
+    await worker.handleCommand(const NextFrameCommand());
+    await waitForWhere<StatusEvent>((e) => e.paused && e.frameStepping);
+
+    await worker.handleCommand(const UnpauseCommand());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final status = events.whereType<StatusEvent>().last;
+
+    expect(status.running, isTrue);
+    expect(status.paused, isFalse);
+    expect(status.frameStepping, isFalse);
+  });
+
+  test('a ticking frame counter alone sends no status', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitForCount<FrameEvent>(3);
+
+    final statuses = events.whereType<StatusEvent>().length;
+
+    await waitForCount<FrameEvent>(10);
+
+    expect(events.whereType<StatusEvent>(), hasLength(statuses));
   });
 
   test('an initial state wins over the SRAM file loaded with it', () async {

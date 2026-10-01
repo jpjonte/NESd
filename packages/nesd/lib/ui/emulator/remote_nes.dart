@@ -67,6 +67,8 @@ class RemoteNes {
   bool _rewind = false;
   bool _scrubbing = false;
   bool _canUndoLoadState = false;
+  int _frame = 0;
+  bool _frameStepping = false;
 
   bool get running => _running;
 
@@ -77,6 +79,10 @@ class RemoteNes {
   bool get rewind => _rewind;
 
   bool get scrubbing => _scrubbing;
+
+  int get frame => _frame;
+
+  bool get frameStepping => _frameStepping;
 
   bool get canUndoLoadState => _canUndoLoadState;
 
@@ -181,7 +187,7 @@ class RemoteNes {
 
   void stepOut() => _send(const StepOutCommand());
 
-  void runUntilFrame() => _send(const RunUntilFrameCommand());
+  void nextFrame() => _send(const NextFrameCommand());
 
   // write-only mirrors of worker-side state; no getter to keep in sync
   // ignore: avoid_setters_without_getters
@@ -397,6 +403,8 @@ class RemoteNes {
         _rewind = event.rewind;
         _scrubbing = event.scrubbing;
         _canUndoLoadState = event.canUndoLoadState;
+        _frame = event.frame;
+        _frameStepping = event.frameStepping;
       case RewindScrubPositionEvent():
         _scrubSettled = event.settled;
       case FrameEvent():

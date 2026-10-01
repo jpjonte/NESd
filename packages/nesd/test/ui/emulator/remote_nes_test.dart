@@ -171,6 +171,8 @@ void main() {
           rewind: true,
           scrubbing: false,
           canUndoLoadState: false,
+          frame: 0,
+          frameStepping: false,
         ),
       );
 
@@ -180,6 +182,33 @@ void main() {
       expect(remote.paused, isTrue);
       expect(remote.fastForward, isTrue);
       expect(remote.rewind, isTrue);
+
+      remote.dispose();
+    });
+
+    test('frame advance state mirrors from StatusEvent', () async {
+      final remote = build();
+
+      expect(remote.frame, 0);
+      expect(remote.frameStepping, isFalse);
+
+      handle.emit(
+        const StatusEvent(
+          running: false,
+          paused: true,
+          fastForward: false,
+          rewind: false,
+          scrubbing: false,
+          canUndoLoadState: false,
+          frame: 1234,
+          frameStepping: true,
+        ),
+      );
+
+      await pumpEventQueue();
+
+      expect(remote.frame, 1234);
+      expect(remote.frameStepping, isTrue);
 
       remote.dispose();
     });
@@ -197,6 +226,8 @@ void main() {
           rewind: false,
           scrubbing: false,
           canUndoLoadState: true,
+          frame: 0,
+          frameStepping: false,
         ),
       );
 
@@ -212,6 +243,8 @@ void main() {
           rewind: false,
           scrubbing: false,
           canUndoLoadState: false,
+          frame: 0,
+          frameStepping: false,
         ),
       );
 
@@ -490,7 +523,7 @@ void main() {
         ..stepInto()
         ..stepOver()
         ..stepOut()
-        ..runUntilFrame()
+        ..nextFrame()
         ..rewindEnabled = true
         ..region = Region.pal
         ..cheats = const []
@@ -528,7 +561,7 @@ void main() {
         isA<StepIntoCommand>(),
         isA<StepOverCommand>(),
         isA<StepOutCommand>(),
-        isA<RunUntilFrameCommand>(),
+        isA<NextFrameCommand>(),
         isA<SetRewindEnabledCommand>(),
         isA<SetRegionCommand>(),
         isA<SetCheatsCommand>(),
@@ -718,6 +751,8 @@ void main() {
           rewind: false,
           scrubbing: true,
           canUndoLoadState: false,
+          frame: 0,
+          frameStepping: false,
         ),
       );
 
@@ -764,6 +799,8 @@ void main() {
             rewind: false,
             scrubbing: false,
             canUndoLoadState: false,
+            frame: 0,
+            frameStepping: false,
           ),
         );
 

@@ -103,6 +103,8 @@ void main() {
       rewind: false,
       scrubbing: false,
       canUndoLoadState: false,
+      frame: 0,
+      frameStepping: false,
     );
 
     expect(await _roundTrip(status), isA<StatusEvent>());

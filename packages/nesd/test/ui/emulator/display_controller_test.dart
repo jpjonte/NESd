@@ -111,6 +111,8 @@ StatusEvent _status({required bool running}) => StatusEvent(
   rewind: false,
   scrubbing: false,
   canUndoLoadState: false,
+  frame: 0,
+  frameStepping: false,
 );
 
 void main() {

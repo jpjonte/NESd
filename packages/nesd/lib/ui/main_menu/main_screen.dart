@@ -105,7 +105,7 @@ class MainScreen extends HookConsumerWidget {
         PlatformMenuItem(
           label: 'Next Frame',
           shortcut: const CharacterActivator(']', meta: true),
-          onSelected: controller.runUntilFrame,
+          onSelected: controller.nextFrame,
         ),
       ],
     );

@@ -59,6 +59,7 @@ typedef _WorkerStatus = ({
   bool rewind,
   bool scrubbing,
   bool canUndoLoadState,
+  bool frameStepping,
 });
 
 /// Plain, non-isolate command handler for the NES emulator core.
@@ -139,6 +140,8 @@ class NesWorker {
         _nes?.unpause();
       case TogglePauseCommand():
         _nes?.togglePause();
+      case NextFrameCommand():
+        _nes?.nextFrame();
       case SuspendCommand():
         _nes?.suspend();
       case ResumeCommand():
@@ -226,8 +229,6 @@ class NesWorker {
         _nes?.stepOver();
       case StepOutCommand():
         _nes?.stepOut();
-      case RunUntilFrameCommand():
-        _nes?.runUntilFrame();
       case SetDebuggerActiveCommand():
         _setDebuggerActive(command.active);
       case SetExecutionLogEnabledCommand():
@@ -480,7 +481,13 @@ class NesWorker {
     switch (event) {
       case FrameNesEvent():
         ThreadAffinity.pinCurrentThread();
-        _audioOutput?.processSamples(event.samples);
+
+        if (event.stepped) {
+          _audioOutput?.reset();
+        } else {
+          _audioOutput?.processSamples(event.samples);
+        }
+
         _maybeEmitAudioStats();
         _sendReadyFrame(event);
         _sendScrubPosition();
@@ -573,6 +580,7 @@ class NesWorker {
       rewind: nes?.rewind ?? false,
       scrubbing: nes?.scrubbing ?? false,
       canUndoLoadState: _undoLoadState != null,
+      frameStepping: nes?.frameStepping ?? false,
     );
   }
 
@@ -589,6 +597,8 @@ class NesWorker {
         rewind: status.rewind,
         scrubbing: status.scrubbing,
         canUndoLoadState: status.canUndoLoadState,
+        frame: _nes?.ppu.frames ?? 0,
+        frameStepping: status.frameStepping,
       ),
     );
   }

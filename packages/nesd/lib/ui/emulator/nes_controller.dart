@@ -295,7 +295,7 @@ class NesController {
 
   void stepOut() => nes?.stepOut();
 
-  void runUntilFrame() => nes?.runUntilFrame();
+  void nextFrame() => nes?.nextFrame();
 
   Future<void> reset() => _reset();
 
