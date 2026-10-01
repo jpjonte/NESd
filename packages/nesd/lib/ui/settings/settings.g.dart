@@ -56,6 +56,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
       ? const []
       : _recentRomsFromJson(json['recentRoms'] as List),
   showTouchControls: json['showTouchControls'] as bool? ?? false,
+  touchVibration: json['touchVibration'] as bool? ?? true,
   narrowTouchInputConfig: json['narrowTouchInputConfig'] == null
       ? const []
       : narrowTouchInputConfigsFromJson(json['narrowTouchInputConfig']),
@@ -147,6 +148,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'recentRomPaths': instance.recentRomPaths,
   'recentRoms': instance.recentRoms,
   'showTouchControls': instance.showTouchControls,
+  'touchVibration': instance.touchVibration,
   'narrowTouchInputConfig': instance.narrowTouchInputConfig,
   'wideTouchInputConfig': instance.wideTouchInputConfig,
   'breakpoints': instance.breakpoints,
@@ -292,7 +294,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'1e72c8cbb4d861a46938591ece7c8c6a1a89366b';
+    r'a781364bea7fa6d777bc88c9ee69e3d2a58533fd';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

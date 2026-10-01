@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
@@ -6,6 +9,7 @@ import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/align_touch_control.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/settings.dart';
 
 class JoyStick extends HookConsumerWidget {
   const JoyStick({required this.config, super.key});
@@ -15,6 +19,9 @@ class JoyStick extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actionStream = ref.watch(actionStreamProvider);
+    final vibrate = ref.watch(
+      settingsControllerProvider.select((s) => s.touchVibration),
+    );
     final position = useState(Alignment.center);
     final active = useState(false);
 
@@ -33,6 +40,10 @@ class JoyStick extends HookConsumerWidget {
             bindingType: config.bindingType,
           ),
         );
+
+        if (inside && vibrate) {
+          unawaited(HapticFeedback.lightImpact());
+        }
       }
     }
 

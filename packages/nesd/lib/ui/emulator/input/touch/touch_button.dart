@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_controls.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/theme/base.dart';
 
 enum TouchButtonShape { circle, rectangle }
@@ -31,6 +35,9 @@ class TouchButton extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final active = useState(false);
     final actionStream = ref.watch(actionStreamProvider);
+    final vibrate = ref.watch(
+      settingsControllerProvider.select((s) => s.touchVibration),
+    );
 
     void up() {
       active.value = false;
@@ -51,6 +58,10 @@ class TouchButton extends HookConsumerWidget {
     return GestureDetector(
       onTapDown: (_) {
         active.value = true;
+
+        if (vibrate) {
+          unawaited(HapticFeedback.lightImpact());
+        }
 
         if (action case final action?) {
           actionStream.add(

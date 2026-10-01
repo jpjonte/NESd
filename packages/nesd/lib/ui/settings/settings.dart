@@ -169,6 +169,7 @@ sealed class Settings with _$Settings {
     @Default([])
     List<RomInfo> recentRoms,
     @Default(false) bool showTouchControls,
+    @Default(true) bool touchVibration,
     @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
     @Default([])
     List<TouchInputConfig> narrowTouchInputConfig,
@@ -363,6 +364,12 @@ class SettingsController extends _$SettingsController {
 
   set showTouchControls(bool showTouchControls) {
     _update(state.copyWith(showTouchControls: showTouchControls));
+  }
+
+  bool get touchVibration => state.touchVibration;
+
+  set touchVibration(bool touchVibration) {
+    _update(state.copyWith(touchVibration: touchVibration));
   }
 
   Bindings get bindings => state.bindings;

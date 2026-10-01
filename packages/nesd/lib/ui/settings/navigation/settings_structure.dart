@@ -15,6 +15,7 @@ import 'package:nesd/ui/settings/controls/gamepad_slots.dart';
 import 'package:nesd/ui/settings/controls/reset_bindings_button.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/controls/touch_editor_button.dart';
+import 'package:nesd/ui/settings/controls/touch_vibration_switch.dart';
 import 'package:nesd/ui/settings/controls/turbo_speed_selector.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/debug/log_level_dropdown.dart';
@@ -496,6 +497,10 @@ final _controls = [
       SettingsEntry(
         title: 'Show touch controls',
         builder: (_, _) => const ShowTouchControlsSwitch(),
+      ),
+      SettingsEntry(
+        title: 'Touch vibration',
+        builder: (_, _) => const TouchVibrationSwitch(),
       ),
       SettingsEntry(
         title: 'Edit touch controls',
