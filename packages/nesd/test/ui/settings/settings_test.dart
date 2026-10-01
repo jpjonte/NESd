@@ -29,6 +29,18 @@ void main() {
     expect(Settings.fromJson(const {}).turboSpeed, TurboSpeed.x1);
   });
 
+  test('touchVibration round-trips through JSON', () {
+    final settings = Settings(touchVibration: false);
+
+    final restored = Settings.fromJson(settings.toJson());
+
+    expect(restored.touchVibration, isFalse);
+  });
+
+  test('touchVibration defaults to on for missing keys', () {
+    expect(Settings.fromJson(const {}).touchVibration, isTrue);
+  });
+
   test('videoFilters round-trip through JSON', () {
     final settings = Settings(videoFilters: [VideoFilter.xbr, VideoFilter.crt]);
 

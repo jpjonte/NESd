@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/ui/common/settings_tile.dart';
 import 'package:nesd/ui/settings/controls/gamepad_slots.dart';
 import 'package:nesd/ui/settings/controls/show_touch_controls_switch.dart';
 import 'package:nesd/ui/settings/controls/touch_editor_button.dart';
@@ -29,6 +30,14 @@ class ControlsSettingsRobot extends BaseRobot {
 
     await tester.ensureVisible(finder);
     await go(finder);
+  }
+
+  Future<void> tapTouchVibrationSwitch() async {
+    final finder = find.widgetWithText(SettingsTile, 'Touch vibration');
+
+    await tester.ensureVisible(finder);
+    await tester.tap(finder, warnIfMissed: false);
+    await tester.pumpAndSettle();
   }
 
   void expectGamepadSlotsFound() {
