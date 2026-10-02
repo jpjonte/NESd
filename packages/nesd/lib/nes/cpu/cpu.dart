@@ -119,6 +119,7 @@ class CPU {
 
   int _dmaResumeCycle = -1;
   int _busBeforeDma = 0;
+  int _dmaHaltAddress = 0;
 
   final List<int> callStack = [];
 
@@ -398,6 +399,7 @@ class CPU {
     var repeated = false;
 
     _busBeforeDma = openBus;
+    _dmaHaltAddress = address;
 
     while (runningDma) {
       _startCycle();
@@ -453,7 +455,10 @@ class CPU {
     }
 
     if (_isGetCycle) {
-      _oamDmaValue = bus.cpuRead(_oamDmaPage << 8 | _oamDmaOffset);
+      _oamDmaValue = bus.dmaRead(
+        _oamDmaPage << 8 | _oamDmaOffset,
+        cpuAddress: _dmaHaltAddress,
+      );
       _oamDmaHolding = true;
 
       return true;
@@ -470,6 +475,8 @@ class CPU {
     if (dma != null && dma.toPpuData) {
       bus.cpuWrite(0x2007, _oamDmaValue);
     } else {
+      openBus = _oamDmaValue;
+
       bus.ppu.writeOAM(_oamDmaOffset - start, _oamDmaValue);
     }
 
@@ -488,7 +495,7 @@ class CPU {
   void _readDmcSample() {
     final dmc = bus.apu.dmc;
 
-    dmc.writeDma(bus.cpuRead(dmc.address));
+    dmc.writeDma(bus.dmaRead(dmc.address, cpuAddress: _dmaHaltAddress));
   }
 
   void _interrupt(int vector) {
