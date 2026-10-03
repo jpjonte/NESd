@@ -31,6 +31,8 @@ class MMC3 extends Mapper {
 
   PpuMemoryType? get chrMemoryType => null;
 
+  PpuMemoryType? chrPageMemoryType(int page) => chrMemoryType;
+
   int register = 0;
 
   final List<int> banks = List.filled(16, 0);
@@ -257,8 +259,9 @@ class MMC3 extends Mapper {
   void updateChrPages() {
     for (var slot = 0; slot < 8; slot++) {
       final address = slot * 0x400;
+      final page = chrPage(slot);
 
-      mapPpu(address, address + 0x3ff, chrPage(slot), type: chrMemoryType);
+      mapPpu(address, address + 0x3ff, page, type: chrPageMemoryType(page));
     }
   }
 
