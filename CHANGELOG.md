@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Bindable Next Frame action
 - Android: Touch controls vibrate on press, enabled by default
 
+### Fixed
+- DMA reads now handle bus conflicts like real hardware
+
 ## [0.21.3] - 2026-10-01
 
 ### Added

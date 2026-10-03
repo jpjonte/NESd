@@ -60,6 +60,29 @@ class Bus {
     return value;
   }
 
+  int dmaRead(int address, {required int cpuAddress}) {
+    final registersActive = _isRegisterAddress(cpuAddress);
+
+    if (_isRegisterAddress(address)) {
+      return registersActive ? cpuRead(address) : cpu.openBus;
+    }
+
+    final value = cpuRead(address);
+
+    if (!registersActive) {
+      return value;
+    }
+
+    // if the CPU was halted on a register address, also read that register's
+    // value
+    return switch (0x4000 | (address & 0x1f)) {
+      final register && (0x4015 || 0x4016 || 0x4017) => cpuRead(register),
+      _ => value,
+    };
+  }
+
+  bool _isRegisterAddress(int address) => address >= 0x4000 && address < 0x4020;
+
   @pragma('vm:prefer-inline')
   int _cpuRead(int address, bool disableSideEffects) {
     // Cartridge space first: opcode/operand fetches dominate traffic.

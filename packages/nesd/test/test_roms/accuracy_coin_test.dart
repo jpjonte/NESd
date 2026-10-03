@@ -4,15 +4,13 @@ import 'accuracy_coin_robot.dart';
 
 const _base = '../../roms/test';
 
-const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 9};
+const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 7};
 
 final _rom = _knownFailures.keys.single;
 
 const _failingTests = <String, int>{
-  'APU Registers and DMA tests / DMC DMA Bus Conflicts': 2,
   'APU Registers and DMA tests / Explicit DMA Abort': 2,
   'APU Registers and DMA tests / Implicit DMA Abort': 2,
-  'APU Tests / APU Register Activation': 4,
   'PPU Misc. / \$2007 Stress Test': 2,
   'Advanced Background Evaluation / Stale BG Shift Registers': 3,
   'Advanced Background Evaluation / ALE + Read': 2,
