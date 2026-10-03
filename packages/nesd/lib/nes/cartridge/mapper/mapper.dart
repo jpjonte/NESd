@@ -18,6 +18,7 @@ import 'package:nesd/nes/cartridge/mapper/mapper_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc1.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc2.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc3.dart';
+import 'package:nesd/nes/cartridge/mapper/mmc3_chr_ram.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5.dart';
 import 'package:nesd/nes/cartridge/mapper/namco108.dart';
 import 'package:nesd/nes/cartridge/mapper/namco163.dart';
@@ -92,6 +93,7 @@ abstract class Mapper {
       66 => GxROM(),
       69 => FME7(),
       71 => BR909x(),
+      74 || 119 || 192 => MMC3ChrRam(mapperId),
       79 || 146 => NINA003006(mapperId),
       118 => TxSROM(),
       176 => Mapper176(subMapperId),

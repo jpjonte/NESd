@@ -24,7 +24,7 @@ const selfHostingUrl = '$repoUrl#self-hosting';
 const contactEmail = 'nesd@jpj.dev';
 
 /// keep in sync with README.md
-const supportedGameCount = '3,546';
+const supportedGameCount = '3,558';
 
 @immutable
 class const FeatureGroup({
