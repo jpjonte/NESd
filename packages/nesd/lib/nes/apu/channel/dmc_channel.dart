@@ -168,8 +168,10 @@ class DMCChannel {
         _start();
         _startDma();
       }
-    } else {
+    } else if (length > 0) {
       length = 0;
+
+      bus.stopDmcDma(reloadScheduledIn: _reloadIn);
     }
   }
 
@@ -195,7 +197,7 @@ class DMCChannel {
     sampleLength = (value << 4) + 1;
   }
 
-  void writeDma(int value) {
+  void writeDma(Bus bus, int value) {
     if (length == 0) {
       return;
     }
@@ -207,14 +209,24 @@ class DMCChannel {
 
     length--;
 
-    if (length == 0) {
-      if (loop) {
-        _start();
-      } else if (irqEnabled) {
-        interrupt = true;
-      }
+    if (length > 0) {
+      return;
     }
+
+    if (loop) {
+      _start();
+
+      return;
+    }
+
+    if (irqEnabled) {
+      interrupt = true;
+    }
+
+    bus.stopDmcDma(reloadScheduledIn: _reloadIn);
   }
+
+  int get _reloadIn => bitsRemaining == 1 && sampleLoaded ? timer + 1 : 0;
 
   void _startDma() {
     if (sampleLoaded || length == 0) {

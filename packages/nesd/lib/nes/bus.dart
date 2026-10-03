@@ -273,6 +273,9 @@ class Bus {
 
   void triggerDmcDma({required bool load}) => cpu.triggerDmcDma(load: load);
 
+  void stopDmcDma({required int reloadScheduledIn}) =>
+      cpu.stopDmcDma(reloadScheduledIn: reloadScheduledIn);
+
   DmaSettings? get dmaSettings =>
       cartridge.mapper.handlesDma ? cartridge.mapper.dmaSettings : null;
 
