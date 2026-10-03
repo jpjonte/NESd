@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Desktop and web: Drop a ROM onto the window to open it
 
 ### Fixed
+- Opening an invalid ROM while a game is running no longer ends that game without saving
 - DMA reads now handle bus conflicts like real hardware
 
 ## [0.21.3] - 2026-10-01
