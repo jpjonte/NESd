@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nesd/exception/empty_archive.dart';
 import 'package:nesd/exception/too_many_roms.dart';
 import 'package:nesd/exception/unsupported_file_type.dart';
 import 'package:nesd/features.dart';
 import 'package:nesd/log/log.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/cartridge_factory.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/nes/isolate/local_nes_handle.dart';
@@ -409,6 +412,44 @@ class NesController {
     }
   }
 
+  Future<void> openDroppedRom(List<XFile> files) async {
+    if (files.isEmpty) {
+      return;
+    }
+
+    final dropped = files.firstWhereOrNull(
+      (file) => isRomPickerFile(file.name),
+    );
+
+    if (dropped == null) {
+      toaster.send(Toast.warning('Unsupported file: ${files.first.name}'));
+
+      return;
+    }
+
+    suspend();
+
+    final FilesystemFile file;
+
+    try {
+      file = await romImporter.importDropped(dropped);
+    } on Exception catch (e) {
+      log.rom.error('Failed to import dropped ROM', error: e);
+
+      toaster.send(Toast.error('Failed to import ROM: $e'));
+
+      applyRunState();
+
+      return;
+    }
+
+    final started = await startRom(file);
+
+    if (!started) {
+      applyRunState();
+    }
+  }
+
   /// Loads [file] and, if it loaded, switches to the emulator.
   ///
   /// This is the single entry point for opening a ROM. Navigating is part of
@@ -516,26 +557,24 @@ class NesController {
   }) async {
     nes?.suspend();
 
+    final Uint8List rom;
+    final Cartridge cartridge;
+
+    try {
+      (rom, cartridge) = await _prepareRom(file, data);
+    } on PathNotFoundException {
+      log.rom.warning('ROM file not found', context: {'path': file.path});
+
+      return false;
+    } on Exception catch (e) {
+      _reportLoadFailure(file, e);
+
+      return false;
+    }
+
     RemoteNes? remote;
 
     try {
-      final bytes = data ?? await _readFile(file.path);
-      final extension = p.extension(file.name);
-
-      final rom = switch (extension.toLowerCase()) {
-        '.nes' => bytes,
-        '.zip' || '.7z' => await _loadArchive(file.path, bytes),
-        _ => throw UnsupportedFileType(extension),
-      };
-
-      // make sure database is loaded before querying it
-      await database.ready;
-
-      // CartridgeFactory queries the database
-      final cartridge = cartridgeFactory.fromFile(file, rom);
-
-      cartridge.databaseEntry = database.find(cartridge.romInfo);
-
       final romInfo = cartridge.romInfo;
       final databaseEntry = cartridge.databaseEntry;
 
@@ -652,10 +691,6 @@ class NesController {
       // a different one (or none at all), so apply the current run state to
       // the instance that just came up.
       applyRunState();
-    } on PathNotFoundException {
-      log.rom.warning('ROM file not found', context: {'path': file.path});
-
-      return false;
     } on TimeoutException {
       log.emulator.error(
         'Emulator did not respond. Restarting the isolate',
@@ -671,13 +706,7 @@ class NesController {
 
       return false;
     } on Exception catch (e) {
-      log.rom.error(
-        'Failed to load ROM',
-        context: {'path': file.path},
-        error: e,
-      );
-
-      toaster.send(Toast.error('Failed to load ROM: $e'));
+      _reportLoadFailure(file, e);
 
       remote?.dispose();
       nesState.clear();
@@ -686,6 +715,36 @@ class NesController {
     }
 
     return true;
+  }
+
+  Future<(Uint8List, Cartridge)> _prepareRom(
+    FilesystemFile file,
+    Uint8List? data,
+  ) async {
+    final bytes = data ?? await _readFile(file.path);
+    final extension = p.extension(file.name);
+
+    final rom = switch (extension.toLowerCase()) {
+      '.nes' => bytes,
+      '.zip' || '.7z' => await _loadArchive(file.path, bytes),
+      _ => throw UnsupportedFileType(extension),
+    };
+
+    // make sure database is loaded before querying it
+    await database.ready;
+
+    // CartridgeFactory queries the database
+    final cartridge = cartridgeFactory.fromFile(file, rom);
+
+    cartridge.databaseEntry = database.find(cartridge.romInfo);
+
+    return (rom, cartridge);
+  }
+
+  void _reportLoadFailure(FilesystemFile file, Exception e) {
+    log.rom.error('Failed to load ROM', context: {'path': file.path}, error: e);
+
+    toaster.send(Toast.error('Failed to load ROM: $e'));
   }
 
   Future<NesIsolateHandle> _ensureIsolate() {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nesd/ui/common/focus_child.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/emulator_widget.dart';
+import 'package:nesd/ui/emulator/rom_drop_target.dart';
 import 'package:nesd/ui/emulator/tools/compact_tool_host.dart';
 import 'package:nesd/ui/emulator/tools/docked_tool_host.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
@@ -47,15 +48,17 @@ class EmulatorScreen extends ConsumerWidget {
     );
 
     return NesdScaffold(
-      body: Actions(
-        actions: {
-          if (toolsFocused)
-            DismissIntent: CallbackAction<DismissIntent>(
-              onInvoke: (_) =>
-                  ref.read(toolFocusControllerProvider.notifier).exit(),
-            ),
-        },
-        child: body,
+      body: RomDropTarget(
+        child: Actions(
+          actions: {
+            if (toolsFocused)
+              DismissIntent: CallbackAction<DismissIntent>(
+                onInvoke: (_) =>
+                    ref.read(toolFocusControllerProvider.notifier).exit(),
+              ),
+          },
+          child: body,
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
@@ -19,10 +20,10 @@ RomImporter romImporter(Ref ref) => kIsWeb
     ? WebRomImporter(storage: ref.watch(storageFilesystemProvider))
     : NativeRomImporter();
 
-/// Shows the ROM picker and turns the result into a loadable [FilesystemFile].
-// ignore: one_member_abstracts
 abstract interface class RomImporter {
   Future<FilesystemFile?> pickRom();
+
+  Future<FilesystemFile> importDropped(XFile file);
 }
 
 class NativeRomImporter implements RomImporter {
@@ -39,12 +40,17 @@ class NativeRomImporter implements RomImporter {
       return null;
     }
 
-    return FilesystemFile(
-      path: path,
-      name: p.basename(path),
-      type: FilesystemFileType.file,
-    );
+    return _fileAt(path);
   }
+
+  @override
+  Future<FilesystemFile> importDropped(XFile file) async => _fileAt(file.path);
+
+  FilesystemFile _fileAt(String path) => FilesystemFile(
+    path: path,
+    name: p.basename(path),
+    type: FilesystemFileType.file,
+  );
 }
 
 /// Copies the picked bytes into browser storage under [webRomsDirectory].
@@ -62,14 +68,21 @@ class WebRomImporter implements RomImporter {
       return null;
     }
 
-    final bytes = await result.readAsBytes();
-    final path = '$webRomsDirectory/${result.name}';
+    return await _store(result.name, await result.readAsBytes());
+  }
+
+  @override
+  Future<FilesystemFile> importDropped(XFile file) async =>
+      await _store(file.name, await file.readAsBytes());
+
+  Future<FilesystemFile> _store(String name, Uint8List bytes) async {
+    final path = '$webRomsDirectory/$name';
 
     await storage.write(path, bytes);
 
     return FilesystemFile(
       path: path,
-      name: result.name,
+      name: name,
       type: FilesystemFileType.file,
     );
   }
