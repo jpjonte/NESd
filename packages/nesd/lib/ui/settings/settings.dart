@@ -24,6 +24,7 @@ import 'package:nesd/ui/emulator/screenshot/screenshot_mode.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/file_picker/file_sort_order.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_binding_migration.dart';
@@ -168,6 +169,8 @@ sealed class Settings with _$Settings {
     @JsonKey(fromJson: _recentRomsFromJson)
     @Default([])
     List<RomInfo> recentRoms,
+    @Default([]) List<RomInfo> favoriteRoms,
+    @Default(FileSortOrder.nameAscending) FileSortOrder fileSortOrder,
     @Default(false) bool showTouchControls,
     @Default(true) bool touchVibration,
     @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
@@ -346,7 +349,12 @@ class SettingsController extends _$SettingsController {
       ..removeWhere((r) => r.sameRom(rom))
       ..insert(0, rom);
 
-    _update(state.copyWith(recentRoms: recent.toList()));
+    final favorites = [
+      for (final favorite in state.favoriteRoms)
+        if (favorite.sameRom(rom)) rom else favorite,
+    ];
+
+    _update(state.copyWith(recentRoms: recent, favoriteRoms: favorites));
   }
 
   void clearRecentRoms() {
@@ -358,6 +366,31 @@ class SettingsController extends _$SettingsController {
       ..removeWhere((r) => r.sameRom(rom));
 
     _update(state.copyWith(recentRoms: recent.toList()));
+  }
+
+  List<RomInfo> get favoriteRoms => state.favoriteRoms;
+
+  bool isFavorite(RomInfo rom) => state.favoriteRoms.any((f) => f.sameRom(rom));
+
+  void addFavorite(RomInfo rom) {
+    final favorites = state.favoriteRoms.toList()
+      ..removeWhere((f) => f.sameRom(rom))
+      ..insert(0, rom);
+
+    _update(state.copyWith(favoriteRoms: favorites));
+  }
+
+  void removeFavorite(RomInfo rom) {
+    final favorites = state.favoriteRoms.toList()
+      ..removeWhere((f) => f.sameRom(rom));
+
+    _update(state.copyWith(favoriteRoms: favorites));
+  }
+
+  FileSortOrder get fileSortOrder => state.fileSortOrder;
+
+  set fileSortOrder(FileSortOrder order) {
+    _update(state.copyWith(fileSortOrder: order));
   }
 
   bool get showTouchControls => state.showTouchControls;
