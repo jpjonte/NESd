@@ -71,6 +71,24 @@ final defaultMenuGamepadBindings = [
   _gamepadButton(inputLeft, GamepadButton.dpadLeft, slot: 0),
   _gamepadButton(inputRight, GamepadButton.dpadRight, slot: 0),
   _gamepadButton(secondaryAction, GamepadButton.x, slot: 0),
+  defaultSortGamepadBinding,
+];
+
+final defaultSortKeyboardBinding = Binding(
+  index: 0,
+  action: sort,
+  input: InputCombination.keyboard({LogicalKeyboardKey.keyS}),
+);
+
+final defaultSortGamepadBinding = _gamepadButton(
+  sort,
+  GamepadButton.y,
+  slot: 0,
+);
+
+final defaultSortBindings = [
+  defaultSortKeyboardBinding,
+  defaultSortGamepadBinding,
 ];
 
 final defaultGamepadBindings = [
@@ -341,6 +359,7 @@ final defaultBindings = [
     action: secondaryAction,
     input: InputCombination.keyboard({LogicalKeyboardKey.shift}),
   ),
+  defaultSortKeyboardBinding,
   Binding(
     index: 0,
     action: cancel,

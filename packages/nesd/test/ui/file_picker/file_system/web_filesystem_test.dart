@@ -38,4 +38,17 @@ void main() {
     expect(entries.single.name, 'a.nes');
     expect(entries.single.type, FilesystemFileType.file);
   });
+
+  test('list carries the stored modification time', () async {
+    final before = DateTime.now();
+
+    await storage.write('/nesd/roms/a.nes', Uint8List(1));
+
+    final entries = await filesystem.list('/nesd/roms');
+
+    expect(
+      entries.single.modified?.millisecondsSinceEpoch,
+      greaterThanOrEqualTo(before.millisecondsSinceEpoch),
+    );
+  });
 }

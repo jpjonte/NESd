@@ -15,6 +15,7 @@ import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
 import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
@@ -24,6 +25,7 @@ import 'package:nesd/ui/emulator/screenshot/screenshot_mode.dart';
 import 'package:nesd/ui/emulator/tools/emulator_tool.dart';
 import 'package:nesd/ui/emulator/video_filter/crt_filter_settings.dart';
 import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
+import 'package:nesd/ui/file_picker/file_sort_order.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/controls/binding.dart';
 import 'package:nesd/ui/settings/controls/gamepad_binding_migration.dart';
@@ -157,7 +159,7 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
-    @Default(5) int bindingsVersion,
+    @Default(6) int bindingsVersion,
     @JsonKey(fromJson: gamepadSlotsFromJson, toJson: gamepadSlotsToJson)
     @Default(<int, GamepadDeviceKey>{})
     Map<int, GamepadDeviceKey> gamepadSlots,
@@ -168,6 +170,8 @@ sealed class Settings with _$Settings {
     @JsonKey(fromJson: _recentRomsFromJson)
     @Default([])
     List<RomInfo> recentRoms,
+    @Default([]) List<RomInfo> favoriteRoms,
+    @Default(FileSortOrder.nameAscending) FileSortOrder fileSortOrder,
     @Default(false) bool showTouchControls,
     @Default(true) bool touchVibration,
     @JsonKey(fromJson: narrowTouchInputConfigsFromJson)
@@ -346,7 +350,12 @@ class SettingsController extends _$SettingsController {
       ..removeWhere((r) => r.sameRom(rom))
       ..insert(0, rom);
 
-    _update(state.copyWith(recentRoms: recent.toList()));
+    final favorites = [
+      for (final favorite in state.favoriteRoms)
+        if (favorite.sameRom(rom)) rom else favorite,
+    ];
+
+    _update(state.copyWith(recentRoms: recent, favoriteRoms: favorites));
   }
 
   void clearRecentRoms() {
@@ -358,6 +367,31 @@ class SettingsController extends _$SettingsController {
       ..removeWhere((r) => r.sameRom(rom));
 
     _update(state.copyWith(recentRoms: recent.toList()));
+  }
+
+  List<RomInfo> get favoriteRoms => state.favoriteRoms;
+
+  bool isFavorite(RomInfo rom) => state.favoriteRoms.any((f) => f.sameRom(rom));
+
+  void addFavorite(RomInfo rom) {
+    final favorites = state.favoriteRoms.toList()
+      ..removeWhere((f) => f.sameRom(rom))
+      ..insert(0, rom);
+
+    _update(state.copyWith(favoriteRoms: favorites));
+  }
+
+  void removeFavorite(RomInfo rom) {
+    final favorites = state.favoriteRoms.toList()
+      ..removeWhere((f) => f.sameRom(rom));
+
+    _update(state.copyWith(favoriteRoms: favorites));
+  }
+
+  FileSortOrder get fileSortOrder => state.fileSortOrder;
+
+  set fileSortOrder(FileSortOrder order) {
+    _update(state.copyWith(fileSortOrder: order));
   }
 
   bool get showTouchControls => state.showTouchControls;
@@ -774,10 +808,14 @@ class SettingsController extends _$SettingsController {
         ? _withScreenshotDefault(withMenuDefaults)
         : withMenuDefaults;
 
+    final withSortDefaults = storedVersion < 6
+        ? _withSortDefaults(withScreenshotDefault)
+        : withScreenshotDefault;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: withScreenshotDefault,
-      bindingsVersion: 5,
+      bindings: withSortDefaults,
+      bindingsVersion: 6,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }
@@ -867,6 +905,26 @@ class SettingsController extends _$SettingsController {
         (b) => !taken.contains((b.action, b.index)),
       ),
     ];
+  }
+
+  Bindings _withSortDefaults(Bindings bindings) => [
+    ...bindings,
+    for (final binding in defaultSortBindings)
+      if (!bindings.any((b) => _blocksSortDefault(b, binding))) binding,
+  ];
+
+  bool _blocksSortDefault(Binding existing, Binding sortDefault) {
+    if (existing.action == sortDefault.action &&
+        existing.index == sortDefault.index) {
+      return true;
+    }
+
+    if (existing.input != sortDefault.input) {
+      return false;
+    }
+
+    return existing.input is KeyboardInputCombination ||
+        !isInGameAction(existing.action);
   }
 
   Bindings _withScreenshotDefault(Bindings bindings) {

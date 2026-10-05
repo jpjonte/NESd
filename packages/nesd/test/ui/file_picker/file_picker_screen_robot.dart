@@ -120,6 +120,39 @@ class FilePickerScreenRobot extends BaseRobot {
     );
   }
 
+  List<String> fileNames() => [
+    for (final tile in tester.widgetList<FileTile>(find.byType(FileTile)))
+      tile.file.name,
+  ];
+
+  Finder _star(String name) => find.byKey(FileTile.starKey('/test/roms/$name'));
+
+  Future<void> tapStar(String name) async {
+    await scrollToFile(name);
+    await goAsync(_star(name));
+  }
+
+  void expectStarred(String name, {required bool starred}) {
+    final icon = tester.widget<Icon>(
+      find.descendant(of: _star(name), matching: find.byType(Icon)),
+    );
+
+    expect(icon.icon, starred ? Icons.star : Icons.star_border);
+  }
+
+  Future<void> tapSortButton() async {
+    await goAsync(find.byKey(SortButton.buttonKey));
+  }
+
+  void expectSortLabel(String label) {
+    expectOne(
+      find.descendant(
+        of: find.byKey(SortButton.buttonKey),
+        matching: find.text(label),
+      ),
+    );
+  }
+
   Future<void> tapParentTile() async {
     await goAsync(find.byType(ParentTile));
   }

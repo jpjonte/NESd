@@ -230,10 +230,74 @@ void main() {
     expect(controller.gamepadSlots[0], const GamepadDeviceKey(name: 'Pad'));
   });
 
-  test('a v5 settings file is left alone', () {
+  test('a v5 settings file gains the sort defaults', () {
+    final controller = load(
+      '{"bindingsVersion": 5, "bindings": ['
+      '${keyboardBinding('controller1.left', LogicalKeyboardKey.arrowLeft)}'
+      ']}',
+    );
+
+    final sortInputs = [
+      for (final binding in controller.bindings)
+        if (binding.action == sort) binding.input,
+    ];
+
+    expect(sortInputs, [
+      InputCombination.keyboard({LogicalKeyboardKey.keyS}),
+      InputCombination.gamepad(
+        slot: 0,
+        inputs: {gamepadButtonInput(GamepadButton.y)},
+      ),
+    ]);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 6);
+  });
+
+  test('the sort default skips a key the user already bound', () {
+    final controller = load(
+      '{"bindingsVersion": 5, "bindings": ['
+      '${keyboardBinding('ui.confirm', LogicalKeyboardKey.keyS)}'
+      ']}',
+    );
+
+    final keyboardSort = controller.bindings.where(
+      (b) => b.action == sort && b.input is KeyboardInputCombination,
+    );
+
+    expect(keyboardSort, isEmpty);
+  });
+
+  test('gamepad Y gains sort alongside its in-game turbo binding', () {
+    final controller = load(
+      '{"bindingsVersion": 5, "bindings": ['
+      '${gamepadBinding('controller1.turboA', GamepadButton.y)}'
+      ']}',
+    );
+
+    final gamepadSort = controller.bindings.where(
+      (b) => b.action == sort && b.input is GamepadInputCombination,
+    );
+
+    expect(gamepadSort, hasLength(1));
+  });
+
+  test('the sort default skips gamepad Y when it is already bound', () {
+    final controller = load(
+      '{"bindingsVersion": 5, "bindings": ['
+      '${gamepadBinding('ui.confirm', GamepadButton.y)}'
+      ']}',
+    );
+
+    final gamepadSort = controller.bindings.where(
+      (b) => b.action == sort && b.input is GamepadInputCombination,
+    );
+
+    expect(gamepadSort, isEmpty);
+  });
+
+  test('a v6 settings file is left alone', () {
     final controller = load('''
       {
-        "bindingsVersion": 5,
+        "bindingsVersion": 6,
         "gamepadSlots": {"1": {"name": "Kept"}},
         "bindings": [
           {
@@ -254,7 +318,7 @@ void main() {
 
     expect(gamepad.slot, 1);
     expect(controller.gamepadSlots[1], const GamepadDeviceKey(name: 'Kept'));
-    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 6);
   });
 
   test('one physical gamepad bound to many actions maps to one slot', () {
@@ -488,7 +552,7 @@ void main() {
       gamepadInputOf(bindings, secondaryAction).inputs.single,
       gamepadButtonInput(GamepadButton.x),
     );
-    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 6);
   });
 
   test('version 3 settings with the keyboard menu defaults still gain the '
@@ -584,7 +648,7 @@ void main() {
 
     expect(binding.index, 0);
     expect(binding.input, InputCombination.keyboard({LogicalKeyboardKey.f12}));
-    expect(container.read(settingsControllerProvider).bindingsVersion, 5);
+    expect(container.read(settingsControllerProvider).bindingsVersion, 6);
   });
 
   test('the screenshot default is skipped when F12 is already bound', () {
@@ -595,7 +659,7 @@ void main() {
       }
     ''');
 
-    expect(controller.bindings.map((b) => b.action), [pause]);
+    expect(controller.bindings.where((b) => b.action == screenshot), isEmpty);
   });
 
   test('an existing screenshot binding is kept on migration', () {

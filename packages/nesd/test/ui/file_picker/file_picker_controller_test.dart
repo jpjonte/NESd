@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:nesd/exception/filesystem_exception.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_sort_order.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/settings/settings.dart';
@@ -28,11 +29,15 @@ FilesystemFile _subDirectory(String name) =>
 
 void main() {
   late _MockFilesystem filesystem;
+  late _MockSettingsController settings;
   late ProviderContainer container;
   late FilePickerController controller;
 
+  setUpAll(() => registerFallbackValue(FileSortOrder.nameAscending));
+
   setUp(() {
     filesystem = _MockFilesystem();
+    settings = _MockSettingsController();
     container = ProviderContainer();
 
     addTearDown(container.dispose);
@@ -44,10 +49,12 @@ void main() {
     controller = FilePickerController(
       filesystem: filesystem,
       notifier: container.read(filePickerStateProvider.notifier),
-      settingsController: _MockSettingsController(),
+      settingsController: settings,
     );
 
     when(() => filesystem.isDirectory('/roms')).thenAnswer((_) async => true);
+    when(() => settings.fileSortOrder).thenReturn(FileSortOrder.nameAscending);
+    when(() => settings.recentRoms).thenReturn(const []);
   });
 
   List<String> currentFileNames() {
@@ -434,5 +441,52 @@ void main() {
     await applyFilter('mario');
 
     expect(currentFileNames(), ['Mario', 'Mario.nes']);
+  });
+
+  test('lists files in the stored sort order', () async {
+    when(() => settings.fileSortOrder).thenReturn(FileSortOrder.nameDescending);
+    when(
+      () => filesystem.list('/roms'),
+    ).thenAnswer((_) async => [_file('a.nes'), _file('b.nes')]);
+
+    await controller.go(_directory);
+
+    expect(currentFileNames(), ['b.nes', 'a.nes']);
+  });
+
+  test('cycling the sort order stores it and re-sorts', () async {
+    var order = FileSortOrder.nameAscending;
+
+    when(() => settings.fileSortOrder).thenAnswer((_) => order);
+    when(() => settings.fileSortOrder = any()).thenAnswer((invocation) {
+      return order = invocation.positionalArguments.single as FileSortOrder;
+    });
+    when(
+      () => filesystem.list('/roms'),
+    ).thenAnswer((_) async => [_file('a.nes'), _file('b.nes')]);
+
+    await controller.go(_directory);
+
+    expect(controller.cycleSortOrder(), FileSortOrder.nameDescending);
+
+    await pumpEventQueue();
+
+    expect(currentFileNames(), ['b.nes', 'a.nes']);
+  });
+
+  test('with a filter, score ranks first and the order breaks ties', () async {
+    when(() => settings.fileSortOrder).thenReturn(FileSortOrder.nameDescending);
+    when(() => filesystem.list('/roms')).thenAnswer(
+      (_) async => [
+        _file('mario 1.nes'),
+        _file('mario 2.nes'),
+        _file('zelda.nes'),
+      ],
+    );
+
+    await controller.go(_directory);
+    await applyFilter('mario');
+
+    expect(currentFileNames(), ['mario 2.nes', 'mario 1.nes']);
   });
 }

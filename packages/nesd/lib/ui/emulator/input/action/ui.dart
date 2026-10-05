@@ -36,6 +36,10 @@ class SecondaryAction extends InputAction {
   const SecondaryAction({required super.title, required super.code});
 }
 
+class Sort extends InputAction {
+  const Sort({required super.title, required super.code});
+}
+
 class Cancel extends InputAction {
   const Cancel({required super.title, required super.code});
 }
@@ -79,6 +83,8 @@ const secondaryAction = SecondaryAction(
   title: 'Secondary Action',
   code: 'ui.secondaryAction',
 );
+
+const sort = Sort(title: 'Sort', code: 'ui.sort');
 
 const cancel = Cancel(title: 'Cancel', code: 'ui.cancel');
 

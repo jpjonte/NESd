@@ -89,6 +89,7 @@ class FilesystemService(private val contentResolver: ContentResolver) {
         arrayOf(
           DocumentsContract.Document.COLUMN_DOCUMENT_ID,
           DocumentsContract.Document.COLUMN_MIME_TYPE,
+          DocumentsContract.Document.COLUMN_LAST_MODIFIED,
         ),
         null,
         null,
@@ -99,11 +100,12 @@ class FilesystemService(private val contentResolver: ContentResolver) {
         throw IllegalStateException("Cursor is null")
       }
 
-      val files = mutableListOf<Map<String, String>>()
+      val files = mutableListOf<Map<String, Any?>>()
 
       while (cursor.moveToNext()) {
         val id = cursor.getString(0)
         val mimeType = cursor.getString(1)
+        val modified = if (cursor.isNull(2)) null else cursor.getLong(2)
         val childUri = DocumentsContract.buildDocumentUriUsingTree(uri, id)
 
         files.add(
@@ -112,6 +114,7 @@ class FilesystemService(private val contentResolver: ContentResolver) {
             "type" to if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) "directory"
             else "file",
             "name" to id,
+            "modified" to modified,
           )
         )
       }

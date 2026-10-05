@@ -52,4 +52,42 @@ void main() {
   test('a round trip through JSON preserves equality', () {
     expect(FilesystemFile.fromJson(file.toJson()), file);
   });
+
+  test('modified is read from epoch milliseconds', () {
+    final listed = FilesystemFile.fromJson(const {
+      'path': '/roms/game.nes',
+      'name': 'game.nes',
+      'type': 'file',
+      'modified': 1700000000000,
+    });
+
+    expect(listed.modified, DateTime.fromMillisecondsSinceEpoch(1700000000000));
+  });
+
+  test('a missing modified reads as null', () {
+    expect(FilesystemFile.fromJson(file.toJson()).modified, isNull);
+  });
+
+  test('modified is never persisted', () {
+    final listed = FilesystemFile(
+      path: '/roms/game.nes',
+      name: 'game.nes',
+      type: FilesystemFileType.file,
+      modified: DateTime(2026),
+    );
+
+    expect(listed.toJson().containsKey('modified'), isFalse);
+  });
+
+  test('modified does not take part in equality', () {
+    final listed = FilesystemFile(
+      path: '/roms/game.nes',
+      name: 'game.nes',
+      type: FilesystemFileType.file,
+      modified: DateTime(2026),
+    );
+
+    expect(listed, file);
+    expect(listed.hashCode, file.hashCode);
+  });
 }

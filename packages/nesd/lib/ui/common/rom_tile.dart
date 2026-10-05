@@ -79,11 +79,14 @@ Future<ui.Image?> loadStoredThumbnail(Uint8List? bytes) async {
 class RomTile extends HookConsumerWidget {
   static const thumbnailFadeKey = Key('thumbnailFade');
   static const loadingKey = Key('romTileLoading');
+  static const starKey = Key('romTileStar');
 
   const RomTile({
     required this.romTileData,
     required this.onPressed,
     this.onRemove,
+    this.favorite,
+    this.onToggleFavorite,
     this.contextMenuBuilder,
     this.loading = false,
     super.key,
@@ -92,6 +95,9 @@ class RomTile extends HookConsumerWidget {
   final RomTileData romTileData;
   final VoidCallback onPressed;
   final VoidCallback? onRemove;
+
+  final bool? favorite;
+  final VoidCallback? onToggleFavorite;
   final ContextMenuBuilder? contextMenuBuilder;
 
   final bool loading;
@@ -179,6 +185,34 @@ class RomTile extends HookConsumerWidget {
                     ),
                   ),
                 ),
+                if (favorite case final favorite?)
+                  ExcludeFocus(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(100),
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            key: starKey,
+                            iconSize: 20,
+                            icon: Icon(
+                              favorite ? Icons.star : Icons.star_border,
+                            ),
+                            tooltip: favorite
+                                ? 'Remove from favorites'
+                                : 'Add to favorites',
+                            padding: const EdgeInsets.all(4),
+                            color: favorite ? Colors.amber : Colors.white,
+                            onPressed: onToggleFavorite,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (onRemove case final onRemove?)
                   ExcludeFocus(
                     child: Align(

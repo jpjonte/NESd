@@ -40,7 +40,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   bindings: json['bindings'] == null
       ? const []
       : bindingsFromJson(json['bindings']),
-  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 5,
+  bindingsVersion: (json['bindingsVersion'] as num?)?.toInt() ?? 6,
   gamepadSlots: json['gamepadSlots'] == null
       ? const <int, GamepadDeviceKey>{}
       : gamepadSlotsFromJson(json['gamepadSlots'] as Map<String, dynamic>?),
@@ -55,6 +55,14 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   recentRoms: json['recentRoms'] == null
       ? const []
       : _recentRomsFromJson(json['recentRoms'] as List),
+  favoriteRoms:
+      (json['favoriteRoms'] as List<dynamic>?)
+          ?.map((e) => RomInfo.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  fileSortOrder:
+      $enumDecodeNullable(_$FileSortOrderEnumMap, json['fileSortOrder']) ??
+      FileSortOrder.nameAscending,
   showTouchControls: json['showTouchControls'] as bool? ?? false,
   touchVibration: json['touchVibration'] as bool? ?? true,
   narrowTouchInputConfig: json['narrowTouchInputConfig'] == null
@@ -147,6 +155,8 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'lastRomPath': instance.lastRomPath,
   'recentRomPaths': instance.recentRomPaths,
   'recentRoms': instance.recentRoms,
+  'favoriteRoms': instance.favoriteRoms,
+  'fileSortOrder': _$FileSortOrderEnumMap[instance.fileSortOrder]!,
   'showTouchControls': instance.showTouchControls,
   'touchVibration': instance.touchVibration,
   'narrowTouchInputConfig': instance.narrowTouchInputConfig,
@@ -198,6 +208,15 @@ const _$ScalingEnumMap = {
   Scaling.x2: 'x2',
   Scaling.x3: 'x3',
   Scaling.x4: 'x4',
+};
+
+const _$FileSortOrderEnumMap = {
+  FileSortOrder.nameAscending: 'nameAscending',
+  FileSortOrder.nameDescending: 'nameDescending',
+  FileSortOrder.lastPlayedNewest: 'lastPlayedNewest',
+  FileSortOrder.lastPlayedOldest: 'lastPlayedOldest',
+  FileSortOrder.modifiedNewest: 'modifiedNewest',
+  FileSortOrder.modifiedOldest: 'modifiedOldest',
 };
 
 const _$RegionEnumMap = {Region.ntsc: 'ntsc', Region.pal: 'pal'};
@@ -294,7 +313,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'a781364bea7fa6d777bc88c9ee69e3d2a58533fd';
+    r'bc1d3d7c7720b5c960ca93d880a3cddb476621d9';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();
