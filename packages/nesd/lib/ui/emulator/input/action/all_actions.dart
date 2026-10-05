@@ -6,6 +6,7 @@ const menuActions = [
   menuIncrease,
   confirm,
   secondaryAction,
+  sort,
   cancel,
   previousTab,
   nextTab,

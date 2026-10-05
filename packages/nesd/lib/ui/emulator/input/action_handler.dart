@@ -425,6 +425,8 @@ class ActionHandler {
         _sendIntent(const ActivateIntent());
       case SecondaryAction():
         _sendIntent(const SecondaryActionIntent());
+      case Sort():
+        _sendIntent(const SortIntent());
       case Cancel():
         _sendIntent(const DismissIntent());
       case MenuDecrease():

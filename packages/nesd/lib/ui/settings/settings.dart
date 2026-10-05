@@ -15,6 +15,7 @@ import 'package:nesd/nes/ppu/palette/ntsc_palette_settings.dart';
 import 'package:nesd/nes/ppu/palette/palette_selection.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/nes/turbo_speed.dart';
+import 'package:nesd/ui/emulator/input/action_handler.dart';
 import 'package:nesd/ui/emulator/input/gamepad/gamepad_device_key.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
 import 'package:nesd/ui/emulator/input/touch/touch_input_config.dart';
@@ -158,7 +159,7 @@ sealed class Settings with _$Settings {
     @Default(1) int? autoSaveInterval,
     @Default(true) bool autoLoad,
     @Default([]) @JsonKey(fromJson: bindingsFromJson) List<Binding> bindings,
-    @Default(5) int bindingsVersion,
+    @Default(6) int bindingsVersion,
     @JsonKey(fromJson: gamepadSlotsFromJson, toJson: gamepadSlotsToJson)
     @Default(<int, GamepadDeviceKey>{})
     Map<int, GamepadDeviceKey> gamepadSlots,
@@ -807,10 +808,14 @@ class SettingsController extends _$SettingsController {
         ? _withScreenshotDefault(withMenuDefaults)
         : withMenuDefaults;
 
+    final withSortDefaults = storedVersion < 6
+        ? _withSortDefaults(withScreenshotDefault)
+        : withScreenshotDefault;
+
     return loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
-      bindings: withScreenshotDefault,
-      bindingsVersion: 5,
+      bindings: withSortDefaults,
+      bindingsVersion: 6,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
   }
@@ -900,6 +905,26 @@ class SettingsController extends _$SettingsController {
         (b) => !taken.contains((b.action, b.index)),
       ),
     ];
+  }
+
+  Bindings _withSortDefaults(Bindings bindings) => [
+    ...bindings,
+    for (final binding in defaultSortBindings)
+      if (!bindings.any((b) => _blocksSortDefault(b, binding))) binding,
+  ];
+
+  bool _blocksSortDefault(Binding existing, Binding sortDefault) {
+    if (existing.action == sortDefault.action &&
+        existing.index == sortDefault.index) {
+      return true;
+    }
+
+    if (existing.input != sortDefault.input) {
+      return false;
+    }
+
+    return existing.input is KeyboardInputCombination ||
+        !isInGameAction(existing.action);
   }
 
   Bindings _withScreenshotDefault(Bindings bindings) {

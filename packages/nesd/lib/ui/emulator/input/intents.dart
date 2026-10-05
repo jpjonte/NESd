@@ -19,3 +19,7 @@ class NextTabIntent extends Intent {
 class SecondaryActionIntent extends Intent {
   const SecondaryActionIntent();
 }
+
+class SortIntent extends Intent {
+  const SortIntent();
+}
