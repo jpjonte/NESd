@@ -22,6 +22,7 @@ class NativeFilesystem extends Filesystem {
             Directory() || Link() => FilesystemFileType.directory,
             _ => throw UnimplementedError(),
           },
+          modified: entity is File ? entity.lastModifiedSync() : null,
         ),
     ];
   }

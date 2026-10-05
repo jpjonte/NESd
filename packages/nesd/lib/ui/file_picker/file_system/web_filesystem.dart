@@ -15,15 +15,15 @@ class WebFilesystem extends Filesystem {
   Future<List<FilesystemFile>> list(String path) async {
     final entries = await storage.list(path);
 
-    return entries
-        .map(
-          (entry) => FilesystemFile(
-            path: entry,
-            name: p.basename(entry),
-            type: FilesystemFileType.file,
-          ),
-        )
-        .toList();
+    return [
+      for (final entry in entries)
+        FilesystemFile(
+          path: entry,
+          name: p.basename(entry),
+          type: FilesystemFileType.file,
+          modified: await storage.lastModified(entry),
+        ),
+    ];
   }
 
   @override

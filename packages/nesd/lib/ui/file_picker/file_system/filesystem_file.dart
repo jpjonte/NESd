@@ -4,6 +4,9 @@ part 'filesystem_file.g.dart';
 
 enum FilesystemFileType { file, directory }
 
+DateTime? _modifiedFromJson(Object? json) =>
+    json is num ? DateTime.fromMillisecondsSinceEpoch(json.toInt()) : null;
+
 @JsonSerializable()
 @immutable
 class FilesystemFile {
@@ -11,11 +14,15 @@ class FilesystemFile {
     required this.path,
     required this.name,
     required this.type,
+    this.modified,
   });
 
   final String path;
   final String name;
   final FilesystemFileType type;
+
+  @JsonKey(fromJson: _modifiedFromJson, includeToJson: false)
+  final DateTime? modified;
 
   factory FilesystemFile.fromJson(Map<String, dynamic> json) =>
       _$FilesystemFileFromJson(json);

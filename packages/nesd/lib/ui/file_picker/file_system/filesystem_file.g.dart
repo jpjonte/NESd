@@ -11,6 +11,7 @@ FilesystemFile _$FilesystemFileFromJson(Map<String, dynamic> json) =>
       path: json['path'] as String,
       name: json['name'] as String,
       type: $enumDecode(_$FilesystemFileTypeEnumMap, json['type']),
+      modified: _modifiedFromJson(json['modified']),
     );
 
 Map<String, dynamic> _$FilesystemFileToJson(FilesystemFile instance) =>
