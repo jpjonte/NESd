@@ -547,6 +547,12 @@ class NesController {
     }
   }
 
+  Future<RomInfo> identifyRom(FilesystemFile file) async {
+    final (_, cartridge) = await _prepareRom(file, null);
+
+    return cartridge.romInfo;
+  }
+
   Future<bool> loadRom(
     FilesystemFile file, {
     Uint8List? stateBytes,
