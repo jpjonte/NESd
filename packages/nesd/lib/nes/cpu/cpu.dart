@@ -31,6 +31,7 @@ const _dmcDmaIdle = 0;
 const _dmcDmaWaiting = 1;
 const _dmcDmaHalted = 2;
 const _dmcDmaAligning = 3;
+const _dmcDmaAborting = 4;
 
 class CPU {
   CPU({required this.eventBus, required this.bus});
@@ -381,14 +382,32 @@ class CPU {
   }
 
   bool get _dmcDmaDue =>
-      _dmcDmaPhase == _dmcDmaWaiting && cycles + 1 >= _dmcDmaHaltAt;
+      (_dmcDmaPhase == _dmcDmaWaiting || _dmcDmaPhase == _dmcDmaAborting) &&
+      cycles + 1 >= _dmcDmaHaltAt;
 
-  bool get runningDma => _oamDma || _dmcDmaPhase >= _dmcDmaHalted || _dmcDmaDue;
+  bool get runningDma =>
+      _oamDma ||
+      _dmcDmaPhase == _dmcDmaHalted ||
+      _dmcDmaPhase == _dmcDmaAligning ||
+      _dmcDmaDue;
 
   @pragma('vm:prefer-inline')
   void _handleDMA(int address) {
     if (!_oamDma && !_dmcDmaDue) {
       return;
+    }
+
+    if (_dmcDmaPhase == _dmcDmaAborting && cycles >= _dmcDmaHaltAt) {
+      // cycles >= _dmcDmaHaltAt -> we're already past the halt cycle.
+      // Since we're here now, before the start of a read cycle, last cycle must
+      // have been a write cycle.
+      // An aborted DMC DMA delayed by a write cycle isn't started at all.
+
+      _dmcDmaPhase = _dmcDmaIdle;
+
+      if (!_oamDma) {
+        return;
+      }
     }
 
     _runDma(address);
@@ -430,11 +449,15 @@ class CPU {
         _dmcDmaPhase = _dmcDmaAligning;
       case _dmcDmaAligning:
         if (_isGetCycle) {
-          _readDmcSample();
-
           _dmcDmaPhase = _dmcDmaIdle;
 
+          _readDmcSample();
+
           return true;
+        }
+      case _dmcDmaAborting:
+        if (cycles >= _dmcDmaHaltAt) {
+          _dmcDmaPhase = _dmcDmaIdle;
         }
     }
 
@@ -495,7 +518,7 @@ class CPU {
   void _readDmcSample() {
     final dmc = bus.apu.dmc;
 
-    dmc.writeDma(bus.dmaRead(dmc.address, cpuAddress: _dmaHaltAddress));
+    dmc.writeDma(bus, bus.dmaRead(dmc.address, cpuAddress: _dmaHaltAddress));
   }
 
   void _interrupt(int vector) {
@@ -542,14 +565,34 @@ class CPU {
       return;
     }
 
-    var haltAt = cycles + (load ? 2 : 1);
+    _dmcDmaPhase = _dmcDmaWaiting;
+    _dmcDmaHaltAt = _dmcDmaHaltCycle(cycles, load: load);
+  }
 
-    if (haltAt.isEven != load) {
-      haltAt++;
+  void stopDmcDma({required int reloadScheduledIn}) {
+    final haltAt = switch (_dmcDmaPhase) {
+      _dmcDmaWaiting => _dmcDmaHaltAt,
+      _dmcDmaIdle when reloadScheduledIn > 0 => _dmcDmaHaltCycle(
+        cycles + reloadScheduledIn,
+        load: false,
+      ),
+      _ => 0,
+    };
+
+    final lead = haltAt - cycles;
+
+    if (lead < 2 || lead > 3) {
+      return;
     }
 
-    _dmcDmaPhase = _dmcDmaWaiting;
+    _dmcDmaPhase = _dmcDmaAborting;
     _dmcDmaHaltAt = haltAt;
+  }
+
+  int _dmcDmaHaltCycle(int scheduledAt, {required bool load}) {
+    final haltAt = scheduledAt + (load ? 2 : 1);
+
+    return haltAt.isEven == load ? haltAt : haltAt + 1;
   }
 
   void triggerOamDma(int page) {
