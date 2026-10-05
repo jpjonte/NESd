@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:nesd/exception/nesd_exception.dart';
 import 'package:nesd/log/log.dart';
 import 'package:nesd/ui/common/fuzzy_matcher.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
+import 'package:nesd/ui/file_picker/file_sort_order.dart';
 import 'package:nesd/ui/file_picker/file_system/archive_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
@@ -60,6 +63,18 @@ class FilePickerController {
     if (notifier.current case final FilePickerData data) {
       _update(data.directory);
     }
+  }
+
+  FileSortOrder cycleSortOrder() {
+    final order = settingsController.fileSortOrder.next;
+
+    settingsController.fileSortOrder = order;
+
+    if (notifier.current case final FilePickerData data) {
+      unawaited(_update(data.directory));
+    }
+
+    return order;
   }
 
   String? _entryPath;
@@ -202,9 +217,15 @@ class FilePickerController {
         return;
       }
 
+      final visible = allFiles
+          .where((file) => !p.basename(file.path).startsWith('.'))
+          .toList();
+
+      final order = settingsController.fileSortOrder;
+      final ranks = playedRanks(visible, settingsController.recentRoms);
+
       final matches =
-          allFiles
-              .where((file) => !p.basename(file.path).startsWith('.'))
+          visible
               .map((file) {
                 final score = fuzzyScore(_filter ?? '', p.basename(file.name));
 
@@ -219,15 +240,11 @@ class FilePickerController {
                 return byScore;
               }
 
-              final aDirectory = a.file.type == FilesystemFileType.directory;
-              final bDirectory = b.file.type == FilesystemFileType.directory;
-
-              if (aDirectory != bDirectory) {
-                return aDirectory ? -1 : 1;
-              }
-
-              return a.file.path.toLowerCase().compareTo(
-                b.file.path.toLowerCase(),
+              return compareFiles(
+                a.file,
+                b.file,
+                order: order,
+                playedRank: ranks,
               );
             });
 
