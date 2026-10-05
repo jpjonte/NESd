@@ -11,12 +11,15 @@ import 'package:nesd/ui/common/nesd_app_bar.dart';
 import 'package:nesd/ui/common/nesd_menu_wrapper.dart';
 import 'package:nesd/ui/common/nesd_scaffold.dart';
 import 'package:nesd/ui/emulator/input/input_action.dart';
+import 'package:nesd/ui/emulator/input/intents.dart';
 import 'package:nesd/ui/file_picker/file_list.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
+import 'package:nesd/ui/settings/settings.dart';
+import 'package:nesd/ui/toast/toaster.dart';
 
 enum FilePickerType { file, directory, any }
 
@@ -123,11 +126,26 @@ class FilePicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
+    final order = ref.watch(
+      settingsControllerProvider.select((settings) => settings.fileSortOrder),
+    );
+
     return NesdScaffold(
-      hints: const [
+      hints: [
         navigateHint,
-        InputHint(actions: [confirm], label: 'Open'),
-        InputHint(actions: [previousTab, nextTab], label: 'Jump by letter'),
+        const InputHint(actions: [confirm], label: 'Open'),
+        const InputHint(actions: [secondaryAction], label: 'Favorite'),
+        InputHint(
+          actions: const [sort],
+          label: 'Sort: ${order.label}',
+          onPressed: () =>
+              ref.read(filePickerControllerProvider).cycleSortOrder(),
+        ),
+        if (order.byName)
+          const InputHint(
+            actions: [previousTab, nextTab],
+            label: 'Jump by letter',
+          ),
         backHint,
       ],
       appBar: NesdAppBar(
@@ -150,6 +168,19 @@ class FilePicker extends ConsumerWidget {
                   return null;
                 },
               ),
+              SortIntent: CallbackAction<SortIntent>(
+                onInvoke: (_) {
+                  final order = ref
+                      .read(filePickerControllerProvider)
+                      .cycleSortOrder();
+
+                  ref
+                      .read(toasterProvider)
+                      .send(Toast.info('Sorted by ${order.label}'));
+
+                  return null;
+                },
+              ),
             },
             child: FocusChild(
               autofocus: true,
@@ -157,7 +188,16 @@ class FilePicker extends ConsumerWidget {
               child: FileList(
                 header: Column(
                   children: [
-                    DirectoryPickerButton(onChangeDirectory: onChangeDirectory),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DirectoryPickerButton(
+                            onChangeDirectory: onChangeDirectory,
+                          ),
+                        ),
+                        const SortButton(),
+                      ],
+                    ),
                     const SearchBox(),
                     FilePickerProgressIndicator(busy: busy),
                   ],
@@ -192,6 +232,29 @@ class FilePicker extends ConsumerWidget {
     }
 
     await navigator.maybePop();
+  }
+}
+
+class SortButton extends ConsumerWidget {
+  static const buttonKey = Key('sortButton');
+
+  const SortButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final order = ref.watch(
+      settingsControllerProvider.select((settings) => settings.fileSortOrder),
+    );
+
+    return ExcludeFocus(
+      child: TextButton.icon(
+        key: buttonKey,
+        icon: const Icon(Icons.sort),
+        label: Text(order.label),
+        onPressed: () =>
+            ref.read(filePickerControllerProvider).cycleSortOrder(),
+      ),
+    );
   }
 }
 

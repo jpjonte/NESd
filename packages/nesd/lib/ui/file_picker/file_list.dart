@@ -6,11 +6,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nesd/ui/common/focus_on_hover.dart';
 import 'package:nesd/ui/emulator/input/intents.dart';
+import 'package:nesd/ui/file_picker/favorite_toggler.dart';
 import 'package:nesd/ui/file_picker/file_picker_controller.dart';
 import 'package:nesd/ui/file_picker/file_picker_state.dart';
 import 'package:nesd/ui/file_picker/file_system/file_extensions.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 import 'package:nesd/ui/file_picker/letter_jump.dart';
+import 'package:nesd/ui/settings/settings.dart';
 import 'package:path/path.dart' as p;
 
 const _baseTileHeight = 56.0;
@@ -142,6 +144,13 @@ class FileList extends HookConsumerWidget {
         return;
       }
 
+      final filtered = controller.textEditingController.text.isNotEmpty;
+      final byName = ref.read(settingsControllerProvider).fileSortOrder.byName;
+
+      if (!filtered && !byName) {
+        return;
+      }
+
       final current = focusedIndex.value;
       final entryIndex = current == null ? -1 : current - 1;
       final direction = forward ? 1 : -1;
@@ -149,7 +158,7 @@ class FileList extends HookConsumerWidget {
       int? target;
       String? group;
 
-      if (controller.textEditingController.text.isNotEmpty) {
+      if (filtered) {
         final page = scrollController.hasClients
             ? max(1, scrollController.position.viewportDimension ~/ itemExtent)
             : 1;
@@ -482,47 +491,88 @@ class FileTile extends ConsumerWidget {
   final ValueChanged<bool>? onFocusChange;
   final void Function(FilesystemFile)? onChangeDirectory;
 
+  static Key starKey(String path) => Key('star:$path');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(filePickerControllerProvider);
+    final toggler = ref.read(favoriteTogglerProvider);
 
-    return FocusOnHover(
-      onFocusChange: onFocusChange,
-      child: Builder(
-        builder: (context) {
-          final focused = Focus.of(context).hasFocus;
-          final colorScheme = Theme.of(context).colorScheme;
+    final favorite = ref.watch(
+      settingsControllerProvider.select(
+        (settings) => isFavoritePath(settings.favoriteRoms, file.path),
+      ),
+    );
 
-          return ListTile(
-            focusNode: focusNode,
-            leading: Icon(
-              isDirectory
-                  ? Icons.folder
-                  : enabled
-                  ? Icons.videogame_asset
-                  : null,
-              color: focused ? colorScheme.onPrimary : colorScheme.primary,
-            ),
-            enabled: enabled,
-            title: Text(
-              p.basename(file.name),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: focused ? colorScheme.onPrimary : null),
-            ),
-            onTap: () async {
-              if (isDirectory) {
-                controller.go(file);
+    final starrable = !isDirectory && enabled;
 
-                onChangeDirectory?.call(file);
-              } else if (fileIsArchive) {
-                controller.go(file);
-              } else {
-                await onSelectFile(file);
-              }
+    return Actions(
+      actions: {
+        if (starrable)
+          SecondaryActionIntent: CallbackAction<SecondaryActionIntent>(
+            onInvoke: (_) {
+              unawaited(toggler.toggle(file));
+
+              return null;
             },
-          );
-        },
+          ),
+      },
+      child: FocusOnHover(
+        onFocusChange: onFocusChange,
+        child: Builder(
+          builder: (context) {
+            final focused = Focus.of(context).hasFocus;
+            final colorScheme = Theme.of(context).colorScheme;
+            final iconColor = focused
+                ? colorScheme.onPrimary
+                : colorScheme.primary;
+
+            return ListTile(
+              focusNode: focusNode,
+              leading: Icon(
+                isDirectory
+                    ? Icons.folder
+                    : enabled
+                    ? Icons.videogame_asset
+                    : null,
+                color: iconColor,
+              ),
+              enabled: enabled,
+              title: Text(
+                p.basename(file.name),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: focused ? colorScheme.onPrimary : null),
+              ),
+              trailing: starrable
+                  ? ExcludeFocus(
+                      child: IconButton(
+                        key: starKey(file.path),
+                        tooltip: favorite
+                            ? 'Remove from favorites'
+                            : 'Add to favorites',
+                        icon: Icon(
+                          favorite ? Icons.star : Icons.star_border,
+                          color: iconColor,
+                        ),
+                        onPressed: () => unawaited(toggler.toggle(file)),
+                      ),
+                    )
+                  : null,
+              onTap: () async {
+                if (isDirectory) {
+                  controller.go(file);
+
+                  onChangeDirectory?.call(file);
+                } else if (fileIsArchive) {
+                  controller.go(file);
+                } else {
+                  await onSelectFile(file);
+                }
+              },
+            );
+          },
+        ),
       ),
     );
   }
