@@ -12,6 +12,11 @@ import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/router/router.dart';
 import 'package:nesd/ui/settings/settings.dart';
 
+List<RomInfo> mainMenuRoms(List<RomInfo> favorites, List<RomInfo> recents) => [
+  ...favorites,
+  ...recents.where((recent) => !favorites.any((f) => f.sameRom(recent))),
+];
+
 class RecentRomList extends HookConsumerWidget {
   static const logoKey = Key('logo');
 
@@ -35,7 +40,11 @@ class RecentRomList extends HookConsumerWidget {
       settingsControllerProvider.select((settings) => settings.recentRoms),
     );
 
-    if (recentRoms.isEmpty) {
+    final favoriteRoms = ref.watch(
+      settingsControllerProvider.select((settings) => settings.favoriteRoms),
+    );
+
+    if (recentRoms.isEmpty && favoriteRoms.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: SizedBox(
@@ -51,10 +60,24 @@ class RecentRomList extends HookConsumerWidget {
 
     final roms = useMemoized(
       () => [
-        for (final romInfo in recentRoms) romManager.getRomTileData(romInfo),
+        for (final romInfo in mainMenuRoms(favoriteRoms, recentRoms))
+          (
+            data: romManager.getRomTileData(romInfo),
+            favorite: favoriteRoms.any((f) => f.sameRom(romInfo)),
+          ),
       ],
-      [recentRoms, thumbnailRevision],
+      [favoriteRoms, recentRoms, thumbnailRevision],
     );
+
+    void toggleFavorite(RomInfo romInfo, {required bool favorite}) {
+      if (favorite) {
+        settingsController.removeFavorite(romInfo);
+
+        return;
+      }
+
+      settingsController.addFavorite(romInfo);
+    }
 
     Future<void> remove(BuildContext context, RomTileData romTileData) async {
       final confirmed = await ConfirmationDialog.show(
@@ -75,7 +98,7 @@ class RecentRomList extends HookConsumerWidget {
       child: PaginatedGrid(
         controller: gridController,
         children: [
-          for (final romTileData in roms)
+          for (final (data: romTileData, :favorite) in roms)
             RomTile(
               loading:
                   startingRom.value?.file.path == romTileData.romInfo.file.path,
@@ -136,10 +159,17 @@ class RecentRomList extends HookConsumerWidget {
                 );
 
                 if (confirmed == true) {
-                  settingsController.removeRecentRom(romTileData.romInfo);
+                  settingsController
+                    ..removeRecentRom(romTileData.romInfo)
+                    ..removeFavorite(romTileData.romInfo);
                 }
               },
-              onRemove: () async => await remove(context, romTileData),
+              onRemove: favorite
+                  ? null
+                  : () async => await remove(context, romTileData),
+              favorite: favorite,
+              onToggleFavorite: () =>
+                  toggleFavorite(romTileData.romInfo, favorite: favorite),
               contextMenuBuilder: (context, close) => [
                 ListTile(
                   title: const Text('Save states'),
@@ -153,12 +183,22 @@ class RecentRomList extends HookConsumerWidget {
                   },
                 ),
                 ListTile(
-                  title: const Text('Remove from list'),
-                  onTap: () async {
+                  title: Text(
+                    favorite ? 'Remove from favorites' : 'Add to favorites',
+                  ),
+                  onTap: () {
                     close();
-                    await remove(context, romTileData);
+                    toggleFavorite(romTileData.romInfo, favorite: favorite);
                   },
                 ),
+                if (!favorite)
+                  ListTile(
+                    title: const Text('Remove from list'),
+                    onTap: () async {
+                      close();
+                      await remove(context, romTileData);
+                    },
+                  ),
               ],
               romTileData: romTileData,
             ),

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Bindable Next Frame action
 - Android: Touch controls vibrate on press, enabled by default
+- Games can be marked as favorite, showing up first in the main menu
 - Desktop and web: Drop a ROM onto the window to open it
 - Added support for Waixing MMC3 (Mappers 74 and 192) and TQROM (Mapper 119)
 - The file picker can be sorted by name, last played or last modified
