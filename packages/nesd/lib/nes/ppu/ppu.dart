@@ -49,7 +49,7 @@ class PPU {
   int _scanlinePhase = _visiblePhase;
 
   int _pixelBase = 0;
-  int _maskDelay = 0;
+  int _pendingDelays = 0;
   int oamCorruptionSeed = 0;
 
   // during rendering: scroll position, outside rendering: VRAM address
@@ -227,6 +227,24 @@ class PPU {
 
   bool _suppressVblank = false;
 
+  int _maskDelay = 0;
+
+  int _spriteNametableAddress = 0;
+  int _spritePatternLowAddress = 0;
+  int _spritePatternLowData = 0;
+  int _spritePatternHighAddress = 0;
+  int _spritePatternHighData = 0;
+
+  static const _dataReadLatency = 6;
+
+  int _dataReadDelay = 0;
+  int _dataReadAddress = 0;
+
+  static const _vUpdateLatency = 4;
+
+  int _vUpdateDelay = 0;
+  int _pendingV = 0;
+
   /// Set by NES at power-on; skips the empty mapper hook for mappers
   /// that don't watch the PPU address bus.
   bool mapperNeedsPpuAddress = false;
@@ -325,6 +343,9 @@ class PPU {
     _fetchedSpriteTile = 0xff;
     _maskDelay = 0;
     oamCorruptionSeed = 0;
+    _dataReadDelay = 0;
+    _vUpdateDelay = 0;
+    _pendingDelays = 0;
   }
 
   PPUState get state => PPUState(
@@ -335,7 +356,7 @@ class PPU {
     OAMDATA: OAMDATA,
     PPUSCROLL: PPUSCROLL,
     PPUDATA: PPUDATA,
-    v: v,
+    v: _vUpdateDelay != 0 ? _pendingV : v,
     t: t,
     x: x,
     w: w,
@@ -808,8 +829,8 @@ class PPU {
   }
 
   void step() {
-    if (_maskDelay != 0 && --_maskDelay == 0) {
-      _applyMaskWrite();
+    if (_pendingDelays != 0) {
+      _stepDelays();
     }
 
     switch (_scanlinePhase) {
@@ -1071,14 +1092,10 @@ class PPU {
       }
 
       if (!disableSideEffects) {
-        PPUDATA = _readPpuData(address & 0x2fff);
+        _startDataRead(address & 0x2fff);
       }
     } else if (!disableSideEffects) {
-      PPUDATA = _readPpuData(address);
-    }
-
-    if (!disableSideEffects) {
-      _incrementAfterPpuData();
+      _startDataRead(address);
     }
 
     if (disableSideEffects) {
@@ -1086,6 +1103,153 @@ class PPU {
     }
 
     return _readWithDecay(value, isPalette ? 0x3f : 0xff);
+  }
+
+  void _startDataRead(int address) {
+    if (_isRenderingLine && !_extendedFetches) {
+      _dataReadAddress = address;
+      _dataReadDelay = _dataReadLatency;
+      _pendingDelays = 1;
+
+      return;
+    }
+
+    PPUDATA = _readPpuData(address);
+
+    _incrementAfterPpuData();
+  }
+
+  bool get _extendedFetches =>
+      bgFourBpp || spriteFourBpp || bgExtension || spriteExtension;
+
+  void _stepDelays() {
+    if (_dataReadDelay != 0 && --_dataReadDelay == 0) {
+      _resolveDataRead();
+    }
+
+    if (_maskDelay != 0 && --_maskDelay == 0) {
+      _applyMaskWrite();
+    }
+
+    if (_vUpdateDelay != 0 && --_vUpdateDelay == 0) {
+      _applyPendingV();
+    }
+
+    _pendingDelays = _dataReadDelay | _maskDelay | _vUpdateDelay;
+  }
+
+  void _resolveDataRead() {
+    _fillReadBuffer(cycle == 0 ? 340 : cycle - 1);
+
+    _incrementAfterPpuData();
+  }
+
+  void _fillReadBuffer(int dot) {
+    if (!_isRenderingLine) {
+      PPUDATA = _readPpuData(_dataReadAddress);
+
+      return;
+    }
+
+    if (dot.isEven) {
+      PPUDATA = _fetchDataAt(dot);
+
+      return;
+    }
+
+    final latch = _fetchDataAt(dot - 1);
+    final value = readPpuMemory((_fetchAddressAt(dot) & 0x3f00) | latch);
+
+    PPUDATA = value;
+
+    _replaceBackgroundFetch(dot, value);
+  }
+
+  int _fetchAddressAt(int dot) {
+    if (dot >= 257 && dot <= 320) {
+      return switch ((dot - 257) & 7) {
+        0 => _spriteNametableAddress,
+        2 => _nametableAddress(),
+        4 => _spritePatternLowAddress,
+        _ => _spritePatternHighAddress,
+      };
+    }
+
+    if (dot > 336) {
+      return _nametableAddress();
+    }
+
+    return switch (dot & 7) {
+      1 => _nametableAddress(),
+      3 => _attributeAddress(),
+      5 => _backgroundPatternAddress(),
+      _ => _backgroundPatternAddress() + 8,
+    };
+  }
+
+  int _fetchDataAt(int dot) {
+    final latchDot = dot == 0 ? 339 : dot - 1;
+
+    if (latchDot >= 257 && latchDot <= 320) {
+      return switch ((latchDot - 257) & 7) {
+        0 => _peekPpuMemory(_spriteNametableAddress),
+        2 => _peekPpuMemory(_nametableAddress()),
+        4 => _spritePatternLowData,
+        _ => _spritePatternHighData,
+      };
+    }
+
+    if (latchDot > 336) {
+      return _peekPpuMemory(_nametableAddress());
+    }
+
+    return switch (latchDot & 7) {
+      1 => nametableLatch,
+      3 => _peekPpuMemory(_attributeAddress()),
+      5 => patternTableLowLatch,
+      _ => patternTableHighLatch,
+    };
+  }
+
+  int _backgroundPatternAddress() =>
+      _bgPatternBase | (nametableLatch << 4) | ((v >> 12) & 0x7);
+
+  int _peekPpuMemory(int address) {
+    final maskedAddress = _foldNametableMirror(address);
+
+    if (maskedAddress < 0x3f00) {
+      if (mapperNeedsPpuReads) {
+        return bus.cartridge.mapper.ppuRead(
+          maskedAddress,
+          disableSideEffects: true,
+        );
+      }
+
+      final mapping = _ppuBlocks[maskedAddress >> _ppuBlockAddressWidth];
+
+      if (mapping != null) {
+        return mapping.source[mapping.offset + (maskedAddress & _ppuBlockMask)];
+      }
+    }
+
+    return bus.ppuRead(maskedAddress, disableSideEffects: true);
+  }
+
+  void _replaceBackgroundFetch(int dot, int value) {
+    if (dot > 256 && dot < 321 || dot > 336) {
+      return;
+    }
+
+    switch (dot & 7) {
+      case 1:
+        nametableLatch = value;
+      case 3:
+        attributeTableLatch = _attributeQuadrant(value);
+      case 5:
+        patternTableLowLatch = value;
+      case 7:
+        patternTableHighLatch = value;
+    }
   }
 
   int _readPpuData(int address) {
@@ -1118,6 +1282,7 @@ class PPU {
 
     // The rendering switches reach the rest of the PPU a dot late
     _maskDelay = _maskLatency;
+    _pendingDelays = 1;
 
     _rebuildPaletteLut();
   }
@@ -1198,12 +1363,57 @@ class PPU {
     } else {
       // t: ....... ABCDEFGH <- d: ABCDEFGH
       t = (t & 0xFF00) | value;
-      v = t;
 
-      _updateBusAddress(v);
+      if (_isRenderingLine && !_extendedFetches) {
+        _pendingV = t;
+        _vUpdateDelay = _vUpdateLatency;
+        _pendingDelays = 1;
+      } else {
+        v = t;
+
+        _updateBusAddress(v);
+      }
     }
 
     w = 1 - w;
+  }
+
+  void _applyPendingV() {
+    final latched = _isRenderingLine ? _latchedBackgroundAddress() : -1;
+
+    v = _pendingV;
+
+    _updateBusAddress(v);
+
+    if (latched >= 0) {
+      _readHybridAddress(latched);
+    }
+  }
+
+  int _latchedBackgroundAddress() {
+    if (cycle < 2 || cycle > 256 && cycle < 322 || cycle > 336) {
+      return -1;
+    }
+
+    return switch (cycle & 7) {
+      2 => _nametableAddress(),
+      4 => _attributeAddress(),
+      _ => -1,
+    };
+  }
+
+  void _readHybridAddress(int latched) {
+    final phase = cycle & 7;
+    final high = phase == 2 ? _nametableAddress() : _attributeAddress();
+    final value = readPpuMemory((high & 0x3f00) | (latched & 0xff));
+
+    if (phase == 2) {
+      nametableLatch = value;
+
+      return;
+    }
+
+    attributeTableLatch = _attributeQuadrant(value);
   }
 
   void _writePPUDATA(int value) {
@@ -1484,19 +1694,18 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _fetchAttributeTable() {
-    // Cache getter values locally to avoid repeated computation
-    final coarseX = v & 0x1F;
-    final coarseY = (v >> 5) & 0x1F;
+    final coarseX = v & 0x1c;
+    final coarseY = (v >> 5) & 0x1c;
     final nametable = (v >> 10) & 0x3;
 
     final address =
-        0x23c0 |
-        (nametable << 10) |
-        ((coarseY & 0x1C) << 1) |
-        ((coarseX & 0x1C) >> 2);
+        0x23c0 | (nametable << 10) | (coarseY << 1) | (coarseX >> 2);
 
-    final value = readPpuMemory(address);
+    attributeTableLatch = _attributeQuadrant(readPpuMemory(address));
+  }
 
+  @pragma('vm:prefer-inline')
+  int _attributeQuadrant(int value) {
     // attribute table byte layout: DDCCBBAA
     // quadrants A, B, C, D = Top Left, Top Right, Bottom Left, Bottom Right
     // each quadrant covers 2x2 tiles
@@ -1504,9 +1713,9 @@ class PPU {
 
     // result is 0, 2, 4, or 6
     // this is the location of the low bit of the quadrant in the fetched byte
-    final quadrantShift = ((coarseY & 0x2) << 1) | (coarseX & 0x2);
+    final quadrantShift = ((v >> 4) & 0x4) | (v & 0x2);
 
-    attributeTableLatch = (value >> quadrantShift) & 0x03;
+    return (value >> quadrantShift) & 0x03;
   }
 
   @pragma('vm:prefer-inline')
@@ -1838,7 +2047,9 @@ class PPU {
 
     switch (subcycle & 0x7) {
       case 0:
-        readPpuMemory(_nametableAddress());
+        _spriteNametableAddress = _nametableAddress();
+
+        readPpuMemory(_spriteNametableAddress);
 
         _fetchedSpriteY = secondaryOam[_oam2Address];
         _advanceOam2();
@@ -1846,7 +2057,7 @@ class PPU {
         _fetchedSpriteTile = secondaryOam[_oam2Address];
         _advanceOam2();
       case 2:
-        readPpuMemory(_attributeAddress());
+        readPpuMemory(_nametableAddress());
 
         _spriteOutputs[sprite].attribute = secondaryOam[_oam2Address];
         _advanceOam2();
@@ -2030,6 +2241,11 @@ class PPU {
     output
       ..patternLow = readPpuMemory(lowAddress)
       ..patternHigh = readPpuMemory(highAddress);
+
+    _spritePatternLowAddress = lowAddress;
+    _spritePatternLowData = output.patternLow;
+    _spritePatternHighAddress = highAddress;
+    _spritePatternHighData = output.patternHigh;
   }
 
   void _rebuildPaletteLut() {
