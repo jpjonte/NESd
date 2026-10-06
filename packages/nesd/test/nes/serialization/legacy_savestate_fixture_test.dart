@@ -20,7 +20,7 @@ const _romPath = '../../roms/test/scanline/scanline.nes';
 // restore, is what actually discriminates the window-rebuild
 // reconstruction of the truncated pattern-shift registers.
 const _vblankHash = 354463018454808845;
-const _midTileInFlightHash = -5071674518877676179;
+const _midTileInFlightHash = 8088894836709584269;
 const _midTileHash = 354463018454808845;
 
 void main() {

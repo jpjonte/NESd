@@ -30,7 +30,7 @@ const _verdictGoldens = <String, int>{
 /// Demos without a pass/fail verdict. The hash is a change detector only.
 const _changeDetectors = <String, int>{
   // Mid-scanline write test.
-  '$_base/scanline/scanline.nes': -5071674518877676179,
+  '$_base/scanline/scanline.nes': 8088894836709584269,
   '$_base/spritecans-2011/spritecans.nes': 6027694824722942956,
   '$_base/full_palette/full_palette.nes': 6387691627853472549,
   '$_base/mmc5test_v2/mmc5test.nes': 7390973552206513059,

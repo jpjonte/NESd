@@ -271,10 +271,9 @@ class MMC5 extends Mapper {
       return super.ppuRead(address, disableSideEffects: true);
     }
 
-    final fetchingNametable =
-        address >= 0x2000 && address <= 0x2fff && (address & 0x3ff) < 0x3c0;
+    final fetchingNametable = _isNametableFetch(address);
 
-    if (fetchingNametable) {
+    if (fetchingNametable && !_isNametableFetch(_lastPpuAddress)) {
       _handleTileCounter();
     }
 
@@ -295,6 +294,9 @@ class MMC5 extends Mapper {
 
     return super.ppuRead(address);
   }
+
+  bool _isNametableFetch(int address) =>
+      address >= 0x2000 && address <= 0x2fff && (address & 0x3ff) < 0x3c0;
 
   void _handleTileCounter() {
     final previous = _tileCounter;
