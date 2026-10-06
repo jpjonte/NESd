@@ -4,14 +4,11 @@ import 'accuracy_coin_robot.dart';
 
 const _base = '../../roms/test';
 
-const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 2};
+const _knownFailures = <String, int>{'AccuracyCoin/AccuracyCoin.nes': 0};
 
 final _rom = _knownFailures.keys.single;
 
-const _failingTests = <String, int>{
-  'Advanced Background Evaluation / Stale BG Shift Registers': 3,
-  'Advanced Sprite Evaluation / Stale Sprite Shift Regs': 2,
-};
+const _failingTests = <String, int>{};
 
 void main() {
   final robot = AccuracyCoinRobot('$_base/$_rom');

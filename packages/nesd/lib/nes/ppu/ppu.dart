@@ -326,7 +326,12 @@ class PPU {
 
   final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
 
-  /// Sprite data for each pixel of the current scanline (built in cycle 321)
+  int _spriteSyncX = 0;
+
+  bool _spriteSyncRendering = false;
+
+  bool _spriteSkippedDot = false;
+
   /// bits 0-1 = planes 0/1
   /// bits 2-3 = OAM palette
   /// bit 4 = priority
@@ -348,7 +353,13 @@ class PPU {
     _pendingDelays = 0;
   }
 
-  PPUState get state => PPUState(
+  PPUState get state {
+    _advanceSprites(_spriteX);
+
+    return _currentState();
+  }
+
+  PPUState _currentState() => PPUState(
     PPUCTRL: PPUCTRL,
     PPUMASK: PPUMASK,
     PPUSTATUS: PPUSTATUS,
@@ -463,6 +474,8 @@ class PPU {
 
     for (var i = 0; i < _spriteOutputs.length; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
+
+      _buildSpritePixels(i);
     }
 
     _nmiEnabled = (PPUCTRL & 0x80) != 0;
@@ -473,7 +486,10 @@ class PPU {
 
     _rebuildPaletteLut();
 
-    _rasterizeSpriteLine();
+    final lineStart = state.spriteOutputs.any((s) => s.counter == null);
+
+    _spriteSkippedDot = false;
+    _restartSprites(lineStart && cycle <= 256 ? 0 : _spriteX);
   }
 
   // we don't need a getter from this
@@ -542,7 +558,16 @@ class PPU {
     sprite0OnNextLine = false;
     sprite0OnCurrentLine = false;
 
-    _rasterizeSpriteLine();
+    for (final output in _spriteOutputs) {
+      output
+        ..state = const SpriteOutputState(
+          patternLow: 0,
+          patternHigh: 0,
+          attribute: 0,
+          x: 0,
+        )
+        ..opaque = false;
+    }
 
     ram.fillRange(0, ram.length, 0);
     oam.fillRange(0, oam.length, 0);
@@ -561,6 +586,9 @@ class PPU {
 
     _renderingAtSkipDecision = false;
     _suppressVblank = false;
+
+    _spriteLine.fillRange(0, 256, 0);
+    _beginSpriteLine();
 
     decay = 0;
     decayRefreshedAt.fillRange(0, 8, 0);
@@ -872,10 +900,6 @@ class PPU {
         return;
       }
 
-      if (cycle == 328) {
-        sprite0OnCurrentLine = sprite0OnNextLine;
-      }
-
       _evaluateSprites();
 
       if (cycle >= 321 && cycle <= 336) {
@@ -896,6 +920,10 @@ class PPU {
     // Nametable reads at cycles 337, 339 (regardless of rendering)
     if (cycle == 337 || cycle == 339) {
       readPpuMemory(_nametableAddress());
+
+      if (cycle == 339) {
+        _finishSpriteLine(renderingActive);
+      }
     }
 
     // Cycle 0 bus address update
@@ -935,10 +963,6 @@ class PPU {
         _copyVerticalBits();
       }
 
-      if (cycle == 328) {
-        sprite0OnCurrentLine = sprite0OnNextLine;
-      }
-
       _evaluateSprites();
     }
 
@@ -949,6 +973,10 @@ class PPU {
     // Nametable reads at cycles 337, 339 (regardless of rendering)
     if (cycle == 337 || cycle == 339) {
       readPpuMemory(_nametableAddress());
+
+      if (cycle == 339) {
+        _finishSpriteLine(renderingActive);
+      }
     }
 
     if (cycle == 0) {
@@ -991,8 +1019,6 @@ class PPU {
 
       spriteCount = 0;
       secondarySpriteCount = 0;
-
-      _spriteLine.setRange(0, 256, _blankSpriteLine);
     }
 
     // Cycle 0 bus address update
@@ -1290,7 +1316,15 @@ class PPU {
   void _applyMaskWrite() {
     final wasRendering = _showBackground || _showSprites;
 
+    final spriteX = _spriteX;
+
+    _advanceSprites(spriteX);
+
     _updateMaskFlags();
+
+    if (wasRendering != (_showBackground || _showSprites)) {
+      _restartSprites(spriteX);
+    }
 
     if (wasRendering && oamCorruption && !_showBackground && !_showSprites) {
       _seedOamCorruption();
@@ -1460,10 +1494,10 @@ class PPU {
       cycle = 0;
       frames++;
 
-      _rasterizeSpriteLine(afterSkippedDot: true);
-
       _pixelBase = 0;
       _scanlinePhase = _phaseForScanline();
+
+      _beginSpriteLine(afterSkippedDot: true);
 
       return;
     }
@@ -1482,6 +1516,8 @@ class PPU {
         _pixelBase = 0;
         _scanlinePhase = _phaseForScanline();
       }
+
+      _beginSpriteLine();
     }
   }
 
@@ -1843,8 +1879,7 @@ class PPU {
 
   @pragma('vm:prefer-inline')
   void _evaluateSprites() {
-    // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch, 321
-    // rasterize
+    // Cycle ranges: 1-64 clear, 65-256 evaluate, 257-320 fetch
     if (cycle <= 64) {
       if (cycle >= 1) {
         _clearSecondaryOam();
@@ -1853,8 +1888,6 @@ class PPU {
       _evaluateSpriteRange();
     } else if (cycle <= 320) {
       _fetchSprites();
-    } else if (cycle == 321) {
-      _rasterizeSpriteLine();
     } else if (cycle == 339) {
       _oam2Frozen = false;
     }
@@ -1879,6 +1912,7 @@ class PPU {
       _advanceOam2();
 
       if (cycle == 63) {
+        _oam2Address = 0;
         _oam2Frozen = false;
       }
     }
@@ -2034,6 +2068,8 @@ class PPU {
   void _fetchSprites() {
     // Cycles 257-320: Sprite fetch
     if (cycle == 257) {
+      _advanceSprites(256);
+
       spriteCount = scanline == _preRenderScanline ? 8 : secondarySpriteCount;
 
       // Only a fetch phase that starts with rendering on rewinds the address
@@ -2062,7 +2098,11 @@ class PPU {
         _spriteOutputs[sprite].attribute = secondaryOam[_oam2Address];
         _advanceOam2();
       case 3:
-        _spriteOutputs[sprite].x = secondaryOam[_oam2Address];
+        final x = secondaryOam[_oam2Address];
+
+        _spriteOutputs[sprite]
+          ..x = x
+          ..counter = x;
       case 4:
         _loadSprite(sprite);
       case 7:
@@ -2070,66 +2110,183 @@ class PPU {
     }
   }
 
-  void _rasterizeSpriteLine({bool afterSkippedDot = false}) {
-    _spriteLine.setRange(0, 256, _blankSpriteLine);
+  int get _spriteX {
+    if (cycle == 0 || (scanline >= 240 && scanline != _preRenderScanline)) {
+      return 0;
+    }
 
-    final fourBpp = spriteFourBpp;
+    return cycle > 256 ? 256 : cycle - 1;
+  }
 
-    for (var i = spriteCount - 1; i >= 0; i--) {
-      final spriteOutput = _spriteOutputs[i];
-      final attribute = spriteOutput.attribute;
-      final flipH = (attribute >> 6) & 1;
-      final priorityBit = ((attribute >> 5) & 1) << 4;
-      final sixteenPixels = fourBpp && spriteSixteenPixels;
-      final attrBits = (attribute & 0x3) << 2;
-      final base = priorityBit | attrBits;
-      final sprite0Bit = i == 0 ? 0x80 : 0;
-      final patternLow = spriteOutput.patternLow;
-      final patternHigh = spriteOutput.patternHigh;
-      final patternLow2 = spriteOutput.patternLow2;
-      final patternHigh2 = spriteOutput.patternHigh2;
+  void _beginSpriteLine({bool afterSkippedDot = false}) {
+    _spriteSkippedDot = afterSkippedDot;
 
-      final width = sixteenPixels ? 16 : 8;
+    _restartSprites(0);
+  }
 
-      for (var xOffset = 0; xOffset < width; xOffset++) {
-        var x = spriteOutput.x + xOffset;
+  void _restartSprites(int x) {
+    _spriteSyncX = x;
+    _spriteSyncRendering = _showBackground || _showSprites;
 
-        if (afterSkippedDot && spriteOutput.x != 0) {
-          x = xOffset == 0 ? 0 : x - 1;
+    if (_spriteSyncRendering && scanline < 240) {
+      _rasterizeSprites(x);
+    }
+  }
+
+  void _advanceSprites(int x) {
+    var dots = x - _spriteSyncX;
+
+    if (dots <= 0) {
+      return;
+    }
+
+    _spriteSyncX = x;
+
+    final rendering = _spriteSyncRendering;
+
+    if (_spriteSkippedDot) {
+      _spriteSkippedDot = false;
+
+      for (var i = 0; i < 8; i++) {
+        final output = _spriteOutputs[i];
+
+        if (rendering && output.shifted < 16) {
+          output.shifted++;
         }
 
-        if (x > 255) {
-          break;
+        if (output.counter > 0) {
+          output.counter--;
         }
-
-        int pattern;
-
-        if (sixteenPixels) {
-          final half = (flipH == 1 ? 15 - xOffset : xOffset) >> 3;
-          final fineX = flipH == 1 ? xOffset & 0x7 : 7 - (xOffset & 0x7);
-          final low = half == 0 ? patternLow : patternLow2;
-          final high = half == 0 ? patternHigh : patternHigh2;
-
-          pattern = (((high >> fineX) & 1) << 1) | (low >> fineX) & 1;
-        } else {
-          final fineX = flipH == 1 ? xOffset : 7 - xOffset;
-
-          pattern =
-              (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
-
-          if (fourBpp) {
-            pattern |=
-                (((patternHigh2 >> fineX) & 1) << 6) |
-                (((patternLow2 >> fineX) & 1) << 5);
-          }
-        }
-
-        if (pattern == 0) {
-          continue;
-        }
-
-        _spriteLine[x] = base | pattern | sprite0Bit;
       }
+
+      dots--;
+    }
+
+    for (var i = 0; i < 8; i++) {
+      final output = _spriteOutputs[i];
+
+      if (!output.opaque) {
+        continue;
+      }
+
+      final counter = output.counter;
+
+      if (counter >= dots) {
+        output.counter = counter - dots;
+
+        continue;
+      }
+
+      output.counter = 0;
+
+      if (rendering) {
+        final shifted = output.shifted + dots - counter;
+
+        output.shifted = shifted > 16 ? 16 : shifted;
+      }
+    }
+  }
+
+  void _finishSpriteLine(bool rendering) {
+    _advanceSprites(256);
+
+    sprite0OnCurrentLine = sprite0OnNextLine;
+
+    if (rendering) {
+      return;
+    }
+
+    for (var i = 0; i < 8; i++) {
+      _spriteOutputs[i].counter = 0;
+    }
+  }
+
+  void _rasterizeSprites(int fromX) {
+    _spriteLine.setRange(fromX, 256, _blankSpriteLine, fromX);
+
+    for (var i = 7; i >= 0; i--) {
+      final output = _spriteOutputs[i];
+
+      if (!output.opaque) {
+        continue;
+      }
+
+      final pixels = output.pixels;
+      final width = output.width;
+
+      var shifted = output.shifted;
+      var x = fromX + output.counter;
+
+      if (_spriteSkippedDot && x > fromX && shifted < width) {
+        final pixel = pixels[shifted++];
+
+        if (pixel != 0) {
+          _spriteLine[fromX] = pixel;
+        }
+      }
+
+      for (; shifted < width && x < 256; shifted++, x++) {
+        final pixel = pixels[shifted];
+
+        if (pixel != 0) {
+          _spriteLine[x] = pixel;
+        }
+      }
+    }
+  }
+
+  void _buildSpritePixels(int sprite) {
+    final output = _spriteOutputs[sprite];
+    final patternLow = output.patternLow;
+    final patternHigh = output.patternHigh;
+    final patternLow2 = output.patternLow2;
+    final patternHigh2 = output.patternHigh2;
+
+    output.opaque =
+        (patternLow | patternHigh | patternLow2 | patternHigh2) != 0;
+
+    if (!output.opaque) {
+      return;
+    }
+
+    final pixels = output.pixels;
+    final fourBpp = spriteFourBpp;
+    final attribute = output.attribute;
+    final flipH = (attribute >> 6) & 1;
+    final priorityBit = ((attribute >> 5) & 1) << 4;
+    final sixteenPixels = fourBpp && spriteSixteenPixels;
+    final attrBits = (attribute & 0x3) << 2;
+    final sprite0Bit = sprite == 0 ? 0x80 : 0;
+    final base = priorityBit | attrBits | sprite0Bit;
+
+    final width = sixteenPixels ? 16 : 8;
+
+    output.width = width;
+
+    for (var xOffset = 0; xOffset < width; xOffset++) {
+      int pattern;
+
+      if (sixteenPixels) {
+        final half = (flipH == 1 ? 15 - xOffset : xOffset) >> 3;
+        final fineX = flipH == 1 ? xOffset & 0x7 : 7 - (xOffset & 0x7);
+        final low = half == 0 ? patternLow : patternLow2;
+        final high = half == 0 ? patternHigh : patternHigh2;
+
+        pattern = (((high >> fineX) & 1) << 1) | (low >> fineX) & 1;
+      } else {
+        final fineX = flipH == 1 ? xOffset : 7 - xOffset;
+
+        pattern =
+            (((patternHigh >> fineX) & 1) << 1) | (patternLow >> fineX) & 1;
+
+        if (fourBpp) {
+          pattern |=
+              (((patternHigh2 >> fineX) & 1) << 6) |
+              (((patternLow2 >> fineX) & 1) << 5);
+        }
+      }
+
+      pixels[xOffset] = pattern == 0 ? 0 : base | pattern;
     }
   }
 
@@ -2157,15 +2314,17 @@ class PPU {
     final yOffset = (scanline & 0xff) - _fetchedSpriteY;
     final height = PPUCTRL_H == 1 ? 16 : 8;
 
-    if (yOffset >= 0 && yOffset < height) {
-      return;
+    final output = _spriteOutputs[sprite]..shifted = 0;
+
+    if (yOffset < 0 || yOffset >= height) {
+      output
+        ..patternLow = 0
+        ..patternHigh = 0
+        ..patternLow2 = 0
+        ..patternHigh2 = 0;
     }
 
-    _spriteOutputs[sprite]
-      ..patternLow = 0
-      ..patternHigh = 0
-      ..patternLow2 = 0
-      ..patternHigh2 = 0;
+    _buildSpritePixels(sprite);
   }
 
   void _loadSpritePatterns(int sprite) {

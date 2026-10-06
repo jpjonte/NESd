@@ -17,8 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Opening an invalid ROM while a game is running no longer ends that game without saving
 - DMA reads now handle bus conflicts like real hardware
-- DMC DMAs aborted by stopping sample playback now take one cycle, like real hardware
+- Improved DMC DMA accuracy
 - Improved PPU read/write timing
+- Improved sprite rendering accuracy
 
 ## [0.21.3] - 2026-10-01
 
