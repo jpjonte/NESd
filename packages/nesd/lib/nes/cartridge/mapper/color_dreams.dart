@@ -8,6 +8,9 @@ class ColorDreams extends Mapper {
   String name = 'Color Dreams';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x8000;
 
   @override

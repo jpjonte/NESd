@@ -12,6 +12,9 @@ class Mapper34 extends Mapper {
   };
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x8000;
 
   @override

@@ -24,6 +24,9 @@ class BandaiDiscrete extends Mapper {
   bool get _hasMirroringControl => id == 152;
 
   @override
+  bool get hasFixedMirroring => !_hasMirroringControl;
+
+  @override
   BandaiDiscreteState get state => BandaiDiscreteState(
     id: id,
     prgBank: _prgBank,

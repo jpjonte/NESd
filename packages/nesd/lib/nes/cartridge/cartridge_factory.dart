@@ -59,7 +59,7 @@ class CartridgeFactory {
       chrRam: Uint8List(chrRamSize),
       prgRam: Uint8List(prgRamSize),
       prgSaveRam: Uint8List(prgSaveRamSize),
-      nametableLayout: _parseNametableLayout(rom),
+      nametableLayout: _nametableLayout(rom, mapper, databaseEntry),
       alternativeNametableLayout: _parseAlternativeNametableLayout(rom),
       hasBattery: hasBattery,
       hasTrainer: _parseHasTrainer(rom),
@@ -120,6 +120,19 @@ class CartridgeFactory {
     }
 
     return _romSize(rom[5], rom[9] >> 4, 0x2000);
+  }
+
+  NametableLayout _nametableLayout(
+    Uint8List rom,
+    Mapper mapper,
+    NesDatabaseEntry? databaseEntry,
+  ) {
+    if (databaseEntry?.nametableLayout case final layout?
+        when mapper.hasFixedMirroring) {
+      return layout;
+    }
+
+    return _parseNametableLayout(rom);
   }
 
   NametableLayout _parseNametableLayout(Uint8List rom) {

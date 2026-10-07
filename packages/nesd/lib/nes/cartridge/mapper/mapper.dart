@@ -168,6 +168,8 @@ abstract class Mapper {
 
   int get minChrRamSize => 0;
 
+  bool get hasFixedMirroring => false;
+
   Uint8List? save() => null;
 
   void load(Uint8List save) {}

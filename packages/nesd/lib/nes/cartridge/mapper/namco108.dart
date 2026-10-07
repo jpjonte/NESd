@@ -8,6 +8,9 @@ class Namco108 extends Mapper {
   String name = 'Namco 108';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x2000;
 
   @override

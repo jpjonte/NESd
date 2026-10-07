@@ -26,6 +26,9 @@ class CNROM extends Mapper {
   String name = 'CNROM';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   void reset() {
     super.reset();
 
