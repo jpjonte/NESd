@@ -136,7 +136,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 
 <!-- game-counts:start -->
 
-NESd supports 3,558 games.
+NESd supports 3,579 games.
 
 <details>
 <summary>Supported mappers</summary>
@@ -157,6 +157,7 @@ NESd supports 3,558 games.
 - 23: Konami VRC2 / VRC4 (17 games)
 - 25: Konami VRC2 / VRC4 (8 games)
 - 30: UNROM 512 (39 games)
+- 34: BNROM / NINA-001 (8 games)
 - 45: GA23C (151 games)
 - 66: GxROM (17 games)
 - 69: Sunsoft FME-7 (13 games)
@@ -169,6 +170,7 @@ NESd supports 3,558 games.
 - 176: 8025 (344 games)
 - 192: Waixing MMC3 (4 games)
 - 206: Namco 108 (63 games)
+- 241: BxROM with WRAM (13 games)
 - 256: VT03 OneBus (235 games)
 
 </details>
