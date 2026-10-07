@@ -2,6 +2,7 @@ import 'package:binarize/binarize.dart';
 import 'package:nesd/exception/invalid_serialization_version.dart';
 import 'package:nesd/exception/unsupported_mapper.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom_state.dart';
+import 'package:nesd/nes/cartridge/mapper/bandai_discrete_state.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg_state.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/color_dreams_state.dart';
@@ -55,6 +56,7 @@ abstract class MapperState {
       45 => Mapper45State.deserialize(reader),
       66 => GxROMState.deserialize(reader),
       69 => FME7State.deserialize(reader),
+      70 || 152 => BandaiDiscreteState.deserialize(reader, id),
       71 => SinglePrgBankState.deserialize(reader, 71),
       79 || 146 => NINA003006State.deserialize(reader, id),
       176 => Mapper176State.deserialize(reader),

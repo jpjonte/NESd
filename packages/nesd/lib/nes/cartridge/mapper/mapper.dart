@@ -5,6 +5,7 @@ import 'package:nesd/nes/apu/expansion/expansion_audio.dart';
 import 'package:nesd/nes/bus.dart';
 import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/cartridge/mapper/axrom.dart';
+import 'package:nesd/nes/cartridge/mapper/bandai_discrete.dart';
 import 'package:nesd/nes/cartridge/mapper/bandai_fcg.dart';
 import 'package:nesd/nes/cartridge/mapper/br909x.dart';
 import 'package:nesd/nes/cartridge/mapper/cnrom.dart';
@@ -94,6 +95,7 @@ abstract class Mapper {
       45 => Mapper45(subMapperId),
       66 => GxROM(),
       69 => FME7(),
+      70 || 152 => BandaiDiscrete(mapperId),
       71 => BR909x(),
       74 || 119 || 192 => MMC3ChrRam(mapperId),
       79 || 146 => NINA003006(mapperId),
