@@ -17,6 +17,7 @@ import 'package:nesd/nes/cartridge/mapper/mmc3_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mmc5_state.dart';
 import 'package:nesd/nes/cartridge/mapper/namco108_state.dart';
 import 'package:nesd/nes/cartridge/mapper/namco163_state.dart';
+import 'package:nesd/nes/cartridge/mapper/nanjing_fc001_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nina003006_state.dart';
 import 'package:nesd/nes/cartridge/mapper/nrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/single_prg_bank_state.dart';
@@ -59,6 +60,7 @@ abstract class MapperState {
       70 || 152 => BandaiDiscreteState.deserialize(reader, id),
       71 => SinglePrgBankState.deserialize(reader, 71),
       79 || 146 => NINA003006State.deserialize(reader, id),
+      163 => NanjingFC001State.deserialize(reader),
       176 => Mapper176State.deserialize(reader),
       206 => Namco108State.deserialize(reader),
       256 => VT02State.deserialize(reader, 256),
