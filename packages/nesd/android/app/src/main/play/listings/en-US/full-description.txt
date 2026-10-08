@@ -8,7 +8,7 @@ ROM files, straight from disk or from inside a ZIP archive.
 
 FEATURES
 • Cycle-accurate CPU, PPU and APU emulation
-• Supports 3,579 games
+• Supports 3,588 games
 • NTSC and PAL support
 • Battery-backed SRAM saves
 • Save states, with thumbnails

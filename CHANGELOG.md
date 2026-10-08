@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added support for Waixing MMC3 (Mappers 74 and 192) and TQROM (Mapper 119)
 - Added support for BNROM / NINA-001 (Mapper 34) and BxROM with WRAM (Mapper 241)
 - The file picker can be sorted by name, last played or last modified
+- Added support for Bandai discrete boards (Mappers 70 and 152)
 
 ### Fixed
 - Opening an invalid ROM while a game is running no longer ends that game without saving
