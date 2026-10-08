@@ -9,6 +9,9 @@ class NROM extends Mapper {
   String name = 'NROM';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   NROMState get state => const NROMState();
 
   @override

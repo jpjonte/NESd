@@ -10,6 +10,9 @@ class UNROM extends Mapper {
   String name = 'UNROM';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x4000;
 
   @override

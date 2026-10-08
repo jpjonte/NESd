@@ -8,6 +8,9 @@ class NanjingFC001 extends Mapper {
   String name = 'Nanjing FC-001';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x8000;
 
   @override

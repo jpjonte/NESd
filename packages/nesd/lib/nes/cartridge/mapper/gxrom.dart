@@ -8,6 +8,9 @@ class GxROM extends Mapper {
   String name = 'GxROM';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x8000;
 
   @override

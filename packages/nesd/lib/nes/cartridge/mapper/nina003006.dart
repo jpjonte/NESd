@@ -8,6 +8,9 @@ class NINA003006 extends Mapper {
   String get name => id == 146 ? 'Sachen 3015' : 'NINA-003-006';
 
   @override
+  bool get hasFixedMirroring => true;
+
+  @override
   int prgRomPageSize = 0x8000;
 
   @override

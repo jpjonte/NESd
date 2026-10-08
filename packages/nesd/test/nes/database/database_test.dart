@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/database/database.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
@@ -11,6 +12,9 @@ void main() {
   // 10-Yard Fight (rev0), the first entry in assets/nes20db.xml
   const knownRomHash = '55dc03a493150258e10166cf38ed76dfade605d6';
   const knownPrgHash = '64185edc4fd64b5f5e565b90b0ddc241592d899c';
+
+  // Kamen Rider Club, listed with vertical mirroring
+  const verticalMirroringRomHash = '1caa0da81a56c0fce9e5fac7315295ede0335c2f';
 
   const file = FilesystemFile(
     path: '/roms/game.nes',
@@ -41,6 +45,22 @@ void main() {
       database.find(const RomInfo(file: file, prgHash: knownPrgHash)),
       isNotNull,
     );
+  });
+
+  test('maps database mirroring to the nametable arrangement', () async {
+    final database = NesDatabase();
+
+    await database.ready;
+
+    final horizontalMirroring = database.find(
+      const RomInfo(file: file, romHash: knownRomHash),
+    );
+    final verticalMirroring = database.find(
+      const RomInfo(file: file, romHash: verticalMirroringRomHash),
+    );
+
+    expect(horizontalMirroring!.nametableLayout, NametableLayout.vertical);
+    expect(verticalMirroring!.nametableLayout, NametableLayout.horizontal);
   });
 
   test('hands control back to the event loop while loading', () async {

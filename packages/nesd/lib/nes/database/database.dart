@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:nesd/extension/string_extension.dart';
+import 'package:nesd/nes/cartridge/cartridge.dart';
 import 'package:nesd/nes/region.dart';
 import 'package:nesd/ui/emulator/rom_manager.dart';
 import 'package:nesd/util/wait.dart';
@@ -127,6 +128,11 @@ class NesDatabase {
         _ => null,
       },
       expansion: int.parse(_getAttribute(game, 'expansion', 'type')!),
+      nametableLayout: switch (_getAttribute(game, 'pcb', 'mirroring')) {
+        'H' => NametableLayout.vertical,
+        'V' => NametableLayout.horizontal,
+        _ => null,
+      },
     );
   }
 
@@ -157,6 +163,7 @@ class NesDatabaseEntry {
     required this.submapper,
     required this.expansion,
     this.region,
+    this.nametableLayout,
   });
 
   final String name;
@@ -171,6 +178,8 @@ class NesDatabaseEntry {
   final int submapper;
   final int expansion;
   final Region? region;
+
+  final NametableLayout? nametableLayout;
 
   bool get hasZapper => expansion == 0x08 || expansion == 0x09;
 }
