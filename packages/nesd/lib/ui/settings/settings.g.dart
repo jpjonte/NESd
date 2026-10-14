@@ -11,6 +11,7 @@ _Settings _$SettingsFromJson(Map<String, dynamic> json) => _Settings(
   lowPassFilter: json['lowPassFilter'] as bool? ?? false,
   swapDutyCycles: json['swapDutyCycles'] as bool? ?? false,
   oamCorruption: json['oamCorruption'] as bool? ?? true,
+  removeSpriteLimit: json['removeSpriteLimit'] as bool? ?? false,
   mixer: json['mixer'] == null
       ? const MixerSettings()
       : _mixerFromJson(json['mixer']),
@@ -135,6 +136,7 @@ Map<String, dynamic> _$SettingsToJson(_Settings instance) => <String, dynamic>{
   'lowPassFilter': instance.lowPassFilter,
   'swapDutyCycles': instance.swapDutyCycles,
   'oamCorruption': instance.oamCorruption,
+  'removeSpriteLimit': instance.removeSpriteLimit,
   'mixer': _mixerToJson(instance.mixer),
   'fastForwardSpeed': _$FastForwardSpeedEnumMap[instance.fastForwardSpeed]!,
   'turboSpeed': _$TurboSpeedEnumMap[instance.turboSpeed]!,
@@ -313,7 +315,7 @@ final class SettingsControllerProvider
 }
 
 String _$settingsControllerHash() =>
-    r'bc1d3d7c7720b5c960ca93d880a3cddb476621d9';
+    r'fa6c241b207ec59423ed05e01e694f7a3b83b5bf';
 
 abstract class _$SettingsController extends $Notifier<Settings> {
   Settings build();

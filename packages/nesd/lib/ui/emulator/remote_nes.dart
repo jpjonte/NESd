@@ -216,6 +216,10 @@ class RemoteNes {
       _send(SetOamCorruptionCommand(enabled: enabled));
 
   // ignore: avoid_setters_without_getters
+  set removeSpriteLimit(bool enabled) =>
+      _send(SetRemoveSpriteLimitCommand(enabled: enabled));
+
+  // ignore: avoid_setters_without_getters
   set mixer(MixerSettings mixer) => _send(SetMixerCommand(mixer: mixer));
 
   // ignore: avoid_setters_without_getters

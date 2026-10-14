@@ -215,6 +215,12 @@ class SetOamCorruptionCommand extends NesCommand {
   final bool enabled;
 }
 
+class SetRemoveSpriteLimitCommand extends NesCommand {
+  const SetRemoveSpriteLimitCommand({required this.enabled});
+
+  final bool enabled;
+}
+
 class SetMixerCommand extends NesCommand {
   const SetMixerCommand({required this.mixer});
 

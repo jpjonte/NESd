@@ -4,6 +4,7 @@ import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
 import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/general/oam_corruption_switch.dart';
+import 'package:nesd/ui/settings/graphics/remove_sprite_limit_switch.dart';
 import 'package:nesd/ui/settings/navigation/settings_category_content.dart';
 import 'package:nesd/ui/settings/navigation/settings_structure.dart';
 
@@ -31,6 +32,19 @@ void main() {
     await r.expectSwitch(
       find.byType(OamCorruptionSwitch),
       getValue: () => r.settings.oamCorruption,
+    );
+  });
+
+  testWidgets('Video category toggles the sprite limit', (tester) async {
+    final r = Robot(tester);
+
+    await r.pumpApp();
+    await r.mainMenu.tapSettingsButton();
+    await r.settingsScreen.openCategory(SettingsCategory.video);
+
+    await r.expectSwitch(
+      find.byType(RemoveSpriteLimitSwitch),
+      getValue: () => r.settings.removeSpriteLimit,
     );
   });
 

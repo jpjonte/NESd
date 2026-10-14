@@ -56,6 +56,7 @@ void main() {
     when(() => settings.lowPassFilter).thenReturn(false);
     when(() => settings.swapDutyCycles).thenReturn(swapDutyCycles);
     when(() => settings.oamCorruption).thenReturn(true);
+    when(() => settings.removeSpriteLimit).thenReturn(false);
     when(() => settings.mixer).thenReturn(const MixerSettings());
     when(() => settings.fastForwardSpeed).thenReturn(FastForwardSpeed.x2);
     when(() => settings.autoSave).thenReturn(false);
