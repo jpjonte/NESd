@@ -120,12 +120,16 @@ void main() {
     );
   });
 
-  testWidgets('a single-section category has no chips', (tester) async {
+  testWidgets('the advanced category has a chip per section', (tester) async {
     await pumpStacked(tester);
 
     await openCategory(tester, SettingsCategory.advanced);
 
-    expect(find.byType(ActionChip), findsNothing);
+    expect(find.byType(ActionChip), findsNWidgets(2));
+    expect(
+      find.byKey(SettingsCategoryPage.chipKey('advanced.backup')),
+      findsOneWidget,
+    );
     expect(content(SettingsCategory.advanced), findsOneWidget);
   });
 

@@ -140,9 +140,7 @@ void main() {
     );
   });
 
-  testWidgets('single-section categories have no section links', (
-    tester,
-  ) async {
+  testWidgets('categories link to their sections', (tester) async {
     await pumpTwoPane(tester);
 
     expect(
@@ -150,8 +148,8 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(SettingsNavPane.sectionKey('advanced.main')),
-      findsNothing,
+      find.byKey(SettingsNavPane.sectionKey('advanced.backup')),
+      findsOneWidget,
     );
   });
 
