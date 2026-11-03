@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Opening an invalid ROM while a game is running no longer ends that game without saving
+- Fixed colors in vertically flipped 8x16 sprites
 - DMA reads now handle bus conflicts like real hardware
 - Improved DMC DMA accuracy
 - Improved PPU read/write timing

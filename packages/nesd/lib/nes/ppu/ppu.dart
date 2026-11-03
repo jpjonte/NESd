@@ -2346,12 +2346,10 @@ class PPU {
 
     final patternTable = bigSprites ? (tileIndex & 1) : PPUCTRL_S;
 
-    final addressOffset = bigSprites && !isBigSpriteSecondTile ? 8 : 0;
-
     final base = (patternTable & 1) << 12;
 
-    final lowAddress = base | (tile << 4) | (fineY + addressOffset);
-    final highAddress = base | (tile << 4) | (fineY + 8 - addressOffset);
+    final lowAddress = base | (tile << 4) | (fineY & 0x7);
+    final highAddress = lowAddress | 0x8;
 
     final output = _spriteOutputs[sprite];
 
