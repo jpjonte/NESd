@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -20,6 +19,8 @@ import 'package:nesd/ui/settings/settings.dart';
 import 'package:nesd/ui/settings/shared_preferences.dart';
 import 'package:nesd/ui/theme/light.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../helpers/fonts.dart';
 
 class _MockSharedPreferences extends Mock implements SharedPreferences {}
 
@@ -106,10 +107,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1920, 1080));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final fontLoader = FontLoader('Inter')
-      ..addFont(rootBundle.load('assets/fonts/Inter-Regular.ttf'));
-
-    await fontLoader.load();
+    await loadTestFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
 
     await tester.pumpWidget(
       ProviderScope(

@@ -27,6 +27,7 @@ import 'package:path/path.dart' as path;
 import 'package:riverpod/misc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/fonts.dart';
 import 'base_robot.dart';
 import 'emulator/emulator_robot.dart';
 import 'emulator/main_menu/main_menu_robot.dart';
@@ -117,12 +118,12 @@ class Robot extends BaseRobot {
       buildNumber: '1337',
     );
 
-    await _loadFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
-    await _loadFont('Ubuntu Mono', [
+    await loadTestFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
+    await loadTestFont('Ubuntu Mono', [
       'assets/fonts/UbuntuMono-Regular.ttf',
       'assets/fonts/UbuntuMono-Italic.ttf',
     ]);
-    await _loadFont('MaterialIcons', [
+    await loadTestFont('MaterialIcons', [
       '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
     ]);
 
@@ -216,17 +217,5 @@ class Robot extends BaseRobot {
         File(filename).writeAsBytesSync(bytes.buffer.asUint8List());
       }
     });
-  }
-
-  Future<void> _loadFont(String family, List<String> fontFiles) async {
-    final fontLoader = FontLoader(family);
-
-    for (final fontFile in fontFiles) {
-      final fontData = rootBundle.load(fontFile);
-
-      fontLoader.addFont(fontData);
-    }
-
-    await fontLoader.load();
   }
 }

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,16 +11,39 @@ Future<void> loadAppFonts() async {
       '$flutterRoot/bin/cache/artifacts/material_fonts/'
       'MaterialIcons-Regular.otf';
 
-  await _loadFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
-  await _loadFont('MaterialIcons', [materialIcons]);
+  await loadTestFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
+  await loadTestFont('MaterialIcons', [materialIcons]);
 }
 
-Future<void> _loadFont(String family, List<String> fontFiles) async {
-  final fontLoader = FontLoader(family);
+Future<void> loadTestFont(String family, List<String> fontFiles) async {
+  await TestWidgetsFlutterBinding.instance.runAsync(() async {
+    final systemFonts = PaintingBinding.instance.systemFonts;
+    final delivered = Completer<void>();
 
-  for (final fontFile in fontFiles) {
-    fontLoader.addFont(rootBundle.load(fontFile));
-  }
+    var pending = fontFiles.length;
 
-  await fontLoader.load();
+    void onFontsChange() {
+      pending--;
+
+      // only return when all fonts have been loaded
+      if (pending == 0) {
+        delivered.complete();
+      }
+    }
+
+    systemFonts.addListener(onFontsChange);
+
+    try {
+      final fontLoader = FontLoader(family);
+
+      for (final fontFile in fontFiles) {
+        fontLoader.addFont(rootBundle.load(fontFile));
+      }
+
+      await fontLoader.load();
+      await delivered.future;
+    } finally {
+      systemFonts.removeListener(onFontsChange);
+    }
+  });
 }
