@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added support for Nanjing FC-001 (Mapper 163)
 - Added support for Jaleco J87 (Mapper 87)
 - Settings export and import
+- Added support for CNROM with CHR-ROM copy protection (Mapper 185)
 
 ### Fixed
 - Opening an invalid ROM while a game is running no longer ends that game without saving

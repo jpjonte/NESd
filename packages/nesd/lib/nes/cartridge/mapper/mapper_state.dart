@@ -9,6 +9,7 @@ import 'package:nesd/nes/cartridge/mapper/color_dreams_state.dart';
 import 'package:nesd/nes/cartridge/mapper/fme7_state.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper176_state.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper185_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper34_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper45_state.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper87_state.dart';
@@ -64,6 +65,7 @@ abstract class MapperState {
       87 => Mapper87State.deserialize(reader),
       163 => NanjingFC001State.deserialize(reader),
       176 => Mapper176State.deserialize(reader),
+      185 => Mapper185State.deserialize(reader),
       206 => Namco108State.deserialize(reader),
       256 => VT02State.deserialize(reader, 256),
       _ => throw UnsupportedMapper(id, 0),
