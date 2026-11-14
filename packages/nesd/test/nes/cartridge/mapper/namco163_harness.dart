@@ -8,16 +8,19 @@ import 'package:nesd/ui/file_picker/file_system/filesystem_file.dart';
 
 import '../../../ui/mocks.dart';
 
-/// Minimal in-memory iNES image with mapper 19, 128 KB PRG and 64 KB CHR.
-///
-/// PRG and CHR banks are filled with unique values so they can be
-/// distinguished.
-Uint8List buildNamco163Rom() {
+Uint8List buildNamco163Rom({bool batteryOnly = false}) {
   const prgBanks = 8;
   const chrBanks = 8;
 
   final rom = Uint8List(16 + prgBanks * 0x4000 + chrBanks * 0x2000)
     ..setAll(0, const [0x4e, 0x45, 0x53, 0x1a, prgBanks, chrBanks, 0x30, 0x10]);
+
+  if (batteryOnly) {
+    rom
+      ..[6] = 0x32
+      ..[7] = 0x18
+      ..[10] = 0x70;
+  }
 
   const prgStart = 16;
   const chrStart = prgStart + prgBanks * 0x4000;
@@ -37,8 +40,8 @@ Uint8List buildNamco163Rom() {
   return rom;
 }
 
-Namco163 buildNamco163() {
-  final rom = buildNamco163Rom();
+Namco163 buildNamco163({bool batteryOnly = false}) {
+  final rom = buildNamco163Rom(batteryOnly: batteryOnly);
 
   final cartridge = CartridgeFactory(database: MockNesDatabase()).fromFile(
     const FilesystemFile(
