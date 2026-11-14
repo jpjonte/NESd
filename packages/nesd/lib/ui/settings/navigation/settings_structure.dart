@@ -9,6 +9,7 @@ import 'package:nesd/ui/settings/audio/low_pass_filter_switch.dart';
 import 'package:nesd/ui/settings/audio/mixer_sliders.dart';
 import 'package:nesd/ui/settings/audio/swap_duty_cycles_switch.dart';
 import 'package:nesd/ui/settings/audio/volume_slider.dart';
+import 'package:nesd/ui/settings/backup/backup_buttons.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/controls/controls_settings.dart';
 import 'package:nesd/ui/settings/controls/gamepad_slots.dart';
@@ -567,6 +568,24 @@ final _advanced = [
       SettingsEntry(
         title: 'View log',
         builder: (_, _) => const ViewLogButton(),
+      ),
+    ],
+  ),
+  SettingsSection(
+    id: 'advanced.backup',
+    title: 'Backup',
+    items: [
+      SettingsEntry(
+        title: 'Export settings…',
+        builder: (_, _) => const ExportSettingsButton(),
+      ),
+      SettingsEntry(
+        title: 'Import settings…',
+        builder: (_, _) => const ImportSettingsButton(),
+      ),
+      SettingsEntry(
+        title: 'Reset to defaults',
+        builder: (_, _) => const ResetSettingsButton(),
       ),
     ],
   ),

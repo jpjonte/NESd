@@ -10,6 +10,7 @@ import 'package:nesd/ui/emulator/video_filter/video_filter.dart';
 import 'package:nesd/ui/file_picker/file_system/filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/memory_storage_filesystem.dart';
 import 'package:nesd/ui/file_picker/file_system/storage_filesystem.dart';
+import 'package:nesd/ui/settings/backup/backup_buttons.dart';
 import 'package:nesd/ui/settings/controls/binding_tile.dart';
 import 'package:nesd/ui/settings/debug/debug_overlay_switch.dart';
 import 'package:nesd/ui/settings/graphics/crt_filter_sliders.dart';
@@ -83,11 +84,12 @@ void main() {
     expect(find.text('Filters'), findsOneWidget);
   });
 
-  testWidgets('a single-section category shows no header', (tester) async {
+  testWidgets('the advanced category shows its backup section', (tester) async {
     await pumpContent(tester, SettingsCategory.advanced);
 
-    expect(find.byType(SettingsSectionHeader), findsNothing);
+    expect(find.byType(SettingsSectionHeader), findsNWidgets(2));
     expect(find.byType(DebugOverlaySwitch), findsOneWidget);
+    expect(find.byType(ExportSettingsButton), findsOneWidget);
   });
 
   testWidgets('entries with visibleWhen follow the setting', (tester) async {

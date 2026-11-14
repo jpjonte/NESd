@@ -764,9 +764,70 @@ class SettingsController extends _$SettingsController {
     wideTouchInputConfig: defaultLandscapeConfig,
   );
 
-  Settings _loadFrom(String raw) {
-    final json = jsonDecode(raw) as Map<String, dynamic>;
+  int importBackup(Map<String, dynamic> backup) {
+    final current = state;
+    final currentJson =
+        jsonDecode(jsonEncode(current.toJson())) as Map<String, dynamic>;
 
+    final read = _read({...currentJson, ...backup}, fallback: currentJson);
+    final skipped = read.dropped.length + read.droppedBindings;
+
+    log.settings.info(
+      'Settings imported',
+      context: {
+        if (read.dropped.isNotEmpty) 'dropped': read.dropped,
+        if (read.droppedBindings > 0) 'droppedBindings': read.droppedBindings,
+      },
+    );
+
+    _replace(_keepDeviceSpecific(read.settings, current));
+
+    return skipped;
+  }
+
+  void resetToDefaults() {
+    log.settings.info('Settings reset to defaults');
+
+    _replace(_keepDeviceSpecific(_defaultSettings(), state));
+  }
+
+  Settings _keepDeviceSpecific(Settings settings, Settings from) =>
+      settings.copyWith(
+        recentRoms: from.recentRoms,
+        recentRomPaths: from.recentRomPaths,
+        favoriteRoms: from.favoriteRoms,
+        lastRomPath: from.lastRomPath,
+      );
+
+  void _replace(Settings settings) {
+    NesdLog.instance.minimumLevel = settings.logLevel;
+
+    _update(settings);
+  }
+
+  Settings _loadFrom(String raw) {
+    final read = _read(jsonDecode(raw) as Map<String, dynamic>);
+
+    if (read.dropped.isNotEmpty || read.droppedBindings > 0) {
+      log.settings.warning(
+        'Some settings could not be read and were reset to defaults',
+        context: {
+          if (read.dropped.isNotEmpty) 'dropped': read.dropped,
+          if (read.droppedBindings > 0) 'droppedBindings': read.droppedBindings,
+          'settings': raw,
+        },
+      );
+
+      _recover(raw, 'Some settings could not be read and were reset');
+    }
+
+    return read.settings;
+  }
+
+  ({Settings settings, Map<String, String> dropped, int droppedBindings}) _read(
+    Map<String, dynamic> json, {
+    Map<String, dynamic> fallback = const {},
+  }) {
     final storedVersion = (json['bindingsVersion'] as num?)?.toInt() ?? 1;
 
     if (storedVersion < 3) {
@@ -777,21 +838,8 @@ class SettingsController extends _$SettingsController {
     _migrateVideoFilters(json);
 
     final dropped = <String, String>{};
-    final loaded = _parse(json, dropped);
+    final loaded = _parse(json, dropped, fallback);
     final droppedBindings = _droppedBindingCount(json['bindings'], loaded);
-
-    if (dropped.isNotEmpty || droppedBindings > 0) {
-      log.settings.warning(
-        'Some settings could not be read and were reset to defaults',
-        context: {
-          if (dropped.isNotEmpty) 'dropped': dropped,
-          if (droppedBindings > 0) 'droppedBindings': droppedBindings,
-          'settings': raw,
-        },
-      );
-
-      _recover(raw, 'Some settings could not be read and were reset');
-    }
 
     final recentRoms = _migrateRecentRoms(loaded.recentRomPaths);
 
@@ -819,29 +867,41 @@ class SettingsController extends _$SettingsController {
         ? _withSortDefaults(withScreenshotDefault)
         : withScreenshotDefault;
 
-    return loaded.copyWith(
+    final settings = loaded.copyWith(
       volume: loaded.volume.clamp(0.0, 1.0),
       bindings: withSortDefaults,
       bindingsVersion: 6,
       recentRoms: loaded.recentRoms.isNotEmpty ? loaded.recentRoms : recentRoms,
     );
+
+    return (
+      settings: settings,
+      dropped: dropped,
+      droppedBindings: droppedBindings,
+    );
   }
 
-  Settings _parse(Map<String, dynamic> json, Map<String, String> dropped) {
+  Settings _parse(
+    Map<String, dynamic> json,
+    Map<String, String> dropped,
+    Map<String, dynamic> fallback,
+  ) {
     try {
       return Settings.fromJson(json);
     } on Object {
-      json.removeWhere((key, value) {
+      for (final key in json.keys.toList()) {
         try {
-          Settings.fromJson({key: value});
-
-          return false;
+          Settings.fromJson({key: json[key]});
         } on Object catch (e) {
           dropped[key] = e.toString();
 
-          return true;
+          if (fallback.containsKey(key)) {
+            json[key] = fallback[key];
+          } else {
+            json.remove(key);
+          }
         }
-      });
+      }
 
       // try parsing the whole object, caller handles throw
       return Settings.fromJson(json);
