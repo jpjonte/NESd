@@ -14,6 +14,7 @@ import 'package:nesd/nes/cartridge/mapper/dma_settings.dart';
 import 'package:nesd/nes/cartridge/mapper/fme7.dart';
 import 'package:nesd/nes/cartridge/mapper/gxrom.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper176.dart';
+import 'package:nesd/nes/cartridge/mapper/mapper185.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper34.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper45.dart';
 import 'package:nesd/nes/cartridge/mapper/mapper87.dart';
@@ -105,6 +106,7 @@ abstract class Mapper {
       118 => TxSROM(),
       163 => NanjingFC001(),
       176 => Mapper176(subMapperId),
+      185 => Mapper185(subMapperId),
       206 => Namco108(),
       256 => Mapper256(subMapperId),
       _ => throw UnsupportedMapper(mapperId, subMapperId),

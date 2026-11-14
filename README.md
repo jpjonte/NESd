@@ -136,7 +136,7 @@ All controls can be changed under **Settings → Controls**, including gamepads 
 
 <!-- game-counts:start -->
 
-NESd supports 3,670 games.
+NESd supports 3,681 games.
 
 <details>
 <summary>Supported mappers</summary>
@@ -172,6 +172,7 @@ NESd supports 3,670 games.
 - 152: Bandai discrete (5 games)
 - 163: Nanjing FC-001 (66 games)
 - 176: 8025 (344 games)
+- 185: CNROM with CHR-ROM protection (11 games)
 - 192: Waixing MMC3 (4 games)
 - 206: Namco 108 (63 games)
 - 241: BxROM with WRAM (13 games)
