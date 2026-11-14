@@ -6,10 +6,11 @@ import 'dart:ui' hide Color, Size;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:nesd/ui/theme/base.dart';
+
+import '../helpers/fonts.dart';
 
 const _output =
     'android/app/src/main/play/listings/en-US/graphics/feature-graphic';
@@ -32,10 +33,7 @@ void main() {
 
     addTearDown(tester.view.reset);
 
-    final fontLoader = FontLoader('Inter')
-      ..addFont(rootBundle.load('assets/fonts/Inter-Regular.ttf'));
-
-    await fontLoader.load();
+    await loadTestFont('Inter', ['assets/fonts/Inter-Regular.ttf']);
 
     await tester.pumpWidget(
       const MediaQuery(
