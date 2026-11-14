@@ -324,7 +324,7 @@ class PPU {
   bool sprite0OnNextLine = false;
   bool sprite0OnCurrentLine = false;
 
-  final _spriteOutputs = List.generate(8, (_) => SpriteOutput());
+  final _spriteOutputs = List.generate(64, (_) => SpriteOutput());
 
   int _spriteSyncX = 0;
 
@@ -341,11 +341,21 @@ class PPU {
 
   final Uint8List _blankSpriteLine = Uint8List(256);
 
+  bool removeSpriteLimit = false;
+
+  int _spriteSlotCount = _hardwareSpriteSlots;
+
+  int _extraSpriteStart = 0x100;
+
+  static const _hardwareSpriteSlots = 8;
+
   void _resetSpriteLatches() {
     _oam2Address = 0;
     _oam2Frozen = false;
     _fetchedSpriteY = 0xff;
     _fetchedSpriteTile = 0xff;
+    _spriteSlotCount = _hardwareSpriteSlots;
+    _extraSpriteStart = 0x100;
     _maskDelay = 0;
     oamCorruptionSeed = 0;
     _dataReadDelay = 0;
@@ -400,7 +410,9 @@ class PPU {
     oamCorruptionSeed: oamCorruptionSeed,
     decay: decay,
     decayRefreshedAt: decayRefreshedAt,
-    spriteOutputs: _spriteOutputs.map((e) => e.state).toList(),
+    spriteOutputs: [
+      for (var i = 0; i < _hardwareSpriteSlots; i++) _spriteOutputs[i].state,
+    ],
   );
 
   set state(PPUState state) {
@@ -472,7 +484,7 @@ class PPU {
       decayRefreshedAt[bit] = state.decayRefreshedAt[bit];
     }
 
-    for (var i = 0; i < _spriteOutputs.length; i++) {
+    for (var i = 0; i < _hardwareSpriteSlots; i++) {
       _spriteOutputs[i].state = state.spriteOutputs[i];
 
       _buildSpritePixels(i);
@@ -1924,6 +1936,7 @@ class PPU {
       sprite0OnNextLine = false;
       secondarySpriteCount = 0;
       spriteEvalPhase = _spriteEvalY;
+      _extraSpriteStart = 0x100;
       _resetSpriteEvaluationRange();
     }
 
@@ -2015,6 +2028,7 @@ class PPU {
     if (OAMADDR < 4) {
       spriteEvalPhase = _spriteEvalDone;
     } else if (_oam2Frozen) {
+      _extraSpriteStart = (OAMADDR + 3) & 0x1fc;
       spriteEvalPhase = _spriteEvalScan0;
     } else {
       spriteEvalPhase = _spriteEvalY;
@@ -2071,6 +2085,7 @@ class PPU {
       _advanceSprites(256);
 
       spriteCount = scanline == _preRenderScanline ? 8 : secondarySpriteCount;
+      _spriteSlotCount = _hardwareSpriteSlots;
 
       // Only a fetch phase that starts with rendering on rewinds the address
       if (!_oam2Frozen) {
@@ -2104,10 +2119,39 @@ class PPU {
           ..x = x
           ..counter = x;
       case 4:
-        _loadSprite(sprite);
+        _loadSprite(sprite, _fetchedSpriteY, _fetchedSpriteTile);
       case 7:
         _advanceOam2();
+
+        if (sprite == 7 && removeSpriteLimit) {
+          _loadExtraSprites();
+        }
     }
+  }
+
+  void _loadExtraSprites() {
+    var slot = _hardwareSpriteSlots;
+
+    for (var address = _extraSpriteStart; address < 0x100; address += 4) {
+      final spriteY = oam[address];
+
+      if (!_spriteVisibleOnScanline(spriteY)) {
+        continue;
+      }
+
+      final x = oam[address + 3];
+
+      _spriteOutputs[slot]
+        ..attribute = _readOam(address + 2)
+        ..x = x
+        ..counter = x;
+
+      _loadSprite(slot, spriteY, oam[address + 1], peek: true);
+
+      slot++;
+    }
+
+    _spriteSlotCount = slot;
   }
 
   int get _spriteX {
@@ -2143,11 +2187,12 @@ class PPU {
     _spriteSyncX = x;
 
     final rendering = _spriteSyncRendering;
+    final slots = _spriteSlotCount;
 
     if (_spriteSkippedDot) {
       _spriteSkippedDot = false;
 
-      for (var i = 0; i < 8; i++) {
+      for (var i = 0; i < slots; i++) {
         final output = _spriteOutputs[i];
 
         if (rendering && output.shifted < 16) {
@@ -2162,7 +2207,7 @@ class PPU {
       dots--;
     }
 
-    for (var i = 0; i < 8; i++) {
+    for (var i = 0; i < slots; i++) {
       final output = _spriteOutputs[i];
 
       if (!output.opaque) {
@@ -2196,7 +2241,9 @@ class PPU {
       return;
     }
 
-    for (var i = 0; i < 8; i++) {
+    _spriteSlotCount = _hardwareSpriteSlots;
+
+    for (var i = 0; i < _hardwareSpriteSlots; i++) {
       _spriteOutputs[i].counter = 0;
     }
   }
@@ -2204,7 +2251,7 @@ class PPU {
   void _rasterizeSprites(int fromX) {
     _spriteLine.setRange(fromX, 256, _blankSpriteLine, fromX);
 
-    for (var i = 7; i >= 0; i--) {
+    for (var i = _spriteSlotCount - 1; i >= 0; i--) {
       final output = _spriteOutputs[i];
 
       if (!output.opaque) {
@@ -2306,12 +2353,17 @@ class PPU {
     return spriteY <= scanline && spriteY >= _spriteRangeMinY;
   }
 
-  void _loadSprite(int sprite) {
-    _loadSpritePatterns(sprite);
+  void _loadSprite(
+    int sprite,
+    int spriteY,
+    int tileIndex, {
+    bool peek = false,
+  }) {
+    _loadSpritePatterns(sprite, spriteY, tileIndex, peek: peek);
 
     // The range check runs again during the fetch, with the sprite height
     // of that moment, and a sprite failing it loads no pixels.
-    final yOffset = (scanline & 0xff) - _fetchedSpriteY;
+    final yOffset = (scanline & 0xff) - spriteY;
     final height = PPUCTRL_H == 1 ? 16 : 8;
 
     final output = _spriteOutputs[sprite]..shifted = 0;
@@ -2327,15 +2379,18 @@ class PPU {
     _buildSpritePixels(sprite);
   }
 
-  void _loadSpritePatterns(int sprite) {
+  void _loadSpritePatterns(
+    int sprite,
+    int spriteY,
+    int tileIndex, {
+    required bool peek,
+  }) {
     final bigSprites = PPUCTRL_H == 1;
-    final tileIndex = _fetchedSpriteTile;
     final attribute = _spriteOutputs[sprite].attribute;
     final flipV = (attribute >> 7) > 0;
 
     // The comparison only has 8 bits, so the pre-render line counts as 5
-    final yOffset =
-        ((scanline & 0xff) - _fetchedSpriteY) & (bigSprites ? 0xf : 0x7);
+    final yOffset = ((scanline & 0xff) - spriteY) & (bigSprites ? 0xf : 0x7);
     final fineY = flipV ? (bigSprites ? 15 : 7) - yOffset : yOffset;
 
     final isBigSpriteSecondTile = yOffset < 8;
@@ -2356,7 +2411,9 @@ class PPU {
     if (spriteExtension) {
       final eva = (attribute >> 2) & 0x7;
 
-      _updateBusAddress(lowAddress);
+      if (!peek) {
+        _updateBusAddress(lowAddress);
+      }
 
       if (spriteFourBpp) {
         output
@@ -2366,7 +2423,9 @@ class PPU {
         output.patternLow = readEva2bpp(eva, lowAddress);
       }
 
-      _updateBusAddress(highAddress);
+      if (!peek) {
+        _updateBusAddress(highAddress);
+      }
 
       if (spriteFourBpp) {
         output
@@ -2380,17 +2439,29 @@ class PPU {
     }
 
     if (spriteFourBpp) {
-      _updateBusAddress(lowAddress);
+      if (!peek) {
+        _updateBusAddress(lowAddress);
+      }
 
       output
         ..patternLow = readFourBpp(_fourBppAddress(lowAddress, 0))
         ..patternLow2 = readFourBpp(_fourBppAddress(lowAddress, 1));
 
-      _updateBusAddress(highAddress);
+      if (!peek) {
+        _updateBusAddress(highAddress);
+      }
 
       output
         ..patternHigh = readFourBpp(_fourBppAddress(highAddress, 0))
         ..patternHigh2 = readFourBpp(_fourBppAddress(highAddress, 1));
+
+      return;
+    }
+
+    if (peek) {
+      output
+        ..patternLow = _peekPpuMemory(lowAddress)
+        ..patternHigh = _peekPpuMemory(highAddress);
 
       return;
     }

@@ -142,6 +142,7 @@ sealed class Settings with _$Settings {
     @Default(false) bool lowPassFilter,
     @Default(false) bool swapDutyCycles,
     @Default(true) bool oamCorruption,
+    @Default(false) bool removeSpriteLimit,
     @JsonKey(toJson: _mixerToJson, fromJson: _mixerFromJson)
     @Default(MixerSettings())
     MixerSettings mixer,
@@ -255,6 +256,12 @@ class SettingsController extends _$SettingsController {
 
   set oamCorruption(bool oamCorruption) {
     _update(state.copyWith(oamCorruption: oamCorruption));
+  }
+
+  bool get removeSpriteLimit => state.removeSpriteLimit;
+
+  set removeSpriteLimit(bool removeSpriteLimit) {
+    _update(state.copyWith(removeSpriteLimit: removeSpriteLimit));
   }
 
   MixerSettings get mixer => state.mixer;

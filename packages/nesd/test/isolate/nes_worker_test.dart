@@ -867,6 +867,21 @@ void main() {
     expect(nes.ppu.oamCorruption, isFalse);
   });
 
+  test('SetRemoveSpriteLimitCommand reaches the PPU', () async {
+    await worker.handleCommand(_loadRomCommand());
+    await waitFor<RomLoadedEvent>();
+
+    final nes = worker.nesForTesting!;
+
+    expect(nes.ppu.removeSpriteLimit, isFalse);
+
+    await worker.handleCommand(
+      const SetRemoveSpriteLimitCommand(enabled: true),
+    );
+
+    expect(nes.ppu.removeSpriteLimit, isTrue);
+  });
+
   test('SetMixerCommand reaches the APU', () async {
     await worker.handleCommand(_loadRomCommand());
     await waitFor<RomLoadedEvent>();

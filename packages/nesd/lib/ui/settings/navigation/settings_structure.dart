@@ -39,6 +39,7 @@ import 'package:nesd/ui/settings/graphics/palette/palette_preview.dart';
 import 'package:nesd/ui/settings/graphics/palette/palette_remove_button.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/pixel_aspect_ratio_slider.dart';
+import 'package:nesd/ui/settings/graphics/remove_sprite_limit_switch.dart';
 import 'package:nesd/ui/settings/graphics/renderer_selector.dart';
 import 'package:nesd/ui/settings/graphics/scaling_dropdown.dart';
 import 'package:nesd/ui/settings/graphics/screenshot_mode_dropdown.dart';
@@ -265,6 +266,11 @@ final _video = [
       SettingsEntry(
         title: 'Screenshots',
         builder: (_, _) => const ScreenshotModeDropdown(),
+      ),
+      SettingsEntry(
+        title: 'Remove Sprite Limit',
+        subtitle: RemoveSpriteLimitSwitch.subtitle,
+        builder: (_, _) => const RemoveSpriteLimitSwitch(),
       ),
     ],
   ),

@@ -140,6 +140,14 @@ NesController nesController(Ref ref) {
 
   ref.onDispose(oamCorruptionSubscription.close);
 
+  final removeSpriteLimitSubscription = ref.listen(
+    settingsControllerProvider.select((settings) => settings.removeSpriteLimit),
+    (_, enabled) => controller.nes?.removeSpriteLimit = enabled,
+    fireImmediately: true,
+  );
+
+  ref.onDispose(removeSpriteLimitSubscription.close);
+
   final mixerSubscription = ref.listen(
     settingsControllerProvider.select((settings) => settings.mixer),
     (_, mixer) => controller.nes?.mixer = mixer,
@@ -654,6 +662,7 @@ class NesController {
         ..turboSpeed = settingsController.turboSpeed
         ..swapDutyCycles = settingsController.swapDutyCycles
         ..oamCorruption = settingsController.oamCorruption
+        ..removeSpriteLimit = settingsController.removeSpriteLimit
         ..mixer = settingsController.mixer
         ..systemPalette = _systemPalette;
 
