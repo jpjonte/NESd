@@ -8,17 +8,21 @@ Spike branch for #243. **Never merges.** Design:
 
 ## SDK
 
-- Flutter: 3.47.0-1.0.pre-456 (channel master)
-- Dart: 3.14.0 (build 3.14.0-108.0.dev)
-- Commit: f69633edddff9f9a530c09824e05b6947e854d50
-- Pinned as: commit
+- Flutter: 3.50.0 (channel stable), inherited from `main`'s `.fvmrc`
+  since the 2026-11-14 rebase. The original pin (3.47.0-1.0.pre-456,
+  master, f69633ed) is preserved at `refs/backup/windowed-tools-pre-3.50`.
+- Windowing is still master-only in the 3.50 tool, so `FLUTTER_WINDOWING`
+  does nothing on stable; `main.dart` flips the framework flag itself
+  when built with `--dart-define=NESD_WINDOWING=true`.
 
 ## Run
 
-    FLUTTER_WINDOWING=true fvm flutter run -d macos --flavor dev
-    FLUTTER_WINDOWING=true fvm flutter run -d linux
+    fvm flutter run -d macos --flavor dev --dart-define=NESD_WINDOWING=true
+    fvm flutter run -d linux --dart-define=NESD_WINDOWING=true
     (macOS needs --flavor dev — see the first-interactive-run entry; Linux
-    takes no flavor, Flutter supports flavors only on Android/iOS/macOS.)
+    takes no flavor, Flutter supports flavors only on Android/iOS/macOS.
+    Entries below dated before 2026-11-14 use the old FLUTTER_WINDOWING
+    recipe from the master pin.)
 
 ## Observations
 
@@ -590,3 +594,38 @@ Spike branch for #243. **Never merges.** Design:
   platforms there are no errors and window input handling stays
   intact. The remaining flap is purely the main-side hold-to-repeat
   bug (#251's fix); the windowing side is stable under it.
+
+### 2026-11-14 — Rebase onto main at 3.50.0 stable
+
+- Tagged `architectural`: rebased onto `origin/main` @ 9976cb57 (711
+  commits). The pin commit's `.fvmrc`, `pubspec.lock` and
+  `analysis_options.yaml` changes were already on `main`; only this
+  file survives from it. The Podfile bump was dropped because `main`
+  moved to SPM and already targets macOS 12.0.
+- Tagged `architectural`: Flutter 3.50's release post ("Desktop
+  windowing") renames `RegularWindow` to `Window` and replaces
+  `sizedToContent` with `shrinkWrap`. The branch already used
+  `WindowController`/`WindowManager`/`WindowEntry`/`WindowRegistry`,
+  which kept their names, so none of the renames touch it. The
+  imports are still `package:flutter/src/...` `@internal`.
+- Tagged `architectural`: the 3.50 `flutter_tools` declares the
+  `windowing` feature `master: available` only. On stable,
+  `isEnabled()` returns false before reading any setting, and a
+  user `--dart-define=FLUTTER_ENABLED_FEATURE_FLAGS=...` is refused.
+  `isWindowingEnabled` is a mutable `@internal` global that
+  `WidgetsBinding.initInstances` reads, so `main()` sets it before
+  `ensureInitialized()` behind `NESD_WINDOWING`.
+- Tagged `architectural`: `tool_window.dart` now uses
+  `EmulatorTool.contentWidth`/`minHeight` (on `main` since #296)
+  instead of its local copies, and covers the new `display`/`audio`
+  tools.
+- Tagged `architectural`: `main` gained an exit save in
+  `AppController` (`onExitRequested`). The main window's `exit(0)` on
+  destroy would skip it, so `MainWindowDelegate.onWindowCloseRequested`
+  now asks for a cancelable `exitApplication`, which runs the save
+  first. `onWindowDestroyed` still calls `exit(0)` as a fallback.
+- Tagged `macOS`: the `NESD_WINDOWING=true` debug build launches on
+  the engine-owned window: main window 1280x720 content, the library
+  renders, a ROM loads and runs, and the in-game menu works. Opening
+  tool windows and the close-to-save path are still unchecked by hand.
+

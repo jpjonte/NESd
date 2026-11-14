@@ -35,7 +35,7 @@ class ToolWindow extends ConsumerWidget {
         body: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
-            width: toolContentWidth(tool),
+            width: tool.contentWidth,
             child: _content(tool, cartridgeInfo),
           ),
         ),
@@ -46,6 +46,8 @@ class ToolWindow extends ConsumerWidget {
 
 Widget _content(EmulatorTool tool, CartridgeInfo? cartridgeInfo) =>
     switch (tool) {
+      EmulatorTool.display ||
+      EmulatorTool.audio ||
       EmulatorTool.tileViewer ||
       EmulatorTool.cartridgeInfo ||
       EmulatorTool.apuDebug => SingleChildScrollView(
@@ -54,33 +56,3 @@ Widget _content(EmulatorTool tool, CartridgeInfo? cartridgeInfo) =>
       EmulatorTool.debugger ||
       EmulatorTool.executionLog => emulatorToolWidget(tool, cartridgeInfo),
     };
-
-// `EmulatorTool` on this branch's frozen base (main@bef1bd93) has no
-// `contentWidth`/`minHeight` members; those were added later upstream by
-// `#296 Register tool sizes in registry` (main commit 95c343b3), which
-// this never-merging experiment branch does not and will not carry. Since
-// `emulator_tool.dart` is out of scope for this task, the same per-tool
-// values from that commit are reproduced here instead, next to the two
-// places that need them (this file and windowed_tool_host.dart).
-
-const _standardToolWidth = 512.0;
-
-/// Content width for [tool], matching `CompactToolHost`'s per-tool widths
-/// so a tool looks the same panned in a compact tab as it does filling its
-/// own window.
-double toolContentWidth(EmulatorTool tool) => switch (tool) {
-  EmulatorTool.executionLog => executionLogWidth,
-  EmulatorTool.tileViewer ||
-  EmulatorTool.cartridgeInfo ||
-  EmulatorTool.debugger ||
-  EmulatorTool.apuDebug => _standardToolWidth,
-};
-
-/// Initial window content height for [tool].
-double toolMinHeight(EmulatorTool tool) => switch (tool) {
-  EmulatorTool.tileViewer => 480,
-  EmulatorTool.cartridgeInfo => 372,
-  EmulatorTool.apuDebug => 408,
-  EmulatorTool.debugger => 400,
-  EmulatorTool.executionLog => 400,
-};

@@ -1,6 +1,8 @@
 // ignore_for_file: implementation_imports, invalid_use_of_internal_member
 
+import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +39,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
 
 void main(List<String> arguments) async {
+  // The stable tool ignores FLUTTER_WINDOWING (the feature is master-only),
+  // so set the framework flag directly; the binding reads it on creation.
+  if (const bool.fromEnvironment('NESD_WINDOWING')) {
+    isWindowingEnabled = true;
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
 
   enableImmersiveMode();
@@ -214,6 +222,13 @@ Future<void> _migrateLinuxDevProfile(Directory applicationSupport) async {
 /// Quits the app when the main window is destroyed; tool windows must
 /// not keep the process alive.
 class MainWindowDelegate with WindowControllerDelegate {
+  // Destroying the window first would skip AppController's exit save; a
+  // cancelable exit runs it before the process ends.
+  @override
+  void onWindowCloseRequested(WindowController controller) => unawaited(
+    ServicesBinding.instance.exitApplication(AppExitType.cancelable),
+  );
+
   @override
   void onWindowDestroyed() => exit(0);
 }

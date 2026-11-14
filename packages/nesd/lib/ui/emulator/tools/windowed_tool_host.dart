@@ -75,11 +75,8 @@ void _open(
 ) {
   final entry = WindowEntry(
     controller: WindowController(
-      size: Size(toolContentWidth(tool), toolMinHeight(tool)),
-      constraints: BoxConstraints(
-        minWidth: toolContentWidth(tool),
-        minHeight: 200,
-      ),
+      size: Size(tool.contentWidth, tool.minHeight),
+      constraints: BoxConstraints(minWidth: tool.contentWidth, minHeight: 200),
       title: tool.title,
       delegate: _ToolWindowDelegate(
         onCloseRequested: () =>
