@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The file picker can be sorted by name, last played or last modified
 - Added support for Bandai discrete boards (Mappers 70 and 152)
 - Added support for Nanjing FC-001 (Mapper 163)
+- Added support for Jaleco J87 (Mapper 87)
 - Settings export and import
 
 ### Fixed
