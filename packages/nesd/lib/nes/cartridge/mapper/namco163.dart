@@ -207,13 +207,18 @@ class Namco163 extends Mapper {
         0x6000 + (i * 0x0800),
         0x67ff + (i * 0x0800),
         i,
-        type: CpuMemoryType.prgRam,
+        type: _prgRamType,
         access: _prgRamWriteProtect[i]
             ? MemoryAccess.read
             : MemoryAccess.readWrite,
       );
     }
   }
+
+  CpuMemoryType get _prgRamType =>
+      cartridge.hasBattery && cartridge.prgSaveRam.isNotEmpty
+      ? CpuMemoryType.prgSaveRam
+      : CpuMemoryType.prgRam;
 
   void _updatePrgBanks() {
     mapCpu(0x8000, 0x9fff, _prgBank0);

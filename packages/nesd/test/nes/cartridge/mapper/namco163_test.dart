@@ -81,6 +81,19 @@ void main() {
 
       expect(mapper.cpuRead(0x6000), 0x42);
     });
+
+    test('battery-only NES 2.0 boards map their PRG-NVRAM', () {
+      final mapper = buildNamco163(batteryOnly: true)
+        ..reset()
+        ..cpuWrite(0xf800, 0x40)
+        ..cpuWrite(0x6000, 0x42)
+        ..cpuWrite(0x7fff, 0x24);
+
+      expect(mapper.cpuRead(0x6000), 0x42);
+      expect(mapper.cpuRead(0x7fff), 0x24);
+      expect(mapper.cartridge.save(), isNotNull);
+      expect(mapper.cartridge.save()![0], 0x42);
+    });
   });
 
   group('scanline IRQ', () {
