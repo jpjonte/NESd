@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: de5ac590b8155e4e676088d714bd41ea620449a6adc0f7950c5073874b287ddb
+      sha256: "2fda90592c0afd219c5e285618a98da835cd10df38372666093d25dfe457a2d0"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.0"
+    version: "4.7.1"
   args:
     dependency: transitive
     description:
@@ -261,10 +261,10 @@ packages:
     dependency: transitive
     description:
       name: dwds
-      sha256: "20a0a43cb5ad9d88eced1c6266c0395a69904701466c0bc4a6c3de24be1567dc"
+      sha256: "6d7b931386a211398f6173ab2d29a8c45d48b1c54fa050a47b901d04ec1aacb8"
       url: "https://pub.dev"
     source: hosted
-    version: "27.1.4"
+    version: "27.2.1"
   equatable:
     dependency: transitive
     description:
@@ -850,4 +850,4 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.13.0 <4.0.0"
+  dart: ">=3.14.0-286.0.dev <4.0.0"
